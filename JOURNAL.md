@@ -150,3 +150,12 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
 - A trap door dropped an XL1 hero to Dlvl 5. The pace gate still allowed "descend" when monsters were near, so it fled to Dlvl 6 and then 7 and died to a pony.
   - Being too deep now always blocks descending and digging down.
   - At 4 or more levels past XL, a "head back upstairs" option appears.
+
+## 2026-09-29 14:19 PDT — Memory walls
+- One run waited for 7800 turns. Moves blocked by a peaceful hobbit had been recorded as blocked *floor* squares, and those walled the hero into the corner of a room.
+- Another run starved on Dlvl 1 by T11133 with an open doorway and unexplored corridor ends in view. They had been marked dead or "near" earlier.
+- Fixes:
+  - Only non-floor squares (doors, boulders) are ever recorded as blocked.
+  - When no options remain, level memory is wiped.
+  - After every 300 turns of fruitless hidden-passage searching, level memory is wiped and a "Re-explore this level" option is offered.
+- Spend so far: about 16.5k Jev calls, about $0.87.
