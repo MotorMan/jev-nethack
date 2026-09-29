@@ -159,3 +159,13 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
   - When no options remain, level memory is wiped.
   - After every 300 turns of fruitless hidden-passage searching, level memory is wiped and a "Re-explore this level" option is offered.
 - Spend so far: about 16.5k Jev calls, about $0.87.
+
+## 2026-09-29 15:02 PDT — The prayer clock leak (big one)
+- A fresh game believed its last prayer was on T26302, the previous game's clock. Every Weak and Fainting turn failed the prayer gate, and it fainted to death at T1932.
+- Cause: the resume check looked for "welcome back" in the last 5 messages, and message history survives across games. The old game's resume message matched, so the new game loaded the old game's prayer file.
+- Fixes:
+  - A prayer turn later than the current turn is discarded, both on load and at the gate.
+  - The resume check only reads the current screen.
+- This likely explains several earlier "fainted" deaths after a new game started.
+- The floating-eye/gas-spore corridor run starved at about T26000. Before that, Jev killed 3 gas spores with the kill-blocker option. Engraving Elbereth could not move the eyes, which were jammed against each other.
+- Nearby fresh corpses (under 10 steps, under 30 turns old) are now offered whenever Jev is not satiated, with the reason spelled out: Jev had been passing up corpses while "Not hungry".
