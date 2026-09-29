@@ -429,7 +429,10 @@ class Bot:
             if len(picked) == 3:
                 break
         downs = [p for p in snap.find('>') if p in dist or p == me]
-        if self.standing_on() == '>':
+        too_deep = s.get('dlvl', 1) >= (s.get('xl') or 1) + 3  # pace: Dlvl <= XL+2 (an XL1 died on Dlvl 5)
+        if too_deep and not near:
+            pass
+        elif self.standing_on() == '>':
             opts['descend'] = ('Go down the stairs', f"You are on the down staircase to Dlvl {s.get('dlvl', 0) + 1}.", lambda: self.act_keys('>', 'descended'))
         elif downs:
             opts['descend'] = ('Head for the downstairs', f"Walk to the known down staircase ({dist[downs[0]]} steps {compass(me, downs[0])}) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
