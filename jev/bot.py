@@ -381,6 +381,13 @@ class Bot:
             if p in lv.locked:
                 opts[f'kick_{d}'] = (f"Kick the locked door {DIR_NAME[d]}", 'Kick the locked door to break it open (may take several tries).', lambda d=d: self.act_kick(d))
 
+        for door in list(lv.locked)[:2]:
+            if cheb(door, me) <= 1:
+                continue
+            spots = [q for q in ((door[0] + dx, door[1] + dy) for dx, dy in DIRS.values() if not (dx and dy)) if q in dist]
+            if spots:
+                q = min(spots, key=dist.get)
+                opts[f'kickdoor_{door[0]}_{door[1]}'] = (f"Go kick open the locked door {compass(me, door)}", f"Walk {dist[q]} steps to the locked door {compass(me, door)} and kick it until it breaks (what lies behind is unexplored).", lambda q=q, door=door: self.act_kick_door(q, door))
         fr = self.frontiers(dist)
         picked = []
         for d, p in fr:
@@ -395,6 +402,9 @@ class Bot:
             opts['descend'] = ('Go down the stairs', f"You are on the down staircase to Dlvl {s.get('dlvl', 0) + 1}.", lambda: self.act_keys('>', 'descended'))
         elif downs:
             opts['descend'] = ('Head for the downstairs', f"Walk to the known down staircase ({dist[downs[0]]} steps {compass(me, downs[0])}) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
+        pick = next((it for it in self.inventory if re.search(r'pick-axe|dwarvish mattock', it['text'])), None)
+        if pick and not near and self.standing_on() not in ('<', '>', '_', '{'):
+            opts['dig_down'] = ('Dig down with the pick-axe', f"Apply {pick['text']} downward to dig a hole to Dlvl {s.get('dlvl', 0) + 1} (takes several turns; skips the rest of this level).", lambda l=pick['letter']: self.act_dig(l))
         if not near:
             hurt = s.get('hp', 1) < s.get('hpmax', 1)
             opts['rest'] = ('Rest and search 15 turns' if hurt else 'Search here 15 turns', 'Stay put for up to 15 turns: regain HP and find hidden doors next to you. Interrupted if a monster appears.', lambda: self.act_search(15))
@@ -615,6 +625,39 @@ class Bot:
         self.read_inventory()
         return f'picked up {item}'
 
+    def act_dig(self, letter):
+        weapon = next((it['letter'] for it in self.inventory if 'weapon in' in it['text'] and it['letter'] != letter), None)
+        dl = self.snap.status.get('dlvl')
+        self.t.send('a' + letter)
+        for _ in range(4):
+            top = self.t.lines()[0]
+            if 'direction' in top:
+                self.t.send('>', timeout=10)
+                break
+            if 'You are now wielding' in top or '--More--' in '\n'.join(self.t.lines()):
+                self.t.send('\r')
+            else:
+                break
+        self.t.pump(3)
+        self.observe()
+        new = self.snap.status.get('dlvl')
+        if weapon:
+            self.t.send('w' + weapon)
+            self.observe()
+        self.read_inventory()
+        return f'dug through to Dlvl {new}' if new != dl else 'dug but did not fall through (interrupted?)'
+
+    def act_kick_door(self, spot, door):
+        r = self.act_go(spot)
+        if self.snap.me != spot:
+            return 'going to the locked door: ' + r
+        d = DIR_OF[(door[0] - spot[0], door[1] - spot[1])]
+        for i in range(6):
+            self.act_kick(d)
+            if door not in self.level().locked or self.hostile_glyphs():
+                break
+        return 'kicked the door open' if door not in self.level().locked else 'kicked the door; still shut'
+
     def act_kick(self, d):
         self.t.send('\x04' + d)
         self.observe()
@@ -781,6 +824,6 @@ class Bot:
                 run=dict(id=self.run['id'], started=self.run['started'], character=self.run['character'],
                          max_dlvl=self.run['max_dlvl'], decisions=self.run['decisions']) if self.run else None,
                 runs=list(self.runs), inventory=list(self.inventory),
-                level=dict(dlvl=snap.status.get('dlvl', 0), explored=len(self.level().near) if self.run and snap else 0,
+                level=dict(dlvl=snap.status.get('dlvl', 0), explored=min(1.0, sum(1 for l in snap.lines[MAP_TOP:MAP_BOT + 1] for c in l if c != ' ') / 700),  # ponytail: ~700 drawn cells is a typical fully seen level
                            downstairs=bool(snap.find('>')), upstairs=bool(snap.find('<'))) if snap and self.run else None,
             )
