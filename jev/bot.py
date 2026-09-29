@@ -387,7 +387,7 @@ class Bot:
             for it in self.inventory:
                 if re.search(r'food ration|cram|lembas|biscuit|pancake|apple|orange|banana|melon|carrot|egg|\btins? of|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen', it['text']) and not any(n in it['text'] for n in NEVER_EAT) \
                         and not re.search(r'potion|gem|stone|glass|spellbook|wand|ring|scroll|amulet|opener', it['text']):
-                    opts[f"eat_{it['letter']}"] = (f"Eat {it['text']}", f"Eat item {it['letter']} from your pack.", lambda l=it['letter']: self.act_eat(l))
+                    opts[f"eat_{it['letter']}"] = (f"Eat {it['text']}", f"You are {s.get('hunger')}: eat item {it['letter']} from your pack now, before you weaken and faint (fainting next to a monster is how most of your games have ended).", lambda l=it['letter']: self.act_eat(l))
             here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in NEVER_EAT)]
             age = s.get('turn', 0) - lv.corpses.get(me, s.get('turn', 0))
             fresh = [p for p, t0 in lv.corpses.items() if p != me and p in dist and s.get('turn', 0) - t0 < 30 and dist[p] < 25]
@@ -441,9 +441,9 @@ class Bot:
         pick = next((it for it in self.inventory if re.search(r'pick-axe|dwarvish mattock', it['text'])), None)
         if pick and not near and self.standing_on() not in ('<', '>', '_', '{'):
             opts['dig_down'] = ('Dig down with the pick-axe', f"Apply {pick['text']} downward to dig a hole to Dlvl {s.get('dlvl', 0) + 1} (takes several turns; skips the rest of this level).", lambda l=pick['letter']: self.act_dig(l))
-        if not near:
-            hurt = s.get('hp', 1) < s.get('hpmax', 1)
-            opts['rest'] = ('Rest and search 15 turns' if hurt else 'Search here 15 turns', 'Stay put for up to 15 turns: regain HP and find hidden doors next to you. Interrupted if a monster appears.', lambda: self.act_search(15))
+        # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
+        if not near and s.get('hp', 1) < 0.7 * s.get('hpmax', 1):
+            opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
         if not fr and not downs and not near:
             spot = self.search_spot(dist)
             if spot:
@@ -492,7 +492,7 @@ class Bot:
         """Remember the glyph we stepped onto and what lies here."""
         snap = self.observe()
         key = (snap.status.get('dlvl'), snap.me)
-        if snap.me != before.me and before.at(*snap.me):
+        if snap.me and snap.me != before.me and before.at(*snap.me):
             g = before.at(*snap.me).ch
             if g in '<>_{':
                 self.run['under'][key] = g
