@@ -143,3 +143,10 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
 - Now that decisions log the full screen, a simulation showed the doors were reachable. Remembered level state (dead/blocked targets, and only the first two entries of the locked set) had hidden them from the option list.
 - Fix: each turn, scan the screen for closed doors that have blank (unexplored) space beside them, and offer "Go through the closed door". It opens the door and kicks only if it is locked.
 - Also: adjacent unseen creatures (I) can now be fought (a blinded T124 death), and a first prayer for low HP is allowed from T150.
+
+## 2026-09-29 13:47 PDT — Doors work; spores and trap doors
+- The new closed-door option is in use: across several runs the log shows "opened the door" and "kicked the door open" 7 times.
+- A gas spore killed next to a shopkeeper angered him, and he zapped a wand for the kill. Gas spores are now passive, like floating eyes (avoided, thrown at, never meleed), and the threat text warns about the explosion.
+- A trap door dropped an XL1 hero to Dlvl 5. The pace gate still allowed "descend" when monsters were near, so it fled to Dlvl 6 and then 7 and died to a pony.
+  - Being too deep now always blocks descending and digging down.
+  - At 4 or more levels past XL, a "head back upstairs" option appears.
