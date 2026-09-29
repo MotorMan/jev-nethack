@@ -915,7 +915,29 @@ class Bot:
             f"Map around you (@ is you; # corridor, + or orange | - doors, < > stairs, letters are monsters):\n{snap.crop()}\n"
         )
 
+    def follow_guard(self):
+        """Vault guard escort, scripted and Jev-free: drop the gold, then stay next to the guard until he has led us out."""
+        turn = self.snap.status.get('turn') or 0
+        if not any('follow me' in m['text'] and turn - m['turn'] <= 60 for m in self.messages[-20:]):
+            return False
+        me, lines = self.snap.me, self.snap.lines
+        guards = [(x, y) for y in range(MAP_TOP, MAP_BOT + 1) for x, c in enumerate(lines[y])
+                  if c == '@' and (x, y) != me and cheb(me, (x, y)) <= 8]
+        if not guards:
+            return False
+        g = min(guards, key=lambda p: cheb(me, p))
+        if self.snap.status.get('gold'):
+            r = self.act_keys('d$', 'dropped the gold for the guard')
+        elif cheb(me, g) <= 1:
+            r = self.act_keys('s', 'waited for the guard')
+        else:
+            r = 'following the guard: ' + self.act_go(g, steps=1, adjacent_ok=True)
+        self.log(f'T{turn} vault guard -> {r}')
+        return True
+
     def decide(self):
+        if self.follow_guard():
+            return
         opts, mons = self.build_options()
         state = self.state_text(mons)
         question = ('Choose the single best action for the Valkyrie right now. Staying alive comes first; after that, '

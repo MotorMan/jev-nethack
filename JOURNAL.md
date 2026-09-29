@@ -188,3 +188,6 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
 
 ## 2026-09-29 16:14 — Vault guard and a loop guard
 A closet vault's guard asked "Hello stranger, who are you?" and Jev's movement keys kept landing in the text prompt, burning a paid call each time. top_prompt now recognizes the `?" -` prompt, and the answer is backspaces plus "Jev". A general guard also runs now: 15 Jev calls in a row without the game turn moving trigger Esc plus a redraw. At 40 the bot pauses itself (shown as PAUSED in the UI and watcher) instead of spending more. A single-option decision never calls Jev.
+
+## 2026-09-29 16:16 — The guard escort
+With the name prompt answered, the next vault visit ended with "killed by a guard". Jev never dropped the gold and kept bumping into the guard until he turned hostile. Escorts now run as a scripted routine with no Jev calls: when a "follow me" message is less than 60 turns old and an @ stands within 8 squares, drop the gold (d$), wait whenever adjacent to the guard, and otherwise step toward him. Also learned: SIGHUP only saves the game, so a restart needs TERM plus a wait for the process to exit. My earlier "restart" had left the old code running.
