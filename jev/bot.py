@@ -43,6 +43,7 @@ class Level:
         self.blocked = set()   # squares that turned out impassable (locked doors, boulders we could not push)
         self.locked = set()
         self.dead = set()      # exploration targets we gave up on
+        self.traps = set()     # trap doors, holes, level teleporters: never path through (survives memory wipes)
         self.resets = 0        # times near/dead/blocked were wiped after fruitless searching
         self.corpses = {}      # square -> turn the corpse was first seen
 
@@ -50,6 +51,7 @@ class Level:
 class Bot:
     def __init__(self, launcher, jev, mode='local'):
         self.fresh = False  # operator asked for a brand-new game
+        self.refused_trap = False
         self.avoid = set()  # squares never to step into (floating eyes, molds)
         self.launcher, self.jev, self.mode = launcher, jev, mode
         self.lock = threading.Lock()
@@ -138,6 +140,11 @@ class Bot:
         rules = [('Really attack', 'n'), ('pray', 'y'), ('no return', 'n'), ('possessions identified', 'n'),
                  ('Stop eating', 'y'), ('Continue eating', 'n'), ('add to the current engraving', 'n'),
                  ('Do you want to keep the save file', 'n'), ('Dump core', 'n'), ('eat it', 'n')]
+        if 'really step onto' in q.lower():  # paranoid trap confirmation: only drops and teleports are refused
+            bad = re.search(r'trap door|hole|level teleporter|magic portal|polymorph|fire', q, re.I)
+            if bad:
+                self.refused_trap = True
+            return 'n' if bad else 'y'
         for pat, ans in rules:
             if pat.lower() in q.lower():
                 if pat == 'Really attack' and self.snap:
@@ -190,7 +197,7 @@ class Bot:
                 continue
             for (dx, dy) in DIRS.values():
                 q = (p[0] + dx, p[1] + dy)
-                if q in lv.blocked or q in self.avoid or not snap.walkable(*q):
+                if q in lv.blocked or q in lv.traps or q in self.avoid or not snap.walkable(*q):
                     continue
                 if dx and dy and (not snap.diag_ok(p, q) or (p == start and self.standing_on() == 'door')):
                     continue
@@ -447,8 +454,8 @@ class Bot:
         if not near:
             for it in self.inventory:
                 t = it['text']
-                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t:
-                    opts[f"wear_{it['letter']}"] = (f"Wear {t}", "Put on this armor (takes a few turns; may be cursed if unidentified).", lambda l=it['letter']: self.act_keys('W' + l, 'wore armor'))
+                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and t not in self.run.setdefault('unwearable', set()):
+                    opts[f"wear_{it['letter']}"] = (f"Wear {t}", "Put on this armor (takes a few turns; may be cursed if unidentified).", lambda it=it: self.act_wear(it))
 
         for d, p in [(k, (me[0] + v[0], me[1] + v[1])) for k, v in DIRS.items() if not (v[0] and v[1])]:
             if p in lv.locked:
@@ -529,9 +536,12 @@ class Bot:
             for c in set(streak):
                 if len(opts) > 1:
                     opts.pop(c, None)
+        if not opts and downs and too_deep and lv.resets:  # the pace gate is advice; being stuck forever is worse (a trap door once cut off the upstairs)
+            opts['descend'] = ('Take the downstairs anyway', f"Nothing else is reachable on this level. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
         if not opts:
             # nothing to do usually means level memory has walled us in (once for 7800 turns): forget it and look again
             lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
+            lv.resets += 1
             opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('s', 'waited'))
         return opts, mons
 
@@ -575,6 +585,15 @@ class Bot:
                 self.run['here'].pop(key, None)
         return snap
 
+    def act_wear(self, it):
+        self.act_keys('W' + it['letter'], '')
+        self.read_inventory()
+        now = next((i['text'] for i in self.inventory if i['letter'] == it['letter']), '')
+        if 'being worn' in now:
+            return 'wore armor'
+        self.run['unwearable'].add(it['text'])  # wrong slot taken, two-handed weapon, too big...: stop offering it
+        return 'could not wear it: ' + (self.run['recent'][-1] if self.run['recent'] else '')
+
     def act_keys(self, keys, what):
         before = self.snap
         self.t.send(keys)
@@ -604,8 +623,12 @@ class Bot:
                 return f'no path after {taken} steps'
             before = self.snap
             nmsg = len(self.messages)
+            self.refused_trap = False
             self.t.send(d)
             snap = self.after_move(before)
+            if self.refused_trap:
+                self.level().traps.add((me[0] + DIRS[d][0], me[1] + DIRS[d][1]))
+                return f'stopped after {taken} steps: a known trap door or teleporter lies on the path'
             taken += 1
             news = [m['text'] for m in self.messages[nmsg:]]
             if any('locked' in m for m in news):
