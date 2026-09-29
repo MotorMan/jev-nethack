@@ -882,7 +882,7 @@ class Bot:
             self.history.append(h)
             del self.history[:-200]
         with open(os.path.join(self.run_dir, 'decisions.jsonl'), 'a') as f:
-            f.write(json.dumps(dict(h, state=state, criteria=criteria, answers=answers, model=meta.get('model'))) + '\n')
+            f.write(json.dumps(dict(h, state=state, criteria=criteria, answers=answers, model=meta.get('model'), screen=self.snap.lines)) + '\n')
         self.log(f"T{h['turn']} {key} p={h['p']:.2f} -> {outcome}")
 
     # ---------- lifecycle ----------
