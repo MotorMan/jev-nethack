@@ -435,13 +435,19 @@ class Bot:
             if p in lv.locked:
                 opts[f'kick_{d}'] = (f"Kick the locked door {DIR_NAME[d]}", 'Kick the locked door to break it open (may take several tries).', lambda d=d: self.act_kick(d))
 
-        for door in list(lv.locked)[:2]:
-            if cheb(door, me) <= 1:
-                continue
-            spots = [q for q in ((door[0] + dx, door[1] + dy) for dx, dy in DIRS.values() if not (dx and dy)) if q in dist]
-            if spots:
+        # closed doors read off the screen each turn: level memory alone once left three doors unexplored for 10000 turns
+        doors = []
+        for door in snap.find('+'):
+            orth = [(door[0] + dx, door[1] + dy) for dx, dy in DIRS.values() if not (dx and dy)]
+            spots = [q for q in orth if q in dist]
+            if snap.is_door(*door) and spots and any(snap.at(*q) is not None and snap.at(*q).ch == ' ' for q in orth):
                 q = min(spots, key=dist.get)
-                opts[f'kickdoor_{door[0]}_{door[1]}'] = (f"Go kick open the locked door {compass(me, door)}", f"Walk {dist[q]} steps to the locked door {compass(me, door)} and kick it until it breaks (what lies behind is unexplored).", lambda q=q, door=door: self.act_kick_door(q, door))
+                doors.append((dist[q], door, q))
+        for _, door, q in sorted(doors)[:2]:
+            if door in lv.locked and cheb(door, me) <= 1:
+                continue  # kick_<dir> covers it
+            what = 'locked door' if door in lv.locked else 'closed door'
+            opts[f'door_{door[0]}_{door[1]}'] = (f"Go through the {what} {compass(me, door)}", f"Walk {dist[q]} steps to the {what} {compass(me, door)}, open it (kicking it if locked). What lies behind is unexplored.", lambda q=q, door=door: self.act_kick_door(q, door))
         fr = self.frontiers(dist)
         picked = []
         for d, p in fr:
@@ -783,6 +789,14 @@ class Bot:
         if self.snap.me != spot:
             return 'going to the locked door: ' + r
         d = DIR_OF[(door[0] - spot[0], door[1] - spot[1])]
+        if door not in self.level().locked:
+            self.level().blocked.discard(door)
+            self.level().dead.discard(door)
+            r = self.act_go(door, steps=1)
+            if self.snap.at(*door).ch != '+':
+                return 'opened the door'
+            if door not in self.level().locked:
+                return 'door did not open: ' + r
         for i in range(6):
             self.act_kick(d)
             if door not in self.level().locked or self.hostile_glyphs():
