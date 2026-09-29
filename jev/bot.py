@@ -1,6 +1,6 @@
 """The play loop. Code reads the screen, lists legal concrete options and executes them;
 Jev chooses every option. No LLM anywhere."""
-import heapq, json, os, re, threading, time
+import glob, heapq, json, os, re, threading, time
 from datetime import datetime, timezone
 
 from .nh import (DIRS, DIR_OF, DIR_NAME, MAP_TOP, MAP_BOT, OBJECT_CHARS, Snapshot, top_prompt, messages_from)
@@ -47,6 +47,7 @@ class Level:
 
 class Bot:
     def __init__(self, launcher, jev, mode='local'):
+        self.fresh = False  # operator asked for a brand-new game
         self.avoid = set()  # squares never to step into (floating eyes, molds)
         self.launcher, self.jev, self.mode = launcher, jev, mode
         self.lock = threading.Lock()
@@ -867,6 +868,10 @@ class Bot:
                 time.sleep(self.delay_ms / 1000)
             self.phase = 'dead'
             self.t.close()
+            if self.fresh and self.mode == 'local':  # else SELF_RECOVER resumes the old game from its level/save files
+                for f in glob.glob(os.path.join(ROOT, 'nethack', 'lib', '*Jev.*')) + glob.glob(os.path.join(ROOT, 'nethack', 'lib', 'save', '*')):
+                    os.remove(f)
+            self.fresh = False
             self.end_run()
             self.touch()
             time.sleep(3)

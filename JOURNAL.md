@@ -93,3 +93,20 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
   - New "go eat the fresh corpse" option (corpses seen less than 30 turns ago).
 - Also added: monster difficulty and speed labels, taken from `monsters.h`, in Jev's state. At XL6
   it had been retreating from newts.
+
+## 2026-09-29 11:50 PDT — Stall hunting, round 3
+- Run 20260929-113929 died on T5429, Dlvl 4: "killed by an iguana, while fainted from lack of food".
+  Hunger is the main killer. Fresh corpses on the hero's square can now be eaten whenever the
+  hero isn't Satiated, and the strategy text tells Jev that food is scarce.
+- A **statue of a fox** was drawn as `d` and treated as a hostile, so Jev "waited" 736 times.
+  Statues found by farlook are now dropped from the monster list and marked impassable.
+- "You can't move diagonally out of an intact doorway": the `@` hides the doorway. Doorways under
+  the hero are now remembered, and that message also teaches it.
+- Kicking while sharing a square with a boulder ("not enough room to kick") made Jev alternate
+  kick/retreat on a frozen clock. Stall guard v2: after 4+ decisions on one turn, every option
+  tried during that streak is dropped.
+- "New game" never started a fresh game: SIGHUP saves, and SELF_RECOVER restores. The bot
+  now deletes the level/save files after closing when the operator asks for a new game. It also
+  had a waitpid race between the HTTP thread and the bot thread.
+- The resumed long game reached **Dlvl 8 by T11870** before I reset it.
+- Jev spend so far: about 5.6k calls, $0.28.

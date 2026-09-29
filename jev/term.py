@@ -84,8 +84,14 @@ class Term:
             except OSError:
                 break
             for _ in range(30):
-                if os.waitpid(self.pid, os.WNOHANG)[0]:
-                    self.alive = False
-                    return
+                try:
+                    if os.waitpid(self.pid, os.WNOHANG)[0]:
+                        break
+                except ChildProcessError:  # already reaped by another thread's close()
+                    break
                 time.sleep(0.1)
+            else:
+                continue
+            self.alive = False
+            return
         self.alive = False

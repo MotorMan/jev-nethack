@@ -3,7 +3,7 @@
     python -m jev.server              # local NetHack build in ./nethack
     python -m jev.server --hardfought # SSH to hardfought.org (see jev/hardfought.py)
 """
-import argparse, glob, json, os, threading, time
+import argparse, json, os, threading, time
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 from .bot import Bot, ROOT
@@ -89,10 +89,8 @@ def make_handler(bot):
                 bot.delay_ms = max(0, min(2000, int(body.get('delay_ms', 250))))
             elif a == 'new_game' and bot.t:
                 bot.log('operator requested a new game', 'warn')
+                bot.fresh = True
                 bot.t.close()
-                if bot.mode == 'local':  # else SELF_RECOVER resumes the old game from its level files
-                    for f in glob.glob(os.path.join(ROOT, 'nethack', 'lib', '*Jev.*')) + glob.glob(os.path.join(ROOT, 'nethack', 'lib', 'save', '*')):
-                        os.remove(f)
             else:
                 return self.send_json({'ok': False, 'error': 'unknown action'}, 400)
             bot.touch()
