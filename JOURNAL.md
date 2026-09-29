@@ -137,3 +137,9 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
   - Melee options now carry a "you are at X/Y HP" warning below 1/3 HP, and Elbereth is marked as the best move then.
   - Added a quaff-potion option at low HP.
   - "It hits" and "ghost touches" messages now flag an unseen attacker and offer Elbereth.
+
+## 2026-09-29 13:21 PDT — Doors nobody opened
+- Two runs starved on Dlvl 1: one reached T10981 praying off hunger every ~900 turns, the other died at T4048. Both spent thousands of turns on search_hidden while closed `+` doors sat in plain view.
+- Now that decisions log the full screen, a simulation showed the doors were reachable. Remembered level state (dead/blocked targets, and only the first two entries of the locked set) had hidden them from the option list.
+- Fix: each turn, scan the screen for closed doors that have blank (unexplored) space beside them, and offer "Go through the closed door". It opens the door and kicks only if it is locked.
+- Also: adjacent unseen creatures (I) can now be fought (a blinded T124 death), and a first prayer for low HP is allowed from T150.
