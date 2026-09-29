@@ -290,7 +290,7 @@ class Bot:
     def threat(self, m):
         """' (level 0, much weaker than you)' etc. from the species' base level vs our XL."""
         name = re.sub(r'^(tame|peaceful)\s+', '', m['name'])
-        name = re.sub(r'\s+called\s+.*$', '', name)
+        name = re.sub(r'\s+(called\s+.*|- .*)$', '', name)  # 'coyote - Overconfidentii Vulgaris'
         lv = MONSTERS.get(name)
         if not lv or m['pet']:
             return ''
@@ -476,12 +476,13 @@ class Bot:
         if not near and s.get('hp', 1) < 0.7 * s.get('hpmax', 1):
             opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
         if not fr and not downs:
-            molds = [m for m in hostiles if m['pos'] in self.avoid and 'floating eye' not in m['name'] and not (m['ch'] == 'e' and m['fg'] == 'blue')]
+            molds = [m for m in hostiles if m['pos'] in self.avoid and 'floating eye' not in m['name'] and not (m['ch'] == 'e' and m['fg'] == 'blue')
+                     and ('gas spore' not in m['name'] or s.get('hp', 0) >= 30)]  # its 4d6 blast is survivable at 30+ HP
             if molds:
                 self.avoid -= {m['pos'] for m in molds}
                 d2, _ = self.dijkstra()
                 self.avoid |= {m['pos'] for m in molds}
-                if any(m['pos'] in d2 for m in molds) and len(self.frontiers(d2)) > 0:
+                if any(m['pos'] in d2 for m in molds) and (len(self.frontiers(d2)) > 0 or len(d2) > len(dist) + 5):  # or it walls us in
                     m = min((m for m in molds if m['pos'] in d2), key=lambda m: d2[m['pos']])
                     opts['kill_blocker'] = (f"Kill the {m['name']} blocking the way", f"The {m['name']} {m['where']} blocks the only way to unexplored parts. Walk next to it and fight it (it hurts you passively when you hit it; stop if HP gets low).", lambda m=m: self.act_kill_blocker(m['pos']))
         if not fr and not downs and not near and sum(lv.searched.values()) >= 300 * (lv.resets + 1):
@@ -720,12 +721,13 @@ class Bot:
         if not me or cheb(me, pos) != 1:
             return 'going to the blocker: ' + r
         d = DIR_OF[(pos[0] - me[0], pos[1] - me[1])]
+        ch = self.snap.at(*pos).ch
         for i in range(10):
             g = self.snap.at(*pos)
-            if not g or g.ch != 'F' or self.snap.status.get('hp', 0) < 0.5 * self.snap.status.get('hpmax', 1):
+            if not g or g.ch != ch or self.snap.status.get('hp', 0) < 0.5 * self.snap.status.get('hpmax', 1):
                 break
             self.act_fight(d)
-        return 'killed the blocker' if (g := self.snap.at(*pos)) is None or g.ch != 'F' else f'fought the blocker {i + 1} times; it still stands'
+        return 'killed the blocker' if (g := self.snap.at(*pos)) is None or g.ch != ch else f'fought the blocker {i + 1} times; it still stands'
 
     def clear_line(self, a, b):
         """Nothing solid or alive between a and b (exclusive) on a straight line."""
