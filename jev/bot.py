@@ -366,6 +366,15 @@ class Bot:
             if m['dist'] == 1 and m['pos'] not in self.avoid:
                 d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
                 opts[f'attack_{d}'] = (f"Attack {m['name']} ({DIR_NAME[d]})", f"Melee the adjacent {m['name']} to the {DIR_NAME[d]}.", lambda d=d: self.act_fight(d))
+        missiles = [it for it in self.inventory if re.search(r'\b(daggers?|knife|knives|darts?|shuriken|spears?|javelins?)\b', it['text'])
+                    and 'weapon in' not in it['text'] and 'wielded' not in it['text'].replace('not wielded', '')]
+        if missiles:
+            for m in hostiles:
+                dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
+                if 1 <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
+                    d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
+                    it = missiles[0]
+                    opts[f'throw_{d}'] = (f"Throw {it['text']} at {m['name']}", f"Throw item {it['letter']} {DIR_NAME[d]} at {m['name']} {m['where']}. Safe way to hit monsters you must not melee (floating eyes, molds); pick it up again afterwards.", lambda l=it['letter'], d=d: self.act_throw(l, d))
         for m in near[:2]:
             if m['dist'] > 1 and m['pos'] in dist:
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
@@ -687,6 +696,29 @@ class Bot:
                 break
             self.act_fight(d)
         return 'killed the blocker' if (g := self.snap.at(*pos)) is None or g.ch != 'F' else f'fought the blocker {i + 1} times; it still stands'
+
+    def clear_line(self, a, b):
+        """Nothing solid or alive between a and b (exclusive) on a straight line."""
+        sx, sy = (b[0] > a[0]) - (b[0] < a[0]), (b[1] > a[1]) - (b[1] < a[1])
+        p = (a[0] + sx, a[1] + sy)
+        while p != b:
+            g = self.snap.at(*p)
+            if g is None or g.ch in '|-+ 0#' and not (g.ch == '#' and g.fg not in ('green', 'cyan')) or self.snap.is_monster(*p):
+                return False
+            p = (p[0] + sx, p[1] + sy)
+        return True
+
+    def act_throw(self, letter, d):
+        self.t.send('t')
+        if 'throw' in self.t.lines()[0].lower():
+            self.t.send(letter)
+        if 'direction' in self.t.lines()[0].lower():
+            self.t.send(d)
+        else:
+            self.t.send('\x1b')
+        self.observe()
+        self.read_inventory()
+        return f'threw item {letter} {DIR_NAME[d]}'
 
     def act_goto_corpse(self, p):
         r = self.act_go(p)
