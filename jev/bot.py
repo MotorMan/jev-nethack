@@ -393,8 +393,9 @@ class Bot:
             opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.', lambda: self.act_retreat(hostiles))
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.act_keys('<', 'went up'))
-        if (near or self.unseen_attacker()) and not self.engraved_here():
-            opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else ''), self.act_elbereth)
+        walled = len(dist) <= 3 and any(m['passive'] and m['dist'] == 1 for m in hostiles)  # boxed in by floating eyes
+        if (near or walled or self.unseen_attacker()) and not self.engraved_here():
+            opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
 
         if danger:
             for it in self.inventory:
