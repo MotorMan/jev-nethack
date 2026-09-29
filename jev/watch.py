@@ -35,7 +35,7 @@ def frame(s):
     lines.append(f"{DIM}{'─' * min(w, 80)}{RST}")
     opts = sorted(d.get('options') or [], key=lambda o: -(o.get('p') or 0))[:6]
     if d.get('pending'):
-        lines.append(f"{BOLD}Decision T{d.get('turn')}{RST}  {DIM}Jev is deciding between {len(opts)}+ options…{RST}")
+        lines.append(f"{BOLD}Decision T{d.get('turn')}{RST}  {DIM}Jev is deciding between {len(d.get('options') or [])} options…{RST}")
         opts = [dict(o, p=0) for o in opts]
     else:
         lines.append(f"{BOLD}Decision T{d.get('turn')}{RST}  confidence {d.get('confidence') or 0:.2f}  danger {d.get('danger') or 0:.2f}  {DIM}{d.get('latency_ms') or 0} ms{RST}")
