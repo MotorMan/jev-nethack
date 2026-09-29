@@ -296,7 +296,7 @@ class Bot:
             return ''
         d = lv[0] - (self.snap.status.get('xl') or 1) - 1
         rel = 'much weaker than you' if d <= -3 else 'weaker than you' if d < 0 else 'about your level' if d <= 1 else 'stronger than you' if d <= 4 else 'much stronger than you'
-        extra = {'floating eye': '; harmless, but never melee it (paralysis)', 'gas spore': '; explodes for 4d6 when killed: never melee it, throw things or walk away'}.get(name, '')
+        extra = {'floating eye': '; harmless, but never melee it (paralysis)', 'gas spore': '; explodes for 4d6 (up to 24 damage) when killed: throw things at it or walk away, melee only with 30+ HP'}.get(name, '')
         return f' (difficulty {lv[0]}, speed {lv[1]}, {rel}{extra})'
 
     # ---------- inventory ----------
@@ -378,6 +378,13 @@ class Bot:
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     it = missiles[0]
                     opts[f'throw_{d}'] = (f"Throw {it['text']} at {m['name']}", f"Throw item {it['letter']} {DIR_NAME[d]} at {m['name']} {m['where']}. Safe way to hit monsters you must not melee (floating eyes, molds); pick it up again afterwards.", lambda l=it['letter'], d=d: self.act_throw(l, d))
+        wand = next((it for it in self.inventory if re.search(r'\bwand\b', it['text'])), None)
+        if wand:  # walled in by floating eyes once for 13000 turns with an unknown wand in the pack
+            for m in hostiles:
+                dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
+                if m['passive'] and 1 <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
+                    d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
+                    opts[f'zap_{d}'] = (f"Zap {wand['text']} at {m['name']}", f"Zap wand {wand['letter']} {DIR_NAME[d]} at the {m['name']} {m['where']}. Unknown effect; many wands kill or move monsters, and it identifies the wand.", lambda l=wand['letter'], d=d: self.act_throw(l, d, 'z'))
         for m in near[:2]:
             if m['dist'] > 1 and m['pos'] in dist:
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
@@ -484,7 +491,9 @@ class Bot:
                 self.avoid |= {m['pos'] for m in molds}
                 if any(m['pos'] in d2 for m in molds) and (len(self.frontiers(d2)) > 0 or len(d2) > len(dist) + 5):  # or it walls us in
                     m = min((m for m in molds if m['pos'] in d2), key=lambda m: d2[m['pos']])
-                    opts['kill_blocker'] = (f"Kill the {m['name']} blocking the way", f"The {m['name']} {m['where']} blocks the only way to unexplored parts. Walk next to it and fight it (it hurts you passively when you hit it; stop if HP gets low).", lambda m=m: self.act_kill_blocker(m['pos']))
+                    why = (f"Its explosion does at most 24 damage and you have {s.get('hp')} HP, so you survive it" if 'gas spore' in m['name']
+                           else "It hurts you passively when you hit it; the fight stops if HP gets low")
+                    opts['kill_blocker'] = (f"Kill the {m['name']} blocking the way", f"The {m['name']} {m['where']} blocks the only way out: you are stuck here until it dies. Walk next to it and fight it. {why}.", lambda m=m: self.act_kill_blocker(m['pos']))
         if not fr and not downs and not near and sum(lv.searched.values()) >= 300 * (lv.resets + 1):
             # searched a long time for nothing: level memory may be hiding real exits (a starved run had an open doorway in view)
             lv.resets += 1
@@ -492,7 +501,7 @@ class Bot:
             fr = self.frontiers(dist)
             if fr:
                 opts['explore_again'] = ('Re-explore this level', f"Searching found nothing, but there are unexplored edges again ({len(fr)} of them, nearest {fr[0][0]} steps {compass(me, fr[0][1])}).", lambda p=fr[0][1]: self.act_explore(p))
-        if not fr and not downs and not near:
+        if not fr and not downs and not near and 'kill_blocker' not in opts:  # walled in: searching finds nothing
             spot = self.search_spot(dist)
             if spot:
                 opts['search_hidden'] = ('Search for hidden passages', f"No unexplored edges or downstairs are known. Walk {dist[spot]} steps {compass(me, spot)} to a likely spot (dead end or wall) and search there.", lambda: self.act_search_at(spot))
@@ -740,9 +749,9 @@ class Bot:
             p = (p[0] + sx, p[1] + sy)
         return True
 
-    def act_throw(self, letter, d):
-        self.t.send('t')
-        if 'throw' in self.t.lines()[0].lower():
+    def act_throw(self, letter, d, key='t'):
+        self.t.send(key)
+        if re.search(r'throw|zap', self.t.lines()[0].lower()):
             self.t.send(letter)
         if 'direction' in self.t.lines()[0].lower():
             self.t.send(d)
@@ -750,7 +759,7 @@ class Bot:
             self.t.send('\x1b')
         self.observe()
         self.read_inventory()
-        return f'threw item {letter} {DIR_NAME[d]}'
+        return f"{'zapped' if key == 'z' else 'threw'} item {letter} {DIR_NAME[d]}"
 
     def act_goto_corpse(self, p):
         r = self.act_go(p)
