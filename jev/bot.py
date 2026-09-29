@@ -6,9 +6,10 @@ from datetime import datetime, timezone
 from .nh import (DIRS, DIR_OF, DIR_NAME, MAP_TOP, MAP_BOT, OBJECT_CHARS, Snapshot, top_prompt, messages_from)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MONSTERS = json.load(open(os.path.join(os.path.dirname(__file__), 'monsters.json')))  # name -> [difficulty, speed], from monsters.h
 NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine')
 LOW_HP = lambda s: s.get('hp', 1) < 6 or s.get('hp', 1) * 7 < s.get('hpmax', 1)
-STRATEGY = ("You are a dwarven Valkyrie: strong melee, cold resistant, stealthy, infravision. Survive first. "
+STRATEGY = ("You are a dwarven Valkyrie: strong melee, cold resistant, stealthy, infravision. Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. "
             "Fight weak monsters in melee; do not melee floating eyes (blue 'e') or cockatrices ('c' yellow) bare-handed. "
             "Prayer fixes low HP (below 1/7 max or below 6) and weakness from hunger, but only about once per 1000 turns; "
             "the first prayer is safe after roughly turn 300. Elbereth engraved in the dust scares most melee monsters "
@@ -279,6 +280,17 @@ class Bot:
             m['where'] = f"{m['dist']} step{'s' if m['dist'] != 1 else ''} {compass(me, m['pos'])}"
         return out
 
+    def threat(self, m):
+        """' (level 0, much weaker than you)' etc. from the species' base level vs our XL."""
+        name = re.sub(r'^(tame|peaceful)\s+', '', m['name'])
+        name = re.sub(r'\s+called\s+.*$', '', name)
+        lv = MONSTERS.get(name)
+        if not lv or m['pet']:
+            return ''
+        d = lv[0] - (self.snap.status.get('xl') or 1) - 1
+        rel = 'much weaker than you' if d <= -3 else 'weaker than you' if d < 0 else 'about your level' if d <= 1 else 'stronger than you' if d <= 4 else 'much stronger than you'
+        return f' (difficulty {lv[0]}, speed {lv[1]}, {rel})'
+
     # ---------- inventory ----------
     def read_inventory(self):
         items = []
@@ -478,7 +490,7 @@ class Bot:
     def act_go(self, target, dist_prev=None, steps=40, adjacent_ok=False):
         """Walk toward target one step at a time; stop on new threats, damage or arrival."""
         taken = 0
-        seen = {m['pos'] for m in getattr(self, 'visible', []) if m['hostile']}
+        n_seen = sum(1 for m in getattr(self, 'visible', []) if m['hostile'])
         hp0 = self.snap.status.get('hp', 0)
         for _ in range(steps):
             me = self.snap.me
@@ -509,8 +521,8 @@ class Bot:
                 return f'blocked after {taken} steps' + (f": {news[-1]}" if news else '')
             if snap.status.get('hp', 0) < hp0:
                 return f'took damage after {taken} steps'
-            new = [p for p in self.hostile_glyphs() if p not in seen and cheb(p, snap.me) <= 7]
-            if new:
+            # monsters move, so compare counts rather than positions
+            if len(self.hostile_glyphs()) > n_seen and any(cheb(p, snap.me) <= 7 for p in self.hostile_glyphs()):
                 return f'stopped after {taken} steps: a monster came into view'
             if any(re.search(r'You (see|feel) here|There are (several|many) objects|trap|You fall|stairs', m) for m in news):
                 return f'stopped after {taken} steps: {news[-1]}'
@@ -690,7 +702,7 @@ class Bot:
         s, snap = self.snap.status, self.snap
         lv = self.level()
         inv = '; '.join(f"{i['letter']} - {i['text']}" for i in self.inventory) or 'unknown'
-        seen = '; '.join(f"{m['name']} {m['where']}" + (' (pet)' if m['pet'] else ' (peaceful)' if m['peaceful'] else '') for m in mons[:8]) or 'none'
+        seen = '; '.join(f"{m['name']}{self.threat(m)} {m['where']}" + (' (pet)' if m['pet'] else ' (peaceful)' if m['peaceful'] else '') for m in mons[:8]) or 'none'
         hist = '\n'.join(f"- T{h['turn']} {h['label']} -> {h['outcome']}" for h in self.history[-8:]) or '- (start of game)'
         recent = ' | '.join(self.run['recent'][-6:]) or 'none'
         return (

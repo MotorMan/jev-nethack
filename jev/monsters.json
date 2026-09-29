@@ -1,0 +1,1670 @@
+{
+"Aleax": [
+12,
+8
+],
+"Angel": [
+19,
+10
+],
+"Arch Priest": [
+30,
+15
+],
+"Archon": [
+26,
+16
+],
+"Ashikaga Takauji": [
+19,
+12
+],
+"Asmodeus": [
+53,
+12
+],
+"Baalzebub": [
+45,
+9
+],
+"Cerberus": [
+14,
+10
+],
+"Charon": [
+38,
+18
+],
+"Chromatic Dragon": [
+23,
+12
+],
+"Croesus": [
+22,
+15
+],
+"Cyclops": [
+23,
+12
+],
+"Dark One": [
+20,
+12
+],
+"Death": [
+34,
+12
+],
+"Demogorgon": [
+57,
+15
+],
+"Dispater": [
+40,
+15
+],
+"Earendil": [
+22,
+12
+],
+"Elvenking": [
+11,
+12
+],
+"Elvenqueen": [
+11,
+12
+],
+"Elwing": [
+22,
+12
+],
+"Famine": [
+34,
+12
+],
+"Geryon": [
+36,
+3
+],
+"Goblin King": [
+18,
+12
+],
+"Grand Master": [
+30,
+15
+],
+"Green-elf": [
+7,
+12
+],
+"Grey-elf": [
+8,
+12
+],
+"High-elf": [
+7,
+12
+],
+"Hippocrates": [
+26,
+15
+],
+"Ixoth": [
+22,
+12
+],
+"Juiblex": [
+26,
+3
+],
+"Keystone Kop": [
+3,
+6
+],
+"King Arthur": [
+24,
+15
+],
+"Kop Kaptain": [
+6,
+12
+],
+"Kop Lieutenant": [
+5,
+10
+],
+"Kop Sergeant": [
+4,
+8
+],
+"Lord Carnarvon": [
+24,
+15
+],
+"Lord Sato": [
+24,
+15
+],
+"Lord Surtur": [
+19,
+12
+],
+"Master Assassin": [
+20,
+12
+],
+"Master Kaen": [
+31,
+12
+],
+"Master of Thieves": [
+24,
+15
+],
+"Medusa": [
+25,
+12
+],
+"Minion of Huhetotl": [
+23,
+12
+],
+"Mordor orc": [
+5,
+5
+],
+"Nalzok": [
+23,
+12
+],
+"Nazgul": [
+17,
+12
+],
+"Neferet the Green": [
+25,
+15
+],
+"Norn": [
+24,
+15
+],
+"Olog-hai": [
+16,
+12
+],
+"Oracle": [
+13,
+0
+],
+"Orcus": [
+36,
+9
+],
+"Orion": [
+24,
+15
+],
+"Pelias": [
+24,
+15
+],
+"Pestilence": [
+34,
+12
+],
+"Scorpius": [
+17,
+12
+],
+"Shaman Karnov": [
+24,
+15
+],
+"Thoth Amon": [
+22,
+12
+],
+"Twoflower": [
+22,
+15
+],
+"Uruk-hai": [
+5,
+7
+],
+"Vlad the Impaler": [
+32,
+26
+],
+"Wizard of Yendor": [
+34,
+12
+],
+"Woodland-elf": [
+6,
+12
+],
+"Yeenoghu": [
+31,
+18
+],
+"abbot": [
+8,
+12
+],
+"acid blob": [
+2,
+3
+],
+"acolyte": [
+8,
+12
+],
+"air elemental": [
+10,
+36
+],
+"aligned cleric": [
+15,
+12
+],
+"amorous demon": [
+8,
+12
+],
+"ape": [
+6,
+12
+],
+"apprentice": [
+8,
+12
+],
+"arch-lich": [
+29,
+9
+],
+"archeologist": [
+12,
+12
+],
+"attendant": [
+7,
+12
+],
+"baby black dragon": [
+13,
+9
+],
+"baby blue dragon": [
+13,
+9
+],
+"baby crocodile": [
+4,
+6
+],
+"baby gold dragon": [
+13,
+9
+],
+"baby gray dragon": [
+13,
+9
+],
+"baby green dragon": [
+13,
+9
+],
+"baby long worm": [
+6,
+3
+],
+"baby orange dragon": [
+13,
+9
+],
+"baby purple worm": [
+9,
+3
+],
+"baby red dragon": [
+13,
+9
+],
+"baby shimmering dragon": [
+13,
+9
+],
+"baby white dragon": [
+13,
+9
+],
+"baby yellow dragon": [
+13,
+9
+],
+"balrog": [
+20,
+5
+],
+"baluchitherium": [
+15,
+12
+],
+"barbarian": [
+12,
+12
+],
+"barbed devil": [
+11,
+12
+],
+"barrow wight": [
+8,
+12
+],
+"bat": [
+2,
+22
+],
+"beholder": [
+13,
+3
+],
+"black dragon": [
+20,
+9
+],
+"black light": [
+7,
+15
+],
+"black naga": [
+10,
+14
+],
+"black naga hatchling": [
+4,
+10
+],
+"black pudding": [
+12,
+6
+],
+"black unicorn": [
+6,
+24
+],
+"blue dragon": [
+20,
+9
+],
+"blue jelly": [
+5,
+0
+],
+"bone devil": [
+13,
+15
+],
+"brown mold": [
+2,
+0
+],
+"brown pudding": [
+6,
+3
+],
+"bugbear": [
+5,
+9
+],
+"captain": [
+14,
+10
+],
+"carnivorous ape": [
+8,
+12
+],
+"cave dweller": [
+12,
+12
+],
+"cave spider": [
+3,
+12
+],
+"caveman": [
+12,
+12
+],
+"cavewoman": [
+12,
+12
+],
+"centipede": [
+4,
+4
+],
+"chameleon": [
+7,
+5
+],
+"chickatrice": [
+7,
+4
+],
+"chieftain": [
+7,
+12
+],
+"clay golem": [
+12,
+7
+],
+"cleric": [
+12,
+12
+],
+"cobra": [
+10,
+18
+],
+"cockatrice": [
+8,
+6
+],
+"couatl": [
+11,
+10
+],
+"coyote": [
+2,
+12
+],
+"crocodile": [
+7,
+9
+],
+"demilich": [
+18,
+9
+],
+"dingo": [
+5,
+16
+],
+"disenchanter": [
+14,
+12
+],
+"displacer beast": [
+14,
+12
+],
+"djinni": [
+8,
+12
+],
+"dog": [
+5,
+16
+],
+"doppelganger": [
+11,
+12
+],
+"dust vortex": [
+6,
+20
+],
+"dwarf": [
+4,
+6
+],
+"dwarf king": [
+8,
+6
+],
+"dwarf lady": [
+6,
+6
+],
+"dwarf leader": [
+6,
+6
+],
+"dwarf lord": [
+6,
+6
+],
+"dwarf mummy": [
+6,
+10
+],
+"dwarf queen": [
+8,
+6
+],
+"dwarf ruler": [
+8,
+6
+],
+"dwarf zombie": [
+3,
+6
+],
+"earth elemental": [
+10,
+6
+],
+"electric eel": [
+10,
+10
+],
+"elf": [
+1,
+12
+],
+"elf mummy": [
+7,
+12
+],
+"elf zombie": [
+4,
+6
+],
+"elf-lady": [
+11,
+12
+],
+"elf-lord": [
+11,
+12
+],
+"elf-noble": [
+11,
+12
+],
+"elven monarch": [
+11,
+12
+],
+"energy vortex": [
+9,
+20
+],
+"erinys": [
+10,
+12
+],
+"ettin": [
+13,
+12
+],
+"ettin mummy": [
+8,
+12
+],
+"ettin zombie": [
+7,
+8
+],
+"fire ant": [
+6,
+18
+],
+"fire elemental": [
+10,
+12
+],
+"fire giant": [
+11,
+12
+],
+"fire vortex": [
+10,
+22
+],
+"flaming sphere": [
+9,
+13
+],
+"flesh golem": [
+10,
+8
+],
+"floating eye": [
+3,
+1
+],
+"fog cloud": [
+4,
+1
+],
+"forest centaur": [
+8,
+18
+],
+"fox": [
+1,
+15
+],
+"freezing sphere": [
+9,
+13
+],
+"frost giant": [
+13,
+12
+],
+"gargoyle": [
+8,
+10
+],
+"garter snake": [
+3,
+8
+],
+"gas spore": [
+2,
+3
+],
+"gecko": [
+2,
+6
+],
+"gelatinous cube": [
+8,
+6
+],
+"genetic engineer": [
+14,
+12
+],
+"ghost": [
+12,
+3
+],
+"ghoul": [
+5,
+6
+],
+"giant": [
+8,
+6
+],
+"giant ant": [
+4,
+18
+],
+"giant bat": [
+3,
+22
+],
+"giant beetle": [
+6,
+6
+],
+"giant eel": [
+7,
+9
+],
+"giant mimic": [
+11,
+3
+],
+"giant mummy": [
+10,
+14
+],
+"giant rat": [
+2,
+10
+],
+"giant spider": [
+7,
+15
+],
+"giant zombie": [
+9,
+8
+],
+"glass golem": [
+18,
+6
+],
+"glass piercer": [
+9,
+1
+],
+"gnome": [
+3,
+6
+],
+"gnome king": [
+6,
+10
+],
+"gnome lady": [
+4,
+8
+],
+"gnome leader": [
+4,
+8
+],
+"gnome lord": [
+4,
+8
+],
+"gnome mummy": [
+5,
+10
+],
+"gnome queen": [
+6,
+10
+],
+"gnome ruler": [
+6,
+10
+],
+"gnome zombie": [
+2,
+6
+],
+"gnomish wizard": [
+5,
+10
+],
+"goblin": [
+1,
+6
+],
+"gold dragon": [
+20,
+9
+],
+"gold golem": [
+6,
+9
+],
+"golden naga": [
+13,
+14
+],
+"golden naga hatchling": [
+4,
+10
+],
+"gray dragon": [
+20,
+9
+],
+"gray ooze": [
+4,
+1
+],
+"gray unicorn": [
+6,
+24
+],
+"green dragon": [
+20,
+9
+],
+"green mold": [
+2,
+0
+],
+"green slime": [
+8,
+6
+],
+"gremlin": [
+8,
+12
+],
+"grid bug": [
+1,
+12
+],
+"guard": [
+14,
+12
+],
+"guardian naga": [
+17,
+16
+],
+"guardian naga hatchling": [
+4,
+10
+],
+"guide": [
+8,
+12
+],
+"healer": [
+12,
+12
+],
+"hell hound": [
+14,
+14
+],
+"hell hound pup": [
+9,
+12
+],
+"hezrou": [
+12,
+6
+],
+"high cleric": [
+30,
+15
+],
+"high priest": [
+30,
+15
+],
+"high priestess": [
+30,
+15
+],
+"hill giant": [
+10,
+10
+],
+"hill orc": [
+4,
+9
+],
+"hobbit": [
+2,
+9
+],
+"hobgoblin": [
+3,
+9
+],
+"homunculus": [
+3,
+12
+],
+"horned devil": [
+9,
+9
+],
+"horse": [
+7,
+20
+],
+"housecat": [
+5,
+16
+],
+"human": [
+2,
+12
+],
+"human mummy": [
+7,
+12
+],
+"human zombie": [
+5,
+6
+],
+"hunter": [
+7,
+12
+],
+"ice devil": [
+15,
+6
+],
+"ice troll": [
+12,
+10
+],
+"ice vortex": [
+7,
+20
+],
+"iguana": [
+3,
+6
+],
+"imp": [
+4,
+12
+],
+"incubus": [
+8,
+12
+],
+"iron golem": [
+22,
+6
+],
+"iron piercer": [
+6,
+1
+],
+"jabberwock": [
+18,
+12
+],
+"jackal": [
+1,
+12
+],
+"jaguar": [
+6,
+15
+],
+"jellyfish": [
+5,
+3
+],
+"ki-rin": [
+21,
+18
+],
+"killer bee": [
+6,
+18
+],
+"kitten": [
+3,
+18
+],
+"knight": [
+12,
+12
+],
+"kobold": [
+1,
+6
+],
+"kobold lady": [
+3,
+6
+],
+"kobold leader": [
+3,
+6
+],
+"kobold lord": [
+3,
+6
+],
+"kobold mummy": [
+4,
+8
+],
+"kobold shaman": [
+4,
+6
+],
+"kobold zombie": [
+1,
+6
+],
+"kraken": [
+22,
+3
+],
+"large cat": [
+7,
+15
+],
+"large dog": [
+7,
+15
+],
+"large kobold": [
+2,
+6
+],
+"large mimic": [
+9,
+3
+],
+"leather golem": [
+7,
+6
+],
+"lemure": [
+5,
+3
+],
+"leocrotta": [
+8,
+18
+],
+"leprechaun": [
+4,
+15
+],
+"lich": [
+14,
+6
+],
+"lichen": [
+1,
+1
+],
+"lieutenant": [
+12,
+10
+],
+"little dog": [
+3,
+18
+],
+"lizard": [
+6,
+6
+],
+"long worm": [
+10,
+3
+],
+"long worm tail": [
+1,
+0
+],
+"lurker above": [
+12,
+3
+],
+"lynx": [
+7,
+15
+],
+"mail daemon": [
+26,
+24
+],
+"manes": [
+3,
+3
+],
+"marilith": [
+11,
+12
+],
+"master lich": [
+21,
+9
+],
+"master mind flayer": [
+19,
+12
+],
+"mastodon": [
+22,
+12
+],
+"mind flayer": [
+13,
+12
+],
+"minotaur": [
+17,
+15
+],
+"monk": [
+11,
+12
+],
+"monkey": [
+4,
+12
+],
+"mountain centaur": [
+9,
+20
+],
+"mountain nymph": [
+5,
+12
+],
+"mumak": [
+7,
+9
+],
+"nalfeshnee": [
+15,
+9
+],
+"neanderthal": [
+7,
+12
+],
+"newt": [
+1,
+6
+],
+"ninja": [
+7,
+12
+],
+"nurse": [
+13,
+6
+],
+"ochre jelly": [
+8,
+3
+],
+"ogre": [
+7,
+10
+],
+"ogre king": [
+11,
+14
+],
+"ogre lady": [
+9,
+12
+],
+"ogre leader": [
+9,
+12
+],
+"ogre lord": [
+9,
+12
+],
+"ogre queen": [
+11,
+14
+],
+"ogre tyrant": [
+11,
+14
+],
+"orange dragon": [
+20,
+9
+],
+"orc": [
+3,
+9
+],
+"orc mummy": [
+6,
+10
+],
+"orc shaman": [
+5,
+9
+],
+"orc zombie": [
+3,
+6
+],
+"orc-captain": [
+7,
+5
+],
+"owlbear": [
+7,
+12
+],
+"page": [
+7,
+12
+],
+"panther": [
+7,
+15
+],
+"paper golem": [
+4,
+12
+],
+"piranha": [
+7,
+18
+],
+"pit fiend": [
+16,
+6
+],
+"pit viper": [
+9,
+15
+],
+"plains centaur": [
+6,
+18
+],
+"pony": [
+4,
+16
+],
+"priest": [
+12,
+12
+],
+"priestess": [
+12,
+12
+],
+"prisoner": [
+14,
+12
+],
+"purple worm": [
+17,
+9
+],
+"pyrolisk": [
+8,
+6
+],
+"python": [
+8,
+3
+],
+"quantum mechanic": [
+9,
+12
+],
+"quasit": [
+7,
+15
+],
+"queen bee": [
+12,
+24
+],
+"quivering blob": [
+6,
+1
+],
+"rabid rat": [
+4,
+12
+],
+"ranger": [
+12,
+12
+],
+"raven": [
+6,
+20
+],
+"red dragon": [
+20,
+9
+],
+"red mold": [
+2,
+0
+],
+"red naga": [
+8,
+12
+],
+"red naga hatchling": [
+4,
+10
+],
+"rock mole": [
+4,
+3
+],
+"rock piercer": [
+4,
+1
+],
+"rock troll": [
+12,
+12
+],
+"rogue": [
+12,
+12
+],
+"rope golem": [
+6,
+9
+],
+"roshi": [
+7,
+12
+],
+"rothe": [
+4,
+9
+],
+"rust monster": [
+8,
+18
+],
+"salamander": [
+12,
+12
+],
+"samurai": [
+12,
+12
+],
+"sandestin": [
+15,
+12
+],
+"sasquatch": [
+9,
+15
+],
+"scorpion": [
+8,
+15
+],
+"sergeant": [
+10,
+10
+],
+"sewer rat": [
+1,
+12
+],
+"shade": [
+14,
+10
+],
+"shark": [
+9,
+12
+],
+"shimmering dragon": [
+20,
+9
+],
+"shocking sphere": [
+10,
+13
+],
+"shopkeeper": [
+15,
+16
+],
+"shrieker": [
+2,
+1
+],
+"skeleton": [
+14,
+8
+],
+"small mimic": [
+8,
+3
+],
+"snake": [
+6,
+15
+],
+"soldier": [
+8,
+10
+],
+"soldier ant": [
+7,
+18
+],
+"spotted jelly": [
+6,
+0
+],
+"stalker": [
+9,
+12
+],
+"steam vortex": [
+9,
+22
+],
+"stone giant": [
+8,
+6
+],
+"stone golem": [
+15,
+6
+],
+"storm giant": [
+19,
+12
+],
+"straw golem": [
+4,
+12
+],
+"student": [
+7,
+12
+],
+"succubus": [
+8,
+12
+],
+"tengu": [
+7,
+13
+],
+"thug": [
+7,
+12
+],
+"tiger": [
+8,
+12
+],
+"titan": [
+20,
+18
+],
+"titanothere": [
+13,
+12
+],
+"tourist": [
+12,
+12
+],
+"trapper": [
+14,
+3
+],
+"troll": [
+9,
+12
+],
+"umber hulk": [
+12,
+6
+],
+"valkyrie": [
+12,
+12
+],
+"vampire": [
+12,
+12
+],
+"vampire bat": [
+7,
+20
+],
+"vampire lady": [
+14,
+14
+],
+"vampire leader": [
+14,
+14
+],
+"vampire lord": [
+14,
+14
+],
+"vampire mage": [
+26,
+14
+],
+"violet fungus": [
+5,
+1
+],
+"vorpal jabberwock": [
+25,
+12
+],
+"vrock": [
+11,
+12
+],
+"warg": [
+8,
+12
+],
+"warhorse": [
+9,
+24
+],
+"warrior": [
+7,
+12
+],
+"watch captain": [
+12,
+10
+],
+"watchman": [
+8,
+10
+],
+"water demon": [
+11,
+12
+],
+"water elemental": [
+10,
+5
+],
+"water moccasin": [
+7,
+15
+],
+"water nymph": [
+5,
+12
+],
+"water troll": [
+13,
+14
+],
+"werejackal": [
+3,
+12
+],
+"wererat": [
+3,
+12
+],
+"werewolf": [
+6,
+12
+],
+"white dragon": [
+20,
+9
+],
+"white unicorn": [
+6,
+24
+],
+"winged gargoyle": [
+11,
+15
+],
+"winter wolf": [
+9,
+12
+],
+"winter wolf cub": [
+7,
+12
+],
+"wizard": [
+12,
+12
+],
+"wolf": [
+6,
+12
+],
+"wood golem": [
+8,
+3
+],
+"wood nymph": [
+5,
+12
+],
+"woodchuck": [
+4,
+3
+],
+"wraith": [
+8,
+12
+],
+"wumpus": [
+9,
+3
+],
+"xan": [
+9,
+18
+],
+"xorn": [
+11,
+9
+],
+"yellow dragon": [
+20,
+9
+],
+"yellow light": [
+5,
+15
+],
+"yellow mold": [
+2,
+0
+],
+"yeti": [
+7,
+15
+],
+"zruty": [
+11,
+8
+]
+}
