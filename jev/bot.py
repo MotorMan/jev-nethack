@@ -294,7 +294,8 @@ class Bot:
             return ''
         d = lv[0] - (self.snap.status.get('xl') or 1) - 1
         rel = 'much weaker than you' if d <= -3 else 'weaker than you' if d < 0 else 'about your level' if d <= 1 else 'stronger than you' if d <= 4 else 'much stronger than you'
-        return f' (difficulty {lv[0]}, speed {lv[1]}, {rel})'
+        extra = '; harmless, but never melee it (paralysis)' if name == 'floating eye' else ''
+        return f' (difficulty {lv[0]}, speed {lv[1]}, {rel}{extra})'
 
     # ---------- inventory ----------
     def read_inventory(self):
@@ -355,8 +356,9 @@ class Bot:
         self.visible = mons
         hostiles = [m for m in mons if m['hostile']]
         self.avoid = {m['pos'] for m in hostiles if m['passive'] and 'shrieker' not in m['name']}
-        near = [m for m in hostiles if m['dist'] <= 6 and not m['passive']]
         dist, prev = self.dijkstra()
+        # a monster we cannot reach (behind walls, across water) is not a reason to stand still
+        near = [m for m in hostiles if m['dist'] <= 6 and not m['passive'] and (m['dist'] <= 1 or m['pos'] in dist)]
         opts = {}
 
         for m in hostiles:
