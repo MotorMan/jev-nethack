@@ -503,7 +503,7 @@ class Bot:
     def act_go(self, target, dist_prev=None, steps=40, adjacent_ok=False):
         """Walk toward target one step at a time; stop on new threats, damage or arrival."""
         taken = 0
-        n_seen = sum(1 for m in getattr(self, 'visible', []) if m['hostile'])
+        n_seen = len(self.hostile_glyphs())
         hp0 = self.snap.status.get('hp', 0)
         for _ in range(steps):
             me = self.snap.me
