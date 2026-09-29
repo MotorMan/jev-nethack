@@ -378,7 +378,8 @@ class Bot:
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     it = missiles[0]
                     opts[f'throw_{d}'] = (f"Throw {it['text']} at {m['name']}", f"Throw item {it['letter']} {DIR_NAME[d]} at {m['name']} {m['where']}. Safe way to hit monsters you must not melee (floating eyes, molds); pick it up again afterwards.", lambda l=it['letter'], d=d: self.act_throw(l, d))
-        wand = next((it for it in self.inventory if re.search(r'\bwand\b', it['text'])), None)
+        wand = next((it for it in self.inventory if re.search(r'\bwand\b', it['text'])
+                     and not re.search(r'probing|light|nothing|opening|locking|enlightenment|secret door|create monster|wishing|undead turning', it['text'])), None)
         if wand:  # walled in by floating eyes once for 13000 turns with an unknown wand in the pack
             for m in hostiles:
                 dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
@@ -484,7 +485,7 @@ class Bot:
         if not near and s.get('hp', 1) < 0.7 * s.get('hpmax', 1):
             opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
         if not fr and not downs:
-            molds = [m for m in hostiles if m['pos'] in self.avoid and 'floating eye' not in m['name'] and not (m['ch'] == 'e' and m['fg'] == 'blue')
+            molds = [m for m in hostiles if m['pos'] in self.avoid and (walled or ('floating eye' not in m['name'] and not (m['ch'] == 'e' and m['fg'] == 'blue')))
                      and ('gas spore' not in m['name'] or s.get('hp', 0) >= 30)]  # its 4d6 blast is survivable at 30+ HP
             if molds:
                 self.avoid -= {m['pos'] for m in molds}
@@ -493,6 +494,7 @@ class Bot:
                 if any(m['pos'] in d2 for m in molds) and (len(self.frontiers(d2)) > 0 or len(d2) > len(dist) + 5):  # or it walls us in
                     m = min((m for m in molds if m['pos'] in d2), key=lambda m: d2[m['pos']])
                     why = (f"Its explosion does at most 24 damage and you have {s.get('hp')} HP, so you survive it" if 'gas spore' in m['name']
+                           else "Last resort: if it survives a hit it may paralyze you for a long time while other monsters attack; killing it in one blow is safe" if m['ch'] == 'e'
                            else "It hurts you passively when you hit it; the fight stops if HP gets low")
                     opts['kill_blocker'] = (f"Kill the {m['name']} blocking the way", f"The {m['name']} {m['where']} blocks the only way out: you are stuck here until it dies. Walk next to it and fight it. {why}.", lambda m=m: self.act_kill_blocker(m['pos']))
         if not fr and not downs and not near and sum(lv.searched.values()) >= 300 * (lv.resets + 1):
