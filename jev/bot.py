@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from .nh import (DIRS, DIR_OF, DIR_NAME, MAP_TOP, MAP_BOT, OBJECT_CHARS, Snapshot, top_prompt, messages_from)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FOOD = re.compile(r'\b(?:food ration|cram|lembas|biscuit|pancake|apple|orange|banana|melon|carrot|egg|\btins? of|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen)e?s?\b')  # word-bounded: 'dwarvish spear' is not a pear
 MONSTERS = json.load(open(os.path.join(os.path.dirname(__file__), 'monsters.json')))  # name -> [difficulty, speed], from monsters.h
 NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine')
 LOW_HP = lambda s: s.get('hp', 1) < 6 or s.get('hp', 1) * 7 < s.get('hpmax', 1)
@@ -385,7 +386,7 @@ class Bot:
 
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):
             for it in self.inventory:
-                if re.search(r'food ration|cram|lembas|biscuit|pancake|apple|orange|banana|melon|carrot|egg|\btins? of|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen', it['text']) and not any(n in it['text'] for n in NEVER_EAT) \
+                if re.search(FOOD, it['text']) and not any(n in it['text'] for n in NEVER_EAT) and it['text'] not in self.run.get('inedible', ()) \
                         and not re.search(r'potion|gem|stone|glass|spellbook|wand|ring|scroll|amulet|opener', it['text']):
                     opts[f"eat_{it['letter']}"] = (f"Eat {it['text']}", f"You are {s.get('hunger')}: eat item {it['letter']} from your pack now, before you weaken and faint (fainting next to a monster is how most of your games have ended).", lambda l=it['letter']: self.act_eat(l))
             here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in NEVER_EAT)]
@@ -444,6 +445,15 @@ class Bot:
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
         if not near and s.get('hp', 1) < 0.7 * s.get('hpmax', 1):
             opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
+        if not fr and not downs:
+            molds = [m for m in hostiles if m['pos'] in self.avoid and 'floating eye' not in m['name'] and not (m['ch'] == 'e' and m['fg'] == 'blue')]
+            if molds:
+                self.avoid -= {m['pos'] for m in molds}
+                d2, _ = self.dijkstra()
+                self.avoid |= {m['pos'] for m in molds}
+                if any(m['pos'] in d2 for m in molds) and len(self.frontiers(d2)) > 0:
+                    m = min((m for m in molds if m['pos'] in d2), key=lambda m: d2[m['pos']])
+                    opts['kill_blocker'] = (f"Kill the {m['name']} blocking the way", f"The {m['name']} {m['where']} blocks the only way to unexplored parts. Walk next to it and fight it (it hurts you passively when you hit it; stop if HP gets low).", lambda m=m: self.act_kill_blocker(m['pos']))
         if not fr and not downs and not near:
             spot = self.search_spot(dist)
             if spot:
@@ -638,6 +648,8 @@ class Bot:
         return 'prayed'
 
     def act_eat(self, letter):
+        nmsg = len(self.messages)
+        text = next((it['text'] for it in self.inventory if it['letter'] == letter), letter)
         self.t.send('e')
         if 'eat it?' in self.t.lines()[0] or 'eat one?' in self.t.lines()[0]:
             self.t.send('n')
@@ -645,6 +657,9 @@ class Bot:
             self.t.send(letter)
         self.observe()
         self.read_inventory()
+        if any("don't have anything to eat" in m['text'] or 'cannot eat' in m['text'] for m in self.messages[nmsg:]):
+            self.run.setdefault('inedible', set()).add(text)
+            return f'could not eat {text}'
         return 'ate'
 
     def act_eat_corpse(self):
@@ -658,6 +673,20 @@ class Bot:
         key = (self.snap.status.get('dlvl'), self.snap.me)
         self.run['here'][key] = self.look_here()
         return 'ate corpse'
+
+    def act_kill_blocker(self, pos):
+        self.avoid.discard(pos)
+        r = self.act_go(pos, adjacent_ok=True)
+        me = self.snap.me
+        if not me or cheb(me, pos) != 1:
+            return 'going to the blocker: ' + r
+        d = DIR_OF[(pos[0] - me[0], pos[1] - me[1])]
+        for i in range(10):
+            g = self.snap.at(*pos)
+            if not g or g.ch != 'F' or self.snap.status.get('hp', 0) < 0.5 * self.snap.status.get('hpmax', 1):
+                break
+            self.act_fight(d)
+        return 'killed the blocker' if (g := self.snap.at(*pos)) is None or g.ch != 'F' else f'fought the blocker {i + 1} times; it still stands'
 
     def act_goto_corpse(self, p):
         r = self.act_go(p)
