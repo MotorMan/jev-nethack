@@ -197,3 +197,6 @@ The rothe deaths (twice) had the same shape. At about 10/48 HP Jev engraved Elbe
 
 ## 2026-09-29 16:37 — A free loop is still a loop
 A pet dog parked outside a doorway on Dlvl 1. Jev's only option, explore, was "blocked after 1 steps" 2,929 times on T839. It cost nothing (single-option decisions skip Jev), which is exactly why the paid-call loop guard never noticed. The guard now counts every decision on a frozen turn. At 15, 30 and 45 it presses Esc, redraws, forgets remembered walls, takes one random step and searches 3 turns, which lets a pet or peaceful move off. At 50 the bot pauses. A stubbed check lives in test_loop_guard.py.
+
+## 2026-09-29 16:43 — Food poisoning
+"Died on T1317" with no cause turned out to be food poisoning. Jev ate a corpse it had never seen die: an unknown age defaulted to 0, which read as fresh. Unknown corpses now count as rotten. FoodPois, TermIll, Stone, Slime and Strangl now count as trouble for prayer, and prayer is offered whatever the prayer clock says, since the alternative is certain death. Elsewhere, the Elbereth change works: the current game (T3600) sat on its engraving and healed.

@@ -417,7 +417,8 @@ class Bot:
                     opts[f"quaff_{it['letter']}"] = (f"Quaff {it['text']}", f"Drink this potion hoping it heals.{danger}", lambda l=it['letter']: self.act_keys('q' + l, 'quaffed'))
                     break
 
-        trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting')
+        fatal = [c for c in s.get('conditions', []) if c in ('FoodPois', 'TermIll', 'Stone', 'Slime', 'Strangl')]  # kill in a few turns; prayer cures
+        trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting') or fatal
         last = self.run.get('prayed_turn')
         if last is not None and last > (s.get('turn') or 0):
             last = self.run['prayed_turn'] = None
@@ -425,9 +426,9 @@ class Bot:
         # prayer timeout is ~50-1000 turns; praying early angers the god (a couatl killed an earlier run)
         # timeout after a good prayer is ~350 on average and major trouble is fixed below 200: 600 is a fair bet for
         # low HP, hunger can wait longer (a couatl killed the run that prayed 6 times in 33 turns)
-        gap = 600 if LOW_HP(s) else 900
-        if trouble and (turn - last >= gap if last is not None else turn >= (150 if LOW_HP(s) else 300)):
-            opts['pray'] = ('Pray to Tyr', f"You are in trouble ({'low HP' if LOW_HP(s) else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
+        gap = 600 if LOW_HP(s) or fatal else 900
+        if trouble and (fatal or turn - last >= gap if last is not None else turn >= (150 if LOW_HP(s) or fatal else 300)):
+            opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
 
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):
             for it in self.inventory:
@@ -442,7 +443,7 @@ class Bot:
                 opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.", lambda p=p: self.act_goto_corpse(p))
         if s.get('hunger') != 'Satiated':
             here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in NEVER_EAT)]
-            age = s.get('turn', 0) - lv.corpses.get(me, s.get('turn', 0))
+            age = s.get('turn', 0) - lv.corpses.get(me, -10**6)  # a corpse we did not see appear is of unknown age: treat as rotten
             why = ' Packed food is rare and most deaths so far were fainting from hunger: eating fresh kills now, even when not hungry, is what keeps you alive later.'
             if here and age < 40:
                 opts['eat_corpse'] = (f"Eat the {here[0]} here", f"Eat {here[0]} on this square. It appeared about {age} turns ago (old corpses can be rotten or poisonous).{why}", self.act_eat_corpse)
