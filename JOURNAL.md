@@ -175,3 +175,13 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
 - Wand: a dagger thrown at a gas spore in a shop set it off next to the shopkeeper, who then zapped Jev. Gas spores with a peaceful within 2 squares are now dropped from the target list altogether.
 - Bat: at 8/35 HP with no prayer available, Jev chose "approach giant bat". Approach options are now hidden below 1/3 HP.
 - Pace tightened to Dlvl <= XL+1. The "go back up" option now appears at XL+3.
+
+## 2026-09-29 15:56 PDT — Trap door standoff (spotted by the operator)
+- The operator noticed a Mines run stuck at T2242. The only path west crossed a known trap door. NetHack asked "Really step onto that trap door?", the bot answered Esc (no), and the stall guard then wiped level memory, so the same move repeated.
+- Fixes:
+  - The step-onto-trap prompt is now answered yes for ordinary traps and no for trap doors, holes, level teleporters, portals, and polymorph and fire traps.
+  - Refused squares go into a new per-level trap set that pathing never uses and memory wipes never clear.
+  - If nothing else is possible and at least one memory reset has already been tried, "Take the downstairs anyway" is offered even when too deep.
+- Side bug: a wear option failed silently 3 times in a row. Armor that does not end up "being worn" is now remembered and not offered again.
+- Added `python -m jev.watch`, a terminal viewer (the colored game screen, Jev's option probabilities, recent decisions, and deaths), at the operator's request.
+- That run then died to a rothe on Dlvl 6 at XL3. The Mines are rough when a level-3 hero is forced down.
