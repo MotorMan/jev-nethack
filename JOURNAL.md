@@ -48,3 +48,18 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
 - Jev behaviour notes: sensible priorities (attacks adjacent weak monsters, engraves Elbereth
   when hurt, prayed at low HP at T1247, ate when Hungry). Probabilities are often split 0.4–0.6
   in fights. Latency ~150–250 ms per decision.
+
+## 2026-09-29 11:12 PDT — Hardfought transport, stall fixes
+- SSH to hardfought.org (and github.com:22) fails with "No route to host" from this network,
+  even outside the sandbox. HTTPS works. Hardfought's browser terminal (hterm) is a plain
+  websocket: `wss://www.hardfought.org/ws-hterm?c=80&l=24`, raw tty bytes in binary frames.
+- New `jev/wsbridge.py` relays a pty to that websocket so the existing `Term` drives it
+  unchanged. Gotcha: TLS can buffer several frames, so select() misses them; drain with
+  `sock.pending()`.
+- New `jev/hardfought.py` logs in through dgamelaunch and picks the NetHack 5.0 entry.
+  Verified up to the username prompt. **Blocked:** HARDFOUGHT_USERNAME/PASSWORD in `.env` are
+  empty, so the logged-in menu is untested. I did not register an account on the user's behalf.
+- Local run stalled at T621: "Retreat" picked a bear-trap square, the game asked "Really step
+  into that bear trap?", we answered no, and Jev picked retreat again forever. Fixes: retreat
+  skips traps/boulders and reports honestly when it didn't move; generic stall guard drops any
+  option picked 3x in a row without the turn counter moving.
