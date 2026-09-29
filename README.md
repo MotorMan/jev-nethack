@@ -32,3 +32,11 @@ The connection goes through Hardfought's web terminal websocket (`jev/wsbridge.p
 on some networks. Set `HARDFOUGHT_SSH=1` to use ssh instead.
 
 See `JOURNAL.md` for the development log.
+
+## Watching in a terminal
+
+With the server running, keep this open in any terminal (at least 80x40):
+
+    .venv/bin/python -m jev.watch
+
+It redraws the live game screen in color. Below the screen it shows Jev's current options with their probabilities, the last few decisions and their outcomes, the Jev API spend, and recent deaths. Ctrl-C quits.
