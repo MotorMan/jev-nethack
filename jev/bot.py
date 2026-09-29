@@ -402,6 +402,12 @@ class Bot:
             spot = self.search_spot(dist)
             if spot:
                 opts['search_hidden'] = ('Search for hidden passages', f"No unexplored edges or downstairs are known. Walk {dist[spot]} steps {compass(me, spot)} to a likely spot (dead end or wall) and search there.", lambda: self.act_search_at(spot))
+        # stall guard: an option picked 3 times in a row without the game clock moving is not working
+        last = self.history[-3:]
+        if len(last) == 3 and len({h['choice'] for h in last}) == 1 and all(h['turn'] == s.get('turn') for h in last) and len(opts) > 1:
+            opts.pop(last[0]['choice'], None)
+        if not opts:
+            opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('s', 'waited'))
         return opts, mons
 
     def search_spot(self, dist):
@@ -534,14 +540,15 @@ class Bot:
         best = None
         for d, (dx, dy) in DIRS.items():
             q = (me[0] + dx, me[1] + dy)
-            if not snap.walkable(*q) or snap.is_monster(*q) or (dx and dy and not snap.diag_ok(me, q)):
+            if not snap.walkable(*q) or snap.is_monster(*q) or snap.at(*q).ch in '^0' or (dx and dy and not snap.diag_ok(me, q)):
                 continue
             score = min(cheb(q, m['pos']) for m in hostiles)
             if best is None or score > best[0]:
                 best = (score, d)
         if not best:
             return 'nowhere to retreat'
-        return self.act_keys(best[1], f'retreated {DIR_NAME[best[1]]}')
+        self.act_keys(best[1], '')
+        return f'retreated {DIR_NAME[best[1]]}' if self.snap.me != me else 'tried to retreat but did not move'
 
     def act_elbereth(self):
         self.t.send('E')
@@ -741,6 +748,8 @@ class Bot:
                 self.observe()
                 if not self.t.alive:
                     break
+                if self.snap.me is None and any('Logged in as' in l for l in self.snap.lines):
+                    break  # hardfought: game over, back at the dgamelaunch menu
                 if self.snap.me is None:
                     self.log('cannot find the hero on screen; sending Esc', 'warn')
                     self.t.send('\x1b')
