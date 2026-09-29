@@ -304,7 +304,7 @@ class Bot:
             return ''
         d = lv[0] - (self.snap.status.get('xl') or 1) - 1
         rel = 'much weaker than you' if d <= -3 else 'weaker than you' if d < 0 else 'about your level' if d <= 1 else 'stronger than you' if d <= 4 else 'much stronger than you'
-        extra = {'floating eye': '; harmless, but never melee it (paralysis)', 'gas spore': '; explodes for 4d6 (up to 24 damage) when killed: throw things at it or walk away, melee only with 30+ HP'}.get(name, '')
+        extra = {'floating eye': '; harmless, but never melee it (paralysis)', 'gas spore': '; explodes for 4d6 (up to 24 damage) when killed: throw things at it from 2+ squares away (the blast hits every square next to it) or walk away, melee only with 30+ HP'}.get(name, '')
         return f' (difficulty {lv[0]}, speed {lv[1]}, {rel}{extra})'
 
     # ---------- inventory ----------
@@ -384,7 +384,7 @@ class Bot:
         if missiles:
             for m in hostiles:
                 dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
-                if 1 <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
+                if (2 if 'gas spore' in m['name'] else 1) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     it = missiles[0]
                     opts[f'throw_{d}'] = (f"Throw {it['text']} at {m['name']}", f"Throw item {it['letter']} {DIR_NAME[d]} at {m['name']} {m['where']}. Safe way to hit monsters you must not melee (floating eyes, molds); pick it up again afterwards.", lambda l=it['letter'], d=d: self.act_throw(l, d))
@@ -393,7 +393,7 @@ class Bot:
         if wand:  # walled in by floating eyes once for 13000 turns with an unknown wand in the pack
             for m in hostiles:
                 dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
-                if m['passive'] and 1 <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
+                if m['passive'] and (2 if 'gas spore' in m['name'] else 1) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     opts[f'zap_{d}'] = (f"Zap {wand['text']} at {m['name']}", f"Zap wand {wand['letter']} {DIR_NAME[d]} at the {m['name']} {m['where']}. Unknown effect; many wands kill or move monsters, and it identifies the wand.", lambda l=wand['letter'], d=d: self.act_throw(l, d, 'z'))
         for m in near[:2] if not danger else ():  # walking into a fight at a third of max HP killed three giant-bat runs

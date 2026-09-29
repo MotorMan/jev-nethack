@@ -203,3 +203,6 @@ A pet dog parked outside a doorway on Dlvl 1. Jev's only option, explore, was "b
 
 ## 2026-09-29 16:47 — Zombie meat
 Another food-poisoning death on T68: Jev killed a kobold zombie and went straight to eat it. Zombie and mummy corpses are created already old, so the fresh-kill rule misfires on them. Both are now on the never-eat list. Also new: Izchak killed one run on Dlvl 6 (a shop fight to look into), and gas spores keep exploding next to Jev.
+
+## 2026-09-29 16:48 — Point-blank spores
+The latest gas spore death: Jev, at 8/23 HP on Elbereth, threw a dagger at a spore standing right next to it, because the throw option called itself "safe". The blast covers every square next to the spore. Throw and zap options now need the spore at least 2 squares away, and its description says why.
