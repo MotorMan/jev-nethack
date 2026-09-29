@@ -459,14 +459,17 @@ class Bot:
                 break
         downs = [p for p in snap.find('>') if p in dist or p == me]
         too_deep = s.get('dlvl', 1) >= (s.get('xl') or 1) + 3  # pace: Dlvl <= XL+2 (an XL1 died on Dlvl 5)
-        if too_deep and not near:
+        ups = [p for p in snap.find('<') if p in dist]
+        if too_deep and s.get('dlvl', 1) >= (s.get('xl') or 1) + 4 and ups and self.standing_on() != '<':
+            opts['ascend'] = ('Head back upstairs', f"This level is far too deep for experience level {s.get('xl')}. Walk to the up staircase ({dist[ups[0]]} steps {compass(me, ups[0])}) and climb to Dlvl {s.get('dlvl', 0) - 1}.", lambda p=ups[0]: self.act_descend(p, '<'))
+        if too_deep:  # fleeing downward from a fight at this depth is how the pony and giant ant runs ended
             pass
         elif self.standing_on() == '>':
             opts['descend'] = ('Go down the stairs', f"You are on the down staircase to Dlvl {s.get('dlvl', 0) + 1}.", lambda: self.act_keys('>', 'descended'))
         elif downs:
             opts['descend'] = ('Head for the downstairs', f"Walk to the known down staircase ({dist[downs[0]]} steps {compass(me, downs[0])}) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
         pick = next((it for it in self.inventory if re.search(r'pick-axe|dwarvish mattock', it['text'])), None)
-        if pick and not near and self.standing_on() not in ('<', '>', '_', '{'):
+        if pick and not near and not too_deep and self.standing_on() not in ('<', '>', '_', '{'):
             opts['dig_down'] = ('Dig down with the pick-axe', f"Apply {pick['text']} downward to dig a hole to Dlvl {s.get('dlvl', 0) + 1} (takes several turns; skips the rest of this level).", lambda l=pick['letter']: self.act_dig(l))
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
         if not near and s.get('hp', 1) < 0.7 * s.get('hpmax', 1):
@@ -622,13 +625,13 @@ class Bot:
             p = fr[0][1]
         return f'explore ({total} steps): {r}'
 
-    def act_descend(self, p):
+    def act_descend(self, p, key='>'):
         r = self.act_go(p)
         if self.snap.me == p:
             dl = self.snap.status.get('dlvl')
-            self.act_keys('>', '')
-            return f'walked to the stairs and descended (Dlvl {dl} -> {self.snap.status.get("dlvl")})'
-        return 'heading downstairs: ' + r
+            self.act_keys(key, '')
+            return f'walked to the stairs and took them (Dlvl {dl} -> {self.snap.status.get("dlvl")})'
+        return 'heading for the stairs: ' + r
 
     def act_retreat(self, hostiles):
         me, snap = self.snap.me, self.snap
