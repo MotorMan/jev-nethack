@@ -189,7 +189,7 @@ class Bot:
                 q = (p[0] + dx, p[1] + dy)
                 if q in lv.blocked or q in self.avoid or not snap.walkable(*q):
                     continue
-                if dx and dy and not snap.diag_ok(p, q):
+                if dx and dy and (not snap.diag_ok(p, q) or (p == start and self.standing_on() == 'door')):
                     continue
                 nd = d + snap.cost(*q)
                 if nd < dist.get(q, 1e9):
@@ -272,9 +272,13 @@ class Bot:
                 m['name'] = desc or f"unknown '{m['ch']}'"
                 m['pet'] = m['pet'] or 'tame' in desc
                 m['peaceful'] = 'peaceful' in desc
+        out = [m for m in out if not (m['name'] or '').startswith(('statue', 'a statue'))]
         for m in out:
             m['name'] = m['name'] or f"unidentified '{m['ch']}' ({m['fg']})"
-            m['hostile'] = not m['pet'] and not m['peaceful'] and m['ch'] not in ('I',)
+            m['statue'] = m['name'].startswith(('statue', 'a statue'))
+            if m['statue']:
+                self.level().blocked.add(m['pos'])
+            m['hostile'] = not m['pet'] and not m['peaceful'] and not m['statue'] and m['ch'] not in ('I',)
             # sessile, only hurt you if you hit them: never a reason to hold still, and never walk into them
             m['passive'] = bool(re.search(r'floating eye|mold|shrieker', m['name'])) or (m['ch'] == 'e' and m['fg'] == 'blue')
             m['where'] = f"{m['dist']} step{'s' if m['dist'] != 1 else ''} {compass(me, m['pos'])}"
@@ -378,7 +382,8 @@ class Bot:
 
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):
             for it in self.inventory:
-                if re.search(r'food ration|cram|lembas|biscuit|pancake|apple|orange|banana|melon|carrot|egg|tin |fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen', it['text']) and not any(n in it['text'] for n in NEVER_EAT):
+                if re.search(r'food ration|cram|lembas|biscuit|pancake|apple|orange|banana|melon|carrot|egg|\btins? of|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen', it['text']) and not any(n in it['text'] for n in NEVER_EAT) \
+                        and not re.search(r'potion|gem|stone|glass|spellbook|wand|ring|scroll|amulet|opener', it['text']):
                     opts[f"eat_{it['letter']}"] = (f"Eat {it['text']}", f"Eat item {it['letter']} from your pack.", lambda l=it['letter']: self.act_eat(l))
             here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in NEVER_EAT)]
             age = s.get('turn', 0) - lv.corpses.get(me, s.get('turn', 0))
@@ -474,6 +479,8 @@ class Bot:
             g = before.at(*snap.me).ch
             if g in '<>_{':
                 self.run['under'][key] = g
+            elif before.is_door(*snap.me):
+                self.run['under'][key] = 'door'
             if g in OBJECT_CHARS or g == '0':
                 self.run['here'][key] = self.look_here()
             else:
@@ -518,6 +525,9 @@ class Bot:
                 self.level().locked.add(door)
                 self.level().blocked.add(door)
                 return 'found a locked door'
+            if any('diagonally' in m for m in news):  # we are (or it is) in a doorway we did not see
+                self.run['under'][(snap.status.get('dlvl'), me)] = 'door'
+                continue
             if snap.me == me and not any('door opens' in m or 'open' in m for m in news):
                 step = (me[0] + DIRS[d][0], me[1] + DIRS[d][1])
                 if before.is_door(*step) and before.at(*step).ch == '+':
