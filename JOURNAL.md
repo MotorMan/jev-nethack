@@ -169,3 +169,9 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
 - This likely explains several earlier "fainted" deaths after a new game started.
 - The floating-eye/gas-spore corridor run starved at about T26000. Before that, Jev killed 3 gas spores with the kill-blocker option. Engraving Elbereth could not move the eyes, which were jammed against each other.
 - Nearby fresh corpses (under 10 steps, under 30 turns old) are now offered whenever Jev is not satiated, with the reason spelled out: Jev had been passing up corpses while "Not hungry".
+
+## 2026-09-29 15:34 PDT — Bats, shops, pace
+- 6 runs since the prayer fix: giant bat x3 (Dlvl 4-5, T1688-1945), a sewer rat at T833, a wand at T1982, and one unknown at T149.
+- Wand: a dagger thrown at a gas spore in a shop set it off next to the shopkeeper, who then zapped Jev. Gas spores with a peaceful within 2 squares are now dropped from the target list altogether.
+- Bat: at 8/35 HP with no prayer available, Jev chose "approach giant bat". Approach options are now hidden below 1/3 HP.
+- Pace tightened to Dlvl <= XL+1. The "go back up" option now appears at XL+3.
