@@ -358,6 +358,8 @@ class Bot:
         self.visible = mons
         hostiles = [m for m in mons if m['hostile']]
         self.avoid = {m['pos'] for m in hostiles if m['passive'] and 'shrieker' not in m['name']}
+        # a gas spore's blast next to a shopkeeper has killed two runs: leave those alone entirely
+        hostiles = [m for m in hostiles if not ('gas spore' in m['name'] and any(o['peaceful'] and cheb(o['pos'], m['pos']) <= 2 for o in mons))]
         dist, prev = self.dijkstra()
         # a monster we cannot reach (behind walls, across water) is not a reason to stand still
         near = [m for m in hostiles if m['dist'] <= 6 and not m['passive'] and (m['dist'] <= 1 or m['pos'] in dist)]
@@ -386,7 +388,7 @@ class Bot:
                 if m['passive'] and 1 <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     opts[f'zap_{d}'] = (f"Zap {wand['text']} at {m['name']}", f"Zap wand {wand['letter']} {DIR_NAME[d]} at the {m['name']} {m['where']}. Unknown effect; many wands kill or move monsters, and it identifies the wand.", lambda l=wand['letter'], d=d: self.act_throw(l, d, 'z'))
-        for m in near[:2]:
+        for m in near[:2] if not danger else ():  # walking into a fight at a third of max HP killed three giant-bat runs
             if m['dist'] > 1 and m['pos'] in dist:
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
         if near:
