@@ -127,3 +127,13 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
 - New "kill the mold blocking the way" option: a red mold was the only exit on a Mines level,
   and molds are otherwise never walked into.
 - Jev spend so far: about 10k calls, $0.53.
+
+## 2026-09-29 12:42 PDT — Monkey, ghost, bat
+- Run 20260929-123909 died to a giant bat at T7270 on Dlvl 3. It had resumed on a bones level.
+- A monkey stole the +3 small shield, so AC went from 6 to 10. The ghost ("Jev's ghost touches you") is drawn as blank, so it never showed up in the monster list.
+- Jev kept meleeing bats while HP drained, and the 1000-turn prayer gate hid pray at 2 HP.
+- Changes:
+  - The prayer gate is now 600 turns for low HP and 900 for hunger.
+  - Melee options now carry a "you are at X/Y HP" warning below 1/3 HP, and Elbereth is marked as the best move then.
+  - Added a quaff-potion option at low HP.
+  - "It hits" and "ghost touches" messages now flag an unseen attacker and offer Elbereth.
