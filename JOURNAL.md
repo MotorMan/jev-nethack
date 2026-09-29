@@ -110,3 +110,20 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
   had a waitpid race between the HTTP thread and the bot thread.
 - The resumed long game reached **Dlvl 8 by T11870** before I reset it.
 - Jev spend so far: about 5.6k calls, $0.28.
+
+## 2026-09-29 12:23 PDT — The spear was a pear
+- Three straight deaths "while fainted from lack of food". I analyzed decisions.jsonl: when eating
+  was offered, Jev chose it about 98% of the time (1190 times in one run). The motor, though, was
+  eating item `a`, "+1 dwarvish s**pear**", because the food regex matched `pear` with no
+  word boundary. It tried 1,039 times and got "You don't have anything to eat" each time.
+  Jev was right and my option builder was wrong.
+- Fixes: a word-bounded, plural-aware food regex with an assert test, plus a per-run inedible
+  blacklist when the game refuses.
+- Jev loved "Search here 15 turns" at full HP (537 of 650 choices in one game). Rest is now only
+  offered below 70% HP.
+- Unreachable monsters (behind walls) no longer count as nearby threats, so wait/retreat
+  stop dominating.
+- Pace gate: descending is not offered past Dlvl XL+2. An XL1 died on Dlvl 5.
+- New "kill the mold blocking the way" option: a red mold was the only exit on a Mines level,
+  and molds are otherwise never walked into.
+- Jev spend so far: about 10k calls, $0.53.
