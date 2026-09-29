@@ -400,8 +400,11 @@ class Bot:
             if m['dist'] > 1 and m['pos'] in dist:
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
         if near:
-            opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('s', 'waited'))
-            opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.', lambda: self.act_retreat(hostiles))
+            if self.engraved_here():  # stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
+                opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', lambda: self.act_keys('s', 'waited on Elbereth'))
+            else:
+                opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('s', 'waited'))
+                opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + (' Most monsters are as fast as you and simply follow, so this rarely helps.' if danger else ''), lambda: self.act_retreat(hostiles))
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.act_keys('<', 'went up'))
         walled = len(dist) <= 3 and any(m['passive'] and m['dist'] == 1 for m in hostiles)  # boxed in by floating eyes
