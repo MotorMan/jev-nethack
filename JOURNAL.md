@@ -206,3 +206,6 @@ Another food-poisoning death on T68: Jev killed a kobold zombie and went straigh
 
 ## 2026-09-29 16:48 — Point-blank spores
 The latest gas spore death: Jev, at 8/23 HP on Elbereth, threw a dagger at a spore standing right next to it, because the throw option called itself "safe". The blast covers every square next to the spore. Throw and zap options now need the spore at least 2 squares away, and its description says why.
+
+## 2026-09-29 16:49 — Izchak's door
+A Dlvl 6 run died to Izchak's wand of striking. The door-kicking routine, added to open unexplored rooms, had kicked in his locked shop door. A level where Jev has farlooked a peaceful @ (shopkeeper, watchman, priest) is now marked as town, and there locked doors are never offered or kicked.

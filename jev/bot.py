@@ -46,6 +46,7 @@ class Level:
         self.traps = set()     # trap doors, holes, level teleporters: never path through (survives memory wipes)
         self.resets = 0        # times near/dead/blocked were wiped after fruitless searching
         self.corpses = {}      # square -> turn the corpse was first seen
+        self.town = False      # a peaceful @ lives here (Izchak killed a run over a kicked shop door)
 
 
 class Bot:
@@ -283,6 +284,8 @@ class Bot:
                 m['name'] = desc or f"unknown '{m['ch']}'"
                 m['pet'] = m['pet'] or 'tame' in desc
                 m['peaceful'] = 'peaceful' in desc
+                if m['peaceful'] and m['ch'] == '@':  # shopkeeper, watchman or priest: breaking doors here gets us killed
+                    self.level().town = True
         out = [m for m in out if not (m['name'] or '').startswith(('statue', 'a statue'))]
         for m in out:
             m['name'] = m['name'] or f"unidentified '{m['ch']}' ({m['fg']})"
@@ -463,7 +466,7 @@ class Bot:
                     opts[f"wear_{it['letter']}"] = (f"Wear {t}", "Put on this armor (takes a few turns; may be cursed if unidentified).", lambda it=it: self.act_wear(it))
 
         for d, p in [(k, (me[0] + v[0], me[1] + v[1])) for k, v in DIRS.items() if not (v[0] and v[1])]:
-            if p in lv.locked:
+            if p in lv.locked and not lv.town:
                 opts[f'kick_{d}'] = (f"Kick the locked door {DIR_NAME[d]}", 'Kick the locked door to break it open (may take several tries).', lambda d=d: self.act_kick(d))
 
         # closed doors read off the screen each turn: level memory alone once left three doors unexplored for 10000 turns
@@ -475,8 +478,8 @@ class Bot:
                 q = min(spots, key=dist.get)
                 doors.append((dist[q], door, q))
         for _, door, q in sorted(doors)[:2]:
-            if door in lv.locked and cheb(door, me) <= 1:
-                continue  # kick_<dir> covers it
+            if door in lv.locked and (cheb(door, me) <= 1 or lv.town):
+                continue  # kick_<dir> covers it; in town a locked door stays shut
             what = 'locked door' if door in lv.locked else 'closed door'
             opts[f'door_{door[0]}_{door[1]}'] = (f"Go through the {what} {compass(me, door)}", f"Walk {dist[q]} steps to the {what} {compass(me, door)}, open it (kicking it if locked). What lies behind is unexplored.", lambda q=q, door=door: self.act_kick_door(q, door))
         fr = self.frontiers(dist)
@@ -861,6 +864,9 @@ class Bot:
                 return 'opened the door'
             if door not in self.level().locked:
                 return 'door did not open: ' + r
+        if self.level().town:
+            self.level().dead.add(door)
+            return 'did not kick: shopkeepers and the watch punish broken doors'
         for i in range(6):
             self.act_kick(d)
             if door not in self.level().locked or self.hostile_glyphs():
