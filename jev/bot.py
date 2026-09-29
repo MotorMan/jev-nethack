@@ -1,6 +1,6 @@
 """The play loop. Code reads the screen, lists legal concrete options and executes them;
 Jev chooses every option. No LLM anywhere."""
-import glob, heapq, json, os, re, threading, time
+import glob, heapq, json, os, random, re, threading, time
 from datetime import datetime, timezone
 
 from .nh import (DIRS, DIR_OF, DIR_NAME, MAP_TOP, MAP_BOT, OBJECT_CHARS, Snapshot, top_prompt, messages_from)
@@ -939,6 +939,20 @@ class Bot:
         return True
 
     def decide(self):
+        # loop guard: decisions while the game clock stands still burn money (or just spin), whatever the cause
+        turn = self.snap.status.get('turn') or 0
+        self.frozen = self.frozen + 1 if turn == self.frozen_turn else 0
+        self.frozen_turn = turn
+        if self.frozen >= 50:
+            self.frozen = 0
+            raise RuntimeError(f'loop guard: 50 decisions stuck on T{turn}; paused')
+        if self.frozen and self.frozen % 15 == 0:
+            self.log(f'loop guard: {self.frozen} decisions on T{turn}; Esc, forget walls, step randomly, search', 'warn')
+            lv = self.level()
+            lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
+            self.t.send('\x1b\x1b\x1b\x12' + random.choice('hjklyubn') + '3s')
+            self.settle()
+            return
         if self.follow_guard():
             return
         opts, mons = self.build_options()
@@ -956,15 +970,6 @@ class Bot:
             key, answers, meta = next(iter(opts)), {}, dict(latency_ms=0, model=None)
             probs, conf = {key: 1.0}, 1.0
         else:
-            # loop guard: paid calls while the game clock stands still are wasted money
-            self.frozen = self.frozen + 1 if self.decision['turn'] == self.frozen_turn else 0
-            self.frozen_turn = self.decision['turn']
-            if self.frozen == 15:
-                self.log(f'loop guard: 15 Jev calls without the turn moving; Esc + redraw', 'warn')
-                self.t.send('\x1b\x1b\x1b\x12')
-            if self.frozen >= 40:
-                self.frozen = 0
-                raise RuntimeError(f'loop guard: 40 Jev calls stuck on T{self.frozen_turn}; paused to save money')
             qs = {'action': dict(type='choice', instructions=question, criteria=criteria),
                   'danger': dict(type='noul', instructions='Is the Valkyrie in serious danger of dying within the next few turns?')}
             answers, meta = self.jev.ask(state, qs)

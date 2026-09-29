@@ -194,3 +194,6 @@ With the name prompt answered, the next vault visit ended with "killed by a guar
 
 ## 2026-09-29 16:17 — Standing on Elbereth
 The rothe deaths (twice) had the same shape. At about 10/48 HP Jev engraved Elbereth, then chose "retreat" and stepped off it, over and over, while the rothe followed. Once Elbereth is under Jev, retreat is no longer offered, and the wait option says outright that it heals safely there. Elsewhere, retreat now tells a hurt Jev that most monsters simply follow.
+
+## 2026-09-29 16:37 — A free loop is still a loop
+A pet dog parked outside a doorway on Dlvl 1. Jev's only option, explore, was "blocked after 1 steps" 2,929 times on T839. It cost nothing (single-option decisions skip Jev), which is exactly why the paid-call loop guard never noticed. The guard now counts every decision on a frozen turn. At 15, 30 and 45 it presses Esc, redraws, forgets remembered walls, takes one random step and searches 3 turns, which lets a pet or peaceful move off. At 50 the bot pauses. A stubbed check lives in test_loop_guard.py.
