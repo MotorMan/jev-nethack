@@ -1,0 +1,11 @@
+# Used locally and uploaded to Hardfought.
+# number_pad:0, !perm_invent, !hitpointbar override Hardfought's sysconf
+# defaults: vi-keys are easier to drive, and the others eat the 80x24 screen.
+OPTIONS=role:Valkyrie,race:dwarf,gender:female,align:lawful
+OPTIONS=number_pad:0,!perm_invent,!hitpointbar
+OPTIONS=!tutorial,!splash_screen,!legacy,!news,!cmdassist,!rest_on_space,!autodescribe
+OPTIONS=autopickup,pickup_types:$
+OPTIONS=time,showexp,color,boulder:0,runmode:teleport,statuslines:2
+OPTIONS=mention_walls,!verbose,suppress_alert:3.4.3,pile_limit:1
+OPTIONS=menustyle:traditional,!sparkle
+OPTIONS=disclose:+i +a +v +g +c +o
