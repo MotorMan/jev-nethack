@@ -89,7 +89,7 @@ class Bot:
 
     def _load_runs(self):
         try:
-            return json.load(open(os.path.join(ROOT, 'runs', 'runs.json')))
+            return [r for r in json.load(open(os.path.join(ROOT, 'runs', 'runs.json'))) if r.get('turns')]  # drop records of server restarts
         except (OSError, ValueError):
             return []
 
