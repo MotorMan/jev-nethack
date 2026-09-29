@@ -63,3 +63,17 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
   into that bear trap?", we answered no, and Jev picked retreat again forever. Fixes: retreat
   skips traps/boulders and reports honestly when it didn't move; generic stall guard drops any
   option picked 3x in a row without the turn counter moving.
+
+## 2026-09-29 11:18 PDT — Long local run: Dlvl 4, T5000+, XL5
+- Current game (restored from save across restarts) reached Dlvl 4 at T2248, XL 5, still alive at T5000+.
+- Stuck patterns found and fixed:
+  - **Floating eye paralysis bait:** a floating eye 2 squares away counted as a threat, so
+    "wait" won for 200+ turns, and pathing treated its square as walkable, which would have meant
+    meleeing it. Passive monsters (floating eye, molds, shrieker) no longer gate the options, and
+    their squares are never stepped into.
+  - **Locked doors out of reach:** a locked door was only kickable when adjacent. The new
+    "go kick open the locked door" option walks there and kicks up to 6 times.
+  - **Invisible hero:** without see invisible, NetHack draws the floor instead of `@`, so the
+    bot spun on "cannot find the hero". It now falls back to the cursor position, which tty
+    leaves on the hero, and adds a ^R redraw to recover from emulator drift.
+- Added dig-down (apply pick-axe/mattock, `>`, then re-wield the weapon) as a Jev option.

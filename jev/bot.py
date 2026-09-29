@@ -798,8 +798,9 @@ class Bot:
                 if self.snap.me is None and any('Logged in as' in l for l in self.snap.lines):
                     break  # hardfought: game over, back at the dgamelaunch menu
                 if self.snap.me is None:
-                    self.log('cannot find the hero on screen; sending Esc', 'warn')
+                    self.log('cannot find the hero on screen; Esc + redraw', 'warn')
                     self.t.send('\x1b')
+                    self.t.send('\x12')  # ^R: repaints if our emulated screen drifted (e.g. scrolled)
                     time.sleep(0.2)
                     continue
                 try:

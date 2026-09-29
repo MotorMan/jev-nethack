@@ -52,7 +52,9 @@ class Snapshot:
         self.status = parse_status(self.lines)
         self.grid = [[Glyph(term.cell(x, y)) for x in range(80)] for y in range(24)]
         x, y = self.cursor
-        self.me = (x, y) if MAP_TOP <= y <= MAP_BOT and self.lines[y][x] == '@' else self.find_me()
+        on_map = MAP_TOP <= y <= MAP_BOT
+        # invisible without see invisible: no @ is drawn, but the cursor still rests on the hero
+        self.me = (x, y) if on_map and self.lines[y][x] == '@' else self.find_me() or ((x, y) if on_map else None)
 
     def find_me(self):
         for y in range(MAP_TOP, MAP_BOT + 1):
