@@ -52,6 +52,7 @@ class Bot:
     def __init__(self, launcher, jev, mode='local'):
         self.fresh = False  # operator asked for a brand-new game
         self.refused_trap = False
+        self.frozen, self.frozen_turn = 0, None
         self.avoid = set()  # squares never to step into (floating eyes, molds)
         self.launcher, self.jev, self.mode = launcher, jev, mode
         self.lock = threading.Lock()
@@ -153,8 +154,8 @@ class Bot:
         return '\x1b'
 
     def answer_ask(self, q):
-        if 'who are you' in q.lower():
-            return 'Jev\r'
+        if 'who are you' in q.lower():  # vault guard; wipe whatever movement keys already landed in the answer
+            return '\b' * 200 + 'Jev\r'
         return '\x1b'
 
     def on_message(self, msg):
@@ -930,6 +931,15 @@ class Bot:
             key, answers, meta = next(iter(opts)), {}, dict(latency_ms=0, model=None)
             probs, conf = {key: 1.0}, 1.0
         else:
+            # loop guard: paid calls while the game clock stands still are wasted money
+            self.frozen = self.frozen + 1 if self.decision['turn'] == self.frozen_turn else 0
+            self.frozen_turn = self.decision['turn']
+            if self.frozen == 15:
+                self.log(f'loop guard: 15 Jev calls without the turn moving; Esc + redraw', 'warn')
+                self.t.send('\x1b\x1b\x1b\x12')
+            if self.frozen >= 40:
+                self.frozen = 0
+                raise RuntimeError(f'loop guard: 40 Jev calls stuck on T{self.frozen_turn}; paused to save money')
             qs = {'action': dict(type='choice', instructions=question, criteria=criteria),
                   'danger': dict(type='noul', instructions='Is the Valkyrie in serious danger of dying within the next few turns?')}
             answers, meta = self.jev.ask(state, qs)

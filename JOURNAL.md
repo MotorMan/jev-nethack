@@ -185,3 +185,6 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
 - Side bug: a wear option failed silently 3 times in a row. Armor that does not end up "being worn" is now remembered and not offered again.
 - Added `python -m jev.watch`, a terminal viewer (the colored game screen, Jev's option probabilities, recent decisions, and deaths), at the operator's request.
 - That run then died to a rothe on Dlvl 6 at XL3. The Mines are rough when a level-3 hero is forced down.
+
+## 2026-09-29 16:14 — Vault guard and a loop guard
+A closet vault's guard asked "Hello stranger, who are you?" and Jev's movement keys kept landing in the text prompt, burning a paid call each time. top_prompt now recognizes the `?" -` prompt, and the answer is backspaces plus "Jev". A general guard also runs now: 15 Jev calls in a row without the game turn moving trigger Esc plus a redraw. At 40 the bot pauses itself (shown as PAUSED in the UI and watcher) instead of spending more. A single-option decision never calls Jev.

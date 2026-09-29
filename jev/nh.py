@@ -130,7 +130,8 @@ def top_prompt(lines):
     top = lines[0].rstrip()
     if YN.search(top):
         return 'yn', top
-    if top.endswith('?') or re.search(r'\[[^\]]*\]\s*$', top) or top.endswith(':'):
+    # getlin prompts; the vault guard's reads '"Hello stranger, who are you?" - ' and may already hold typed junk
+    if top.endswith('?') or re.search(r'\[[^\]]*\]\s*$', top) or top.endswith(':') or re.search(r'\?" -( |$)', top):
         return 'ask', top
     return None, None
 
