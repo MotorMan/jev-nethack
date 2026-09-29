@@ -280,7 +280,7 @@ class Bot:
             m['statue'] = m['name'].startswith(('statue', 'a statue'))
             if m['statue']:
                 self.level().blocked.add(m['pos'])
-            m['hostile'] = not m['pet'] and not m['peaceful'] and not m['statue'] and m['ch'] not in ('I',)
+            m['hostile'] = not m['pet'] and not m['peaceful'] and not m['statue'] and (m['ch'] != 'I' or m['dist'] <= 1)
             # sessile, only hurt you if you hit them: never a reason to hold still, and never walk into them
             m['passive'] = bool(re.search(r'floating eye|mold|shrieker', m['name'])) or (m['ch'] == 'e' and m['fg'] == 'blue')
             m['where'] = f"{m['dist']} step{'s' if m['dist'] != 1 else ''} {compass(me, m['pos'])}"
@@ -401,7 +401,7 @@ class Bot:
         # timeout after a good prayer is ~350 on average and major trouble is fixed below 200: 600 is a fair bet for
         # low HP, hunger can wait longer (a couatl killed the run that prayed 6 times in 33 turns)
         gap = 600 if LOW_HP(s) else 900
-        if trouble and (turn - last >= gap if last is not None else turn >= 300):
+        if trouble and (turn - last >= gap if last is not None else turn >= (150 if LOW_HP(s) else 300)):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({'low HP' if LOW_HP(s) else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
 
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):
