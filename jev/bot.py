@@ -13,7 +13,7 @@ STRATEGY = ("You are a dwarven Valkyrie: strong melee, cold resistant, stealthy,
             "Fight weak monsters in melee; do not melee floating eyes (blue 'e') or cockatrices ('c' yellow) bare-handed. "
             "Prayer fixes low HP (below 1/7 max or below 6) and weakness from hunger, but only about once per 1000 turns; "
             "the first prayer is safe after roughly turn 300. Elbereth engraved in the dust scares most melee monsters "
-            "(not @ humans or minotaurs) until you attack from it. Eat when Hungry. Explore each level for useful items, "
+            "(not @ humans or minotaurs) until you attack from it. Eat when Hungry. Food is scarce and fainting kills: eat fresh corpses of what you kill (not cockatrices, not old ones). Explore each level for useful items, "
             "then take the downstairs. A good pace is dungeon level no deeper than experience level + 2 early on. "
             "Wear armor you find if it covers an empty slot. The ultimate goal is to retrieve the Amulet and ascend.")
 
@@ -391,6 +391,9 @@ class Bot:
             if fresh and not here:
                 p = min(fresh, key=dist.get)
                 opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.", lambda p=p: self.act_goto_corpse(p))
+        if s.get('hunger') != 'Satiated':
+            here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in NEVER_EAT)]
+            age = s.get('turn', 0) - lv.corpses.get(me, s.get('turn', 0))
             if here and age < 40:
                 opts['eat_corpse'] = (f"Eat the {here[0]} here", f"Eat {here[0]} on this square. It appeared about {age} turns ago (old corpses can be rotten or poisonous).", self.act_eat_corpse)
 
@@ -440,9 +443,17 @@ class Bot:
             if spot:
                 opts['search_hidden'] = ('Search for hidden passages', f"No unexplored edges or downstairs are known. Walk {dist[spot]} steps {compass(me, spot)} to a likely spot (dead end or wall) and search there.", lambda: self.act_search_at(spot))
         # stall guard: an option picked 3 times in a row without the game clock moving is not working
-        last = self.history[-3:]
-        if len(last) == 3 and len({h['choice'] for h in last}) == 1 and all(h['turn'] == s.get('turn') for h in last) and len(opts) > 1:
-            opts.pop(last[0]['choice'], None)
+        streak = []
+        for h in reversed(self.history):
+            if h['turn'] != s.get('turn'):
+                break
+            streak.append(h['choice'])
+        if len(streak) >= 3 and len(set(streak[:3])) == 1:
+            opts.pop(streak[0], None)
+        if len(streak) >= 4:  # several tries, clock frozen: everything tried this turn is failing
+            for c in set(streak):
+                if len(opts) > 1:
+                    opts.pop(c, None)
         if not opts:
             opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('s', 'waited'))
         return opts, mons
