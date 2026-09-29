@@ -390,7 +390,10 @@ class Bot:
         last = self.run.get('prayed_turn')
         turn = s.get('turn') or 0
         # prayer timeout is ~50-1000 turns; praying early angers the god (a couatl killed an earlier run)
-        if trouble and (turn - last >= 1000 if last is not None else turn >= 300):
+        # timeout after a good prayer is ~350 on average and major trouble is fixed below 200: 600 is a fair bet for
+        # low HP, hunger can wait longer (a couatl killed the run that prayed 6 times in 33 turns)
+        gap = 600 if LOW_HP(s) else 900
+        if trouble and (turn - last >= gap if last is not None else turn >= 300):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({'low HP' if LOW_HP(s) else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
 
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):
