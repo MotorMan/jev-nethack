@@ -282,7 +282,7 @@ class Bot:
                 self.level().blocked.add(m['pos'])
             m['hostile'] = not m['pet'] and not m['peaceful'] and not m['statue'] and (m['ch'] != 'I' or m['dist'] <= 1)
             # sessile, only hurt you if you hit them: never a reason to hold still, and never walk into them
-            m['passive'] = bool(re.search(r'floating eye|mold|shrieker', m['name'])) or (m['ch'] == 'e' and m['fg'] == 'blue')
+            m['passive'] = bool(re.search(r'floating eye|mold|shrieker|gas spore', m['name'])) or (m['ch'] == 'e' and m['fg'] in ('blue', 'white', 'gray'))
             m['where'] = f"{m['dist']} step{'s' if m['dist'] != 1 else ''} {compass(me, m['pos'])}"
         return out
 
@@ -295,7 +295,7 @@ class Bot:
             return ''
         d = lv[0] - (self.snap.status.get('xl') or 1) - 1
         rel = 'much weaker than you' if d <= -3 else 'weaker than you' if d < 0 else 'about your level' if d <= 1 else 'stronger than you' if d <= 4 else 'much stronger than you'
-        extra = '; harmless, but never melee it (paralysis)' if name == 'floating eye' else ''
+        extra = {'floating eye': '; harmless, but never melee it (paralysis)', 'gas spore': '; explodes for 4d6 when killed: never melee it, throw things or walk away'}.get(name, '')
         return f' (difficulty {lv[0]}, speed {lv[1]}, {rel}{extra})'
 
     # ---------- inventory ----------
