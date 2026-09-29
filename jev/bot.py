@@ -43,6 +43,7 @@ class Level:
         self.blocked = set()   # squares that turned out impassable (locked doors, boulders we could not push)
         self.locked = set()
         self.dead = set()      # exploration targets we gave up on
+        self.resets = 0        # times near/dead/blocked were wiped after fruitless searching
         self.corpses = {}      # square -> turn the corpse was first seen
 
 
@@ -483,6 +484,13 @@ class Bot:
                 if any(m['pos'] in d2 for m in molds) and len(self.frontiers(d2)) > 0:
                     m = min((m for m in molds if m['pos'] in d2), key=lambda m: d2[m['pos']])
                     opts['kill_blocker'] = (f"Kill the {m['name']} blocking the way", f"The {m['name']} {m['where']} blocks the only way to unexplored parts. Walk next to it and fight it (it hurts you passively when you hit it; stop if HP gets low).", lambda m=m: self.act_kill_blocker(m['pos']))
+        if not fr and not downs and not near and sum(lv.searched.values()) >= 300 * (lv.resets + 1):
+            # searched a long time for nothing: level memory may be hiding real exits (a starved run had an open doorway in view)
+            lv.resets += 1
+            lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
+            fr = self.frontiers(dist)
+            if fr:
+                opts['explore_again'] = ('Re-explore this level', f"Searching found nothing, but there are unexplored edges again ({len(fr)} of them, nearest {fr[0][0]} steps {compass(me, fr[0][1])}).", lambda p=fr[0][1]: self.act_explore(p))
         if not fr and not downs and not near:
             spot = self.search_spot(dist)
             if spot:
@@ -500,6 +508,8 @@ class Bot:
                 if len(opts) > 1:
                     opts.pop(c, None)
         if not opts:
+            # nothing to do usually means level memory has walled us in (once for 7800 turns): forget it and look again
+            lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
             opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('s', 'waited'))
         return opts, mons
 
@@ -588,7 +598,7 @@ class Bot:
                 step = (me[0] + DIRS[d][0], me[1] + DIRS[d][1])
                 if before.is_door(*step) and before.at(*step).ch == '+':
                     self.level().locked.add(step)  # locked, stuck or resisting: kicking is the way through
-                if not snap.is_monster(*step):
+                if not snap.is_monster(*step) and before.at(*step).ch not in '.#':  # floor was only ever blocked by a peaceful in the way
                     self.level().blocked.add(step)
                 return f'blocked after {taken} steps' + (f": {news[-1]}" if news else '')
             if snap.status.get('hp', 0) < hp0:
