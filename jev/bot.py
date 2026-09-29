@@ -15,7 +15,7 @@ STRATEGY = ("You are a dwarven Valkyrie: strong melee, cold resistant, stealthy,
             "Prayer fixes low HP (below 1/7 max or below 6) and weakness from hunger, but only about once per 1000 turns; "
             "the first prayer is safe after roughly turn 300. Elbereth engraved in the dust scares most melee monsters "
             "(not @ humans or minotaurs) until you attack from it. Eat when Hungry. Food is scarce and fainting kills: eat fresh corpses of what you kill (not cockatrices, not old ones). Explore each level for useful items, "
-            "then take the downstairs. A good pace is dungeon level no deeper than experience level + 2 early on. "
+            "then take the downstairs. A good pace is dungeon level no deeper than experience level + 1 early on. "
             "Wear armor you find if it covers an empty slot. The ultimate goal is to retrieve the Amulet and ascend.")
 
 
@@ -477,9 +477,9 @@ class Bot:
             if len(picked) == 3:
                 break
         downs = [p for p in snap.find('>') if p in dist or p == me]
-        too_deep = s.get('dlvl', 1) >= (s.get('xl') or 1) + 3  # pace: Dlvl <= XL+2 (an XL1 died on Dlvl 5)
+        too_deep = s.get('dlvl', 1) >= (s.get('xl') or 1) + 2  # pace: Dlvl <= XL+1 (XL+2 still lost most runs on Dlvl 4-5 before T2000)
         ups = [p for p in snap.find('<') if p in dist]
-        if too_deep and s.get('dlvl', 1) >= (s.get('xl') or 1) + 4 and ups and self.standing_on() != '<':
+        if too_deep and s.get('dlvl', 1) >= (s.get('xl') or 1) + 3 and ups and self.standing_on() != '<':
             opts['ascend'] = ('Head back upstairs', f"This level is far too deep for experience level {s.get('xl')}. Walk to the up staircase ({dist[ups[0]]} steps {compass(me, ups[0])}) and climb to Dlvl {s.get('dlvl', 0) - 1}.", lambda p=ups[0]: self.act_descend(p, '<'))
         if too_deep:  # fleeing downward from a fight at this depth is how the pony and giant ant runs ended
             pass
