@@ -46,6 +46,7 @@ class Level:
 
 class Bot:
     def __init__(self, launcher, jev, mode='local'):
+        self.avoid = set()  # squares never to step into (floating eyes, molds)
         self.launcher, self.jev, self.mode = launcher, jev, mode
         self.lock = threading.Lock()
         self.paused, self.step_once, self.delay_ms, self.stop = False, False, 250, False
@@ -185,7 +186,7 @@ class Bot:
                 continue
             for (dx, dy) in DIRS.values():
                 q = (p[0] + dx, p[1] + dy)
-                if q in lv.blocked or not snap.walkable(*q):
+                if q in lv.blocked or q in self.avoid or not snap.walkable(*q):
                     continue
                 if dx and dy and not snap.diag_ok(p, q):
                     continue
@@ -273,6 +274,8 @@ class Bot:
         for m in out:
             m['name'] = m['name'] or f"unidentified '{m['ch']}' ({m['fg']})"
             m['hostile'] = not m['pet'] and not m['peaceful'] and m['ch'] not in ('I',)
+            # sessile, only hurt you if you hit them: never a reason to hold still, and never walk into them
+            m['passive'] = bool(re.search(r'floating eye|mold|shrieker', m['name'])) or (m['ch'] == 'e' and m['fg'] == 'blue')
             m['where'] = f"{m['dist']} step{'s' if m['dist'] != 1 else ''} {compass(me, m['pos'])}"
         return out
 
@@ -334,12 +337,13 @@ class Bot:
         mons = self.monsters()
         self.visible = mons
         hostiles = [m for m in mons if m['hostile']]
-        near = [m for m in hostiles if m['dist'] <= 6]
+        self.avoid = {m['pos'] for m in hostiles if m['passive'] and 'shrieker' not in m['name']}
+        near = [m for m in hostiles if m['dist'] <= 6 and not m['passive']]
         dist, prev = self.dijkstra()
         opts = {}
 
         for m in hostiles:
-            if m['dist'] == 1:
+            if m['dist'] == 1 and m['pos'] not in self.avoid:
                 d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
                 opts[f'attack_{d}'] = (f"Attack {m['name']} ({DIR_NAME[d]})", f"Melee the adjacent {m['name']} to the {DIR_NAME[d]}.", lambda d=d: self.act_fight(d))
         for m in near[:2]:
