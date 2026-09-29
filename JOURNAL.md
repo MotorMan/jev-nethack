@@ -209,3 +209,36 @@ The latest gas spore death: Jev, at 8/23 HP on Elbereth, threw a dagger at a spo
 
 ## 2026-09-29 16:49 — Izchak's door
 A Dlvl 6 run died to Izchak's wand of striking. The door-kicking routine, added to open unexplored rooms, had kicked in his locked shop door. A level where Jev has farlooked a peaceful @ (shopkeeper, watchman, priest) is now marked as town, and there locked doors are never offered or kicked.
+
+## 2026-09-29 16:59 — Strategy review against the wiki dump and the 5.0 source
+Two research passes: the NetHackWiki dump (YASD, standard strategy, Valkyrie, Elbereth, prayer, corpses) and the 5.0 source and changelogs in build/NetHack50. Several things the bot "knew" were 3.6 lore, and a few of my recent fixes were wrong.
+
+What 5.0 actually does (source file:line in the audit):
+- **Prayer.** The timeout starts at 300 and falls 1 per turn; major trouble is fixed at 200 or less. So the first emergency prayer is safe from about T100, not T150/T300. Low HP means HP ≤ 5, or HP × 5 (XL 1–5; 6 at XL 6–13, 7 at 14–21) ≤ min(maxHP, 15·XL). The old 1/7 rule prayed at 5/40 instead of 8/40. Weak hunger, food poisoning, illness, stoning, sliming, strangling and lycanthropy are all major trouble with the same clock.
+- **Elbereth.** Dust garbles each letter 1 time in 25, so about 28% of engravings are misspelled and useless. Attacking from it (melee, throw or zap) erases it and costs up to −5 alignment ("You feel like a hypocrite"). A Valkyrie starts at alignment 0, and negative alignment makes prayer fail. It scares everything that sees it except @ humans and elves, minotaurs, shopkeepers, guards, priests and uniques.
+- **Corpses.** Rot is age / (10 + rn2(20)), so tainting is possible from age 60. Zombie and mummy corpses are 101 turns old at birth and are named after the living monster ("gnome corpse"), so my never-eat entries for "zombie" and "mummy" never matched. Jev is a *dwarven* Valkyrie, so dwarf corpses are cannibalism (−2 to −5 Luck, which breaks prayer).
+- **Prompts.** The trap prompt reads "Really step **into** that hole / level teleporter / magic portal?", and the old check only matched "onto". The strangulation status is "Strngl".
+- **Shops and the watch.** A broken shop door costs 400zm ("Pay?"). The watch warns once ("stop damaging that door") and then turns hostile. "Closed for inventory" is written outside locked shops.
+
+Changes made:
+- LOW_HP now copies pray.c.
+- One prayer clock for all major trouble: first prayer from T110, then 600 turns apart. 600 turns still carries about an 11% chance the god isn't ready yet; that is accepted.
+- Lycanthropy is tracked from "You feel feverish" and cleared by "You feel purified".
+- Engravings are read back with `:` (a free action): a garbled Elbereth is not trusted, and one that has worn off ends the wait-on-Elbereth loop.
+- Throwing clears the Elbereth mark.
+- No melee or throw options while on Elbereth, except against @ or a minotaur. Elbereth isn't offered when every nearby hostile is an @.
+- A corpse counts as fresh only if it appears within 2 squares right after a "You kill" message ("You destroy" means undead). Anything else is of unknown age and never eaten.
+- Never eat: dwarf, were*, kobold, bat, ghoul, vampire, chameleon, dog, cat, kitten, pony.
+- Trap prompts match "onto" and "into". Condition names are matched at every width.
+- Farlook suffixes like ", asleep" are stripped.
+- Say yes to "Pay?". "Closed for inventory" and the watch's warning mark the level as town, so no more kicking.
+- Rest to 85% HP; take stairs only at 80% HP or more.
+
+From the wiki, not done yet, in priority order:
+- Retreat only from monsters slower than speed 12. Rothes, dwarves, ghosts and gas spores can be outrun; giant bats, soldier ants, ravens and dingos cannot.
+- "Go to the upstairs" when in danger and the stairs are within about 8 steps.
+- Pull groups into a corridor or doorway.
+- Gnomish Mines pacing: Dlvl ≤ XL there, and no Minetown or below until about XL 8.
+- Drop weight when Burdened.
+- Keep the ascend option away from the Sokoban branch.
+- Excalibur is technically in reach (long sword, lawful, XL 5, a 1-in-30 dip), but the failure outcomes (water moccasins, nymphs, water demons) are costly this early. Skipped for now.

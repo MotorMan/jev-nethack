@@ -8,8 +8,9 @@ from .nh import (DIRS, DIR_OF, DIR_NAME, MAP_TOP, MAP_BOT, OBJECT_CHARS, Snapsho
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FOOD = re.compile(r'\b(?:food ration|cram|lembas|biscuit|pancake|apple|orange|banana|melon|carrot|egg|\btins? of|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen)e?s?\b')  # word-bounded: 'dwarvish spear' is not a pear
 MONSTERS = json.load(open(os.path.join(os.path.dirname(__file__), 'monsters.json')))  # name -> [difficulty, speed], from monsters.h
-NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy')  # undead corpses are pre-aged: always tainted
-LOW_HP = lambda s: s.get('hp', 1) < 6 or s.get('hp', 1) * 7 < s.get('hpmax', 1)
+NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy', 'dwarf', 'were', 'kobold', 'bat', 'ghoul', 'vampire', 'chameleon', 'dog', 'cat', 'kitten', 'pony')  # undead corpses are pre-aged: always tainted
+# pray.c critically_low_hp: the major-trouble line prayer fixes
+LOW_HP = lambda s: s.get('hp', 1) <= 5 or s.get('hp', 1) * (5 if s.get('xl', 1) <= 5 else 6 if s.get('xl', 1) <= 13 else 7) <= min(s.get('hpmax', 1), 15 * s.get('xl', 1))
 STRATEGY = ("You are a dwarven Valkyrie: strong melee, cold resistant, stealthy, infravision. Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. "
             "Fight weak monsters in melee; do not melee floating eyes (blue 'e') or cockatrices ('c' yellow) bare-handed. "
             "Prayer fixes low HP (below 1/7 max or below 6) and weakness from hunger, but only about once per 1000 turns; "
@@ -90,6 +91,12 @@ class Bot:
                 del self.messages[:-300]
             self.version += 1
         if self.run is not None:
+            if re.search(r'Closed for inventory|stop damaging that door', text) and self.snap and self.snap.status.get('dlvl'):
+                self.level().town = True
+            if 'You feel feverish' in text:
+                self.run['lycanthropy'] = True
+            if 'You feel purified' in text:
+                self.run['lycanthropy'] = False
             self.run['recent'].append(text)
             del self.run['recent'][:-12]
 
@@ -139,10 +146,10 @@ class Bot:
 
     def answer_yn(self, q):
         self.add_msg(q)
-        rules = [('Really attack', 'n'), ('pray', 'y'), ('no return', 'n'), ('possessions identified', 'n'),
+        rules = [('Really attack', 'n'), ('Pay?', 'y'), ('pray', 'y'), ('no return', 'n'), ('possessions identified', 'n'),
                  ('Stop eating', 'y'), ('Continue eating', 'n'), ('add to the current engraving', 'n'),
                  ('Do you want to keep the save file', 'n'), ('Dump core', 'n'), ('eat it', 'n')]
-        if 'really step onto' in q.lower():  # paranoid trap confirmation: only drops and teleports are refused
+        if re.search(r'really \w+ (onto|into) that', q, re.I):  # paranoid trap confirmation: only drops and teleports are refused
             bad = re.search(r'trap door|hole|level teleporter|magic portal|polymorph|fire', q, re.I)
             if bad:
                 self.refused_trap = True
@@ -175,8 +182,10 @@ class Bot:
             lv = self.level()
             x, y = self.snap.me
             lv.near.update((x + dx, y + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1))
+            recent = ' '.join(self.run['recent'][-3:]) if self.run else ''
+            fresh = 'You kill' in recent and 'You destroy' not in recent
             for p in self.snap.find('%'):
-                lv.corpses.setdefault(p, s.get('turn') or 0)
+                lv.corpses.setdefault(p, (s.get('turn') or 0) if fresh and cheb(p, self.snap.me) <= 2 else -10**6)
             if self.run is not None:
                 self.run['max_dlvl'] = max(self.run['max_dlvl'], s['dlvl'])
                 self.run['turns'] = s.get('turn') or self.run['turns']
@@ -281,7 +290,7 @@ class Bot:
                 continue
             if m['dist'] <= 9:
                 desc = self.farlook(m['pos'])
-                m['name'] = desc or f"unknown '{m['ch']}'"
+                m['name'] = re.sub(r',.*$', '', desc) or f"unknown '{m['ch']}'"
                 m['pet'] = m['pet'] or 'tame' in desc
                 m['peaceful'] = 'peaceful' in desc
                 if m['peaceful'] and m['ch'] == '@':  # shopkeeper, watchman or priest: breaking doors here gets us killed
@@ -378,13 +387,15 @@ class Bot:
         hp, hpmax = s.get('hp', 1), s.get('hpmax', 1)
         danger = f" You are at {hp}/{hpmax} HP: one or two more hits could kill you." if hp * 3 < hpmax else ''
 
+        # attacking from Elbereth erases it and costs alignment (5.0: "You feel like a hypocrite"); only @ and minotaurs ignore it
+        on_e = self.engraved_here()
         for m in hostiles:
-            if m['dist'] == 1 and m['pos'] not in self.avoid:
+            if m['dist'] == 1 and m['pos'] not in self.avoid and not (on_e and m['ch'] != '@' and 'minotaur' not in m['name']):
                 d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
                 opts[f'attack_{d}'] = (f"Attack {m['name']} ({DIR_NAME[d]})", f"Melee the adjacent {m['name']} to the {DIR_NAME[d]}.{danger}", lambda d=d: self.act_fight(d))
         missiles = [it for it in self.inventory if re.search(r'\b(daggers?|knife|knives|darts?|shuriken|spears?|javelins?)\b', it['text'])
                     and 'weapon in' not in it['text'] and 'wielded' not in it['text'].replace('not wielded', '')]
-        if missiles:
+        if missiles and not on_e:
             for m in hostiles:
                 dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
                 if (2 if 'gas spore' in m['name'] else 1) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
@@ -404,14 +415,14 @@ class Bot:
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
         if near:
             if self.engraved_here():  # stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
-                opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', lambda: self.act_keys('s', 'waited on Elbereth'))
+                opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', lambda: self.act_keys('s', 'waited on Elbereth') if self.elbereth_ok() else 'Elbereth is gone')
             else:
                 opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('s', 'waited'))
                 opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + (' Most monsters are as fast as you and simply follow, so this rarely helps.' if danger else ''), lambda: self.act_retreat(hostiles))
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.act_keys('<', 'went up'))
         walled = len(dist) <= 3 and any(m['passive'] and m['dist'] == 1 for m in hostiles)  # boxed in by floating eyes
-        if (near or walled or self.unseen_attacker()) and not self.engraved_here():
+        if (near or walled or self.unseen_attacker()) and not self.engraved_here() and not (near and all(m['ch'] == '@' for m in near)):  # @ ignore it
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
 
         if danger:
@@ -420,7 +431,9 @@ class Bot:
                     opts[f"quaff_{it['letter']}"] = (f"Quaff {it['text']}", f"Drink this potion hoping it heals.{danger}", lambda l=it['letter']: self.act_keys('q' + l, 'quaffed'))
                     break
 
-        fatal = [c for c in s.get('conditions', []) if c in ('FoodPois', 'TermIll', 'Stone', 'Slime', 'Strangl')]  # kill in a few turns; prayer cures
+        fatal = [c for c in s.get('conditions', []) if c in ('FoodPois', 'Fpois', 'Poi', 'TermIll', 'Ill', 'Stone', 'Ston', 'Sto', 'Slime', 'Slim', 'Slm', 'Strngl', 'Stngl', 'Str', 'InLava', 'Lav')]  # kill in a few turns; prayer cures
+        if self.run.get('lycanthropy'):
+            fatal = fatal + ['lycanthropy (you will turn into a jackal; prayer cures it)']
         trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting') or fatal
         last = self.run.get('prayed_turn')
         if last is not None and last > (s.get('turn') or 0):
@@ -429,8 +442,8 @@ class Bot:
         # prayer timeout is ~50-1000 turns; praying early angers the god (a couatl killed an earlier run)
         # timeout after a good prayer is ~350 on average and major trouble is fixed below 200: 600 is a fair bet for
         # low HP, hunger can wait longer (a couatl killed the run that prayed 6 times in 33 turns)
-        gap = 600 if LOW_HP(s) or fatal else 900
-        if trouble and (fatal or turn - last >= gap if last is not None else turn >= (150 if LOW_HP(s) or fatal else 300)):
+        # 5.0 source: timeout starts at 300, drops 1/turn, and major trouble (all of these) is fixed at <= 200
+        if trouble and (fatal or (turn - last >= 600 if last is not None else turn >= 110)):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
 
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):
@@ -496,7 +509,7 @@ class Bot:
         ups = [p for p in snap.find('<') if p in dist]
         if too_deep and s.get('dlvl', 1) >= (s.get('xl') or 1) + 3 and ups and self.standing_on() != '<':
             opts['ascend'] = ('Head back upstairs', f"This level is far too deep for experience level {s.get('xl')}. Walk to the up staircase ({dist[ups[0]]} steps {compass(me, ups[0])}) and climb to Dlvl {s.get('dlvl', 0) - 1}.", lambda p=ups[0]: self.act_descend(p, '<'))
-        if too_deep:  # fleeing downward from a fight at this depth is how the pony and giant ant runs ended
+        if too_deep or s.get('hp', 1) < 0.8 * s.get('hpmax', 1):  # rest first; fleeing downward from a fight at this depth is how the pony and giant ant runs ended
             pass
         elif self.standing_on() == '>':
             opts['descend'] = ('Go down the stairs', f"You are on the down staircase to Dlvl {s.get('dlvl', 0) + 1}.", lambda: self.act_keys('>', 'descended'))
@@ -506,7 +519,7 @@ class Bot:
         if pick and not near and not too_deep and self.standing_on() not in ('<', '>', '_', '{'):
             opts['dig_down'] = ('Dig down with the pick-axe', f"Apply {pick['text']} downward to dig a hole to Dlvl {s.get('dlvl', 0) + 1} (takes several turns; skips the rest of this level).", lambda l=pick['letter']: self.act_dig(l))
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
-        if not near and s.get('hp', 1) < 0.7 * s.get('hpmax', 1):
+        if not near and s.get('hp', 1) < 0.85 * s.get('hpmax', 1):
             opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
         if not fr and not downs:
             molds = [m for m in hostiles if m['pos'] in self.avoid and (walled or ('floating eye' not in m['name'] and not (m['ch'] == 'e' and m['fg'] == 'blue')))
@@ -728,8 +741,22 @@ class Bot:
             else:
                 break
         self.observe()
-        self.run['elbereth'].add((self.snap.status.get('dlvl'), self.snap.me))
+        if not self.elbereth_ok():
+            return 'engraving came out garbled; not protected'
         return 'engraved Elbereth'
+
+    def elbereth_ok(self):
+        """Read the square (free action): dust Elbereths garble ~27% of the time and scuff as we fight."""
+        nmsg = len(self.messages)
+        self.t.send(':')
+        self.observe()
+        read = ' '.join(m['text'] for m in self.messages[nmsg:])
+        key = (self.snap.status.get('dlvl'), self.snap.me)
+        if 'You read' in read and not re.search(r'You read: "Elbereth"', read, re.I):
+            self.run['elbereth'].discard(key)
+            return False
+        self.run['elbereth'].add(key)
+        return True
 
     def act_pray(self):
         self.t.send('#pray\r')
@@ -793,6 +820,7 @@ class Bot:
         return True
 
     def act_throw(self, letter, d, key='t'):
+        self.run['elbereth'].discard((self.snap.status.get('dlvl'), self.snap.me))  # firing from Elbereth erases it
         self.t.send(key)
         if re.search(r'throw|zap', self.t.lines()[0].lower()):
             self.t.send(letter)
