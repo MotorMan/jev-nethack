@@ -370,16 +370,22 @@ class Bot:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.act_keys('<', 'went up'))
 
         trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting')
-        if trouble:
-            last = self.run.get('prayed_turn')
+        last = self.run.get('prayed_turn')
+        turn = s.get('turn') or 0
+        # prayer timeout is ~50-1000 turns; praying early angers the god (a couatl killed an earlier run)
+        if trouble and (turn - last >= 1000 if last is not None else turn >= 300):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({'low HP' if LOW_HP(s) else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
 
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):
             for it in self.inventory:
-                if re.search(r'food ration|cram|lembas|biscuit|pancake|apple|orange|banana|melon|carrot|egg|tin |fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse', it['text']) and not any(n in it['text'] for n in NEVER_EAT):
+                if re.search(r'food ration|cram|lembas|biscuit|pancake|apple|orange|banana|melon|carrot|egg|tin |fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen', it['text']) and not any(n in it['text'] for n in NEVER_EAT):
                     opts[f"eat_{it['letter']}"] = (f"Eat {it['text']}", f"Eat item {it['letter']} from your pack.", lambda l=it['letter']: self.act_eat(l))
             here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in NEVER_EAT)]
             age = s.get('turn', 0) - lv.corpses.get(me, s.get('turn', 0))
+            fresh = [p for p, t0 in lv.corpses.items() if p != me and p in dist and s.get('turn', 0) - t0 < 30 and dist[p] < 25]
+            if fresh and not here:
+                p = min(fresh, key=dist.get)
+                opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.", lambda p=p: self.act_goto_corpse(p))
             if here and age < 40:
                 opts['eat_corpse'] = (f"Eat the {here[0]} here", f"Eat {here[0]} on this square. It appeared about {age} turns ago (old corpses can be rotten or poisonous).", self.act_eat_corpse)
 
@@ -600,6 +606,8 @@ class Bot:
         self.t.send('#pray\r')
         self.observe()
         self.run['prayed_turn'] = self.snap.status.get('turn')
+        with open(os.path.join(ROOT, 'runs', 'prayer.json'), 'w') as f:
+            json.dump({'prayed_turn': self.run['prayed_turn']}, f)
         return 'prayed'
 
     def act_eat(self, letter):
@@ -623,6 +631,14 @@ class Bot:
         key = (self.snap.status.get('dlvl'), self.snap.me)
         self.run['here'][key] = self.look_here()
         return 'ate corpse'
+
+    def act_goto_corpse(self, p):
+        r = self.act_go(p)
+        if self.snap.me != p:
+            return 'going to the corpse: ' + r
+        if not any('corpse' in i and not any(n in i for n in NEVER_EAT) for i in self.here_items()):
+            return 'no edible corpse there'
+        return self.act_eat_corpse()
 
     def act_pickup(self, item):
         self.t.send(',')
@@ -796,6 +812,11 @@ class Bot:
             self.t = self.launcher()
             self.t.pump(3)
             self.observe()
+            if any('welcome back' in l for l in self.snap.lines + [m['text'] for m in self.messages[-5:]]):  # restored save: keep the prayer clock
+                try:
+                    self.run['prayed_turn'] = json.load(open(os.path.join(ROOT, 'runs', 'prayer.json')))['prayed_turn']
+                except (OSError, ValueError, KeyError):
+                    pass
             self.read_inventory()
             while self.t.alive and not self.stop:
                 if self.paused and not self.step_once:

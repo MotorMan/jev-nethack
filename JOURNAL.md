@@ -77,3 +77,19 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
     bot spun on "cannot find the hero". It now falls back to the cursor position, which tty
     leaves on the hero, and adds a ^R redraw to recover from emulator drift.
 - Added dig-down (apply pick-axe/mattock, `>`, then re-wield the weapon) as a Jev option.
+
+## 2026-09-29 11:30 PDT — First real death: angry god
+- Run 20260929-112438 died on **T8110, Dlvl 5, XL 6**: "killed by a couatl of Tyr, while praying".
+- Cause:
+  - Jev cured "Weak" hunger with prayer 8 times instead of eating. The food regex missed
+    wolfsbane and similar items, and nothing offered eating corpses.
+  - "Pray" was offered whenever in trouble, with no prayer-timeout gate.
+  - My dev restarts reset the remembered prayer turn.
+  - Finally it prayed 6 times in 33 turns: "Thou durst call upon me? Then die, mortal!"
+- Fixes:
+  - Pray is only offered after T300 and at least 1000 turns after the last prayer.
+  - The prayer turn persists in `runs/prayer.json` and is reloaded when the save is restored.
+  - The food list is wider.
+  - New "go eat the fresh corpse" option (corpses seen less than 30 turns ago).
+- Also added: monster difficulty and speed labels, taken from `monsters.h`, in Jev's state. At XL6
+  it had been retreating from newts.
