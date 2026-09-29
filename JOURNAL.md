@@ -165,7 +165,7 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
 - Cause: the resume check looked for "welcome back" in the last 5 messages, and message history survives across games. The old game's resume message matched, so the new game loaded the old game's prayer file.
 - Fixes:
   - A prayer turn later than the current turn is discarded, both on load and at the gate.
-  - The resume check only reads the current screen.
+  - The resume check itself is unchanged; the future-turn check is enough to catch this.
 - This likely explains several earlier "fainted" deaths after a new game started.
 - The floating-eye/gas-spore corridor run starved at about T26000. Before that, Jev killed 3 gas spores with the kill-blocker option. Engraving Elbereth could not move the eyes, which were jammed against each other.
 - Nearby fresh corpses (under 10 steps, under 30 turns old) are now offered whenever Jev is not satiated, with the reason spelled out: Jev had been passing up corpses while "Not hungry".
