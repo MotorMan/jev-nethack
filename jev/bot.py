@@ -361,11 +361,13 @@ class Bot:
         # a monster we cannot reach (behind walls, across water) is not a reason to stand still
         near = [m for m in hostiles if m['dist'] <= 6 and not m['passive'] and (m['dist'] <= 1 or m['pos'] in dist)]
         opts = {}
+        hp, hpmax = s.get('hp', 1), s.get('hpmax', 1)
+        danger = f" You are at {hp}/{hpmax} HP: one or two more hits could kill you." if hp * 3 < hpmax else ''
 
         for m in hostiles:
             if m['dist'] == 1 and m['pos'] not in self.avoid:
                 d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
-                opts[f'attack_{d}'] = (f"Attack {m['name']} ({DIR_NAME[d]})", f"Melee the adjacent {m['name']} to the {DIR_NAME[d]}.", lambda d=d: self.act_fight(d))
+                opts[f'attack_{d}'] = (f"Attack {m['name']} ({DIR_NAME[d]})", f"Melee the adjacent {m['name']} to the {DIR_NAME[d]}.{danger}", lambda d=d: self.act_fight(d))
         missiles = [it for it in self.inventory if re.search(r'\b(daggers?|knife|knives|darts?|shuriken|spears?|javelins?)\b', it['text'])
                     and 'weapon in' not in it['text'] and 'wielded' not in it['text'].replace('not wielded', '')]
         if missiles:
@@ -381,10 +383,16 @@ class Bot:
         if near:
             opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('s', 'waited'))
             opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.', lambda: self.act_retreat(hostiles))
-            if not self.engraved_here():
-                opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.', self.act_elbereth)
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.act_keys('<', 'went up'))
+        if (near or self.unseen_attacker()) and not self.engraved_here():
+            opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else ''), self.act_elbereth)
+
+        if danger:
+            for it in self.inventory:
+                if re.search(r'\bpotions?\b', it['text']):
+                    opts[f"quaff_{it['letter']}"] = (f"Quaff {it['text']}", f"Drink this potion hoping it heals.{danger}", lambda l=it['letter']: self.act_keys('q' + l, 'quaffed'))
+                    break
 
         trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting')
         last = self.run.get('prayed_turn')
@@ -804,6 +812,9 @@ class Bot:
             return self.act_search(15)
         return 'going to search: ' + r
 
+    def unseen_attacker(self):
+        return any(re.search(r"\b(It|ghost) (hits|bites|touches|stings|butts|kicks)", m) for m in self.run['recent'][-2:])
+
     # ---------- Jev ----------
     def state_text(self, mons):
         s, snap = self.snap.status, self.snap
@@ -820,7 +831,7 @@ class Bot:
             f"XL {s.get('xl')} ({s.get('exp')} exp), turn {s.get('turn')}, gold {s.get('gold')}, hunger: {s.get('hunger')}, "
             f"conditions: {', '.join(s.get('conditions') or []) or 'none'}. Str {s.get('st')} Dex {s.get('dx')} Con {s.get('co')}.\n"
             f"Last prayer: {'never' if self.run.get('prayed_turn') is None else 'turn ' + str(self.run['prayed_turn'])}.\n"
-            f"Monsters in view: {seen}.\n"
+            f"Monsters in view: {seen}.{' Something unseen is attacking you (ghost or invisible monster)!' if self.unseen_attacker() else ''}\n"
             f"Items on this square: {', '.join(self.here_items()) or 'none'}. Standing on: {self.standing_on() or 'floor'}.\n"
             f"Inventory: {inv}\n"
             f"Level: downstairs {'known' if snap.find('>') or self.standing_on() == '>' else 'not found yet'}; "
