@@ -430,8 +430,13 @@ class Bot:
         if s.get('hunger') != 'Satiated':
             here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in NEVER_EAT)]
             age = s.get('turn', 0) - lv.corpses.get(me, s.get('turn', 0))
+            why = ' Packed food is rare and most deaths so far were fainting from hunger: eating fresh kills now, even when not hungry, is what keeps you alive later.'
             if here and age < 40:
-                opts['eat_corpse'] = (f"Eat the {here[0]} here", f"Eat {here[0]} on this square. It appeared about {age} turns ago (old corpses can be rotten or poisonous).", self.act_eat_corpse)
+                opts['eat_corpse'] = (f"Eat the {here[0]} here", f"Eat {here[0]} on this square. It appeared about {age} turns ago (old corpses can be rotten or poisonous).{why}", self.act_eat_corpse)
+            fresh = [p for p, t0 in lv.corpses.items() if p != me and p in dist and s.get('turn', 0) - t0 < 30 and dist[p] < 10]
+            if fresh and not here and not near and 'goto_corpse' not in opts:
+                p = min(fresh, key=dist.get)
+                opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.{why}", lambda p=p: self.act_goto_corpse(p))
 
         for i, item in enumerate(self.here_items()[:4]):
             if 'for sale' in item or 'corpse' in item or 'boulder' in item:
