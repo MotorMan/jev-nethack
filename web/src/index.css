@@ -1,0 +1,253 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: 'JetBrains Mono', monospace;
+  --font-mono: 'JetBrains Mono', monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  /* SpaceMolt extended palette (wrap raw HSL triplets with hsl()) */
+  --color-smui-frost-1: hsl(var(--smui-frost-1));
+  --color-smui-frost-2: hsl(var(--smui-frost-2));
+  --color-smui-frost-3: hsl(var(--smui-frost-3));
+  --color-smui-frost-4: hsl(var(--smui-frost-4));
+  --color-smui-red: hsl(var(--smui-red));
+  --color-smui-orange: hsl(var(--smui-orange));
+  --color-smui-yellow: hsl(var(--smui-yellow));
+  --color-smui-green: hsl(var(--smui-green));
+  --color-smui-purple: hsl(var(--smui-purple));
+  --color-smui-surface-0: hsl(var(--smui-surface-0));
+  --color-smui-surface-1: hsl(var(--smui-surface-1));
+  --color-smui-surface-2: hsl(var(--smui-surface-2));
+  --color-smui-surface-3: hsl(var(--smui-surface-3));
+  --color-smui-border-hover: hsl(var(--smui-border-hover));
+
+}
+
+/* Typography scale -- non-inline so Tailwind emits real CSS custom properties */
+@theme {
+  --text-label: 11px;
+  --text-ui: 13px;
+  --text-heading: 22px;
+  --text-stat: 26px;
+  --text-hero: 42px;
+}
+
+/* SpaceMolt theme -- Light mode (Nord Snow Storm) */
+:root {
+  --radius: 0rem;
+  --background: hsl(218 27% 94%);
+  --foreground: hsl(220 16% 22%);
+  --card: hsl(218 27% 89%);
+  --card-foreground: hsl(220 16% 22%);
+  --popover: hsl(218 27% 89%);
+  --popover-foreground: hsl(220 16% 22%);
+  --primary: hsl(213 32% 40%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(219 28% 84%);
+  --secondary-foreground: hsl(220 16% 22%);
+  --muted: hsl(219 28% 84%);
+  --muted-foreground: hsl(220 17% 28%);
+  --accent: hsl(213 20% 86%);
+  --accent-foreground: hsl(213 32% 40%);
+  --destructive: hsl(355 60% 45%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(219 18% 72%);
+  --input: hsl(219 18% 72%);
+  --ring: hsl(213 32% 40%);
+  --chart-1: hsl(213 32% 44%);
+  --chart-2: hsl(210 34% 42%);
+  --chart-3: hsl(92 30% 36%);
+  --chart-4: hsl(40 70% 35%);
+  --chart-5: hsl(311 28% 42%);
+  --sidebar: hsl(218 27% 89%);
+  --sidebar-foreground: hsl(220 16% 22%);
+  --sidebar-primary: hsl(213 32% 40%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(213 20% 86%);
+  --sidebar-accent-foreground: hsl(213 32% 40%);
+  --sidebar-border: hsl(219 18% 72%);
+  --sidebar-ring: hsl(213 32% 40%);
+
+  /* SpaceMolt extended palette -- darkened for light backgrounds */
+  --smui-frost-1: 176 30% 35%;
+  --smui-frost-2: 193 40% 38%;
+  --smui-frost-3: 210 34% 40%;
+  --smui-frost-4: 213 32% 36%;
+  --smui-red: 355 55% 44%;
+  --smui-orange: 14 55% 44%;
+  --smui-yellow: 40 70% 34%;
+  --smui-green: 92 35% 34%;
+  --smui-purple: 311 28% 40%;
+  --smui-surface-0: 218 27% 94%;
+  --smui-surface-1: 218 27% 89%;
+  --smui-surface-2: 219 28% 84%;
+  --smui-surface-3: 219 20% 76%;
+  --smui-border-hover: 220 17% 50%;
+}
+
+/* Dark mode (Nord Polar Night) */
+.dark {
+  --radius: 0rem;
+  --background: hsl(213 16% 12%);
+  --foreground: hsl(213 27% 88%);
+  --card: hsl(217 16% 15.5%);
+  --card-foreground: hsl(213 27% 88%);
+  --popover: hsl(217 16% 15.5%);
+  --popover-foreground: hsl(213 27% 88%);
+  --primary: hsl(193 44% 67%);
+  --primary-foreground: hsl(213 16% 12%);
+  --secondary: hsl(216 15% 19%);
+  --secondary-foreground: hsl(213 27% 88%);
+  --muted: hsl(216 15% 19%);
+  --muted-foreground: hsl(213 14% 65%);
+  --accent: hsl(193 10% 16%);
+  --accent-foreground: hsl(193 44% 67%);
+  --destructive: hsl(355 52% 65%);
+  --destructive-foreground: hsl(219 28% 94%);
+  --border: hsl(217 17% 28%);
+  --input: hsl(217 17% 28%);
+  --ring: hsl(193 44% 67%);
+  --chart-1: hsl(193 44% 67%);
+  --chart-2: hsl(213 32% 52%);
+  --chart-3: hsl(92 28% 65%);
+  --chart-4: hsl(40 71% 73%);
+  --chart-5: hsl(311 24% 63%);
+  --sidebar: hsl(217 16% 15.5%);
+  --sidebar-foreground: hsl(213 27% 88%);
+  --sidebar-primary: hsl(193 44% 67%);
+  --sidebar-primary-foreground: hsl(213 16% 12%);
+  --sidebar-accent: hsl(193 10% 16%);
+  --sidebar-accent-foreground: hsl(193 44% 67%);
+  --sidebar-border: hsl(217 17% 28%);
+  --sidebar-ring: hsl(193 44% 67%);
+  --smui-frost-1: 176 25% 65%;
+  --smui-frost-2: 193 44% 67%;
+  --smui-frost-3: 210 34% 63%;
+  --smui-frost-4: 213 32% 52%;
+  --smui-red: 355 52% 64%;
+  --smui-orange: 14 51% 63%;
+  --smui-yellow: 40 71% 73%;
+  --smui-green: 92 28% 65%;
+  --smui-purple: 311 24% 63%;
+  --smui-surface-0: 213 16% 12%;
+  --smui-surface-1: 217 16% 15.5%;
+  --smui-surface-2: 216 15% 19%;
+  --smui-surface-3: 215 14% 22%;
+  --smui-border-hover: 216 12% 37%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Card hover - simple border color change */
+.card-glow {
+  transition: border-color 0.15s;
+}
+.card-glow:hover {
+  border-color: hsl(var(--smui-border-hover));
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, hsl(var(--smui-surface-2)) 25%, hsl(var(--smui-surface-3)) 50%, hsl(var(--smui-surface-2)) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Typing cursor blink */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* Selection style */
+::selection {
+  background: hsl(var(--smui-frost-2) / 0.2);
+  color: hsl(var(--smui-frost-2));
+}
+.dark ::selection {
+  background: hsl(193 44% 67% / 0.2);
+  color: hsl(193 44% 67%);
+}
+
+/* ---- JEV // NETHACK additions ---- */
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+  50% { box-shadow: 0 0 0 4px transparent; opacity: 0.55; }
+}
+.pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+
+.term {
+  background: #0f1216;
+  position: relative;
+  overflow: hidden;
+}
+.term pre {
+  margin: 0;
+  white-space: pre;
+  font-family: 'JetBrains Mono', monospace;
+  text-shadow: 0 0 4px color-mix(in srgb, currentColor 40%, transparent);
+  font-variant-ligatures: none;
+}
+/* scanlines */
+.term::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgb(0 0 0 / 0.18) 2px 3px);
+}
+.term-cursor { animation: blink 1s step-end infinite; }
