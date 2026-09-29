@@ -406,6 +406,8 @@ class Bot:
 
         trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting')
         last = self.run.get('prayed_turn')
+        if last is not None and last > (s.get('turn') or 0):
+            last = self.run['prayed_turn'] = None
         turn = s.get('turn') or 0
         # prayer timeout is ~50-1000 turns; praying early angers the god (a couatl killed an earlier run)
         # timeout after a good prayer is ~350 on average and major trouble is fixed below 200: 600 is a fair bet for
@@ -957,7 +959,9 @@ class Bot:
             self.observe()
             if any('welcome back' in l for l in self.snap.lines + [m['text'] for m in self.messages[-5:]]):  # restored save: keep the prayer clock
                 try:
-                    self.run['prayed_turn'] = json.load(open(os.path.join(ROOT, 'runs', 'prayer.json')))['prayed_turn']
+                    t = json.load(open(os.path.join(ROOT, 'runs', 'prayer.json')))['prayed_turn']
+                    # messages outlive games, so an old 'welcome back' can match: a prayer from the future is another game's
+                    self.run['prayed_turn'] = t if t <= (self.snap.status.get('turn') or 0) else None
                 except (OSError, ValueError, KeyError):
                     pass
             self.read_inventory()
