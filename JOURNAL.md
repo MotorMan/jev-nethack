@@ -23,3 +23,28 @@ Timestamped log of findings, decisions and progress. Newest entries at the botto
   `boulder:0`. Our rc (jev/nethackrc) overrides the first three. Gotcha: rc files do not allow
   trailing `#` comments on OPTIONS lines.
 - 5.0.0 asks "Do you want a tutorial?" at start → `OPTIONS=!tutorial`.
+
+## 2026-09-29 11:01 PDT — First Jev-driven games
+- Architecture (all stdlib Python + pyte): `jev/term.py` pty + pyte 80x24 emulator; `jev/nh.py` screen
+  parsing (status lines, glyph classes, prompts/menus); `jev/bot.py` level memory, Dijkstra pathing,
+  option building, motors, Jev calls; `jev/server.py` HTTP + SSE on :8770; `web/` Vite/React/shadcn
+  dashboard with the SMUI theme (built by a subagent against a fixed JSON contract).
+- Each decision = one Jev call with 2 questions: `action` (choice over the current legal options,
+  e.g. attack_<dir>, approach, wait, retreat, elbereth, pray, eat_<letter>, pickup_<n>, wear_<letter>,
+  kick_<dir>, explore_<k>, descend, rest, search_hidden) and `danger` (noul, for the UI).
+  If only one option exists no call is made. Every call is logged to runs/<id>/decisions.jsonl.
+- Farlook (`;`) identifies up to 6 nearby monsters every decision (free action). Pets are
+  reverse video on this tty; doors are brown; Hardfought's `boulder:0` makes boulders `0`.
+- **Network gotcha**: uv's standalone CPython loses outbound TCP ~10 s after process start in this
+  sandbox, while curl/Homebrew Python/Apple Python keep working. Moved the venv to Homebrew
+  Python 3.14. Also added a connection class that tries each resolved IP with a 2 s connect timeout
+  and a bounded DNS lookup (one Cloudflare IP was intermittently unreachable).
+- Headless Chrome/Firefox cannot start inside the sandbox (mach bootstrap denied), so the
+  dashboard is verified through the SSE stream and code review, not screenshots.
+- Results: first run reached Dlvl 2 by T158 (killed newts/rats, picked up a pick-axe).
+  Second run spent ~2500 turns on Dlvl 1: the only exits were a locked door ("The door resists!")
+  and a boulder-blocked corridor, and neither was offered as an option. Fixed: failed steps into
+  `+` doors mark them kickable; boulders are walkable at high cost (pushing).
+- Jev behaviour notes: sensible priorities (attacks adjacent weak monsters, engraves Elbereth
+  when hurt, prayed at low HP at T1247, ate when Hungry). Probabilities are often split 0.4–0.6
+  in fights. Latency ~150–250 ms per decision.
