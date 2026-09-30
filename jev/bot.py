@@ -676,7 +676,7 @@ class Bot:
                     self.log(f"sokoban {m[0]}: push {i + 1} off-plan; replan -> {len(new) if new else 'no solution, leaving'}", 'warn')
                     if new:
                         self.run['soko_plan'][m[0]] = new
-                        self.run['soko_stuck'].pop((m[0], i), None)
+                        self.run.setdefault('soko_stuck', {}).pop((m[0], i), None)
                     else:
                         self.run['soko_done'] = True
                 if 'soko_push' in opts and not near:
