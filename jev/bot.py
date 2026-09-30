@@ -609,6 +609,8 @@ class Bot:
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You are fighting bare-handed.', lambda l=weapon['letter']: self.act_wield(l))}
         elif not near and any(k.startswith('wear_') for k in opts):
             opts = {k: v for k, v in opts.items() if k.startswith('wear_')}
+        if not near and 'rest' in opts and s.get('hp', 1) < 0.5 * s.get('hpmax', 1):  # explored on at 11/65 HP into a giant beetle
+            opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door', 'descend', 'approach', 'kick', 'goto', 'search'))}
         if not near and any(k.startswith('sell_') for k in opts):  # Jev chose "explore" into Chicoutimi 3000 times instead
             opts = {k: v for k, v in opts.items() if k.startswith('sell_')}
         if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and not near:  # a confused bump into a shopkeeper attacks him
