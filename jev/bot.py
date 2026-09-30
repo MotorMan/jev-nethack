@@ -1118,6 +1118,8 @@ class Bot:
             return
         t0 = time.time()
         opts, mons = self.build_options()
+        if not opts:  # every option filtered away (e.g. only a locked door left): search, don't crash the Jev call
+            opts = {'search': ('Search 10 turns', 'Nothing else to do here right now.', lambda: self.act_search(10))}
         state = self.state_text(mons)
         t1 = time.time()
         question = ('Choose the single best action for the Valkyrie right now. Staying alive comes first; after that, '
