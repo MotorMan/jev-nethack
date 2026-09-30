@@ -774,11 +774,13 @@ class Bot:
         """Read the square (free action): dust Elbereths garble ~27% of the time and scuff as we fight."""
         nmsg = len(self.messages)
         self.t.send(':')
+        raw = [l.rstrip() for l in self.t.lines()[:3]]
         self.observe()
-        read = ' '.join(m['text'] for m in self.messages[nmsg:])
+        read = ' '.join(raw + [m['text'] for m in self.messages[nmsg:]])  # messages dedupe a repeat of the last read
         key = (self.snap.status.get('dlvl'), self.snap.me)
         if not re.search(r'You read: "Elbereth"', read, re.I):  # engraving is an interruptible occupation in 5.0: silence means nothing got written
             self.run['elbereth'].discard(key)
+            self.log(f'elbereth read-back: {read[:120]!r} raw={raw!r}', 'warn')
             return False
         self.run['elbereth'].add(key)
         return True
