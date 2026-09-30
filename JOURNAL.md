@@ -446,3 +446,6 @@ With a tengu biting, Jev tried Elbereth 4 times in a row: 3 came out garbled and
 
 ## 2026-09-30 — second Sokoban attempt (soko4, 16 of ~20 pushes)
 Jev found and entered Sokoban at T2429. The rolling-boulder fix worked twice (T2455, T2464). Push 17 still desynced. At T2476/2478 a push onto a rolling-boulder trap printed its "rolls away" message only after act_soko had already read the messages. The push was scored as failed, the retry shoved a different boulder, and the plan fell apart. act_soko now always waits for the screen to settle before judging, and counts a push as done if the boulder has left its square, not only if we stepped into it.
+
+## 2026-09-30 — no "retreat" when there is nowhere to go (two ogres, T3455, Dlvl 6)
+Two ogres cornered Jev 5 turns after it prayed, so prayer was out. Jev picked "Retreat one step" 7 times and every one came back "nowhere to retreat", with no turn used each time. The stall guard only dropped the option after 3 tries per turn. Retreat is now offered only when an open square exists.
