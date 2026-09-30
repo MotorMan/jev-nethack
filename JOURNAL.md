@@ -630,3 +630,6 @@ Run 20260930-144207 died at T7290, killed by an imp while frozen by a floating e
 
 ## 2026-09-30 18:20 — Pray sooner when starving
 Run 20260930-144612 died at T5771 on Dlvl 9. It had no food and turned Weak 524 turns after its last prayer. The prayer gate for Weak was 600 turns, so Jev explored instead of praying, fainted, and died beside a pony and a human mummy. Per the 5.0 source, a prayer after a successful one works once rnz(350) minus the elapsed turns is 200 or less, which is about 0.87 likely at 500 turns and 0.66 at 300. Starving with no food is certain death, so the gates are now 400 turns for Weak (down from 600) and 150 for Fainting (down from 300).
+
+## 2026-09-30 18:40 — Fight when engulfed
+Run 20260930-145336 died at T8226 on Dlvl 6, in a brawl with a vortex, a winter wolf cub and a fire breather. When the vortex engulfed Jev, the status showed Blind, so the blind branch offered only "Wait until you can see". Jev waited twice inside the vortex and went from 51 to 13 HP. Now, if the latest engulf/expel message in recent messages is "engulfs you", the options are just "Attack the monster engulfing you" (F k: from inside, any direction hits the engulfer) plus pray and quaff.

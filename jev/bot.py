@@ -795,6 +795,9 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k.startswith('sell_')}
         if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and not near:  # a confused bump into a shopkeeper attacks him
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {'rest': ('Wait until you are steady', 'You are confused or stunned: moves go in random directions and can attack peacefuls. Nothing hostile is near, so wait it out.', lambda: self.act_keys('5s', 'waited'))}
+        if (re.findall(r'engulfs you|get expelled|regurgitates you|You destroy it|You kill it', ' '.join(self.run['recent'][-3:])) or [''])[-1] == 'engulfs you':
+            # inside a vortex (shown as Blind) Jev chose 'wait until you can see' twice: 51 -> 13 HP, dead (T8226). Any hit lands on the engulfer.
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {'attack_k': ('Attack the monster engulfing you', 'You are engulfed: every attack hits the engulfer, and killing it or hurting it enough frees you. Waiting only lets it digest or burn you.', lambda: self.act_fight('k'))}
         elif 'Blind' in s.get('conditions', []):  # a blind step into an unseen watchman angered the whole Minetown watch
             fight = {k: v for k, v in opts.items() if k in ('pray', 'elbereth') or k.startswith(('quaff_', 'attack_', 'eat'))}  # blind engraving still scares: invisible quasits drained a blind Jev who could only swing
             if shop and not self.unseen_attacker():  # blind swings at the unseen shopkeeper angered Ms. Tipor, twice-dead to her wand
