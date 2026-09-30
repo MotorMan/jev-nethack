@@ -408,3 +408,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-29 23:29 — gamble prayer at range
 - A quasit zapped a wand of magic missile at Jev from range and took it from 29 HP to 0. Elbereth doesn't stop ranged attacks, and the gamble prayer (at least 300 turns since the last one) needed an adjacent monster. Now any hostile within 7 squares, or an unseen attacker, qualifies. By my estimate, a prayer about 390 turns after a successful one works roughly 70% of the time.
+
+## 2026-09-29 23:59 — don't camp on Elbereth when healthy
+- One run sat on Dlvl 4 from T724 to T6265, with about 1,400 "Stay on Elbereth" waits after T4500, at 72–77/80 HP and next to a fog cloud (speed 1). Elbereth blocked attacking, and "waiting heals you safely" appealed to Jev. Now, at 90% HP or more, the Elbereth wait isn't offered and attacking from Elbereth is allowed.

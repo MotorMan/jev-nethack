@@ -424,7 +424,7 @@ class Bot:
         danger = f" You are at {hp}/{hpmax} HP: one or two more hits could kill you." if hp * 3 < hpmax else ''
 
         # attacking from Elbereth erases it and costs alignment (5.0: "You feel like a hypocrite"); only @ and minotaurs ignore it
-        on_e = self.engraved_here()
+        on_e = self.engraved_here() and hp < 0.9 * hpmax  # healthy: fight from it rather than wait out a speed-1 fog cloud
         for m in hostiles:
             if m['dist'] == 1 and m['pos'] not in self.avoid and not (on_e and m['ch'] != '@' and 'minotaur' not in m['name']):
                 d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
@@ -454,7 +454,8 @@ class Bot:
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
         if near:
             if self.engraved_here():  # stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
-                opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', self.act_wait_elbereth)
+                if hp < 0.9 * hpmax:  # at 77/80 HP Jev sat on Elbereth ~1400 turns watching a fog cloud
+                    opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', self.act_wait_elbereth)
             else:
                 fast = [m['name'] for m in near if (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12]  # our speed is 12
                 if not any(m['dist'] <= 1 for m in near):  # "let them come" while six jackals and a werejackal already bit: 42 -> 0 HP in 3 waits
