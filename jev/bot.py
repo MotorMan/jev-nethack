@@ -435,12 +435,13 @@ class Bot:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.act_keys('<', 'went up'))
         walled = len(dist) <= 3 and any(m['passive'] and m['dist'] == 1 for m in hostiles)  # boxed in by floating eyes
         if (near or walled or self.unseen_attacker()) and not self.engraved_here() and not (near and all(m['ch'] == '@' for m in near)) \
-                and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf'}:  # @ ignore it; engrave.c scrambles writing
+                and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf'} \
+                and not (any(m['dist'] == 1 for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # @ ignore it; engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
 
         if danger:
-            for it in self.inventory:
-                if re.search(r'\bpotions?\b', it['text']):
+            for it in self.inventory:  # an unknown potion on a working Elbereth: 11% heal, sleeping killed a Jev the warhorse was fleeing from
+                if re.search(r'\bpotions?\b', it['text']) and (not self.engraved_here() or 'healing' in it['text']):
                     opts[f"quaff_{it['letter']}"] = (f"Quaff {it['text']}", f"Drink this potion hoping it heals.{danger}", lambda l=it['letter']: self.act_keys('q' + l, 'quaffed'))
                     break
 
@@ -783,6 +784,9 @@ class Bot:
                 break
         self.observe()
         if not self.elbereth_ok():
+            if 'written' not in self.last_read:  # 5.0 engraving is an occupation: a fast attacker interrupts it before any letter lands
+                self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0
+                return 'nothing got written: the attack interrupted the engraving'
             return 'engraving came out garbled; not protected'
         return 'engraved Elbereth'
 
@@ -808,7 +812,7 @@ class Bot:
                 break
             self.t.send('\r')
         self.observe()
-        read = ' '.join(raw + [m['text'] for m in self.messages[nmsg:]])  # messages dedupe a repeat of the last read
+        read = self.last_read = ' '.join(raw + [m['text'] for m in self.messages[nmsg:]])  # messages dedupe a repeat of the last read
         key = (self.snap.status.get('dlvl'), self.snap.me)
         if not re.search(r'You read: "Elbereth"', read, re.I):  # engraving is an interruptible occupation in 5.0: silence means nothing got written
             self.run['elbereth'].discard(key)

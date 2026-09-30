@@ -300,3 +300,9 @@ Other deaths this hour:
 ## 2026-09-29 19:48 — Blind in Minetown; the naked Valkyrie
 - **Killed by a watchman, Minetown.** A yellow light exploded and blinded Jev. Jev kept exploring blind and walked into an unseen peaceful watchman ("Wait! There's something there you can't see! It gets angry!"). The whole watch came. While Blind, the choices are now waiting, praying, quaffing, eating and attacking what's hitting you.
 - **Giant beetle, Dlvl 7, at AC 10 with no weapon.** A monkey stole the +3 small shield at T2338. Jev picked it back up but never wore it: "Wear" was offered 194 times and lost to "Explore" every time. Later the spear went too, and there was no wield option at all. Now, with no weapon wielded, the only option is to wield the best weapon carried (one-handers only, because of the shield). With nothing hostile near, wearing carried armor is automatic. Failures are remembered so they can't loop.
+
+## 2026-09-29 20:11 — The warhorse and the pink potion
+Dlvl 8, XL6, T4598: the best-equipped Jev yet (AC 3, iron shoes, cloak, helm, shield). A warhorse (speed 24) caught it. Three Elbereth tries in a row printed "You write in the dust with your fingertip.", yet the read-back found nothing: in 5.0 engraving is an occupation, and a fast attacker interrupts it before the first letter lands. That cost 56→8 HP. The fourth try worked ("The warhorse turns to flee"), and then Jev, at 50/50, quaffed an unknown pink potion instead of waiting: sleeping, dead.
+Now:
+- If an attack interrupts an engraving (nothing written), Elbereth isn't offered again for 5 turns while something is adjacent.
+- Unknown potions aren't offered while standing on a working Elbereth.
