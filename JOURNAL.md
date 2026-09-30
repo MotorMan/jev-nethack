@@ -465,3 +465,6 @@ One game spent 260+ turns on a Minetown-style Dlvl 6 (shops, temple, rock piles 
 
 ## 2026-09-30 — don't chase unicorns (gray unicorn, T6045, Minetown)
 A cross-aligned gray unicorn (speed 24, butt d12 + kick d6) hovered 2 squares off Jev's Elbereth. When the engraving wore off, Jev chose "Close in on gray unicorn" at 38/55 HP and lost 24 HP in one turn. Its prayer was 53 turns old. Unicorns keep out of line and outrun you, so closing in only gives free hits. There's no approach option for unicorns now.
+
+## 2026-09-30 — any low-HP prayer is forced (human zombie, T4535, Dlvl 6)
+At 1/58 HP, Jev was offered the gamble prayer 478 turns after its last prayer and tried Elbereth instead. It was interrupted and Jev died. The "force at 500" cutoff from earlier today missed this by 22 turns. The gamble is only offered at 300+ turns (P ≥ .66), which beats anything else at LOW_HP, so any offered prayer is now forced at LOW_HP. Also: #terrain fired live once and found a hidden '>' at (15,12).
