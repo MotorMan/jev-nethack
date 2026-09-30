@@ -495,8 +495,8 @@ class Bot:
         beast = (s.get('title') or '').startswith('Were')  # in rat/jackal form: no armor, 5 HP, pack too heavy to move; waiting 1000 turns killed runs
         if trouble and not self.run.get('god_angry') and (fatal or (turn - last >= {'Weak': 600, 'Fainting': 300}.get(s.get('hunger'), 500 if beast else 1000) if last is not None else turn >= 110)):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else 'lycanthropy: you will turn into a jackal' if lyc and s.get('hunger') not in ('Weak', 'Fainting') else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
-        elif LOW_HP(s) and any(m['dist'] == 1 for m in hostiles) and last is not None and turn - last >= 300:
-            opts['pray'] = ('Pray to Tyr (gamble)', f"Last prayer was only {turn - last} turns ago: Tyr may well be angry (bad luck, maybe smiting). But at {s.get('hp')} HP with a monster next to you, this may be the last chance.", self.act_pray)
+        elif LOW_HP(s) and (any(m['dist'] <= 7 for m in hostiles) or self.unseen_attacker()) and last is not None and turn - last >= 300:  # a quasit's wand took 29 -> 0 from range
+            opts['pray'] = ('Pray to Tyr (gamble)', f"Last prayer was only {turn - last} turns ago: Tyr may well be angry (bad luck, maybe smiting). But at {s.get('hp')} HP with a monster attacking, this may be the last chance.", self.act_pray)
 
         # shop floor gold belongs to the shopkeeper: picking it up billed Jev, who then could not leave and died to Mr. Kipawa; eating its food kept another Jev locked in a shop for 4000 turns
         shop = any(d == s.get('dlvl') and cheb(p, me) <= 7 and any('for sale' in i for i in v) for (d, p), v in self.run.get('here', {}).items()) or self.run.get('debt') == s.get('dlvl')
