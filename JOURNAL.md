@@ -621,3 +621,6 @@ Run 20260930-142011 died at T2116 to apes. At 14/42 HP with two apes adjacent, J
 
 ## 2026-09-30 17:25 — No tripe or mid-fight snacks while merely Hungry
 Run 20260930-142133 died at T4650 to a black unicorn in Sokoban. Jev was only Hungry, but it ate a tripe ration while the unicorn was adjacent. The 5.0 source (eat.c:2148) gives tripe a rn2(2) chance to cause vomiting for anyone who isn't a caveman or orc, which means confusion and stun for about 15 turns. Jev lost 55 HP while stunned. Now, while only Hungry, Jev won't eat tripe and won't eat anything while a hostile is adjacent. When Weak or Fainting, anything goes.
+
+## 2026-09-30 17:50 — Offer Elbereth while blind and hurt
+Run 20260930-143412 died to apes at T6987 on Dlvl 8. A potion blinded Jev at 8/76 HP. The blind branch then only offered "Wait until you can see" (5 turns of searching). The unseen apes' "It hits!" messages got lost inside those rests, so the unseen-attacker check never fired and Elbereth was never offered. Jev now gets the Elbereth option whenever it is blind and below 70% HP. Engraving still works blind, and the blind branch already keeps elbereth in its option set.
