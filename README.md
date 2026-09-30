@@ -1,5 +1,8 @@
 # nethack-jev
 
+> [!NOTE]
+> All code in this repository was written with [Claude Code](https://claude.com/claude-code) and Claude Opus 5.5.
+
 [Jev](https://typesafe.ai) plays NetHack 5.0. Jev is the `systemone` model from TypeSafe. No LLM is in the loop.
 
 ## How it works
