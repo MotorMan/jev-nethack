@@ -615,3 +615,6 @@ Run 20260930-140948 (Dlvl 5, T2958) prayed for HP at T2660, turned Weak 20 turns
 
 ## 2026-09-30 16:55 — Don't camp on Elbereth while starving
 Run 20260930-141404 died at T4709 to a kitten while fainted. It had no food, and with an ape and a floating eye in view it was forced to "Stay on Elbereth" for 23+ turns while Weak. Per the wiki and eat.c (5.0), Weak lasts only nutrition 1–50 before Fainting. So the forced Elbereth wait is now skipped when Weak or Fainting, and the starving filter (eat, fetch food, pray) takes over.
+
+## 2026-09-30 17:10 — Corridor retreat only before the pack closes in
+Run 20260930-142011 died at T2116 to apes. At 14/42 HP with two apes adjacent, Jev picked "Fight from a corridor" and walked away, and each step gave them free attacks. The corridor option is now offered only when the nearest pack member is at least 2 squares away. Once the pack is adjacent, Jev fights, engraves or prays instead.
