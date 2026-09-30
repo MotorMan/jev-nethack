@@ -536,3 +536,6 @@ Killed by a sewer rat on Dlvl 4, T1354, XL 3. A wererat summoned a rat pack. At 
 
 ## 2026-09-30 — a Sokoban replan no longer walks Jev out
 Seen at T6354–6414 on soko4-1 (3 boulders left): each time Jev entered, the plan was stale ("push 48 off-plan") and the replan found a 41-push solution. But the decision that replans has no push option yet, so the only option left was "Take the downstairs anyway". Jev walked out, came back, replanned again, and after 3 rounds hit the replan cap and gave up the level. The "anyway" fallback is now off on an unsolved Sokoban level: Jev waits one turn, and the next decision pushes from the new plan. (Offline, the replan on the saved screen is correct: its first push is on a real boulder.)
+
+## 2026-09-30 — never drink known-bad potions
+Killed by a carnivorous ape "while sleeping", Dlvl 9, T9512 (the longest game in a while). Held by the ape at 12/66, with the prayer only 284 turns old, Jev was offered and drank "a potion of sleeping", already identified. The emergency-quaff option now skips potions identified as sleeping, blindness, hallucination, confusion, booze, sickness, paralysis, water or oil.
