@@ -624,7 +624,7 @@ class Bot:
         if pick and not near and not too_deep and not soko_hunt and self.standing_on() not in ('<', '>', '_', '{'):
             opts['dig_down'] = ('Dig down with the pick-axe', f"Apply {pick['text']} downward to dig a hole to Dlvl {s.get('dlvl', 0) + 1} (takes several turns; skips the rest of this level).", lambda l=pick['letter']: self.act_dig(l))
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
-        if not near and s.get('hp', 1) < 0.85 * s.get('hpmax', 1):
+        if not near and not self.unseen_attacker() and s.get('hp', 1) < 0.85 * s.get('hpmax', 1):  # blind, Jev rested beside an orc and died (T3212)
             opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
         if not fr and not downs:
             molds = [m for m in hostiles if m['pos'] in self.avoid and (walled or ('floating eye' not in m['name'] and not (m['ch'] == 'e' and m['fg'] == 'blue')))
@@ -1192,7 +1192,7 @@ class Bot:
         return 'going to search: ' + r
 
     def unseen_attacker(self):
-        return any(re.search(r"\b(It|ghost) (hits|bites|touches|stings|butts|kicks)", m) for m in self.run['recent'][-2:])
+        return any(re.search(r"\b(It|ghost) (hits|bites|touches|stings|butts|kicks|misses)|feel an unseen monster", m) for m in self.run['recent'][-2:])
 
     # ---------- Jev ----------
     def state_text(self, mons):

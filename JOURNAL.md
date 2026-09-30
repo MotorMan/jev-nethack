@@ -474,3 +474,6 @@ While Hungry (not yet Weak), Jev ate corpses twice with a gecko, a giant rat and
 
 ## 2026-09-30 — prayer results are now logged (ape, T8587, Dlvl 7)
 This was the best game this session: T8587 and Dlvl 7, with 8 prayers roughly 400–1300 turns apart. The last one failed 770 turns after the previous one. An ape, a rothe, a rock mole and a lizard took Jev from 49 to 4 HP in 3 turns. I found no luck penalties in the messages, and rnz(350)'s long tail makes about 1 prayer in 8 fail. The pray outcome now includes the game's messages, so failures ("displeased", "smiting") can be told apart from bad luck.
+
+## 2026-09-30 — no resting beside unseen attackers (hill orc, T3212, Dlvl 6)
+A yellow light blinded Jev. It then rested twice at 21/52 HP while "You feel an unseen monster!" and "It misses!" scrolled past, and the orcs killed it. unseen_attacker() now also matches "misses" and "feel an unseen monster", and rest is not offered while it fires. That leaves attacking the I or Elbereth.
