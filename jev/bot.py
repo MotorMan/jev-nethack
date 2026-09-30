@@ -1346,7 +1346,7 @@ class Bot:
                 try:
                     t = json.load(open(os.path.join(ROOT, 'runs', 'prayer.json')))['prayed_turn']
                     # messages outlive games, so an old 'welcome back' can match: a prayer from the future is another game's
-                    self.run['prayed_turn'] = t if t <= (self.snap.status.get('turn') or 0) else None
+                    self.run['prayed_turn'] = t if t is not None and t <= (self.snap.status.get('turn') or 0) else None
                 except (OSError, ValueError, KeyError):
                     pass
             self.read_inventory()
