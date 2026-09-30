@@ -934,6 +934,8 @@ class Bot:
             if self.run.get('soko_plan', {}).get(m[0]):
                 self.run['soko_plan'][m[0]].pop(0)
             return f"pushed the boulder {DIR_NAME[k]}" + (f": {news[:100]}" if news else '')
+        if 'monster behind' in news or 'perhaps that' in news:
+            self.act_keys('s', '')  # let it move off: retrying in the same turn just tripped the stall guard
         return 'push failed' + (f": {news[:120]}" if news else '')
 
     def retreat_dir(self, hostiles):
