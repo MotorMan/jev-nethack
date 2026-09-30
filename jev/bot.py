@@ -307,10 +307,13 @@ class Bot:
             m['where'] = f"{m['dist']} step{'s' if m['dist'] != 1 else ''} {compass(me, m['pos'])}"
         return out
 
+    def species(self, m):
+        name = re.sub(r'^(tame|peaceful)\s+', '', m['name'])
+        return re.sub(r'\s+(called\s+.*|- .*)$', '', name)  # 'coyote - Overconfidentii Vulgaris'
+
     def threat(self, m):
         """' (level 0, much weaker than you)' etc. from the species' base level vs our XL."""
-        name = re.sub(r'^(tame|peaceful)\s+', '', m['name'])
-        name = re.sub(r'\s+(called\s+.*|- .*)$', '', name)  # 'coyote - Overconfidentii Vulgaris'
+        name = self.species(m)
         lv = MONSTERS.get(name)
         if not lv or m['pet']:
             return ''
@@ -415,10 +418,16 @@ class Bot:
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
         if near:
             if self.engraved_here():  # stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
-                opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', lambda: self.act_keys('s', 'waited on Elbereth') if self.elbereth_ok() else 'Elbereth is gone')
+                opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', self.act_wait_elbereth)
             else:
+                fast = [m['name'] for m in near if (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12]  # our speed is 12
                 opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('s', 'waited'))
-                opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + (' Most monsters are as fast as you and simply follow, so this rarely helps.' if danger else ''), lambda: self.act_retreat(hostiles))
+                if not fast:  # retreating from a giant bat (speed 22) just gives it free hits
+                    opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + ' Everything nearby is slower than you, so you can open a gap.', lambda: self.act_retreat(hostiles))
+            ups_near = [p for p in snap.find('<') if dist.get(p, 99) <= 8]
+            if danger and ups_near and self.standing_on() != '<' and s.get('dlvl', 1) > 1:
+                p = ups_near[0]
+                opts['flee_up'] = ('Run for the upstairs', f"The up staircase is {dist[p]} steps {compass(me, p)}: walk there and climb. Only monsters right next to you follow.", lambda p=p: self.act_descend(p, '<'))
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.act_keys('<', 'went up'))
         walled = len(dist) <= 3 and any(m['passive'] and m['dist'] == 1 for m in hostiles)  # boxed in by floating eyes
@@ -445,6 +454,8 @@ class Bot:
         # 5.0 source: timeout starts at 300, drops 1/turn, and major trouble (all of these) is fixed at <= 200
         if trouble and (fatal or (turn - last >= 600 if last is not None else turn >= 110)):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
+        elif LOW_HP(s) and any(m['dist'] == 1 for m in hostiles) and last is not None and turn - last >= 300:
+            opts['pray'] = ('Pray to Tyr (gamble)', f"Last prayer was only {turn - last} turns ago: Tyr may well be angry (bad luck, maybe smiting). But at {s.get('hp')} HP with a monster next to you, this may be the last chance.", self.act_pray)
 
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):
             for it in self.inventory:
@@ -587,6 +598,8 @@ class Bot:
         return self.run.get('here', {}).get((self.snap.status.get('dlvl'), self.snap.me), [])
 
     def engraved_here(self):
+        if 'Blind' in self.snap.status.get('conditions', []):
+            return False  # cannot read it back, and a rothe pack chewed a blind Jev from 48 to 0 HP 'on Elbereth'
         return (self.snap.status.get('dlvl'), self.snap.me) in self.run.setdefault('elbereth', set())
 
     # ---------- motors ----------
@@ -744,6 +757,16 @@ class Bot:
         if not self.elbereth_ok():
             return 'engraving came out garbled; not protected'
         return 'engraved Elbereth'
+
+    def act_wait_elbereth(self):
+        if not self.elbereth_ok():
+            return 'Elbereth is gone'
+        hp = self.snap.status.get('hp', 0)
+        self.act_keys('s', '')
+        if self.snap.status.get('hp', 0) < hp:
+            self.run['elbereth'].discard((self.snap.status.get('dlvl'), self.snap.me))
+            return 'got hit while standing on Elbereth: it is not protecting you here'
+        return 'waited on Elbereth'
 
     def elbereth_ok(self):
         """Read the square (free action): dust Elbereths garble ~27% of the time and scuff as we fight."""

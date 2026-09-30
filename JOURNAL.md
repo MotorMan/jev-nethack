@@ -242,3 +242,9 @@ From the wiki, not done yet, in priority order:
 - Drop weight when Burdened.
 - Keep the ascend option away from the Sokoban branch.
 - Excalibur is technically in reach (long sword, lawful, XL 5, a 1-in-30 dip), but the failure outcomes (water moccasins, nymphs, water demons) are costly this early. Skipped for now.
+
+## 2026-09-29 17:01 — Blind on Elbereth
+Retreat is now offered only when every nearby hostile is slower than Jev's speed of 12, and a new "Run for the upstairs" appears when hurt with '<' within 8 steps. Then a rothe pack killed a run that looked like a textbook Elbereth rest: the HP went 48, 44, 41, 37, 27, 23, 8, 0 across eight "Stay on Elbereth" turns. Jev was Blind. A blind hero can't read the engraving back (the dust message needs sight), so the check passed without seeing anything, and attacks were hidden. Changes:
+- Blind means Elbereth isn't trusted.
+- Taking damage while waiting on it drops the flag, which brings attacks back.
+- A last-chance "Pray (gamble)" appears at critically low HP with a hostile adjacent, if at least 300 turns have passed since the last prayer. That run had prayed 521 turns earlier and so got no prayer option at all.
