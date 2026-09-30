@@ -566,3 +566,6 @@ Run 20260930-125222 died blind to a housecat pack on Dlvl 5 (T2814) after spendi
 
 ## 2026-09-30 13:05 — no ranged attacks in shops
 Run 20260930-125818 threw a dagger and then zapped an unknown wand at a brown mold inside Sipaliwini's general store. She turned hostile and killed Jev with her wand (T1314, Dlvl 4). Throw and zap options are now dropped near shops.
+
+## 2026-09-30 13:20 — no throwing past an adjacent attacker
+Run 20260930-130259 (Dlvl 8, XL 6) spent three turns throwing daggers at a distant orc-captain while a giant spider stood next to it, dropping from 19 to 8 HP before a failed gamble prayer. Throw options are now dropped whenever an adjacent hostile can be meleed.
