@@ -578,3 +578,6 @@ Run 20260930-131713 (XL 7, Dlvl 7, T9749) engraved Elbereth at 56/64 HP instead 
 
 ## 2026-09-30 14:00 — no looting mid-fight
 Run 20260930-132022 (XL 7, Dlvl 8, T6490) died to a Woodland-elf pack after spending three turns picking up an elven helm, dagger and broadsword while elves were hitting it (61 -> 17 HP). Pickup and fetch options are now dropped while an adjacent hostile can be meleed.
+
+## 2026-09-30 14:15 — no diagonal squeezes
+NetHack refuses a diagonal step between two walls/rock when the pack weighs over 600 ("You are carrying too much to get through"). The pathfinder planned such squeezes anyway, and the walker kept retrying: 10 of the day's runs logged it, up to 2171 times in one game. Run 20260930-132513 (fell to Dlvl 7 at XL 5, T4501) spent its time bumping these and never found the upstairs before a wolf, a plains centaur and a rothe caught it. The pathfinder now never plans a squeeze (generated corridors are 4-connected, so no real route is lost).

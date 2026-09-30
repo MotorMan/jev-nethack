@@ -249,7 +249,8 @@ class Bot:
                     continue
                 if soko and (snap.at(*q).ch == '0' or snap.at(*q).ch == '^' and q not in safe or dx and dy and not all(snap.walkable(*c) and snap.at(*c).ch != '0' for c in ((p[0] + dx, p[1]), (p[0], p[1] + dy)))):
                     continue  # Sokoban: never shove a boulder off-plan or drop into a hole; no squeezing past boulders diagonally
-                if dx and dy and (not snap.diag_ok(p, q) or (p == start and self.standing_on() == 'door')):
+                if dx and dy and (not snap.diag_ok(p, q) or (p == start and self.standing_on() == 'door')
+                                  or not (snap.walkable(p[0] + dx, p[1]) or snap.walkable(p[0], p[1] + dy))):  # squeezing between two walls fails over 600 weight ("carrying too much to get through"): up to 2171 blocked moves a game
                     continue
                 nd = d + snap.cost(*q)
                 if nd < dist.get(q, 1e9):
