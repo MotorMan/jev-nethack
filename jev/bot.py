@@ -1,6 +1,6 @@
 """The play loop. Code reads the screen, lists legal concrete options and executes them;
 Jev chooses every option. No LLM anywhere."""
-import glob, heapq, json, os, random, re, threading, time
+import glob, heapq, json, os, random, re, threading, time, traceback
 from datetime import datetime, timezone
 
 from . import sokoban
@@ -1267,7 +1267,7 @@ class Bot:
         try:
             outcome = opts[key][2]() or ''
         except Exception as e:  # a motor tripping over an unexpected screen should not kill the run
-            self.log(f'motor {key} failed: {e!r}', 'error')
+            self.log(f'motor {key} failed: {e!r} at {traceback.extract_tb(e.__traceback__)[-1][:3]}', 'error')
             self.t.send('\x1b')
             outcome = f'error: {e}'
         h = dict(id=self.decision['id'], at=now(), turn=s.get('turn') or 0, dlvl=s.get('dlvl') or 0, choice=key, label=label,
