@@ -529,7 +529,7 @@ class Bot:
             opts = {k: v for k, v in opts.items() if not (k.startswith('quaff_') and 'healing' not in v[0])}  # a swirly potion of sleeping at 15/50, prayer 1460 turns old: frozen, killed by a pony
 
         # shop floor gold belongs to the shopkeeper: picking it up billed Jev, who then could not leave and died to Mr. Kipawa; eating its food kept another Jev locked in a shop for 4000 turns
-        shop = any(d == s.get('dlvl') and cheb(p, me) <= 7 and any('for sale' in i for i in v) for (d, p), v in self.run.get('here', {}).items()) or self.run.get('debt') == s.get('dlvl')
+        shop = any(d == s.get('dlvl') and cheb(p, me) <= 7 and any(re.search(r'for sale|no charge', i) for i in v) for (d, p), v in self.run.get('here', {}).items()) or self.run.get('debt') == s.get('dlvl')
         if shop:  # an unknown wand zapped at a brown mold in Sipaliwini's store angered her: dead to her wand (T1314)
             opts = {k: v for k, v in opts.items() if not k.startswith(('zap_', 'throw_'))}
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):

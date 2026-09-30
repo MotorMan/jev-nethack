@@ -649,3 +649,6 @@ Still unexplained: the shopkeeper blocked the door for about 300 turns even thou
 
 ## 2026-09-30 20:55 — Don't close in on yellow lights
 6 of the last 30 runs died blind, and 5 of those involved a yellow light explosion (most recently 20260930-154458, apes at T4272). Per 5.0 monsters.h the yellow light is speed 15 with AT_EXPL AD_BLND 10d20. The wiki's advice without a blindfold is to kill it from range. The bot offered "Close in on yellow light", so Jev walked into the blast. That approach option is gone now. Throw options still cover it at 2–6 squares, and melee is still offered when it's adjacent, since killing it first stops the explosion.
+
+## 2026-09-30 21:10 — "(no charge)" marks a shop too
+Run 20260930-155030 died at T1676 on Dlvl 2, zapped by an angry shopkeeper. Jev ate a rotten jackal corpse inside a shop and was blinded, then swung at the unseen shopkeeper. The blind-in-shop guard never engaged because shop detection only looked for "for sale" in the items seen nearby, and the only record here was "jackal corpse (no charge)". Detection now accepts "no charge" too.
