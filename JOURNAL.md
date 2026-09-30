@@ -506,3 +506,6 @@ Last 60 deaths: median T4134, Dlvl 7, XL 5. 13 were hunger, 4 were failed prayer
 
 ## 2026-09-30 — pace check; no re-engraving after a hit on Elbereth
 First game with the pace fix: never more than 2 levels deeper than its XL (Dlvl 6 at XL 4). It rested 76 times and was sent back upstairs 105 times. It died on Dlvl 5, T5315 (magic missile), cornered by a gnome mummy, rothes and garter snakes. Monsters that can't get away attack even through Elbereth. Jev kept engraving, getting hit and engraving again. A hit on Elbereth now blocks engraving for 5 turns while a monster is adjacent, which leaves fighting or retreating.
+
+## 2026-09-30 — stay up after fleeing upstairs
+Died to a wolf, Dlvl 6, T5172. A warg and wolf pack hit Jev while it stood on Elbereth, and it fled up the stairs. On the very next decision it took the stairs back down into the pack and was eaten. Fleeing upstairs now blocks descending for 50 turns.

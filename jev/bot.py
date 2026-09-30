@@ -474,9 +474,9 @@ class Bot:
             ups_near = [p for p in snap.find('<') if dist.get(p, 99) <= 8]
             if danger and ups_near and self.standing_on() != '<' and s.get('dlvl', 1) > 1:
                 p = ups_near[0]
-                opts['flee_up'] = ('Run for the upstairs', f"The up staircase is {dist[p]} steps {compass(me, p)}: walk there and climb. Only monsters right next to you follow.", lambda p=p: self.act_descend(p, '<'))
+                opts['flee_up'] = ('Run for the upstairs', f"The up staircase is {dist[p]} steps {compass(me, p)}: walk there and climb. Only monsters right next to you follow.", lambda p=p: self.flee_up(lambda: self.act_descend(p, '<')))
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
-                opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.act_keys('<', 'went up'))
+                opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.flee_up(lambda: self.act_keys('<', 'went up')))
         walled = len(dist) <= 3 and any(m['passive'] and m['dist'] == 1 for m in hostiles)  # boxed in by floating eyes
         if (near or walled or self.unseen_attacker()) and not self.engraved_here() and not (near and all(m['ch'] == '@' for m in near)) \
                 and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} \
@@ -717,6 +717,9 @@ class Bot:
                 and sum(lv.searched.values()) < 400:
             # 'anyway' took Jev past the pace limit 165 times in 60 games (median death XL5 on Dlvl 7): wait here for monsters and HP first
             opts['rest'] = ('Rest and search 20 turns', f"This level is cleared, but Dlvl {s.get('dlvl', 0) + 1} is too deep for experience level {s.get('xl')}. Wait here: wandering monsters bring experience, and HP recovers.", lambda: self.act_search(20))
+        if (s.get('turn') or 0) - self.run.get('fled_up', -99) < 50:  # fled a warg pack upstairs, walked straight back down into it (T5161)
+            opts = {k: v for k, v in opts.items() if k not in ('descend', 'dig_down')}
+            downs = []
         if not opts and downs:  # the pace gate is advice; idle-searching a cleared level only burns food (one run searched 400+ turns in a corridor)
             opts['descend'] = ('Take the downstairs anyway', f"Nothing else is reachable on this level. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
         if not opts:
@@ -988,6 +991,10 @@ class Bot:
             self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0  # hits scuff dust too: 3 garbled tries in a row fed a tengu 30 HP
             return 'engraving came out garbled; not protected'
         return 'engraved Elbereth'
+
+    def flee_up(self, act):
+        self.run['fled_up'] = self.snap.status.get('turn') or 0
+        return act()
 
     def act_wait_elbereth(self):
         if not self.elbereth_ok():
