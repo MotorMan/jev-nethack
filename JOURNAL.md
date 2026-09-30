@@ -360,3 +360,9 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 - Pace: Jev now descends only down to Dlvl XL+1 (it could reach XL+2 before) and is offered the way back up from XL+2. Recent deaths clustered at Dlvl 5–7 around XL 5–6.
   - The "take the stairs anyway" escape hatch no longer needs too_deep.
 - The first game on the new pace survived past T10500.
+
+## 2026-09-29 21:45 — more lycanthropy
+- A wererat Jev (animal form, armor fallen off, Valkyrie pack = Overloaded, HP 5) tried to ascend 291 times without moving, then died to a werejackal at T4486.
+- When Overloaded, the only options are pray or drop a non-worn item.
+- In were-form (status title starts with "Were"), Jev prays after a 500-turn gap instead of 1000. Lycanthropy is major trouble, so a prayer cures it.
+- In were-form, pickup/wear/fetch options are hidden. Normal pickup and wear come back after Jev reverts.
