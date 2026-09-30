@@ -606,7 +606,7 @@ class Bot:
             for c in set(streak):
                 if len(opts) > 1:
                     opts.pop(c, None)
-        if not opts and downs and lv.resets:  # the pace gate is advice; being stuck forever is worse (a trap door once cut off the upstairs)
+        if not opts and downs:  # the pace gate is advice; idle-searching a cleared level only burns food (one run searched 400+ turns in a corridor)
             opts['descend'] = ('Take the downstairs anyway', f"Nothing else is reachable on this level. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
         if not opts:
             # nothing to do usually means level memory has walled us in (once for 7800 turns): forget it and look again

@@ -366,3 +366,7 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 - When Overloaded, the only options are pray or drop a non-worn item.
 - In were-form (status title starts with "Were"), Jev prays after a 500-turn gap instead of 1000. Lycanthropy is major trouble, so a prayer cures it.
 - In were-form, pickup/wear/fetch options are hidden. Normal pickup and wear come back after Jev reverts.
+
+## 2026-09-29 21:46 — idle-search deadlock
+- The user asked why Jev was searching in a shop. It wasn't in the shop: it was in a corridor on Dlvl 6 at XL 5. The pace cap (Dlvl ≤ XL+1) blocked the stairs and the level was fully explored, so the only option left was "Search 10 turns", repeated for 400+ turns and eating food.
+- The "descend anyway" fallback needed lv.resets, which only increments when no downstairs are known. That's a deadlock. The fallback now fires whenever nothing else is on offer.
