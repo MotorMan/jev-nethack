@@ -411,3 +411,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-29 23:59 — don't camp on Elbereth when healthy
 - One run sat on Dlvl 4 from T724 to T6265, with about 1,400 "Stay on Elbereth" waits after T4500, at 72–77/80 HP and next to a fog cloud (speed 1). Elbereth blocked attacking, and "waiting heals you safely" appealed to Jev. Now, at 90% HP or more, the Elbereth wait isn't offered and attacking from Elbereth is allowed.
+
+## 2026-09-30 00:05 — don't walk into packs
+- Best run in a while: XL 7, 91 max HP, T7824. Jev stepped off Elbereth to "close in on" a warg, and the whole pack arrived: 69 HP to 0 in four turns. Close-in isn't offered now when three or more hostiles are near and their combined difficulty is more than twice Jev's experience level.
