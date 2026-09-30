@@ -667,3 +667,6 @@ Run 161255 (XL 6, AC 6, Dlvl 6, T7182) spent 684 of its 1936 decisions waiting o
 
 ## 2026-09-30 22:20 — Weak: don't force food runs past nearby monsters
 Run 162212 (XL 4, Dlvl 6, T4576) was Weak with a rothe and an elf zombie 2 steps away. The Weak rule (only eat, pray or fetch food) kicked in whenever nothing was adjacent. So Jev walked off its Elbereth toward an item twice, lost 35 → 24 HP, then fought a gray ooze and died. The rule now waits until no non-passive hostile is within 3 steps. Weak costs no HP and fainting only starts at nutrition ≤ 0 (eat.c), so a few turns of fighting first is cheaper.
+
+## 2026-09-30 22:35 — burden prompt pickup loop
+Run 162853 (XL 6, Dlvl 7) re-picked "2 yellow gems" every turn for 100+ turns. The pickup raised "You have a little trouble lifting 2 yellow gems. Continue? [ynq]" (pickup.c lift_object), which was escaped, so the gems stayed on the floor and were offered again. act_pickup now answers 'n' to that prompt and never offers the item again this game.

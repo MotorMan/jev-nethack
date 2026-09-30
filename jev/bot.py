@@ -578,7 +578,7 @@ class Bot:
             if price and FOOD.search(item) and 'corpse' not in item and int(price[1]) <= s.get('gold', 0) and not self.run.get('debt'):
                 opts[f'buy_{i}'] = (f"Buy {item}", f"Pick up {item} and pay {price[1]} of your {s.get('gold')} gold. Packed food prevents fainting from hunger.", lambda item=item: (self.act_pickup(item), self.act_pay())[1])
                 continue
-            if shop or 'for sale' in item or 'corpse' in item or HEAVY.search(item):
+            if shop or 'for sale' in item or 'corpse' in item or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
         if 'Burdened' in s.get('conditions', []) or 'Stressed' in s.get('conditions', []):
@@ -1205,6 +1205,9 @@ class Bot:
                     self.t.send(m[1])
                     break
             self.t.send('\r')
+        if any('trouble lifting' in l or 'can barely lift' in l for l in self.t.lines()[:2]):  # 'Continue?' got escaped: re-picked 2 gems every turn for 100+ turns (T6834)
+            self.t.send('n')
+            self.run.setdefault('heavy', set()).add(item)
         self.observe()
         key = (self.snap.status.get('dlvl'), self.snap.me)
         self.run['here'][key] = self.look_here()
