@@ -464,12 +464,21 @@ class Bot:
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
         if near:
             if self.engraved_here():  # stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
-                if hp < 0.9 * hpmax:  # at 77/80 HP Jev sat on Elbereth ~1400 turns watching a fog cloud
+                if hp < 0.7 * hpmax:  # 'stuck on Elbereth': up to 44% of a game's decisions were waits on it (0.9 before); at 77/80 HP Jev sat on Elbereth ~1400 turns watching a fog cloud
                     opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', self.act_wait_elbereth)
             else:
                 fast = [m['name'] for m in near if (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12]  # our speed is 12
                 if not any(m['dist'] <= 1 for m in near):  # "let them come" while six jackals and a werejackal already bit: 42 -> 0 HP in 3 waits
                     opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('ms', 'waited'))
+                # wiki (Fighting in corridors): a pack surrounds you on up to 8 sides; in a corridor only one or two can reach you
+                open_n = lambda q: sum(snap.walkable(q[0] + dx, q[1] + dy) for dx, dy in DIRS.values())
+                pack_near = [m for m in near if m['dist'] <= 5]
+                if len(pack_near) >= 2 and open_n(me) > 2:
+                    gap = min(m['dist'] for m in pack_near)
+                    choke = min((q for q, dq in dist.items() if 0 < dq <= 8 and open_n(q) <= 2 and q not in self.level().traps and not snap.is_monster(*q)
+                                 and min(cheb(q, m['pos']) for m in pack_near) >= gap), key=dist.get, default=None)
+                    if choke:
+                        opts['choke'] = ('Fight from a corridor', f"Walk {dist[choke]} steps {compass(me, choke)} to a corridor or doorway square, so the {len(pack_near)} monsters can only reach you one or two at a time.", lambda q=choke: self.act_go(q, steps=8))
                 if not fast and hp < 0.7 * hpmax and self.retreat_dir(hostiles):  # at 50/53 Jev retreated 6 times from hill orcs, eating hits without swinging (T2966); retreating from a giant bat (speed 22) just gives it free hits
                     opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + ' Everything nearby is slower than you, so you can open a gap.', lambda: self.act_retreat(hostiles))
             ups_near = [p for p in snap.find('<') if dist.get(p, 99) <= 8]
@@ -484,6 +493,8 @@ class Bot:
                 and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} \
                 and not (any(m['dist'] == 1 for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # @ ignore it; engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
+        if 'choke' in opts and hp >= 0.4 * hpmax:  # wiki: Elbereth is breathing room; a corridor is how to actually fight a group
+            opts.pop('elbereth', None)
 
         if danger:
             for it in self.inventory:  # an unknown potion on a working Elbereth: 11% heal, sleeping killed a Jev the warhorse was fleeing from
