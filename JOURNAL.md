@@ -491,3 +491,10 @@ Now, when the next push is unreachable for 30 turns or its boulder is missing, `
 
 ## 2026-09-30 — Sokoban rollers are walkable (root cause of the push-29 stalls)
 The re-plan fired but produced the same first push, (34,16) north, and gave up after 3 tries. The square behind that boulder is only reachable across (39,16), a '^' that is a rolling boulder trap and not a hole. In Sokoban, trap.c makes these harmless ("the Sokoban rolling boulder traps are not dangerous"), and the solver treats them as floor. The bot's pathfinding refused every '^' in Sokoban, though. That single square caused both soko4-1 stalls (the Thump game and the 31,000-turn starvation). The level's rollers (`sokoban.rollers(m)`) are now walkable, and holes still aren't.
+
+## 2026-09-30 — Sokoban holds; no leaving mid-puzzle
+Live check of the roller fix: Jev stepped on the roller ("Click! You trigger a rolling boulder trap! No boulder was released."), re-planned (60 pushes, then 41 after a restart) and got through 33 of 41. Two small fixes along the way:
+- When the push fails with "You hear a monster behind the boulder", Jev now searches one turn instead of retrying in the same turn.
+- Fixed a KeyError when a re-plan ran before any stuck timer existed.
+
+Then a peaceful gnome king counted as `near`, which lifts the push-only filter, and Jev fetched gloves and took the '>' out with 8 pushes left. 'descend' is now removed while a Sokoban level is unsolved.

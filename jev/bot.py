@@ -681,6 +681,7 @@ class Bot:
                         self.run['soko_done'] = True
                 if 'soko_push' in opts and not near:
                     opts = {k2: v for k2, v in opts.items() if k2 == 'soko_push' or k2 == 'pray' or k2.startswith('eat_')}
+                opts.pop('descend', None)  # a gnome king nearby lifted the filter and Jev walked out with 8 of 41 pushes left
             elif m[0].startswith('soko1'):
                 self.run['soko_done'] = True  # top level solved: the zoo and prize are ordinary exploring from here
             elif ups and not near:
