@@ -9,6 +9,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FOOD = re.compile(r'\b(?:food ration|cram|lembas|biscuit|pancake|apple|orange|banana|melon|carrot|egg|\btins? of|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen)e?s?\b')  # word-bounded: 'dwarvish spear' is not a pear
 MONSTERS = json.load(open(os.path.join(os.path.dirname(__file__), 'monsters.json')))  # name -> [difficulty, speed], from monsters.h
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
+WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber', 'short sword', 'spear', 'mace', 'morning star', 'war hammer', 'flail', 'trident', 'dagger', 'knife', 'club']
+WEAPON = re.compile(r'\b(' + '|'.join(WEAPON_RANK) + r')s?\b(?! corpse)')
 NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy', 'dwarf', 'were', 'kobold', 'bat', 'ghoul', 'vampire', 'chameleon', 'dog', 'cat', 'kitten', 'pony', 'acid blob', 'spotted jelly')  # undead corpses are pre-aged: always tainted
 # pray.c critically_low_hp: the major-trouble line prayer fixes
 LOW_HP = lambda s: s.get('hp', 1) <= 5 or s.get('hp', 1) * (5 if s.get('xl', 1) <= 5 else 6 if s.get('xl', 1) <= 13 else 7) <= min(s.get('hpmax', 1), 15 * s.get('xl', 1))
@@ -584,8 +586,16 @@ class Bot:
             lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
             lv.resets += 1
             opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('ms', 'waited'))
+        # Jev never picked "Wear" over exploring (194 offers after a monkey stole the shield) and has no wield option at all
+        weapon = min((it for it in self.inventory if WEAPON.search(it['text']) and it['text'] not in self.run.setdefault('unwieldable', set())), key=lambda it: WEAPON_RANK.index(WEAPON.search(it['text'])[1]), default=None)
+        if weapon and self.inventory and not any('weapon in' in it['text'] for it in self.inventory):
+            opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You are fighting bare-handed.', lambda l=weapon['letter']: self.act_wield(l))}
+        elif not near and any(k.startswith('wear_') for k in opts):
+            opts = {k: v for k, v in opts.items() if k.startswith('wear_')}
         if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and not near:  # a confused bump into a shopkeeper attacks him
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {'rest': ('Wait until you are steady', 'You are confused or stunned: moves go in random directions and can attack peacefuls. Nothing hostile is near, so wait it out.', lambda: self.act_keys('5s', 'waited'))}
+        elif 'Blind' in s.get('conditions', []):  # a blind step into an unseen watchman angered the whole Minetown watch
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'attack_', 'eat'))} | {'rest': ('Wait until you can see', 'You are blind: walking bumps into unseen monsters and attacks them, peaceful or not. Wait for your sight to return; fight only what is hitting you.', lambda: self.act_keys('ms' if near else '5s', 'waited'))}
         if self.engraved_here() and s.get('hp', 1) < 0.75 * s.get('hpmax', 1) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles):
             # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'eat'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}
@@ -905,6 +915,15 @@ class Bot:
         self.run['here'][key] = self.look_here()
         self.read_inventory()
         return f'picked up {item}'
+
+    def act_wield(self, letter):
+        self.t.send('w' + letter)
+        self.observe()
+        self.read_inventory()
+        if any('weapon in' in it['text'] for it in self.inventory):
+            return 'wielded it'
+        self.run.setdefault('unwieldable', set()).add(next((it['text'] for it in self.inventory if it['letter'] == letter), ''))
+        return 'could not wield it'
 
     def act_dig(self, letter):
         weapon = next((it['letter'] for it in self.inventory if 'weapon in' in it['text'] and it['letter'] != letter), None)
