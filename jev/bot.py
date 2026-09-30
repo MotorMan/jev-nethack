@@ -541,10 +541,13 @@ class Bot:
             for it in self.inventory:
                 if HEAVY.search(it['text']) and not re.search(r'weapon in|being worn', it['text']):
                     opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", f"You are {'Burdened' if 'Burdened' in s['conditions'] else 'Stressed'}: slower, and you can't fight or flee well. {it['text']} is heavy and of little use.", lambda l=it['letter']: self.act_keys('d' + l, 'dropped it'))
+        lev = next((it for it in self.inventory if 'levitation' in it['text'] and re.search(r'being worn|on (left|right) hand', it['text'])), None)
+        if lev and not near:  # -2 levitation boots floated Jev over the stairs for 2400 turns until it starved
+            opts = {f"remove_{lev['letter']}": (f"Take off {lev['text']}", 'Levitation keeps you from taking stairs or picking things up. Remove it.', lambda it=lev: self.act_keys(('R' if 'hand' in it['text'] else 'T') + it['letter'] + '\x1b', 'took it off'))}
         if not near:
             for it in self.inventory:
                 t = it['text']
-                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and t not in self.run.setdefault('unwearable', set()):
+                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and 'levitation' not in t and t not in self.run.setdefault('unwearable', set()):
                     opts[f"wear_{it['letter']}"] = (f"Wear {t}", "Put on this armor (takes a few turns; may be cursed if unidentified).", lambda it=it: self.act_wear(it))
 
         for d, p in [(k, (me[0] + v[0], me[1] + v[1])) for k, v in DIRS.items() if not (v[0] and v[1])]:

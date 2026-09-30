@@ -414,3 +414,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-30 00:05 — don't walk into packs
 - Best run in a while: XL 7, 91 max HP, T7824. Jev stepped off Elbereth to "close in on" a warg, and the whole pack arrived: 69 HP to 0 in four turns. Close-in isn't offered now when three or more hostiles are near and their combined difficulty is more than twice Jev's experience level.
+
+## 2026-09-30 00:11 — levitation boots
+- Jev put on unidentified boots at T1285. They were -2 levitation boots, and for about 2,400 turns it floated over the downstairs pressing '>' ("You are floating high above the stairs"), then starved. Now any worn levitation item is taken off first whenever no monsters are near, and levitation items are never offered to wear.
