@@ -633,7 +633,8 @@ class Bot:
         elif downs:
             opts['descend'] = ('Head for the downstairs', f"Walk to the known down staircase ({dist[downs[0]]} steps {compass(me, downs[0])}) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
         pick = next((it for it in self.inventory if re.search(r'pick-axe|dwarvish mattock', it['text'])), None)
-        if pick and not near and not too_deep and not soko_hunt and self.standing_on() not in ('<', '>', '_', '{'):
+        if pick and not near and s.get('dlvl', 1) < (s.get('xl') or 1) + 1 and not soko_hunt and self.standing_on() not in ('<', '>', '_', '{'):
+            # same pace as the stairs: 'not too_deep' let XL5 dig 6 -> 7 and XL6 7 -> 8, dead to a giant spider (T4825)
             opts['dig_down'] = ('Dig down with the pick-axe', f"Apply {pick['text']} downward to dig a hole to Dlvl {s.get('dlvl', 0) + 1} (takes several turns; skips the rest of this level).", lambda l=pick['letter']: self.act_dig(l))
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
         if not near and not self.unseen_attacker() and s.get('hp', 1) < 0.85 * s.get('hpmax', 1):  # blind, Jev rested beside an orc and died (T3212)
