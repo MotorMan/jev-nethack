@@ -468,3 +468,6 @@ A cross-aligned gray unicorn (speed 24, butt d12 + kick d6) hovered 2 squares of
 
 ## 2026-09-30 — any low-HP prayer is forced (human zombie, T4535, Dlvl 6)
 At 1/58 HP, Jev was offered the gamble prayer 478 turns after its last prayer and tried Elbereth instead. It was interrupted and Jev died. The "force at 500" cutoff from earlier today missed this by 22 turns. The gamble is only offered at 300+ turns (P ≥ .66), which beats anything else at LOW_HP, so any offered prayer is now forced at LOW_HP. Also: #terrain fired live once and found a hidden '>' at (15,12).
+
+## 2026-09-30 — no eating mid-fight (giant rat, T2344, Dlvl 2)
+While Hungry (not yet Weak), Jev ate corpses twice with a gecko, a giant rat and a jackal next to it, and dropped from 25 to 1 HP. The forced prayer then failed; it came 867 turns after the last one, so it should have worked about 90% of the time. Eating options are now removed while a non-passive hostile is within 2 squares, unless Jev is Weak or Fainting.
