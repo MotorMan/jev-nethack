@@ -596,3 +596,4 @@ Twice now Jev "quaffed" the same potion 3-4 times on one turn mid-fight (T2801, 
 
 ## 2026-09-30 15:20 — cure lycanthropy after the fight
 Run 20260930-135441 (XL 5, Dlvl 6, T3790) prayed at 18/46 with the wererat still biting: Tyr cured the lycanthropy ("You feel purified"), not the HP, and the prayer was spent when Jev hit 7 HP five turns later. Lycanthropy now counts as prayer trouble only with no hostile within 2 squares.
+Checked afterwards (wiki + 5.0 source): lycanthropy is a major trouble, but pray.c's in_trouble() ranks TROUBLE_HIT (low HP) above TROUBLE_LYCANTHROPE, so a later low-HP prayer heals first and still cures the disease when Luck allows fixing several troubles. The shape change comes at 1/80 per turn by day and 1/60 by night (wiki, allmain.c), so waiting out a fight costs little. The deferral stands.
