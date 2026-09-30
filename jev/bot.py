@@ -604,12 +604,13 @@ class Bot:
                 continue  # kick_<dir> covers it; in town a locked door stays shut
             what = 'locked door' if door in lv.locked else 'closed door'
             opts[f'door_{door[0]}_{door[1]}'] = (f"Go through the {what} {compass(me, door)}", f"Walk {dist[q]} steps to the {what} {compass(me, door)}, open it (kicking it if locked). What lies behind is unexplored.", lambda q=q, door=door: self.act_kick_door(q, door))
-        if not near and not shop:  # only stepped-on items were ever picked up; Jev fainted twice with food lying in view
+        if (not near or s.get('hunger') in ('Weak', 'Fainting')) and not shop:  # starving beats a hovering monster; only stepped-on items were ever picked up; Jev fainted twice with food lying in view
             objs = [q for c in ')[%?/=!("$' for q in snap.find(c)]
             loot = [q for q in objs if q in dist and 0 < dist[q] <= 15 and (s.get('dlvl'), q) not in self.run['here'] and lv.corpses.get(q, -1) < 0
                     and sum(cheb(q, o) <= 3 for o in objs) < 6]  # a dense cluster is a shop
             if loot:
-                q = min(loot, key=dist.get)
+                starving = s.get('hunger') in ('Weak', 'Fainting')
+                q = min(loot, key=lambda q: (not (starving and snap.at(*q).ch == '%'), dist[q]))  # starving: food first
                 g = snap.at(*q).ch
                 what = {'%': 'food', '$': 'gold', '[': 'armor', ')': 'a weapon', '!': 'a potion', '?': 'a scroll', '/': 'a wand', '=': 'a ring', '"': 'an amulet', '(': 'a tool'}[g]
                 opts['fetch'] = (f"Go look at the item {compass(me, q)} ({what}?)", f"Walk {dist[q]} steps {compass(me, q)} to the '{g}' on the floor and see what it is; food keeps you from fainting, armor lowers AC.", lambda q=q: self.act_go(q))
@@ -733,6 +734,9 @@ class Bot:
             streak.append(h['choice'])
         if len(streak) >= 3 and len(set(streak[:3])) == 1:
             opts.pop(streak[0], None)
+        if s.get('hunger') in ('Weak', 'Fainting') and not any(m['dist'] <= 1 for m in hostiles):  # sat 69 turns on Elbereth Weak -> Fainting with food in view, dead (T2958); wiki: Weak is major trouble, eat or pray
+            food = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'goto_corpse')) or k == 'fetch' and '(food?)' in v[0]}
+            opts = food or opts
         if (s.get('turn') or 0) - self.run.get('held', -99) <= 1:  # held: moving escapes 1 in 40 (hack.c); a rope golem choked Jev through 3 retreats (T5125). Wiki: Elbereth works while grabbed
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray') or k.startswith(('attack_', 'quaff_'))} or opts
         if any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and any(k.startswith('attack_') for k in opts):  # explored away from 5 adjacent rats at 21/29: dead (T1354)

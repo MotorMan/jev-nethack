@@ -609,3 +609,6 @@ Run 20260930-140029 (Dlvl 7, T5125) closed on a rope golem, got grabbed and chok
 
 ## 2026-09-30 16:20 — no waiting on Elbereth next to elves
 Run 20260930-140639 (XL 6, Dlvl 7, T4259) killed a Woodland-elf, engraved Elbereth, then waited on it for 9 turns while another Woodland-elf readied its bow, and died to that elf. Wiki and monmove.c onscary(): @ (humans and elves) and minotaurs ignore Elbereth. The engrave option already skipped all-@ threats, but "Stay on Elbereth" did not; it is no longer offered while an @ or a minotaur is near.
+
+## 2026-09-30 16:35 — starving: food over Elbereth
+Run 20260930-140948 (Dlvl 5, T2958) prayed for HP at T2660, turned Weak 20 turns later (so no second prayer), then spent 69 turns waiting on Elbereth, Weak and then Fainting, while "Go look at the item (food?)" was on offer. A kitten killed it while fainted. Wiki: Weak is major trouble, so eat or pray; Fainting is next. Now, when Weak or Fainting with nothing adjacent, only eat, go-to-corpse, fetch-food and pray are offered (if any exist). Fetch prefers '%' when starving and is offered even with monsters near.
