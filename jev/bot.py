@@ -670,7 +670,9 @@ class Bot:
             before = self.snap
             nmsg = len(self.messages)
             self.refused_trap = False
-            self.t.send(d)
+            nx, ny = me[0] + DIRS[d][0], me[1] + DIRS[d][1]
+            # a plain step into a monster attacks it (a floating eye drifted onto the stair path and froze Jev); pets still get swapped
+            self.t.send(('m' if self.snap.is_monster(nx, ny) and not self.snap.at(nx, ny).reverse else '') + d)
             snap = self.after_move(before)
             if self.refused_trap:
                 self.level().traps.add((me[0] + DIRS[d][0], me[1] + DIRS[d][1]))
@@ -1095,7 +1097,7 @@ class Bot:
 
     def end_run(self):
         blob = ' '.join(self.run['death_msgs'])
-        m = re.search(r'(killed by (?:M[rs]s?\. )?[^.\n]+?|died of [^.\n]+|starved to death|drowned [^.\n]+|choked [^.\n]+|quit|escaped)\s*(?:$|\s{2}|\n|\.)', blob)
+        m = re.search(r'(killed by (?:M[rs]s?\. )?[^.\n]+?|died of [^.\n]+|poisoned by [^.\n]+|starved to death|drowned [^.\n]+|choked [^.\n]+|quit|escaped)\s*(?:$|\s{2}|\n|\.)', blob)
         self.run['death'] = m[1].strip() if m else ('died' if 'You die' in blob else 'game ended')
         self.run['ended'] = now()
         self.runs[-1] = {k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score')}

@@ -275,3 +275,8 @@ Fixes:
 - No pickups at all within 7 squares of anything seen "for sale".
 - While confused or stunned with nothing hostile near, the only choices are waiting (or prayer/potions).
 - The death parser now keeps "Mr./Ms." names.
+
+## 2026-09-29 18:45 — New best: Gnomish Mines level 11
+Two more runs:
+- **Dlvl 11 (a new record depth), Mines' End.** Jev was poisoned by an orcish arrow: poison instadeath from Thosogzai's volley while standing on Elbereth, which does nothing against missiles. Without poison resistance this is a dice roll. The parser now records "poisoned by …" instead of "game ended".
+- **Dlvl 5, frozen by a floating eye, then eaten by manes.** A walk to the stairs stepped into the eye after it drifted onto the path. A plain move into a monster is an attack. Walking now uses the `m` prefix whenever the next square holds a non-pet monster ("You move right into it" costs a turn but never attacks). Pets are shown in reverse video and still get swapped.
