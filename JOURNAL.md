@@ -563,3 +563,6 @@ Last 30 runs: "Eat the X here" was offered 98 times and taken 15. Explore, picku
 
 ## 2026-09-30 12:58 — clear potions are water
 Run 20260930-125222 died blind to a housecat pack on Dlvl 5 (T2814) after spending its low-HP turns quaffing a "clear potion" (plain water) four times. Unidentified clear potions are now excluded from the quaff options.
+
+## 2026-09-30 13:05 — no ranged attacks in shops
+Run 20260930-125818 threw a dagger and then zapped an unknown wand at a brown mold inside Sipaliwini's general store. She turned hostile and killed Jev with her wand (T1314, Dlvl 4). Throw and zap options are now dropped near shops.
