@@ -370,3 +370,13 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 ## 2026-09-29 21:46 — idle-search deadlock
 - The user asked why Jev was searching in a shop. It wasn't in the shop: it was in a corridor on Dlvl 6 at XL 5. The pace cap (Dlvl ≤ XL+1) blocked the stairs and the level was fully explored, so the only option left was "Search 10 turns", repeated for 400+ turns and eating food.
 - The "descend anyway" fallback needed lv.resets, which only increments when no downstairs are known. That's a deadlock. The fallback now fires whenever nothing else is on offer.
+
+## 2026-09-29 21:52 — starvation: angry god, buy food
+- Hunger is involved in 17 of 110 deaths, the biggest single cause. The Dlvl 10 run (the best yet, T10988) went like this:
+  - It prayed while Weak 897 turns after its last prayer. The god was "displeased": rnz timeout tail, Luck -3, god angered via gods_upset.
+  - 300 turns later it prayed again, hoping, while Fainting.
+  - It died Fainting on Elbereth with 236 gold, falling down a hole.
+- A "displeased" / "Thou durst call upon me" message now sets god_angry, and prayer is never offered again that game.
+- Food in shops:
+  - A shop_food option walks to '%' items in shop clusters when Jev has ≥5 gold and fewer than 3 food items.
+  - A buy_N option picks up a for-sale food item Jev can afford, then pays.

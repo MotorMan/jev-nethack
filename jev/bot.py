@@ -98,6 +98,8 @@ class Bot:
                 self.level().town = True
             if re.search(r'You feel feverish|You turn into a were', text):
                 self.run['lycanthropy'] = True
+            if re.search(r'is displeased|Thou durst call upon me|Then die, mortal', text):  # prayed too soon: god angry, Luck -3, praying again only makes it worse
+                self.run['god_angry'] = True
             if 'You feel purified' in text:
                 self.run['lycanthropy'] = False
             if re.search(r'no gold or credit|you pay for it|Usage fee|You owe|Pardon me, [A-Z]', text):
@@ -468,7 +470,7 @@ class Bot:
         # rnz(350) is heavy-tailed: 1000 is the usual safe gap; the gamble below covers dying with a monster adjacent;
         # starving is certain death, so hunger bets earlier (1000 let a Weak Jev faint to death 640 turns after praying)
         beast = (s.get('title') or '').startswith('Were')  # in rat/jackal form: no armor, 5 HP, pack too heavy to move; waiting 1000 turns killed runs
-        if trouble and (fatal or (turn - last >= {'Weak': 600, 'Fainting': 300}.get(s.get('hunger'), 500 if beast else 1000) if last is not None else turn >= 110)):
+        if trouble and not self.run.get('god_angry') and (fatal or (turn - last >= {'Weak': 600, 'Fainting': 300}.get(s.get('hunger'), 500 if beast else 1000) if last is not None else turn >= 110)):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else 'lycanthropy: you will turn into a jackal' if lyc and s.get('hunger') not in ('Weak', 'Fainting') else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
         elif LOW_HP(s) and any(m['dist'] == 1 for m in hostiles) and last is not None and turn - last >= 300:
             opts['pray'] = ('Pray to Tyr (gamble)', f"Last prayer was only {turn - last} turns ago: Tyr may well be angry (bad luck, maybe smiting). But at {s.get('hp')} HP with a monster next to you, this may be the last chance.", self.act_pray)
@@ -502,8 +504,12 @@ class Bot:
                 opts['sell_pay'] = ('Pay the shopkeeper', 'You owe the shopkeeper and now have gold; pay so they let you out.', self.act_pay)
             for it in [it for it in self.inventory if not re.search(r'weapon in|being worn|gold piece', it['text'])][:3]:
                 opts[f"sell_{it['letter']}"] = (f"Sell {it['text']} to pay your debt", "You owe the shopkeeper and have no gold, so they will not let you leave. Drop this to sell it for credit, then pay.", lambda l=it['letter']: (self.act_keys('d' + l, 'sold'), self.act_keys('p', 'paid'))[1])
-        for i, item in enumerate([] if shop else self.here_items()[:4]):
-            if 'for sale' in item or 'corpse' in item or HEAVY.search(item):
+        for i, item in enumerate(self.here_items()[:4]):
+            price = re.search(r'for sale, (\d+) zorkmid', item)
+            if price and FOOD.search(item) and 'corpse' not in item and int(price[1]) <= s.get('gold', 0) and not self.run.get('debt'):
+                opts[f'buy_{i}'] = (f"Buy {item}", f"Pick up {item} and pay {price[1]} of your {s.get('gold')} gold. Packed food prevents fainting from hunger.", lambda item=item: (self.act_pickup(item), self.act_pay())[1])
+                continue
+            if shop or 'for sale' in item or 'corpse' in item or HEAVY.search(item):
                 continue
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
         if 'Burdened' in s.get('conditions', []) or 'Stressed' in s.get('conditions', []):
@@ -542,6 +548,13 @@ class Bot:
                 g = snap.at(*q).ch
                 what = {'%': 'food', '$': 'gold', '[': 'armor', ')': 'a weapon', '!': 'a potion', '?': 'a scroll', '/': 'a wand', '=': 'a ring', '"': 'an amulet', '(': 'a tool'}[g]
                 opts['fetch'] = (f"Go look at the item {compass(me, q)} ({what}?)", f"Walk {dist[q]} steps {compass(me, q)} to the '{g}' on the floor and see what it is; food keeps you from fainting, armor lowers AC.", lambda q=q: self.act_go(q))
+        packed = sum(bool(FOOD.search(it['text'])) for it in self.inventory)
+        if not near and s.get('gold', 0) >= 5 and packed < 3:  # a Jev with 236 gold starved to death: shops sell food
+            food = [q for q in snap.find('%') if q in dist and 0 < dist[q] <= 15 and (s.get('dlvl'), q) not in self.run['here'] and lv.corpses.get(q, -1) < 0
+                    and sum(cheb(q, o) <= 3 for c in ')[%?/=!("' for o in snap.find(c)) >= 6]
+            if food:
+                q = min(food, key=dist.get)
+                opts['shop_food'] = (f"Go look at the food for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the '%' item and its price. You have {s.get('gold')} gold and {packed} food items packed.", lambda q=q: self.act_go(q))
         fr = self.frontiers(dist)
         picked = []
         for d, p in fr:
