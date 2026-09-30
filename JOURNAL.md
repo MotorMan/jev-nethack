@@ -575,3 +575,6 @@ The giant-spider run reached Dlvl 8 at XL 6 by digging: the pick-axe option only
 
 ## 2026-09-30 13:50 — Elbereth only when hurt
 Run 20260930-131713 (XL 7, Dlvl 7, T9749) engraved Elbereth at 56/64 HP instead of closing on a large kobold; the kobold stood off and zapped a wand of lightning until Jev died. Elbereth is now offered against visible monsters only below 70% HP (still offered when boxed in or hit by something unseen).
+
+## 2026-09-30 14:00 — no looting mid-fight
+Run 20260930-132022 (XL 7, Dlvl 8, T6490) died to a Woodland-elf pack after spending three turns picking up an elven helm, dagger and broadsword while elves were hitting it (61 -> 17 HP). Pickup and fetch options are now dropped while an adjacent hostile can be meleed.

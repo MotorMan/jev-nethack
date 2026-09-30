@@ -720,7 +720,7 @@ class Bot:
         if len(streak) >= 3 and len(set(streak[:3])) == 1:
             opts.pop(streak[0], None)
         if any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and any(k.startswith('attack_') for k in opts):  # explored away from 5 adjacent rats at 21/29: dead (T1354)
-            opts = {k: v for k, v in opts.items() if not k.startswith(('explore_', 'search', 'throw_'))}  # threw daggers at a far orc-captain with a giant spider adjacent: 19 -> 8 HP, dead (T4825)
+            opts = {k: v for k, v in opts.items() if not k.startswith(('explore_', 'search', 'throw_', 'pickup_', 'fetch'))}  # picked up loot 3 times with Woodland-elves hitting (T6490); threw daggers at a far orc-captain with a giant spider adjacent: 19 -> 8 HP, dead (T4825)
         if self.history and 'blocked' in self.history[-1]['outcome'] and any(m['dist'] <= 1 for m in hostiles) and len(opts) > 1:
             opts.pop(self.history[-1]['choice'], None)  # hill orcs blocked the stairs path: 5 'ascend' bumps at 80/80 HP without a swing, dead (T6782)
         last = self.history[-5:]  # blocked walks cost a turn each, so the clock-frozen check misses them: 3500 turns bumping a shopkeeper past a floating eye
