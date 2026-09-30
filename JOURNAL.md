@@ -530,3 +530,6 @@ Killed by a hill orc on Dlvl 8, T6782, XL 6. A prayer restored Jev to 80/80. It 
 
 ## 2026-09-30 — no potion gambling while a prayer is ready
 Killed by a pony "while frozen by a potion", Dlvl 5, T3917. At 15/50 HP (not yet low enough for prayer to count it as trouble: HP ≤ 1/5 max at XL 4) Jev drank an unknown swirly potion. It was sleeping. The last prayer was 1460 turns earlier, so a prayer at 10 HP would almost surely have worked. While a prayer is ready (800+ turns since the last, or never prayed and past turn 300), unknown potions are no longer offered; known healing potions still are.
+
+## 2026-09-30 — no exploring with a hostile adjacent
+Killed by a sewer rat on Dlvl 4, T1354, XL 3. A wererat summoned a rat pack. At 21/29 HP with 5 rats adjacent, one Elbereth came out garbled, and then Jev picked "explore" twice. It walked while they bit, 21 → 7 → dead, and prayer wasn't available (HP 7 > 5). Now, while a non-passive hostile is adjacent and an attack is possible, explore and search options are dropped.
