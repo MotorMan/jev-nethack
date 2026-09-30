@@ -545,3 +545,6 @@ Killed by a coyote "while fainted from lack of food", Dlvl 3, T5853. From T3100 
 
 ## 2026-09-30 — no "anyway" descent into the forced-ascend zone
 Killed by Green-elves on Dlvl 9, T5351, XL 7. The forced ascend (Dlvl ≥ XL+2) took Jev up to 8. Two turns later "Take the downstairs anyway" took it back down to 9, because that level had already used its 400 searched turns. On 9 it met the elves at the stairs. Now the 400-turn cap is ignored when the next level would be XL+2 or deeper: Jev keeps resting unless Hungry.
+
+## 2026-09-30 — emergency prayer gamble from 100 turns
+Killed by an elven arrow, Dlvl 4, T5218. Ants and a Woodland-elf wore Jev down to 3/54, 243 turns after its last prayer. The low-HP "gamble" prayer was gated at 300 turns, so it wasn't offered, and Jev died retreating. pray.c: in major trouble a prayer works if the prayer timeout is ≤ 200. The timeout was set to rnz(350) and drops by 1 a turn, so t turns later the chance is P(rnz(350) ≤ 200+t), roughly even at t=100. Failure isn't free (Luck −3, gods_upset → angrygods), but at LOW_HP with a monster attacking, death is nearly certain otherwise. Gate lowered to 100 turns.
