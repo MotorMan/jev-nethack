@@ -590,3 +590,6 @@ Run 20260930-133759 was "killed by the wrath of Tyr" (T5998, Dlvl 6). The T5378 
 
 ## 2026-09-30 14:55 — mind what stands behind the target
 Run 20260930-134227 died to the Minetown watch (T3629, Dlvl 6) right after throwing a dagger at an 'i': a missile that misses flies on, and the watchman beyond it turned hostile. Throws and zaps now also require no '@' within 9 squares past the target (up to the first wall).
+
+## 2026-09-30 15:10 — refresh inventory after quaffing
+Twice now Jev "quaffed" the same potion 3-4 times on one turn mid-fight (T2801, and T5616 in run 20260930-135011, killed by a killer bee in the Sokoban zoo): the inventory is only re-read every 25 decisions, so the drunk potion stayed on offer. Quaffing now re-reads the inventory.
