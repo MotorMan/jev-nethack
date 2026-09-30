@@ -612,3 +612,6 @@ Run 20260930-140639 (XL 6, Dlvl 7, T4259) killed a Woodland-elf, engraved Elbere
 
 ## 2026-09-30 16:35 — starving: food over Elbereth
 Run 20260930-140948 (Dlvl 5, T2958) prayed for HP at T2660, turned Weak 20 turns later (so no second prayer), then spent 69 turns waiting on Elbereth, Weak and then Fainting, while "Go look at the item (food?)" was on offer. A kitten killed it while fainted. Wiki: Weak is major trouble, so eat or pray; Fainting is next. Now, when Weak or Fainting with nothing adjacent, only eat, go-to-corpse, fetch-food and pray are offered (if any exist). Fetch prefers '%' when starving and is offered even with monsters near.
+
+## 2026-09-30 16:55 — Don't camp on Elbereth while starving
+Run 20260930-141404 died at T4709 to a kitten while fainted. It had no food, and with an ape and a floating eye in view it was forced to "Stay on Elbereth" for 23+ turns while Weak. Per the wiki and eat.c (5.0), Weak lasts only nutrition 1–50 before Fainting. So the forced Elbereth wait is now skipped when Weak or Fainting, and the starving filter (eat, fetch food, pray) takes over.
