@@ -232,6 +232,8 @@ class Bot:
         snap = snap or self.snap
         lv = self.level()
         start = snap.me
+        if start is None:  # @ hidden (invisible, --More-- over the map): no graph this tick
+            return {}, {}
         dist, prev = {start: 0}, {}
         soko = self.soko() if snap is self.snap else None
         pq = [(0, start)]
