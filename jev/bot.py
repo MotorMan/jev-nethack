@@ -1017,7 +1017,8 @@ class Bot:
             score = min(cheb(q, m['pos']) for m in hostiles)
             if best is None or score > best[0]:
                 best = (score, d)
-        return best and best[1]
+        # a step that gains no distance just trades squares: ping-ponged west/east under a Woodland-elf's arrows, dead (T4388)
+        return best and best[0] > min(cheb(me, m['pos']) for m in hostiles) and best[1]
 
     def act_retreat(self, hostiles):
         me, d = self.snap.me, self.retreat_dir(hostiles)

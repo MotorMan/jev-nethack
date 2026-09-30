@@ -636,3 +636,6 @@ Run 20260930-145336 died at T8226 on Dlvl 6, in a brawl with a vortex, a winter 
 
 ## 2026-09-30 19:00 — Take the fresh corpse
 Run 20260930-150259 died at T7754, frozen by a potion vapour and killed by a pony after about 500 turns of Fainting. This Jev prayed for food 6 times in 7700 turns, and the 6th prayer failed ("Tyr is displeased"). Across the last 6 runs, "go eat the fresh corpse" was passed up for explore, rest or search about 60% of the time. Per 5.0 eat.c:1892, an uncursed corpse is safe for about 40 turns and the offer's window is 30, so those were safe meals. The offer is now forced when no hostile is near, the same way eating a corpse underfoot already was. A corpse that turns out to be inedible (a bat) is now forgotten, so it isn't offered again.
+
+## 2026-09-30 19:40 — Retreat only if it gains distance
+Run 20260930-151841 died at T4388 on Dlvl 7 to a Woodland-elf archer. At 22/59 HP Jev chose "Retreat one step" four times in a row: west, east, west, east. retreat_dir picked the best neighbouring square even when it was no farther from hostiles than Jev's current square, so Jev swapped squares while taking volleys of 3–4 elven arrows. retreat_dir now returns a direction only if the step strictly increases the distance to the nearest hostile.
