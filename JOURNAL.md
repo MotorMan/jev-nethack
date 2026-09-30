@@ -344,3 +344,19 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 - Two more deaths from fainting (homunculus, dust vortex). Jev never walked to items it could see; it only picked up what it happened to step on. Its only food was corpses from its own nearby kills.
 - New 'fetch' option: go look at the nearest unvisited item square within 15 steps. Rocks, boulders, shop-like clusters (6 or more objects within 3 squares) and corpses seen appearing (goto_corpse covers those) are excluded.
 - First minutes: it found a food ration at T2117 and now carries 3 food rations and a tripe ration.
+
+## 2026-09-29 21:40 — Lessons from jev-doom; safety rubric; pace
+- Re-read jev-doom (tactics.py, harness.py). Useful ideas:
+  1. Rubric decomposition: independent progress, exposure, evidence and tactic picks in one call.
+  2. Each option carries a prediction that is measured as met or not met and fed back into the state.
+  3. Code prunes infeasible options with stated reasons and caps the menu at 7.
+  4. Option labels state the payoff with numbers.
+  5. Facts discovered through probes go into the question wording.
+  6. Watchdog, backoff and checkpoints.
+  7. "Observe" options are rationed.
+- Adopted (1): a 'safest' choice question ("best chance of still being alive in 20 turns") asked in the same call. When danger ≥ 0.6 its pick overrides 'action'.
+  - Before recent deaths, danger was 0.6–0.87, against a run median of 0.13–0.26.
+  - Latency is unchanged (median 97 ms with 3 questions).
+- Pace: Jev now descends only down to Dlvl XL+1 (it could reach XL+2 before) and is offered the way back up from XL+2. Recent deaths clustered at Dlvl 5–7 around XL 5–6.
+  - The "take the stairs anyway" escape hatch no longer needs too_deep.
+- The first game on the new pace survived past T10500.

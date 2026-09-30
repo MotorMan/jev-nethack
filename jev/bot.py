@@ -1136,9 +1136,14 @@ class Bot:
             probs, conf = {key: 1.0}, 1.0
         else:
             qs = {'action': dict(type='choice', instructions=question, criteria=criteria),
-                  'danger': dict(type='noul', instructions='Is the Valkyrie in serious danger of dying within the next few turns?')}
+                  'danger': dict(type='noul', instructions='Is the Valkyrie in serious danger of dying within the next few turns?'),
+                  # jev-doom's "exposure" rubric: a second pick judged on survival alone; danger ran 0.6-0.87 in the turns before recent deaths
+                  'safest': dict(type='choice', instructions='Ignoring progress entirely, which action gives the Valkyrie the best chance of still being alive 20 turns from now? You cannot see your other answers.', criteria=criteria)}
             answers, meta = self.jev.ask(state, qs)
             key = answers['action']['choice']
+            if (answers['danger'].get('noul') or 0) >= 0.6 and answers['safest']['choice'] != key:
+                key = answers['safest']['choice']
+                self.log(f"danger {answers['danger']['noul']:.2f}: safest pick {key} over {answers['action']['choice']}", 'info')
             probs, conf = answers['action'].get('probabilities', {}), answers['action'].get('confidence')
         for o in self.decision['options']:
             o['p'] = probs.get(o['id'])
