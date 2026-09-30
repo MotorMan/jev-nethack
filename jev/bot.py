@@ -996,6 +996,7 @@ class Bot:
         self.act_keys('ms', '')
         if self.snap.status.get('hp', 0) < hp:
             self.run['elbereth'].discard((self.snap.status.get('dlvl'), self.snap.me))
+            self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0  # cornered monsters can't flee and hit anyway: re-engraving 3 times fed a swarm (T5315)
             return 'got hit while standing on Elbereth: it is not protecting you here'
         return 'waited on Elbereth'
 

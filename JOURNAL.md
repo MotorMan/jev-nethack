@@ -503,3 +503,6 @@ Then a peaceful gnome king counted as `near`, which lifts the push-only filter, 
 Last 60 deaths: median T4134, Dlvl 7, XL 5. 13 were hunger, 4 were failed prayers, and 43 were fights against about 40 different monsters, none dominant. In 25 of the 60, the deepest level was 2+ below XL. Level changes that landed Jev 2+ levels past its XL came from the "Take the downstairs anyway" fallback 165 times and from "Head for the downstairs" 19 times. That fallback fires when a level has nothing left to do.
 - The fallback now waits first. Past XL+1, Jev rests and searches up to 400 turns on the cleared level (monsters come to it and HP recovers), unless it is Hungry or worse.
 - 'ascend' (offered at Dlvl ≥ XL+2) is now forced whenever no hostile is adjacent. Before, it was only an option and Jev rarely picked it.
+
+## 2026-09-30 — pace check; no re-engraving after a hit on Elbereth
+First game with the pace fix: never more than 2 levels deeper than its XL (Dlvl 6 at XL 4). It rested 76 times and was sent back upstairs 105 times. It died on Dlvl 5, T5315 (magic missile), cornered by a gnome mummy, rothes and garter snakes. Monsters that can't get away attack even through Elbereth. Jev kept engraving, getting hit and engraving again. A hit on Elbereth now blocks engraving for 5 turns while a monster is adjacent, which leaves fighting or retreating.
