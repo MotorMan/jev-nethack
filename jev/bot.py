@@ -431,7 +431,8 @@ class Bot:
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.act_keys('<', 'went up'))
         walled = len(dist) <= 3 and any(m['passive'] and m['dist'] == 1 for m in hostiles)  # boxed in by floating eyes
-        if (near or walled or self.unseen_attacker()) and not self.engraved_here() and not (near and all(m['ch'] == '@' for m in near)):  # @ ignore it
+        if (near or walled or self.unseen_attacker()) and not self.engraved_here() and not (near and all(m['ch'] == '@' for m in near)) \
+                and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf'}:  # @ ignore it; engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
 
         if danger:
@@ -923,7 +924,8 @@ class Bot:
             self.level().dead.add(door)
             return 'did not kick: shopkeepers and the watch punish broken doors'
         for i in range(6):
-            self.act_kick(d)
+            if self.act_kick(d).startswith('did not'):
+                return 'did not kick: something is written outside this door (shop sign?)'
             if door not in self.level().locked or self.hostile_glyphs():
                 break
         return 'kicked the door open' if door not in self.level().locked else 'kicked the door; still shut'
@@ -932,8 +934,10 @@ class Bot:
         # a locked shop has "Closed for inventory" in the dust outside; kicking it in got Jev zapped by the shopkeeper
         nmsg = len(self.messages)
         self.t.send(':')
+        raw = ' '.join(l.rstrip() for l in self.t.lines()[:3])
         self.observe()
-        if self.level().town or any('Closed for inventory' in m['text'] for m in self.messages[nmsg:]):
+        # the sign is dust and gets scuffed, so any writing outside a locked door counts
+        if self.level().town or re.search(r'written here|for inv', raw + ' '.join(m['text'] for m in self.messages[nmsg:])):
             self.level().town = True
             self.level().dead.add((self.snap.me[0] + DIRS[d][0], self.snap.me[1] + DIRS[d][1]))
             return 'did not kick: a shop is closed behind this door'

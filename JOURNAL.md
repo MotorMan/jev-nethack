@@ -259,3 +259,6 @@ Another shopkeeper wand death: on Dlvl 2 Jev kicked a locked shop door before ev
 
 ## 2026-09-29 18:17 — The read-back that ate itself
 Right after the strict read-back went in, 386 of 405 engravings were "garbled", and Jev spent whole fights re-engraving. A raw-screen trace showed 'You read: "Elbereth".' sitting on the screen while the bot saw nothing. add_msg drops a message identical to the one before it, and every read-back after the first on the same square is identical. The check now looks at the raw screen as well as the message log. Since the fix, rejects are real garbles ("Elbere[h", "Elber.th") plus the odd interrupted engraving, and "waited on Elbereth" is the most common outcome again.
+
+## 2026-09-29 18:22 — Hallucination and a scuffed shop sign
+Two deaths at Dlvl 9. (1) A horse, while hallucinating. Jev tried Elbereth nine times and every copy came out garbled. engrave.c scrambles each letter you *write* with chance 1/2 while hallucinating, 1/4 stunned and 1/7 confused, so Elbereth is no longer offered in those states. (2) "Killed by a wand": Jev kicked open a closed shop again. The dust "Closed for inventory" outside a locked shop door gets scuffed by passing monsters, so the exact-text check missed it. Now any writing outside a locked door vetoes the kick, and the raw screen is read as well as the message log.
