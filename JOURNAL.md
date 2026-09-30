@@ -542,3 +542,6 @@ Killed by a carnivorous ape "while sleeping", Dlvl 9, T9512 (the longest game in
 
 ## 2026-09-30 — bumping a shopkeeper no longer walls off the shop door
 Killed by a coyote "while fainted from lack of food", Dlvl 3, T5853. From T3100 Jev was inside a shop and never left. It prayed off hunger three times, spent 2700 turns on "Search for hidden passages", and fainted. The bot never saw a way out. A walk that bumped the shopkeeper ("Pardon me, Upernavik") marked the square as blocked once the shopkeeper had stepped off it. That square was the doorway, and a door glyph isn't '.' or '#', so the shop's only exit was blocked for the rest of the level. The downstairs became unreachable, and with no frontier left Jev searched walls. (Probably also the 3500-turn floating-eye shop stall earlier today.) A step where a monster stood before the move, or where the game said "Pardon me", is no longer marked blocked.
+
+## 2026-09-30 — no "anyway" descent into the forced-ascend zone
+Killed by Green-elves on Dlvl 9, T5351, XL 7. The forced ascend (Dlvl ≥ XL+2) took Jev up to 8. Two turns later "Take the downstairs anyway" took it back down to 9, because that level had already used its 400 searched turns. On 9 it met the elves at the stairs. Now the 400-turn cap is ignored when the next level would be XL+2 or deeper: Jev keeps resting unless Hungry.

@@ -725,7 +725,7 @@ class Bot:
         if downs:  # a locked door can be a shop closed for inventory whose sign got scuffed: kicked one in, Mr. Kipawa killed Jev (runs before the empty guards: filtering after them left no options, 1100 turns searched)
             opts = {k: v for k, v in opts.items() if not (k.startswith('kick_') or 'locked door' in v[0])}
         if not opts and downs and s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 and s.get('hunger') not in ('Hungry', 'Weak', 'Fainting') \
-                and sum(lv.searched.values()) < 400:
+                and (sum(lv.searched.values()) < 400 or s.get('dlvl', 1) + 1 >= (s.get('xl') or 1) + 2):  # 'anyway' to XL+2 just ping-pongs with the forced ascend (Green-elves, T5351)
             # 'anyway' took Jev past the pace limit 165 times in 60 games (median death XL5 on Dlvl 7): wait here for monsters and HP first
             opts['rest'] = ('Rest and search 20 turns', f"This level is cleared, but Dlvl {s.get('dlvl', 0) + 1} is too deep for experience level {s.get('xl')}. Wait here: wandering monsters bring experience, and HP recovers.", lambda: self.act_search(20))
         if (s.get('turn') or 0) - self.run.get('fled_up', -99) < 50:  # fled a warg pack upstairs, walked straight back down into it (T5161)
