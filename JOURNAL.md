@@ -560,3 +560,6 @@ Killed by a gecko "while fainted from lack of food", Dlvl 7, T3603. When Hungry,
 
 ## 2026-09-30 — eat the fresh corpse underfoot
 Last 30 runs: "Eat the X here" was offered 98 times and taken 15. Explore, pickup and fetch won the rest. "Go eat the fresh corpse" was taken 489 of 772 times. The eat option is only offered for a fresh corpse (seen appearing within 40 turns, or a lichen or lizard) and while Jev isn't Satiated, and hunger is still the top single killer. With nothing hostile near, it is now forced.
+
+## 2026-09-30 12:58 — clear potions are water
+Run 20260930-125222 died blind to a housecat pack on Dlvl 5 (T2814) after spending its low-HP turns quaffing a "clear potion" (plain water) four times. Unidentified clear potions are now excluded from the quaff options.

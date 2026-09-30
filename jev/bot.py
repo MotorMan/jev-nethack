@@ -486,7 +486,7 @@ class Bot:
         if danger:
             for it in self.inventory:  # an unknown potion on a working Elbereth: 11% heal, sleeping killed a Jev the warhorse was fleeing from
                 if re.search(r'\bpotions?\b', it['text']) and (not self.engraved_here() or 'healing' in it['text']) \
-                        and not re.search(r'sleeping|blindness|hallucination|confusion|booze|sickness|paralysis|water|oil', it['text']):  # drank a known potion of sleeping held by an ape (T9512)
+                        and not re.search(r'sleeping|blindness|hallucination|confusion|booze|sickness|paralysis|water|oil|clear', it['text']):  # clear = water: 4 blind quaffs of it vs a housecat pack (T2801); drank a known potion of sleeping held by an ape (T9512)
                     opts[f"quaff_{it['letter']}"] = (f"Quaff {it['text']}", f"Drink this potion hoping it heals.{danger}", lambda l=it['letter']: self.act_keys('q' + l, 'quaffed'))
                     break
 
