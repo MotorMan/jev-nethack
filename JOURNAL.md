@@ -642,3 +642,7 @@ Run 20260930-151841 died at T4388 on Dlvl 7 to a Woodland-elf archer. At 22/59 H
 
 ## 2026-09-30 20:00 — Hungry is no reason to break the depth pace
 Run 20260930-152500 died at T5817 to an ogre and a giant spider on Dlvl 8 at XL6. It got there with "Take the downstairs anyway" from Dlvl 7, even though the pace limit is Dlvl ≤ XL+1. The "rest here instead" alternative was suppressed because Jev was Hungry. Hungry is about 100 turns from Weak, and Weak brings the prayer option, which here was about 1550 turns old and safe. The rest alternative is now suppressed only when Weak or Fainting.
+
+## 2026-09-30 20:25 — Blind in a shop: only swing back at real attacks
+Run 20260930-153923 died at T3012 to the shopkeeper Aklavik. A level teleport dropped Jev into her general store, and an exploding yellow light blinded it there. The shop guard allowed blind attacks whenever unseen_attacker() was true, and that also matches "You feel an unseen monster!", which is only sensing. That was the shopkeeper walking by. Jev swung at her, and she zapped it dead. In a shop, blind attacks now require a real "It hits/bites/..." message in the last two turns.
+Still unexplained: the shopkeeper blocked the door for about 300 turns even though Jev owed nothing.
