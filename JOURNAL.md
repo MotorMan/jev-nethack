@@ -655,3 +655,6 @@ Run 20260930-155030 died at T1676 on Dlvl 2, zapped by an angry shopkeeper. Jev 
 
 ## 2026-09-30 21:20 — death ray from a leprechaun (variance)
 Run 155444 died on T3099 at Dlvl 5. A leprechaun picked up a wand of death and zapped it: the first ray whizzed by and the second killed Jev. Monsters zap only when lined up (muse.c m_lined_up), so stepping off the line would help. But a monster with a wand of death is too rare to be worth new code yet. Logged as variance; revisit if it happens again.
+
+## 2026-09-30 21:35 — flee upstairs from much-stronger monsters
+Run 155753 (XL 8, Dlvl 9, T8069) stepped off the upstairs and met a jabberwock (difficulty 18). It went 85 → 47 → 33 HP in two turns. The '<' was 2 steps away, but "Run for the upstairs" was offered only below 1/3 HP, so Jev engraved (garbled), meleed, prayed and died. The wiki advises fleeing a jabberwock. In 5.0, `levl_follower` (mondata.c) lets only M2_STALK monsters follow you up the stairs, and the jabberwock isn't a stalker. Now, when a "much stronger" monster (difficulty ≥ XL+5) is near and the upstairs is within 8 steps, flee_up/upstairs are offered and the attack/approach/explore options are dropped.

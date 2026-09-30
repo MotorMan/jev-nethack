@@ -464,6 +464,7 @@ class Bot:
         for m in near[:2] if not (danger or pack) else ():  # walking into a fight at a third of max HP killed three giant-bat runs
             if m['dist'] > 1 and m['pos'] in dist and not re.search(r'unicorn|yellow light', m['name']):  # yellow light: its explosion blinds 10d20 turns, 5 of 6 blind deaths; throw instead (wiki). unicorn: speed 24, keeps its distance, butt+kick took 24 HP in one turn
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
+        strong = False
         if near:
             if self.engraved_here():  # stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
                 if hp < 0.7 * hpmax and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in near):  # @ (elves, humans) and minotaurs ignore it (monmove.c onscary): sat 9 turns on it by a Woodland-elf, dead (T4259); 'stuck on Elbereth': up to 44% of a game's decisions were waits on it (0.9 before); at 77/80 HP Jev sat on Elbereth ~1400 turns watching a fog cloud
@@ -484,11 +485,15 @@ class Bot:
                 if not fast and hp < 0.7 * hpmax and self.retreat_dir(hostiles):  # at 50/53 Jev retreated 6 times from hill orcs, eating hits without swinging (T2966); retreating from a giant bat (speed 22) just gives it free hits
                     opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + ' Everything nearby is slower than you, so you can open a gap.', lambda: self.act_retreat(hostiles))
             ups_near = [p for p in snap.find('<') if dist.get(p, 99) <= 8]
-            if danger and ups_near and self.standing_on() != '<' and s.get('dlvl', 1) > 1:
+            # jabberwock (difficulty 18) at XL 8, '<' 2 steps away: stood and fought, 85 -> 0 (T8069). Non-stalkers never follow upstairs (mondata.c levl_follower)
+            strong = any('much stronger' in self.threat(m) for m in near)
+            if (danger or strong) and ups_near and self.standing_on() != '<' and s.get('dlvl', 1) > 1:
                 p = ups_near[0]
                 opts['flee_up'] = ('Run for the upstairs', f"The up staircase is {dist[p]} steps {compass(me, p)}: walk there and climb. Only monsters right next to you follow.", lambda p=p: self.flee_up(lambda: self.act_descend(p, '<')))
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.flee_up(lambda: self.act_keys('<', 'went up')))
+        if strong and ({'flee_up', 'upstairs'} & opts.keys()):
+            opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'explore'))}
         walled = len(dist) <= 3 and any(m['passive'] and m['dist'] == 1 for m in hostiles)  # boxed in by floating eyes
         # at 56/64 Jev wrote Elbereth instead of closing on a large kobold, which stood off and zapped lightning until it died (T9749)
         # blind at 8/76, unseen apes' hits lost in 5-turn rests: rested to death with no Elbereth offered (T6987)
