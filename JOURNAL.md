@@ -618,3 +618,6 @@ Run 20260930-141404 died at T4709 to a kitten while fainted. It had no food, and
 
 ## 2026-09-30 17:10 — Corridor retreat only before the pack closes in
 Run 20260930-142011 died at T2116 to apes. At 14/42 HP with two apes adjacent, Jev picked "Fight from a corridor" and walked away, and each step gave them free attacks. The corridor option is now offered only when the nearest pack member is at least 2 squares away. Once the pack is adjacent, Jev fights, engraves or prays instead.
+
+## 2026-09-30 17:25 — No tripe or mid-fight snacks while merely Hungry
+Run 20260930-142133 died at T4650 to a black unicorn in Sokoban. Jev was only Hungry, but it ate a tripe ration while the unicorn was adjacent. The 5.0 source (eat.c:2148) gives tripe a rn2(2) chance to cause vomiting for anyone who isn't a caveman or orc, which means confusion and stun for about 15 turns. Jev lost 55 HP while stunned. Now, while only Hungry, Jev won't eat tripe and won't eat anything while a hostile is adjacent. When Weak or Fainting, anything goes.
