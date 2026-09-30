@@ -289,3 +289,10 @@ Two runs died "while praying". Each got bitten by a were-creature ("You feel fev
 
 ## 2026-09-29 19:18 — ...but starving is worse
 The 1000-turn gap cost a run right away: Jev prayed for HP at T1807, had no food, was Weak by T2444, and fainted to death at T2704 because the gap forbade praying. Starvation is certain, and a too-early prayer only probably fails. The gap is now 600 turns when Weak and 300 when Fainting, and stays 1000 otherwise.
+
+## 2026-09-29 19:36 — Elbereth, third time
+A rothe/bugbear death on Dlvl 5 showed 5 "garbled" engravings out of 8. The read-back tally explained it. Most rejects looked like "There is an open door here.  Something is written here in the dust.--More--": the actual "You read:" line sat on the next screen and then got deduped away. elbereth_ok now pages through every --More--. Since then, rejects are real (\"Elbe?eth\", \"ElLereth\"): 15 of 49, the ~30% the 1/25-per-letter dust rule predicts.
+Also from the source: a monster scared by Elbereth with nowhere to flee (crowds, corridors) attacks anyway (`panicattk` in monmove.c). That explains "got hit while standing on Elbereth".
+Other deaths this hour:
+- An acid blob corpse eaten at low HP (1d15 acid damage). Acid blob and spotted jelly are now never eaten.
+- A 5.0 mine shaft: a hidden trap door that dropped a 16-HP Jev several levels, with d(levels,6) fall damage. Accepted as bad luck.

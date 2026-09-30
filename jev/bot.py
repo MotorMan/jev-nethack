@@ -9,7 +9,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FOOD = re.compile(r'\b(?:food ration|cram|lembas|biscuit|pancake|apple|orange|banana|melon|carrot|egg|\btins? of|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen)e?s?\b')  # word-bounded: 'dwarvish spear' is not a pear
 MONSTERS = json.load(open(os.path.join(os.path.dirname(__file__), 'monsters.json')))  # name -> [difficulty, speed], from monsters.h
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
-NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy', 'dwarf', 'were', 'kobold', 'bat', 'ghoul', 'vampire', 'chameleon', 'dog', 'cat', 'kitten', 'pony')  # undead corpses are pre-aged: always tainted
+NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy', 'dwarf', 'were', 'kobold', 'bat', 'ghoul', 'vampire', 'chameleon', 'dog', 'cat', 'kitten', 'pony', 'acid blob', 'spotted jelly')  # undead corpses are pre-aged: always tainted
 # pray.c critically_low_hp: the major-trouble line prayer fixes
 LOW_HP = lambda s: s.get('hp', 1) <= 5 or s.get('hp', 1) * (5 if s.get('xl', 1) <= 5 else 6 if s.get('xl', 1) <= 13 else 7) <= min(s.get('hpmax', 1), 15 * s.get('xl', 1))
 STRATEGY = ("You are a dwarven Valkyrie: strong melee, cold resistant, stealthy, infravision. Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. "
@@ -790,7 +790,13 @@ class Bot:
         """Read the square (free action): dust Elbereths garble ~27% of the time and scuff as we fight."""
         nmsg = len(self.messages)
         self.t.send(':')
-        raw = [l.rstrip() for l in self.t.lines()[:3]]
+        raw = []
+        for _ in range(6):  # "There is a doorway here.  Something is written...--More--" hides the read line on the next screen
+            lines = self.t.lines()
+            raw += [l.rstrip() for l in lines[:3]]
+            if not re.search(r'--More--|\(end\)|Things that are here', '\n'.join(lines)):
+                break
+            self.t.send('\r')
         self.observe()
         read = ' '.join(raw + [m['text'] for m in self.messages[nmsg:]])  # messages dedupe a repeat of the last read
         key = (self.snap.status.get('dlvl'), self.snap.me)
