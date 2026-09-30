@@ -664,3 +664,6 @@ Run 160545 (XL 5, Dlvl 6, T4388) died at AC 10 to a giant bat and a pony, with a
 
 ## 2026-09-30 22:05 — no forced Elbereth wait with an @ approaching
 Run 161255 (XL 6, AC 6, Dlvl 6, T7182) spent 684 of its 1936 decisions waiting on Elbereth. At the end it sat on the square while a Woodland-elf walked up from 5 steps to adjacent and hit, together with a wolf and a bat. @-humans/elves and minotaurs ignore Elbereth (monmove.c onscary). The regular wait option already excluded them, but the forced "stay on Elbereth" override only required some other hostile in view. The override now also requires no hostile @ or minotaur within 7 steps, so the fight, retreat and corridor options stay open.
+
+## 2026-09-30 22:20 — Weak: don't force food runs past nearby monsters
+Run 162212 (XL 4, Dlvl 6, T4576) was Weak with a rothe and an elf zombie 2 steps away. The Weak rule (only eat, pray or fetch food) kicked in whenever nothing was adjacent. So Jev walked off its Elbereth toward an item twice, lost 35 → 24 HP, then fought a gray ooze and died. The rule now waits until no non-passive hostile is within 3 steps. Weak costs no HP and fainting only starts at nutrition ≤ 0 (eat.c), so a few turns of fighting first is cheaper.

@@ -749,7 +749,8 @@ class Bot:
             streak.append(h['choice'])
         if len(streak) >= 3 and len(set(streak[:3])) == 1:
             opts.pop(streak[0], None)
-        if s.get('hunger') in ('Weak', 'Fainting') and not any(m['dist'] <= 1 for m in hostiles):  # sat 69 turns on Elbereth Weak -> Fainting with food in view, dead (T2958); wiki: Weak is major trouble, eat or pray
+        if s.get('hunger') in ('Weak', 'Fainting') and not any(m['dist'] <= 3 and not m['passive'] for m in hostiles):  # dist<=1 forced 'fetch' food off Elbereth past a rothe and elf zombie 2 steps away: 35 -> 0 (T4576)
+            # sat 69 turns on Elbereth Weak -> Fainting with food in view, dead (T2958); wiki: Weak is major trouble, eat or pray
             food = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'goto_corpse')) or k == 'fetch' and '(food?)' in v[0]}
             opts = food or opts
         if (s.get('turn') or 0) - self.run.get('held', -99) <= 1:  # held: moving escapes 1 in 40 (hack.c); a rope golem choked Jev through 3 retreats (T5125). Wiki: Elbereth works while grabbed
