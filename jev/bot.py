@@ -102,7 +102,7 @@ class Bot:
                 self.level().town = True
             if re.search(r'You feel feverish|You turn into a were', text):
                 self.run['lycanthropy'] = True
-            if re.search(r'is displeased|Thou durst call upon me|Then die, mortal', text):  # prayed too soon: god angry, Luck -3, praying again only makes it worse
+            if re.search(r'is displeased|Thou durst call upon me|Then die, mortal|voice of \w+ (booms|rings out)', text):  # prayed too soon: god angry, Luck -3 (the quote after 'booms:' can be lost: wrath of Tyr killed T5998), praying again only makes it worse
                 self.run['god_angry'] = True
             if re.search(r'nymph stole|nymph steals|She stole', text) and self.snap:
                 self.run['nymph_lvl'] = self.snap.status.get('dlvl')

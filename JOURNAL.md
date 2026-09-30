@@ -584,3 +584,6 @@ NetHack refuses a diagonal step between two walls/rock when the pack weighs over
 
 ## 2026-09-30 14:25 — retreat only when hurt; squeeze fix confirmed
 The first run after the squeeze fix logged 0 "carrying too much" bumps (was up to 2171). It died anyway (raven/hill orcs, Dlvl 6, T2966): at 49-50/53 HP Jev chose "Retreat one step" six turns running while a hill orc pack followed and hit it, then an unknown potion blinded it and a prayer 797 turns after the last one failed. Retreat is now offered only below 70% HP, like Elbereth.
+
+## 2026-09-30 14:40 — catch Tyr's anger
+Run 20260930-133759 was "killed by the wrath of Tyr" (T5998, Dlvl 6). The T5378 prayer was answered "The voice of Tyr booms:" and the angry quote itself was never captured, so `god_angry` stayed False; Jev prayed again at T5687 ("rings out") and T5998 and was smitten. Any "voice of <god> booms / rings out" now marks the god angry.
