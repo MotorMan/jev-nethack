@@ -421,7 +421,7 @@ class Bot:
                 opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', self.act_wait_elbereth)
             else:
                 fast = [m['name'] for m in near if (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12]  # our speed is 12
-                opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('s', 'waited'))
+                opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('ms', 'waited'))
                 if not fast:  # retreating from a giant bat (speed 22) just gives it free hits
                     opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + ' Everything nearby is slower than you, so you can open a gap.', lambda: self.act_retreat(hostiles))
             ups_near = [p for p in snap.find('<') if dist.get(p, 99) <= 8]
@@ -574,7 +574,9 @@ class Bot:
             # nothing to do usually means level memory has walled us in (once for 7800 turns): forget it and look again
             lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
             lv.resets += 1
-            opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('s', 'waited'))
+            opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('ms', 'waited'))
+        if LOW_HP(s) and opts.get('pray', ('',))[0] == 'Pray to Tyr':  # a safe prayer fully heals; Jev chose Elbereth over it at 1 HP and died
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')}
         return opts, mons
 
     def search_spot(self, dist):
@@ -762,7 +764,7 @@ class Bot:
         if not self.elbereth_ok():
             return 'Elbereth is gone'
         hp = self.snap.status.get('hp', 0)
-        self.act_keys('s', '')
+        self.act_keys('ms', '')
         if self.snap.status.get('hp', 0) < hp:
             self.run['elbereth'].discard((self.snap.status.get('dlvl'), self.snap.me))
             return 'got hit while standing on Elbereth: it is not protecting you here'
@@ -990,7 +992,7 @@ class Bot:
         if self.snap.status.get('gold'):
             r = self.act_keys('d$', 'dropped the gold for the guard')
         elif cheb(me, g) <= 1:
-            r = self.act_keys('s', 'waited for the guard')
+            r = self.act_keys('ms', 'waited for the guard')
         else:
             r = 'following the guard: ' + self.act_go(g, steps=1, adjacent_ok=True)
         self.log(f'T{turn} vault guard -> {r}')
