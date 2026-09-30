@@ -57,11 +57,19 @@ class Jev:
         t0 = time.time()
         for attempt in range(4):
             try:
-                c = FastConnect(url.hostname, timeout=timeout, context=ssl.create_default_context())
-                c.request('POST', url.path, body, {'Authorization': 'Bearer ' + self.key, 'Content-Type': 'application/json'})
-                r = c.getresponse()
-                raw = r.read()
-                c.close()
+                if not getattr(self, 'conn', None):  # keep-alive: skip the TCP+TLS handshake on every call
+                    self.conn = FastConnect(url.hostname, timeout=timeout, context=ssl.create_default_context())
+                try:
+                    self.conn.request('POST', url.path, body, {'Authorization': 'Bearer ' + self.key, 'Content-Type': 'application/json'})
+                    r = self.conn.getresponse()
+                    raw = r.read()
+                except BaseException:
+                    self.conn.close()
+                    self.conn = None
+                    raise
+                if r.will_close:
+                    self.conn.close()
+                    self.conn = None
                 if r.status >= 400:
                     if r.status < 500 and r.status != 429:
                         raise RuntimeError(f'Jev HTTP {r.status}: {raw[:300]!r}')
