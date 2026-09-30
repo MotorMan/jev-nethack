@@ -652,3 +652,6 @@ Still unexplained: the shopkeeper blocked the door for about 300 turns even thou
 
 ## 2026-09-30 21:10 — "(no charge)" marks a shop too
 Run 20260930-155030 died at T1676 on Dlvl 2, zapped by an angry shopkeeper. Jev ate a rotten jackal corpse inside a shop and was blinded, then swung at the unseen shopkeeper. The blind-in-shop guard never engaged because shop detection only looked for "for sale" in the items seen nearby, and the only record here was "jackal corpse (no charge)". Detection now accepts "no charge" too.
+
+## 2026-09-30 21:20 — death ray from a leprechaun (variance)
+Run 155444 died on T3099 at Dlvl 5. A leprechaun picked up a wand of death and zapped it: the first ray whizzed by and the second killed Jev. Monsters zap only when lined up (muse.c m_lined_up), so stepping off the line would help. But a monster with a wand of death is too rare to be worth new code yet. Logged as variance; revisit if it happens again.
