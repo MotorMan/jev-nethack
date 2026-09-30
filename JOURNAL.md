@@ -384,3 +384,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 ## 2026-09-29 22:32 — Sokoban
 - jev/sokoban.py holds 8 solutions for the 5.0 levels (soko1..4 × 2 variants). Four came from replaying the NetHackWiki solutions against the 5.0 maps. The other four (both bottom levels and both soko2 levels) came from a pit-by-pit DFS solver, because 5.0 changed those maps and added rolling-boulder traps. test_sokoban.py replays all 8 and checks every mirror orientation.
 - In game: the bot matches the premapped walls, including 5.0's random h/v flips. Jev then gets one "push boulder X" option at a time, and nothing else unless monsters are near. Pathing in Sokoban never steps on ^ or 0 and never squeezes diagonally. If a boulder isn't where the plan expects, the bot abandons Sokoban. On the Oracle+1 level, the second up staircase is offered as "Go up into Sokoban".
+
+## 2026-09-29 22:38 — finding the Sokoban stairs
+- A run reached Dlvl 10 and walked right past Sokoban. The bot takes the downstairs as soon as it finds them, so it never saw the second '<' on the level below the Oracle. Now the Oracle level is recognized by its four fountains. On the next level down, the bot doesn't descend until a second '<' shows up or there's nothing left to explore.
