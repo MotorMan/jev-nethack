@@ -596,7 +596,9 @@ class Bot:
         if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and not near:  # a confused bump into a shopkeeper attacks him
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {'rest': ('Wait until you are steady', 'You are confused or stunned: moves go in random directions and can attack peacefuls. Nothing hostile is near, so wait it out.', lambda: self.act_keys('5s', 'waited'))}
         elif 'Blind' in s.get('conditions', []):  # a blind step into an unseen watchman angered the whole Minetown watch
-            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'attack_', 'eat'))} | {'rest': ('Wait until you can see', 'You are blind: walking bumps into unseen monsters and attacks them, peaceful or not. Wait for your sight to return; fight only what is hitting you.', lambda: self.act_keys('ms' if near else '5s', 'waited'))}
+            fight = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'attack_', 'eat'))}
+            # resting while unseen things bit a blind Jev from 54 to 4 HP (twice) is worse than swinging back
+            opts = fight if any(k.startswith('attack_') for k in fight) else fight | {'rest': ('Wait until you can see', 'You are blind: walking bumps into unseen monsters and attacks them, peaceful or not. Wait for your sight to return.', lambda: self.act_keys('5s', 'waited'))}
         if self.engraved_here() and s.get('hp', 1) < 0.75 * s.get('hpmax', 1) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles):
             # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'eat'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}

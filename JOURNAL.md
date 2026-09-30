@@ -306,3 +306,6 @@ Dlvl 8, XL6, T4598: the best-equipped Jev yet (AC 3, iron shoes, cloak, helm, sh
 Now:
 - If an attack interrupts an engraving (nothing written), Elbereth isn't offered again for 5 turns while something is adjacent.
 - Unknown potions aren't offered while standing on a working Elbereth.
+
+## 2026-09-29 20:22 — Overcorrected on blindness
+The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and Jev picked "Wait until you can see" at 83–95% over the attack options while unseen things bit it from 54 to 3 HP. A prayer refilled HP to 54, and the same thing happened again. While blind with an attack target, the wait option is now gone. Jev still won't walk blind.
