@@ -682,3 +682,6 @@ Run 164839 (XL 5, Dlvl 5, T2350) walked into a dwarf queen (36 → 13 HP) and en
 
 ## 2026-09-30 23:40 — nymph-stripped, then blind (logged, no fix)
 Run 165106 (XL 6, Dlvl 7, T3840) had its armor stolen by a water nymph at T3195, while it was engraving, and a conical hat stolen at T3601. At AC 10 a raven blinded it, and unseen biters took it from 58 to 0 HP. The existing "leave the level after a theft" rule needs a known downstairs, and none had been found. This is the second nymph-stripped death this evening. Idea for later: when armor is stolen, hunt the nymph (wiki: she teleports nearby, and killing her drops everything), or wear a spare from the stash first.
+
+## 2026-09-30 23:50 — trapdoor to Dlvl 6 at XL 2 (variance)
+Run 165317 fell from Dlvl 3 to Dlvl 6 at T1832 (a trapdoor/hole) while still XL 2. It climbed back up to Dlvl 5 as the pace rule intends. There a crowd (hill orc with a wand of fire, giant rat, jackal, gecko, rock mole) caught it at 23 max HP, and the fire bolt finished it. No fix: the ascend-when-too-deep rule did its job, just not fast enough.
