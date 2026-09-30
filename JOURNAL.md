@@ -551,3 +551,6 @@ Killed by an elven arrow, Dlvl 4, T5218. Ants and a Woodland-elf wore Jev down t
 
 ## 2026-09-30 — low HP: prayer beats unknown potions
 Killed by a rothe, Dlvl 5, T3559. At 8/43 HP, 346 turns after its last prayer, Jev had two options, pray and quaff an unknown black potion, and it drank the potion. The low-HP filter kept every quaff next to prayer. It now keeps only known healing potions.
+
+## 2026-09-30 — put on carried armor
+Checked armor at death for the last 19 runs. Several died at AC 6–10 wearing 0–1 pieces. The rothe death (T3559) had an orcish helm in the pack and no helm on. "Wear X" was offered but lost to exploring every time. With no hostile near, wear options now come first (alongside prayer and eating). act_wear marks anything that fails as unwearable, so this can't loop. Not done yet: swapping body armor for better body armor (banded mail carried over worn ring mail).
