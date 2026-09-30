@@ -402,3 +402,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-29 23:21 — blind vs. invisible quasits
 - Three invisible attackers (a quasit pack) killed a blind Jev on Dlvl 6. Its Dex was drained from 6 to 3. The Blind filter only allowed fighting, praying, quaffing and eating, so Elbereth was never offered, even though you can engrave while blind. Elbereth is now allowed while blind. It's no longer offered while levitating (Jev had quaffed levitation and can't reach the floor then).
+
+## 2026-09-29 23:24 — leave nymph levels
+- A dust vortex killed Jev while it was fainted. One wood nymph on Dlvl 2–3 had kept teleporting back and stolen the shield, scrolls, bag, spear, part-eaten ration and egg, leaving no food. After any nymph theft, the bot now heads for a known downstairs as long as that stays within the pace limit (Dlvl ≤ XL).
