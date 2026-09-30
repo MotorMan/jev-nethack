@@ -673,3 +673,6 @@ Run 162720 (XL 6, Dlvl 7) re-picked "2 yellow gems" every turn for 100+ turns. T
 
 ## 2026-09-30 22:50 — trust "It's a wall."
 Run 163615 (Dlvl 8, T7444) re-tried the same explore step dozens of times in a dark, irregular room. The move answered "It's a wall.", but the remembered map showed '.' there, so the square was never marked blocked. Bumping a wall takes no game time, so the turn counter didn't advance. In 5.0, hack.c test_move prints "It's <a wall/solid stone>." only for IS_ROCK squares when mention_walls is on, so that message now marks the square blocked regardless of the remembered glyph.
+
+## 2026-09-30 23:10 — find the hero with getpos '@'
+Run 163841 (Dlvl 8 Minetown, T8716) spent its last ~1000 turns with the wrong idea of where Jev was. With several white @ on the map and the cursor off the hero even after ^R, `find_me` took the @ nearest the old position, which was a Minetown human. Every move then went the wrong way ("It's a wall."), farlook described floor squares as monsters, and a rope golem killed Jev while it was hallucinating. Now, if the position is still ambiguous after the redraw, the bot sends `;@` (getpos.c NHKF_GETPOS_SELF moves the cursor onto the hero), reads the cursor, and escapes. The earlier "It's a wall." loop in run 163615 was probably the same bug.

@@ -200,6 +200,15 @@ class Bot:
             self.t.send('\x12')  # redraw puts the cursor back on the hero (a shopkeeper @ was mistaken for Jev for 1800 turns)
             self.settle()
             self.snap = Snapshot(self.t, self.snap.me)
+            x, y = self.snap.cursor
+            if self.snap.lines[y][x] != '@':  # still ambiguous: getpos '@' (getpos.c NHKF_GETPOS_SELF) puts the cursor on the hero; took a Minetown @ for Jev, bumped walls until dead (T8716)
+                self.t.send(';@')
+                self.settle()
+                pos = self.t.cursor()
+                self.t.send('\x1b')
+                self.settle()
+                if MAP_TOP <= pos[1] <= MAP_BOT:
+                    self.snap.me = pos
         s = self.snap.status
         if self.snap.me and s.get('dlvl'):
             lv = self.level()
