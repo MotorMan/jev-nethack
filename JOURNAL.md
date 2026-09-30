@@ -390,3 +390,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-29 22:52 — no "hold position" when surrounded
 - A werejackal's summoned pack surrounded Jev. Jev then picked "Hold position one turn (let monsters come to you)" three times and went from 42 to 0 HP. That option is now only offered when nothing hostile is adjacent.
+
+## 2026-09-29 22:58 — first Sokoban attempt
+- Jev found the Sokoban stairs below the Oracle (T6408). The bot recognized the level as a mirrored soko4-1 and made pushes 1–6 correctly. Push 7 sent a boulder onto a rolling-boulder trap. It rolled into a hole, exactly as the solver's model predicted, but the roll animation outlasted the screen read, so the bot saw Jev still standing behind a boulder and called it a failed push. It retried, then found the boulder missing and abandoned the level. Now a "rolls away" message counts as a successful push, and the bot waits for the animation before reading the screen again.

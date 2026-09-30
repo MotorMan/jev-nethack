@@ -869,7 +869,9 @@ class Bot:
         nmsg = len(self.messages)
         self.act_keys(k, '')
         news = ' | '.join(x['text'] for x in self.messages[nmsg:])
-        if self.snap.me == b:  # we stepped into the boulder's old square: it moved (or fell in / rolled away)
+        if 'roll' in news:  # rolling-boulder trap: the roll animates past the pump's idle gap, and the stale screen read as a failed push
+            time.sleep(1); self.t.pump(1.0); self.observe()
+        if self.snap.me == b or 'roll' in news:  # we stepped into the boulder's old square: it moved (or fell in / rolled away)
             self.run['soko_step'][m[0]] = self.run['soko_step'].get(m[0], 0) + 1
             return f"pushed the boulder {DIR_NAME[k]}" + (f": {news[:100]}" if news else '')
         return 'push failed' + (f": {news[:120]}" if news else '')
