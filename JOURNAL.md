@@ -639,3 +639,6 @@ Run 20260930-150259 died at T7754, frozen by a potion vapour and killed by a pon
 
 ## 2026-09-30 19:40 — Retreat only if it gains distance
 Run 20260930-151841 died at T4388 on Dlvl 7 to a Woodland-elf archer. At 22/59 HP Jev chose "Retreat one step" four times in a row: west, east, west, east. retreat_dir picked the best neighbouring square even when it was no farther from hostiles than Jev's current square, so Jev swapped squares while taking volleys of 3–4 elven arrows. retreat_dir now returns a direction only if the step strictly increases the distance to the nearest hostile.
+
+## 2026-09-30 20:00 — Hungry is no reason to break the depth pace
+Run 20260930-152500 died at T5817 to an ogre and a giant spider on Dlvl 8 at XL6. It got there with "Take the downstairs anyway" from Dlvl 7, even though the pace limit is Dlvl ≤ XL+1. The "rest here instead" alternative was suppressed because Jev was Hungry. Hungry is about 100 turns from Weak, and Weak brings the prayer option, which here was about 1550 turns old and safe. The rest alternative is now suppressed only when Weak or Fainting.
