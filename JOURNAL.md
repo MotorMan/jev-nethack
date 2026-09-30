@@ -417,3 +417,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-30 00:11 — levitation boots
 - Jev put on unidentified boots at T1285. They were -2 levitation boots, and for about 2,400 turns it floated over the downstairs pressing '>' ("You are floating high above the stairs"), then starved. Now any worn levitation item is taken off first whenever no monsters are near, and levitation items are never offered to wear.
+
+## 2026-09-30 00:17 — nymph filter too strict
+- The nymph-throw filter left "throw at the nymph" as the only option while a fire ant was biting Jev at 10/52 HP, and it died. The filter now applies only when nothing hostile is adjacent.
