@@ -661,3 +661,6 @@ Run 155753 (XL 8, Dlvl 9, T8069) stepped off the upstairs and met a jabberwock (
 
 ## 2026-09-30 21:50 — retry armor after a theft
 Run 160545 (XL 5, Dlvl 6, T4388) died at AC 10 to a giant bat and a pony, with a studded leather armor in the pack. At T3033 it tried that spare while already wearing body armor. The failure ("already wearing some armor") marked the spare unwearable for the whole game. Wood nymphs then stole the +3 small shield (T3408) and the worn armor (T3504). A failed wear now records the AC at the time, and the item is offered again once AC gets worse.
+
+## 2026-09-30 22:05 — no forced Elbereth wait with an @ approaching
+Run 161255 (XL 6, AC 6, Dlvl 6, T7182) spent 684 of its 1936 decisions waiting on Elbereth. At the end it sat on the square while a Woodland-elf walked up from 5 steps to adjacent and hit, together with a wolf and a bat. @-humans/elves and minotaurs ignore Elbereth (monmove.c onscary). The regular wait option already excluded them, but the forced "stay on Elbereth" override only required some other hostile in view. The override now also requires no hostile @ or minotaur within 7 steps, so the fight, retreat and corridor options stay open.
