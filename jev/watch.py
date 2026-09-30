@@ -27,7 +27,7 @@ def bar(p, w=20):
 
 
 def frame(s):
-    w = shutil.get_terminal_size().columns
+    w, rows = shutil.get_terminal_size()
     st, d, j, run = s['status'], s['decision'], s['jev'], s['run']
     lines = [f"{BOLD}Jev plays NetHack{RST}  {DIM}{s['mode']} · run {run['id']} · {s['phase']}{' · PAUSED' if s['paused'] else ''}{RST}",
              f"{DIM}{'─' * min(w, 80)}{RST}"]
@@ -50,11 +50,11 @@ def frame(s):
                  f"{BOLD}Run{RST} max Dlvl {run['max_dlvl']} · {run['decisions']} decisions")
     for r in deaths[::-1]:
         lines.append(f"  {DIM}✝ T{r['turns']} Dlvl {r['max_dlvl']}: {r['death'][:w - 24]}{RST}")
-    return '\x1b[H' + '\n'.join(l + '\x1b[K' for l in lines) + '\x1b[J'
+    return '\x1b[H' + '\n'.join(l + RST + '\x1b[K' for l in lines[:rows]) + '\x1b[J'  # never taller than the terminal: scrolling pushed the title off
 
 
 def main():
-    sys.stdout.write('\x1b[?25l\x1b[2J')
+    sys.stdout.write('\x1b[?25l\x1b[?7l\x1b[2J')  # no auto-wrap: a long line wrapping also scrolled
     try:
         while True:
             try:
@@ -67,7 +67,7 @@ def main():
     except KeyboardInterrupt:
         pass
     finally:
-        sys.stdout.write('\x1b[?25h' + RST + '\n')
+        sys.stdout.write('\x1b[?25h\x1b[?7h' + RST + '\n')
 
 
 if __name__ == '__main__':
