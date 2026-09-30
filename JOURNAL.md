@@ -477,3 +477,6 @@ This was the best game this session: T8587 and Dlvl 7, with 8 prayers roughly 40
 
 ## 2026-09-30 — no resting beside unseen attackers (hill orc, T3212, Dlvl 6)
 A yellow light blinded Jev. It then rested twice at 21/52 HP while "You feel an unseen monster!" and "It misses!" scrolled past, and the orcs killed it. unseen_attacker() now also matches "misses" and "feel an unseen monster", and rest is not offered while it fires. That leaves attacking the I or Elbereth.
+
+## 2026-09-30 — Sokoban gives up when stuck (T4518, Soko level 1)
+The waits added after each push worked: 20 pushes in a row succeeded. After T1995's "The boulder suddenly rolls away from you! ... Thump!", the next push square became unreachable. The plan's boulder was still there, so the "level no longer matches" exit never fired, and Jev spent 2400 turns on search_hidden. Now, if a push stays unreachable for 200 turns, Jev marks Sokoban done and moves on. Replanning with sokoban.Solver is the upgrade if this becomes common.

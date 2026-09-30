@@ -667,6 +667,9 @@ class Bot:
                 elif snap.at(*b).ch != '0' and not snap.is_monster(*b):
                     self.log(f"sokoban {m[0]}: expected a boulder at {b} for push {i + 1}; the level no longer matches the plan, leaving", 'warn')
                     self.run['soko_done'] = True
+                elif s.get('turn', 0) - self.run.setdefault('soko_stuck', {}).setdefault((m[0], i), s.get('turn', 0)) > 200:
+                    self.log(f"sokoban {m[0]}: push {i + 1} unreachable for 200 turns (a boulder rolled off-plan); leaving", 'warn')
+                    self.run['soko_done'] = True  # the stall was 2000 turns of search_hidden next to an off-plan boulder
                 if 'soko_push' in opts and not near:
                     opts = {k2: v for k2, v in opts.items() if k2 == 'soko_push' or k2 == 'pray' or k2.startswith('eat_')}
             elif m[0].startswith('soko1'):
