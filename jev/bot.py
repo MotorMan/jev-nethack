@@ -7,7 +7,7 @@ from . import sokoban
 from .nh import (DIRS, DIR_OF, DIR_NAME, MAP_TOP, MAP_BOT, OBJECT_CHARS, Snapshot, top_prompt, messages_from)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FOOD = re.compile(r'\b(?:food ration|cram|lembas|biscuit|pancake|apple|orange|banana|melon|carrot|egg|tins?|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen)e?s?\b')  # word-bounded: 'dwarvish spear' is not a pear
+FOOD = re.compile(r'\b(?:food ration|cram|lembas|biscuit|pancake|apple|orange(?! gem)|banana|melon|carrot|egg|tins?|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen)e?s?\b')  # word-bounded: 'dwarvish spear' is not a pear
 MONSTERS = json.load(open(os.path.join(os.path.dirname(__file__), 'monsters.json')))  # name -> [difficulty, speed], from monsters.h
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
 WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber', 'short sword', 'spear', 'mace', 'morning star', 'war hammer', 'flail', 'trident', 'dagger', 'knife', 'club']
@@ -1224,7 +1224,12 @@ class Bot:
         t0 = time.time()
         opts, mons = self.build_options()
         if not opts:  # every option filtered away (e.g. only a locked door left): search, don't crash the Jev call
-            opts = {'search': ('Search 10 turns', 'Nothing else to do here right now.', lambda: self.act_search(10))}
+            dist, _ = self.dijkstra()
+            downs = [p for p in self.snap.find('>') if p in dist]
+            self.log(f"no options on T{turn}; {'descending' if downs else 'searching'}", 'warn')
+            # one run searched 1100 turns on Dlvl 6 with the downstairs in view, then starved
+            opts = {'descend': ('Take the downstairs', 'Nothing else to do on this level.', lambda p=downs[0]: self.act_descend(p))} if downs else \
+                {'search': ('Search 10 turns', 'Nothing else to do here right now.', lambda: self.act_search(10))}
         state = self.state_text(mons)
         t1 = time.time()
         question = ('Choose the single best action for the Valkyrie right now. Staying alive comes first; after that, '

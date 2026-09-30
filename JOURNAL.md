@@ -420,3 +420,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-30 00:17 — nymph filter too strict
 - The nymph-throw filter left "throw at the nymph" as the only option while a fire ant was biting Jev at 10/52 HP, and it died. The filter now applies only when nothing hostile is adjacent.
+
+## 2026-09-30 00:23 — empty options: take the stairs
+- A 9600-turn run starved after about 1,100 turns on Dlvl 6 choosing "Search 10 turns" about 200 times, with the downstairs in view. build_options came back empty, and decide() fell back to searching. I couldn't find which filter emptied it (replaying the saved screen without the level memory gives normal options), so the fallback now takes a reachable downstairs and logs a "no options" warning so the next case can be traced. Also, "orange gems" no longer count as food.
