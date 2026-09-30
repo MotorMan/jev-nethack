@@ -777,7 +777,7 @@ class Bot:
         self.observe()
         read = ' '.join(m['text'] for m in self.messages[nmsg:])
         key = (self.snap.status.get('dlvl'), self.snap.me)
-        if 'You read' in read and not re.search(r'You read: "Elbereth"', read, re.I):
+        if not re.search(r'You read: "Elbereth"', read, re.I):  # engraving is an interruptible occupation in 5.0: silence means nothing got written
             self.run['elbereth'].discard(key)
             return False
         self.run['elbereth'].add(key)
@@ -927,6 +927,14 @@ class Bot:
         return 'kicked the door open' if door not in self.level().locked else 'kicked the door; still shut'
 
     def act_kick(self, d):
+        # a locked shop has "Closed for inventory" in the dust outside; kicking it in got Jev zapped by the shopkeeper
+        nmsg = len(self.messages)
+        self.t.send(':')
+        self.observe()
+        if self.level().town or any('Closed for inventory' in m['text'] for m in self.messages[nmsg:]):
+            self.level().town = True
+            self.level().dead.add((self.snap.me[0] + DIRS[d][0], self.snap.me[1] + DIRS[d][1]))
+            return 'did not kick: a shop is closed behind this door'
         self.t.send('\x04' + d)
         self.observe()
         door = (self.snap.me[0] + DIRS[d][0], self.snap.me[1] + DIRS[d][1])

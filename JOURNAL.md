@@ -252,3 +252,7 @@ Retreat is now offered only when every nearby hostile is slower than Jev's speed
 ## 2026-09-29 17:14 — Waiting that never waited
 A big one, found through a rothe death. 5.0's `safe_wait` option refuses a plain `s` whenever a hostile is next to you ("You already found a monster. Use 'm' prefix to force another search.", do.c cmd_safety_prevention), and no game time passes. So every "Hold position" and "Stay on Elbereth" decision with a monster adjacent did nothing, and so did the three waits at T2416. The waits now send `ms`. Counted searches like `15s` were never affected.
 The same run died with 1 HP left and a safe prayer on the menu, because Jev picked Elbereth. When the hero is at critically low HP and a safe (non-gamble) prayer is offered, the menu is now narrowed to pray plus any potion.
+
+## 2026-09-29 17:32 — Engravings that never happened
+The last rothe death: after "Engrave Elbereth", reading the square said only "You see no objects here". Engraving is an occupation in 5.0, so the rothe's attack interrupted it before anything was written. My check only rejected a *wrong* text, not a missing one. It now requires the exact 'You read: "Elbereth"'.
+Another shopkeeper wand death: on Dlvl 2 Jev kicked a locked shop door before ever seeing the shopkeeper. Every kick now reads the square first (a free action). "Closed for inventory" marks the level as town and leaves the door alone.
