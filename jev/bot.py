@@ -237,6 +237,7 @@ class Bot:
             return {}, {}
         dist, prev = {start: 0}, {}
         soko = self.soko() if snap is self.snap else None
+        safe = sokoban.rollers(soko) if soko else set()  # a '^' roller walled Jev off from push 29 of soko4-1 three games running
         pq = [(0, start)]
         while pq:
             d, p = heapq.heappop(pq)
@@ -246,7 +247,7 @@ class Bot:
                 q = (p[0] + dx, p[1] + dy)
                 if q in lv.blocked or q in lv.traps or q in self.avoid or not snap.walkable(*q):
                     continue
-                if soko and (snap.at(*q).ch in '^0' or dx and dy and not all(snap.walkable(*c) and snap.at(*c).ch != '0' for c in ((p[0] + dx, p[1]), (p[0], p[1] + dy)))):
+                if soko and (snap.at(*q).ch == '0' or snap.at(*q).ch == '^' and q not in safe or dx and dy and not all(snap.walkable(*c) and snap.at(*c).ch != '0' for c in ((p[0] + dx, p[1]), (p[0], p[1] + dy)))):
                     continue  # Sokoban: never shove a boulder off-plan or drop into a hole; no squeezing past boulders diagonally
                 if dx and dy and (not snap.diag_ok(p, q) or (p == start and self.standing_on() == 'door')):
                     continue

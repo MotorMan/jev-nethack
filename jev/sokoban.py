@@ -188,6 +188,13 @@ def step(m, i):
 
 
 
+def rollers(m):
+    """Screen squares of the matched level's rolling boulder traps: harmless in Sokoban (trap.c), so walkable."""
+    name, f, ox, oy = m
+    sol = solutions()[name]
+    return {(lambda q: (q[0] + ox, q[1] + oy))(flip(tuple(p), f, sol['w'], sol['h'])) for p in sol['rollers']}
+
+
 def replan(m, me, boulders, holes, limit=20000):
     """Solve the matched level from what the screen shows now: [(boulder_pos, dir_key)] in screen terms, or None.
     boulders/holes are screen squares showing '0'/'^'; only the level's own pits count as holes."""
