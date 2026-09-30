@@ -156,16 +156,7 @@ def wiki_solutions(xml_gz):
         elif text is not None:
             text.append(html.unescape(line.rstrip('\n')))
             if '</text>' in line:
-                diagram, moves = [], []
-                for l in text:
-                    if l.startswith(' ') and re.match(r' [-|]', l):
-                        map_part = l[1:].split("\'\'\'")[0]
-                        if not diagram or re.search(r'[A-Z]', map_part) and not any(re.search(r'[A-Z]', d) for d in diagram):
-                            if re.search(r'[A-Z]', map_part) and diagram and not any(re.search(r'[A-Z]', d) for d in diagram):
-                                diagram = []
-                        if len(diagram) < 40 and (not diagram or not any(re.search(r'[A-Z]', d) for d in diagram) or len(diagram) < len([1 for d in diagram])):
-                            pass
-                        moves += re.findall(r"\'\'\'([A-Z])\'\'\'\s+([udlr* ]+)", l)
+                moves = [m for l in text for m in re.findall(r"\'\'\'([A-Z])\'\'\'\s+([udlr* ]+)", l)]
                 out[title] = (text, moves)
                 title = text = None
     return out
@@ -175,7 +166,7 @@ def first_lettered_map(text):
     """The first wiki diagram that names boulders with letters, as {(x, y): ch}."""
     block = []
     for l in text + ['']:
-        if re.match(r' [-|]', l):
+        if re.match(r' +[-|]', l):
             block.append(l[1:].split("\'\'\'")[0].rstrip())
         elif block:
             if any(re.search(r'[A-Z]', b) for b in block):
@@ -205,20 +196,20 @@ def build(xml_gz, lua_glob='build/NetHack50/dat/soko*.lua'):
                 continue
             for fl in range(4):
                 gw = {flip(p, fl, w, h) for p, c in grid.items() if c in '-|'}
-                if gw == walls:
+                if len(gw ^ walls) <= 0.05 * len(walls):  # 5.0 retouched some maps; the replay below checks every push
                     break
             else:
                 continue
             letters = {c: flip(p, fl, w, h) for p, c in grid.items() if c.isupper()}
             if set(letters.values()) != set(lv.boulders):
-                print(os.path.basename(f), title, 'boulders differ'); continue
+                print(os.path.basename(f), title, 'boulders differ', sorted(set(letters.values()) ^ set(lv.boulders))); continue
             fdir = {'l': 'h' if fl & 1 else 'l', 'h': 'l' if fl & 1 else 'h', 'k': 'j' if fl & 2 else 'k', 'j': 'k' if fl & 2 else 'j'}
             bs, ps, where, pushes, ok = lv.boulders, lv.pits, dict(letters), [], True
             cur = me
             for letter, mv in moves:
                 for ch in mv.replace(' ', '').replace('*', ''):
                     b = where.get(letter)
-                    if b is None:
+                    if b is None or not ps:  # rolled into a pit already (5.0 rolling boulder traps), or all pits are full
                         break  # already rolled into a pit (5.0 rolling boulder traps)
                     k = fdir[WIKI_DIR[ch]]
                     legal = {p: (m2, nb, np) for p, m2, nb, np in lv.pushes(cur, bs, ps)}
@@ -246,12 +237,21 @@ def build(xml_gz, lua_glob='build/NetHack50/dat/soko*.lua'):
     return result
 
 
-if __name__ == '__main__':
-    import glob, time
+if __name__ == '__main__':  # python -m jev.sokoban: rebuild jev/sokoban.json from the wiki dump + solver
+    import glob, json, os
+    sols = build('nethackwiki_current.xml.gz')
+    out = {}
     for f in sorted(glob.glob('build/NetHack50/dat/soko*.lua')):
+        name = os.path.basename(f)[:-4]
         lv, me = from_lua(f)
-        t = time.time()
-        sol = lv.solve(me)
-        print(f.split('/')[-1], len(lv.boulders), 'boulders', len(lv.pits), 'pits', len(lv.rollers), 'rollers',
-              'SOLVED' if sol else 'FAILED', len(sol or []), 'pushes', f'{time.time() - t:.1f}s')
-        assert sol, f
+        if name not in sols:
+            o = lv.fill_one
+            lv.fill_one = lambda *a, **k: o(*a[:4], want=8)
+            path = lv.solve(me, limit=30000)
+            assert path, name
+            sols[name] = {'me': me, 'pushes': [[b[0], b[1], k] for b, k in path]}
+        src = open(f).read()
+        rows = re.search(r'des\.map\(\[\[\n(.*?)\]\]', src, re.S)[1].rstrip('\n').split('\n')
+        out[name] = dict(map=rows, **sols[name])
+        print(name, len(out[name]['pushes']), 'pushes')
+    json.dump(out, open('jev/sokoban.json', 'w'), indent=None, separators=(',', ':'))
