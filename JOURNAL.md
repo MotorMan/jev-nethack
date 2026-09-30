@@ -572,3 +572,6 @@ Run 20260930-130259 (Dlvl 8, XL 6) spent three turns throwing daggers at a dista
 
 ## 2026-09-30 13:35 — digging obeys the pace
 The giant-spider run reached Dlvl 8 at XL 6 by digging: the pick-axe option only checked `too_deep` (Dlvl >= XL+2), so it dug from XL+1 straight to XL+2 twice. Digging down now uses the same gate as the stairs (Dlvl < XL+1).
+
+## 2026-09-30 13:50 — Elbereth only when hurt
+Run 20260930-131713 (XL 7, Dlvl 7, T9749) engraved Elbereth at 56/64 HP instead of closing on a large kobold; the kobold stood off and zapped a wand of lightning until Jev died. Elbereth is now offered against visible monsters only below 70% HP (still offered when boxed in or hit by something unseen).
