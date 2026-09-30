@@ -512,3 +512,8 @@ Died to a wolf, Dlvl 6, T5172. A warg and wolf pack hit Jev while it stood on El
 
 ## 2026-09-30 — Sokoban: replan when a push fails "in vain"
 On soko3-1, push 142 of 175 (a replanned route), Jev tried the same push for 200+ turns. Every try gave "You try to move the boulder, but in vain": something unseen was behind the boulder. A failed push never counted as stuck, so the replanner never ran. An "in vain" failure now forces an immediate replan. After 3 replans, Jev leaves the level.
+
+## 2026-09-30 — melee adjacent monsters; honest threat labels
+Killed by an owlbear on Dlvl 7, T6785, at XL 7 with 70/76 HP. After one Elbereth attempt was interrupted, Jev threw darts at the adjacent owlbear 4 turns running instead of meleeing with its spear, and dropped 60 → 49 → 35 → 18 → dead. The prompt also called the owlbear "weaker than you": the label was difficulty − XL − 1, which counts difficulty = XL as weaker.
+- Missiles are now offered only at range 2+. Passive monsters (floating eyes, molds) are still the exception.
+- Threat labels now use difficulty − XL, so difficulty = XL is "about your level".
