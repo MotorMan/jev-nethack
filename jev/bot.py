@@ -191,6 +191,7 @@ class Bot:
 
     def observe(self):
         self.settle()
+        prev = self.snap
         self.snap = Snapshot(self.t, self.snap.me if self.snap else None)
         x, y = self.snap.cursor
         if len(self.snap.find('@')) > 1 and self.snap.lines[y][x] != '@' and top_prompt(self.snap.lines)[0] is None:
@@ -205,7 +206,7 @@ class Bot:
             recent = ' '.join(self.run['recent'][-3:]) if self.run else ''
             fresh = 'You kill' in recent and 'You destroy' not in recent
             for p in self.snap.find('%'):
-                lv.corpses.setdefault(p, (s.get('turn') or 0) if fresh and cheb(p, self.snap.me) <= 2 else -10**6)
+                lv.corpses.setdefault(p, (s.get('turn') or 0) if fresh and cheb(p, self.snap.me) <= 2 and prev and prev.is_monster(*p) else -10**6)  # only where the kill stood: an old ape corpse next to a new kill was eaten tainted (T4763)
             if self.run is not None:
                 self.run['max_dlvl'] = max(self.run['max_dlvl'], s['dlvl'])
                 self.run['turns'] = s.get('turn') or self.run['turns']
