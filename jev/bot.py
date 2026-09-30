@@ -532,6 +532,15 @@ class Bot:
                 continue  # kick_<dir> covers it; in town a locked door stays shut
             what = 'locked door' if door in lv.locked else 'closed door'
             opts[f'door_{door[0]}_{door[1]}'] = (f"Go through the {what} {compass(me, door)}", f"Walk {dist[q]} steps to the {what} {compass(me, door)}, open it (kicking it if locked). What lies behind is unexplored.", lambda q=q, door=door: self.act_kick_door(q, door))
+        if not near and not shop:  # only stepped-on items were ever picked up; Jev fainted twice with food lying in view
+            objs = [q for c in ')[%?/=!("$' for q in snap.find(c)]
+            loot = [q for q in objs if q in dist and 0 < dist[q] <= 15 and (s.get('dlvl'), q) not in self.run['here'] and lv.corpses.get(q, -1) < 0
+                    and sum(cheb(q, o) <= 3 for o in objs) < 6]  # a dense cluster is a shop
+            if loot:
+                q = min(loot, key=dist.get)
+                g = snap.at(*q).ch
+                what = {'%': 'food', '$': 'gold', '[': 'armor', ')': 'a weapon', '!': 'a potion', '?': 'a scroll', '/': 'a wand', '=': 'a ring', '"': 'an amulet', '(': 'a tool'}[g]
+                opts['fetch'] = (f"Go look at the item {compass(me, q)} ({what}?)", f"Walk {dist[q]} steps {compass(me, q)} to the '{g}' on the floor and see what it is; food keeps you from fainting, armor lowers AC.", lambda q=q: self.act_go(q))
         fr = self.frontiers(dist)
         picked = []
         for d, p in fr:

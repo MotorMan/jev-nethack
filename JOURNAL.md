@@ -339,3 +339,8 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 ## 2026-09-29 21:02 — Werejackal and shop-door deaths
 - Died of fainting while in werejackal form. "You turn into a werejackal!" at T2074 was never flagged as lycanthropy; only "You feel feverish" was, and that message was missed. Both messages now set the flag, which triggers prayer.
 - Killed by Mr. Kipawa on Dlvl 5. At T1288 Jev had kicked open a locked door, most likely a shop closed for inventory whose dust sign had been scuffed away. Once a downstairs is known, locked doors are no longer kicked.
+
+## 2026-09-29 21:15 — Fetch visible items
+- Two more deaths from fainting (homunculus, dust vortex). Jev never walked to items it could see; it only picked up what it happened to step on. Its only food was corpses from its own nearby kills.
+- New 'fetch' option: go look at the nearest unvisited item square within 15 steps. Rocks, boulders, shop-like clusters (6 or more objects within 3 squares) and corpses seen appearing (goto_corpse covers those) are excluded.
+- First minutes: it found a food ration at T2117 and now carries 3 food rations and a tripe ration.
