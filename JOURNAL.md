@@ -533,3 +533,6 @@ Killed by a pony "while frozen by a potion", Dlvl 5, T3917. At 15/50 HP (not yet
 
 ## 2026-09-30 — no exploring with a hostile adjacent
 Killed by a sewer rat on Dlvl 4, T1354, XL 3. A wererat summoned a rat pack. At 21/29 HP with 5 rats adjacent, one Elbereth came out garbled, and then Jev picked "explore" twice. It walked while they bit, 21 → 7 → dead, and prayer wasn't available (HP 7 > 5). Now, while a non-passive hostile is adjacent and an attack is possible, explore and search options are dropped.
+
+## 2026-09-30 — a Sokoban replan no longer walks Jev out
+Seen at T6354–6414 on soko4-1 (3 boulders left): each time Jev entered, the plan was stale ("push 48 off-plan") and the replan found a 41-push solution. But the decision that replans has no push option yet, so the only option left was "Take the downstairs anyway". Jev walked out, came back, replanned again, and after 3 rounds hit the replan cap and gave up the level. The "anyway" fallback is now off on an unsolved Sokoban level: Jev waits one turn, and the next decision pushes from the new plan. (Offline, the replan on the saved screen is correct: its first push is on a real boulder.)
