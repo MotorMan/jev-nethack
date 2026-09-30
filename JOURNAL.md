@@ -455,3 +455,7 @@ With no food left, Jev turned Weak and prayed 639 turns after its last prayer. I
 
 ## 2026-09-30 — stay on Elbereth when a pack surrounds (bugbears, T3443, Dlvl 6)
 At XL 4 on Dlvl 6, Jev sat safely on Elbereth at 40/44 HP with two bugbears, a hobgoblin, a kobold, a goblin and a gnome around it. Above 75% HP it was free to act, so it threw shuriken and stepped off. It was at 9 HP three turns later and dead on the fourth. That is still above the 1/7 line, so prayer could not help. With a pack in view, standing on Elbereth now forces "stay" at any HP. Also seen: the "Monsters in view" text sometimes swallows top-line messages ("The bugbear hits! ... 1 step west"). Not fixed yet.
+
+## 2026-09-30 — prayer odds from rnz(350); stale farlook names
+statico/nethack-tools' prayer timer models the timeout as it is set in the source: 300 at start, then rnz(350) after each successful prayer. Simulating that, a prayer for major trouble (fixed when timeout < 200) succeeds with P = .66 at 300 turns since the last prayer, .87 at 500 and .94 at 1000. The curve is nearly flat past 500, so the "safe" prayer for low HP now fires at 500 turns instead of 1000. Waiting to 1000 only let Jev die with a probably-working prayer unused.
+farlook: a reply that doesn't start with "<glyph> " is a stale top-line message. It used to become the monster's name ("The bugbear hits! ... 1 step west"). Such replies now fall back to "unidentified". Live names still parse.
