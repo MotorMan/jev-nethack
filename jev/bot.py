@@ -104,6 +104,8 @@ class Bot:
                 self.run['lycanthropy'] = True
             if re.search(r'is displeased|Thou durst call upon me|Then die, mortal|voice of \w+ (booms|rings out)', text):  # prayed too soon: god angry, Luck -3 (the quote after 'booms:' can be lost: wrath of Tyr killed T5998), praying again only makes it worse
                 self.run['god_angry'] = True
+            if re.search(r'grabs you|You are being choked|cannot escape from|swings itself around you', text) and self.snap:
+                self.run['held'] = self.snap.status.get('turn') or 0
             if re.search(r'nymph stole|nymph steals|She stole', text) and self.snap:
                 self.run['nymph_lvl'] = self.snap.status.get('dlvl')
             if 'You feel purified' in text:
@@ -731,6 +733,8 @@ class Bot:
             streak.append(h['choice'])
         if len(streak) >= 3 and len(set(streak[:3])) == 1:
             opts.pop(streak[0], None)
+        if (s.get('turn') or 0) - self.run.get('held', -99) <= 1:  # held: moving escapes 1 in 40 (hack.c); a rope golem choked Jev through 3 retreats (T5125). Wiki: Elbereth works while grabbed
+            opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray') or k.startswith(('attack_', 'quaff_'))} or opts
         if any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and any(k.startswith('attack_') for k in opts):  # explored away from 5 adjacent rats at 21/29: dead (T1354)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore_', 'search', 'throw_', 'pickup_', 'fetch'))}  # picked up loot 3 times with Woodland-elves hitting (T6490); threw daggers at a far orc-captain with a giant spider adjacent: 19 -> 8 HP, dead (T4825)
         if self.history and 'blocked' in self.history[-1]['outcome'] and any(m['dist'] <= 1 for m in hostiles) and len(opts) > 1:
