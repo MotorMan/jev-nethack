@@ -493,7 +493,7 @@ class Bot:
                     break
 
         fatal = [c for c in s.get('conditions', []) if c in ('FoodPois', 'Fpois', 'Poi', 'TermIll', 'Ill', 'Stone', 'Ston', 'Sto', 'Slime', 'Slim', 'Slm', 'Strngl', 'Stngl', 'Str', 'InLava', 'Lav')]  # kill in a few turns; prayer cures
-        lyc = self.run.get('lycanthropy')  # slow, and each were bite re-infects: it follows the normal timeout (two runs prayed every 4 turns into "Then die, mortal!")
+        lyc = self.run.get('lycanthropy') and not any(m['dist'] <= 2 for m in hostiles)  # not mid-fight: curing it at 18/46 beside the wererat spent the prayer, dead 5 turns later (T3790); slow, and each were bite re-infects: it follows the normal timeout (two runs prayed every 4 turns into "Then die, mortal!")
         trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting') or fatal or lyc
         last = self.run.get('prayed_turn')
         if last is not None and last > (s.get('turn') or 0):
