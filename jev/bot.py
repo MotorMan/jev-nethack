@@ -771,8 +771,8 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'eat'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}
         # a safe prayer fully heals; Jev chose Elbereth over it at 1 HP and died. 500+ turns on, rnz(350) - elapsed < 200 most of the time:
         # Jev threw darts at 8 HP instead of a 700-turn gamble and died (T5087)
-        if LOW_HP(s) and 'pray' in opts:  # the gamble (300+ turns) is .66-.87: Jev engraved at 1 HP 478 turns after praying and died (T4535)
-            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')}
+        if LOW_HP(s) and 'pray' in opts:  # the gamble (100+ turns) is ~.5-.87: Jev engraved at 1 HP 478 turns after praying and died (T4535)
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0]}  # chose an unknown black potion over a ~.7 prayer at 8/43: dead (T3559)
         return opts, mons
 
     def search_spot(self, dist):

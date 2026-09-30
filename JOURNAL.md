@@ -548,3 +548,6 @@ Killed by Green-elves on Dlvl 9, T5351, XL 7. The forced ascend (Dlvl ≥ XL+2) 
 
 ## 2026-09-30 — emergency prayer gamble from 100 turns
 Killed by an elven arrow, Dlvl 4, T5218. Ants and a Woodland-elf wore Jev down to 3/54, 243 turns after its last prayer. The low-HP "gamble" prayer was gated at 300 turns, so it wasn't offered, and Jev died retreating. pray.c: in major trouble a prayer works if the prayer timeout is ≤ 200. The timeout was set to rnz(350) and drops by 1 a turn, so t turns later the chance is P(rnz(350) ≤ 200+t), roughly even at t=100. Failure isn't free (Luck −3, gods_upset → angrygods), but at LOW_HP with a monster attacking, death is nearly certain otherwise. Gate lowered to 100 turns.
+
+## 2026-09-30 — low HP: prayer beats unknown potions
+Killed by a rothe, Dlvl 5, T3559. At 8/43 HP, 346 turns after its last prayer, Jev had two options, pray and quaff an unknown black potion, and it drank the potion. The low-HP filter kept every quaff next to prayer. It now keeps only known healing potions.
