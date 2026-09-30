@@ -633,3 +633,6 @@ Run 20260930-144612 died at T5771 on Dlvl 9. It had no food and turned Weak 524 
 
 ## 2026-09-30 18:40 — Fight when engulfed
 Run 20260930-145336 died at T8226 on Dlvl 6, in a brawl with a vortex, a winter wolf cub and a fire breather. When the vortex engulfed Jev, the status showed Blind, so the blind branch offered only "Wait until you can see". Jev waited twice inside the vortex and went from 51 to 13 HP. Now, if the latest engulf/expel message in recent messages is "engulfs you", the options are just "Attack the monster engulfing you" (F k: from inside, any direction hits the engulfer) plus pray and quaff.
+
+## 2026-09-30 19:00 — Take the fresh corpse
+Run 20260930-150259 died at T7754, frozen by a potion vapour and killed by a pony after about 500 turns of Fainting. This Jev prayed for food 6 times in 7700 turns, and the 6th prayer failed ("Tyr is displeased"). Across the last 6 runs, "go eat the fresh corpse" was passed up for explore, rest or search about 60% of the time. Per 5.0 eat.c:1892, an uncursed corpse is safe for about 40 turns and the offer's window is 30, so those were safe meals. The offer is now forced when no hostile is near, the same way eating a corpse underfoot already was. A corpse that turns out to be inedible (a bat) is now forgotten, so it isn't offered again.
