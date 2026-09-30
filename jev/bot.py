@@ -682,6 +682,8 @@ class Bot:
             for c in set(streak):
                 if len(opts) > 1:
                     opts.pop(c, None)
+        if downs:  # a locked door can be a shop closed for inventory whose sign got scuffed: kicked one in, Mr. Kipawa killed Jev (runs before the empty guards: filtering after them left no options, 1100 turns searched)
+            opts = {k: v for k, v in opts.items() if not (k.startswith('kick_') or 'locked door' in v[0])}
         if not opts and downs:  # the pace gate is advice; idle-searching a cleared level only burns food (one run searched 400+ turns in a corridor)
             opts['descend'] = ('Take the downstairs anyway', f"Nothing else is reachable on this level. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
         if not opts:
@@ -695,8 +697,6 @@ class Bot:
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You are fighting bare-handed.', lambda l=weapon['letter']: self.act_wield(l))}
         elif not near and any(k.startswith('wear_') for k in opts):
             opts = {k: v for k, v in opts.items() if k.startswith('wear_')}
-        if downs:  # a locked door can be a shop closed for inventory whose sign got scuffed: kicked one in, Mr. Kipawa killed Jev
-            opts = {k: v for k, v in opts.items() if not (k.startswith('kick_') or 'locked door' in v[0])}
         if not near and 'rest' in opts and s.get('hp', 1) < 0.5 * s.get('hpmax', 1):  # explored on at 11/65 HP into a giant beetle
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door', 'descend', 'approach', 'kick', 'goto', 'search'))}
         if (s.get('title') or '').startswith('Were'):  # animal form: armor falls off, paws can't wear or carry much
