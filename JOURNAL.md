@@ -539,3 +539,6 @@ Seen at T6354–6414 on soko4-1 (3 boulders left): each time Jev entered, the pl
 
 ## 2026-09-30 — never drink known-bad potions
 Killed by a carnivorous ape "while sleeping", Dlvl 9, T9512 (the longest game in a while). Held by the ape at 12/66, with the prayer only 284 turns old, Jev was offered and drank "a potion of sleeping", already identified. The emergency-quaff option now skips potions identified as sleeping, blindness, hallucination, confusion, booze, sickness, paralysis, water or oil.
+
+## 2026-09-30 — bumping a shopkeeper no longer walls off the shop door
+Killed by a coyote "while fainted from lack of food", Dlvl 3, T5853. From T3100 Jev was inside a shop and never left. It prayed off hunger three times, spent 2700 turns on "Search for hidden passages", and fainted. The bot never saw a way out. A walk that bumped the shopkeeper ("Pardon me, Upernavik") marked the square as blocked once the shopkeeper had stepped off it. That square was the doorway, and a door glyph isn't '.' or '#', so the shop's only exit was blocked for the rest of the level. The downstairs became unreachable, and with no frontier left Jev searched walls. (Probably also the 3500-turn floating-eye shop stall earlier today.) A step where a monster stood before the move, or where the game said "Pardon me", is no longer marked blocked.

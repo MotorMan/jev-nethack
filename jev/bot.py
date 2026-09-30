@@ -887,7 +887,7 @@ class Bot:
                 step = (me[0] + DIRS[d][0], me[1] + DIRS[d][1])
                 if before.is_door(*step) and before.at(*step).ch == '+':
                     self.level().locked.add(step)  # locked, stuck or resisting: kicking is the way through
-                if not snap.is_monster(*step) and before.at(*step).ch not in '.#':  # floor was only ever blocked by a peaceful in the way
+                if not snap.is_monster(*step) and not before.is_monster(*step) and not any('Pardon me' in m for m in news) and before.at(*step).ch not in '.#':  # a shopkeeper on the doorway walled Jev into a shop for 2700 turns  # floor was only ever blocked by a peaceful in the way
                     self.level().blocked.add(step)
                 return f'blocked after {taken} steps' + (f": {news[-1]}" if news else '')
             if snap.status.get('hp', 0) < hp0:
