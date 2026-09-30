@@ -74,3 +74,7 @@ To stop the watcher, push Ctrl-C.
 ## More information
 
 `JOURNAL.md` is the development log. It records each finding and decision in time order.
+
+## License
+
+MIT. See `LICENSE`.
