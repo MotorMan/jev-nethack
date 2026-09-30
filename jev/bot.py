@@ -508,6 +508,9 @@ class Bot:
         elif LOW_HP(s) and (any(m['dist'] <= 7 for m in hostiles) or self.unseen_attacker()) and last is not None and turn - last >= 300:  # a quasit's wand took 29 -> 0 from range
             opts['pray'] = ('Pray to Tyr (gamble)', f"Last prayer was only {turn - last} turns ago: Tyr may well be angry (bad luck, maybe smiting). But at {s.get('hp')} HP with a monster attacking, this may be the last chance.", self.act_pray)
 
+        if not self.run.get('god_angry') and (turn - last >= 800 if last is not None else turn >= 300):  # prayer ready: fight on, pray at low HP
+            opts = {k: v for k, v in opts.items() if not (k.startswith('quaff_') and 'healing' not in v[0])}  # a swirly potion of sleeping at 15/50, prayer 1460 turns old: frozen, killed by a pony
+
         # shop floor gold belongs to the shopkeeper: picking it up billed Jev, who then could not leave and died to Mr. Kipawa; eating its food kept another Jev locked in a shop for 4000 turns
         shop = any(d == s.get('dlvl') and cheb(p, me) <= 7 and any('for sale' in i for i in v) for (d, p), v in self.run.get('here', {}).items()) or self.run.get('debt') == s.get('dlvl')
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):

@@ -527,3 +527,6 @@ Killed by Ms. Tipor the shopkeeper, Dlvl 7, T5068. Jev was blind in her shop ("Y
 
 ## 2026-09-30 — a blocked walk with a monster adjacent isn't retried
 Killed by a hill orc on Dlvl 8, T6782, XL 6. A prayer restored Jev to 80/80. It then picked "Head back upstairs" 5 times (the pace rule offers it at Dlvl ≥ XL+2), and each try was "blocked after 1 steps" by the orc pack in the way. HP went 75 → 62 → 47 → … → dead, and it never swung at the "weaker" hill orcs. Now a move that just came back blocked, with a hostile adjacent, isn't offered on the next decision.
+
+## 2026-09-30 — no potion gambling while a prayer is ready
+Killed by a pony "while frozen by a potion", Dlvl 5, T3917. At 15/50 HP (not yet low enough for prayer to count it as trouble: HP ≤ 1/5 max at XL 4) Jev drank an unknown swirly potion. It was sleeping. The last prayer was 1460 turns earlier, so a prayer at 10 HP would almost surely have worked. While a prayer is ready (800+ turns since the last, or never prayed and past turn 300), unknown potions are no longer offered; known healing potions still are.
