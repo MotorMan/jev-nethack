@@ -53,6 +53,8 @@ class Level:
         self.corpses = {}      # square -> turn the corpse was first seen
         self.town = False      # a peaceful @ lives here (Izchak killed a run over a kicked shop door)
         self.arrival = None    # where we first stood here: the other '<' on the Oracle+1 level leads to Sokoban
+        self.stairs = set()    # '>' found under objects by #terrain
+        self.terrain_turn = -999
 
 
 class Bot:
@@ -596,7 +598,11 @@ class Bot:
                 opts[f'explore_{k}'] = (f"Explore {compass(me, p)} ({d} steps)", f"Walk to the unexplored edge {d} steps away to the {compass(me, p)} and see what is there.", lambda p=p: self.act_explore(p))
             if len(picked) == 3:
                 break
-        downs = [p for p in snap.find('>') if p in dist or p == me]
+        if not fr and not snap.find('>') and s.get('turn', 0) - lv.terrain_turn >= 300:
+            # Minetown hid its '>' under a rock pile: 260 turns of explore/search with "no unexplored edges left"
+            lv.terrain_turn = s.get('turn', 0)
+            lv.stairs |= set(self.terrain_find('>'))
+        downs = [p for p in snap.find('>') + sorted(lv.stairs) if p in dist or p == me]
         too_deep = s.get('dlvl', 1) >= (s.get('xl') or 1) + 2  # pace: Dlvl <= XL+1 (XL+2 still lost most runs on Dlvl 4-5 before T2000)
         ups = [p for p in snap.find('<') if p in dist]
         if too_deep and ups and self.standing_on() != '<':  # XL5 on Dlvl 7 died to a winter wolf; XL+3 was too late
@@ -876,6 +882,19 @@ class Bot:
                 break
             p = fr[0][1]
         return f'explore ({total} steps): {r}'
+
+    def terrain_find(self, ch):
+        """#terrain redraws the remembered map without objects or monsters: stairs under a boulder or item pile show up."""
+        self.t.send('#terrain\r'); self.t.pump(1.0)
+        if 'View which' in '\n'.join(self.t.lines()):
+            self.t.send('\r'); self.t.pump(1.0)  # a: known map without monsters, objects and traps
+        lines = self.t.lines()
+        found = [(x, y) for y in range(MAP_TOP, MAP_BOT + 1) for x, c in enumerate(lines[y]) if c == ch]
+        self.t.send('\x1b\x1b\x1b')
+        self.settle()
+        self.observe()
+        self.log(f'#terrain {ch}: {found}')
+        return found
 
     def act_descend(self, p, key='>'):
         r = self.act_go(p)

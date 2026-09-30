@@ -7,5 +7,5 @@ OPTIONS=!tutorial,!splash_screen,!legacy,!news,!cmdassist,!rest_on_space,!autode
 OPTIONS=autopickup,pickup_types:$
 OPTIONS=time,showexp,color,boulder:0,runmode:teleport,statuslines:2
 OPTIONS=mention_walls,!verbose,suppress_alert:3.4.3,pile_limit:1
-OPTIONS=menustyle:full,!sparkle
+OPTIONS=menustyle:full,!sparkle,!tips
 OPTIONS=disclose:+i +a +v +g +c +o
