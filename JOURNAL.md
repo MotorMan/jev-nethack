@@ -265,3 +265,13 @@ Two deaths at Dlvl 9. (1) A horse, while hallucinating. Jev tried Elbereth nine 
 
 ## 2026-09-29 18:23 — Stop hauling furniture
 257 decisions were made Burdened. The inventory at those times held a chest (350 wt), a lance, a pole sickle, a large box and rocks, all picked up because "Pick up X" looked like free value. Heavy junk (containers, boulders, rocks, polearms, lances, two-handers, mattocks) is now never offered for pickup, and when Burdened/Stressed each heavy non-worn, non-wielded item gets a "Drop" option.
+
+## 2026-09-29 18:35 — Mr. Kipawa's gold
+Dlvl 5, "killed by Mr" (the death parser stopped at "Mr."). The chain of events:
+- Jev walked into a general store and picked up 92 gold pieces off the shop floor. That gold belongs to the shopkeeper, so it went on Jev's bill.
+- Kipawa stood in the doorway. Every explore step bumped him ("You have no gold or credit"), about 130 turns of it.
+- Jev ate a rotten carrot and became confused. The next confused step into Kipawa counted as an attack, and his wand of striking did the rest.
+Fixes:
+- No pickups at all within 7 squares of anything seen "for sale".
+- While confused or stunned with nothing hostile near, the only choices are waiting (or prayer/potions).
+- The death parser now keeps "Mr./Ms." names.

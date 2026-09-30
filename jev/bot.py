@@ -481,7 +481,9 @@ class Bot:
                 p = min(fresh, key=dist.get)
                 opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.{why}", lambda p=p: self.act_goto_corpse(p))
 
-        for i, item in enumerate(self.here_items()[:4]):
+        # shop floor gold belongs to the shopkeeper: picking it up billed Jev, who then could not leave and died to Mr. Kipawa
+        shop = any(d == s.get('dlvl') and cheb(p, me) <= 7 and any('for sale' in i for i in v) for (d, p), v in self.run.get('here', {}).items())
+        for i, item in enumerate([] if shop else self.here_items()[:4]):
             if 'for sale' in item or 'corpse' in item or HEAVY.search(item):
                 continue
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
@@ -581,6 +583,8 @@ class Bot:
             lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
             lv.resets += 1
             opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('ms', 'waited'))
+        if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and not near:  # a confused bump into a shopkeeper attacks him
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {'rest': ('Wait until you are steady', 'You are confused or stunned: moves go in random directions and can attack peacefuls. Nothing hostile is near, so wait it out.', lambda: self.act_keys('5s', 'waited'))}
         if LOW_HP(s) and opts.get('pray', ('',))[0] == 'Pray to Tyr':  # a safe prayer fully heals; Jev chose Elbereth over it at 1 HP and died
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')}
         return opts, mons
@@ -1091,7 +1095,7 @@ class Bot:
 
     def end_run(self):
         blob = ' '.join(self.run['death_msgs'])
-        m = re.search(r'(killed by [^.\n]+?|died of [^.\n]+|starved to death|drowned [^.\n]+|choked [^.\n]+|quit|escaped)\s*(?:$|\s{2}|\n|\.)', blob)
+        m = re.search(r'(killed by (?:M[rs]s?\. )?[^.\n]+?|died of [^.\n]+|starved to death|drowned [^.\n]+|choked [^.\n]+|quit|escaped)\s*(?:$|\s{2}|\n|\.)', blob)
         self.run['death'] = m[1].strip() if m else ('died' if 'You die' in blob else 'game ended')
         self.run['ended'] = now()
         self.runs[-1] = {k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score')}
