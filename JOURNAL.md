@@ -627,3 +627,6 @@ Run 20260930-143412 died to apes at T6987 on Dlvl 8. A potion blinded Jev at 8/7
 
 ## 2026-09-30 18:05 — Wait out a walling floating eye before meleeing it
 Run 20260930-144207 died at T7290, killed by an imp while frozen by a floating eye's gaze. In Minetown, peaceful gnomes and a floating eye boxed Jev in, so the "walled" rule immediately offered "Kill the blocker" and Jev meleed the eye. Floating eyes move at speed 1 and peacefuls wander, so now a walled Jev gets "Search 10 turns" first. Meleeing an eye is offered only after more than 200 turns of being walled in.
+
+## 2026-09-30 18:20 — Pray sooner when starving
+Run 20260930-144612 died at T5771 on Dlvl 9. It had no food and turned Weak 524 turns after its last prayer. The prayer gate for Weak was 600 turns, so Jev explored instead of praying, fainted, and died beside a pony and a human mummy. Per the 5.0 source, a prayer after a successful one works once rnz(350) minus the elapsed turns is 200 or less, which is about 0.87 likely at 500 turns and 0.66 at 300. Starving with no food is certain death, so the gates are now 400 turns for Weak (down from 600) and 150 for Fainting (down from 300).
