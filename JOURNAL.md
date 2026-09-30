@@ -554,3 +554,6 @@ Killed by a rothe, Dlvl 5, T3559. At 8/43 HP, 346 turns after its last prayer, J
 
 ## 2026-09-30 — put on carried armor
 Checked armor at death for the last 19 runs. Several died at AC 6–10 wearing 0–1 pieces. The rothe death (T3559) had an orcish helm in the pack and no helm on. "Wear X" was offered but lost to exploring every time. With no hostile near, wear options now come first (alongside prayer and eating). act_wear marks anything that fails as unwearable, so this can't loop. Not done yet: swapping body armor for better body armor (banded mail carried over worn ring mail).
+
+## 2026-09-30 — hungry Jev isn't forced back upstairs
+Killed by a gecko "while fainted from lack of food", Dlvl 7, T3603. When Hungry, the pace rule lets Jev descend to find food. But the forced ascend at Dlvl ≥ XL+2 sent it straight back up, so its last 150 decisions included 33 ascends and 14 descends, burning food on stairs. The forced ascend now doesn't apply while Hungry, Weak or Fainting. It is still offered as an option.

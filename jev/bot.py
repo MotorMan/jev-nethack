@@ -703,7 +703,7 @@ class Bot:
             opts['leave_nymph'] = ('Leave this level (a nymph lives here)', f"A nymph on this level keeps coming back to steal your things. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend.", lambda p=downs[0]: self.act_descend(p))
         if nymph_throw in opts and not any(m['dist'] <= 1 for m in hostiles):  # forced to throw at a nymph, a fire ant ate Jev at 10 HP
             opts = {k: v for k, v in opts.items() if k in (nymph_throw, 'pray') or k.startswith('eat_')}
-        if 'ascend' in opts and not any(m['dist'] <= 1 for m in hostiles):  # offered only, Jev rarely took it: 25 of 60 deaths were 2+ levels past XL
+        if 'ascend' in opts and not any(m['dist'] <= 1 for m in hostiles) and s.get('hunger') not in ('Hungry', 'Weak', 'Fainting'):  # hungry descents were forced back up: 33 ascends/14 descends while starving (T3603)  # offered only, Jev rarely took it: 25 of 60 deaths were 2+ levels past XL
             opts = {k: v for k, v in opts.items() if k in ('ascend', 'pray') or k.startswith(('eat_', 'quaff_'))}
         # stall guard: an option picked 3 times in a row without the game clock moving is not working
         streak = []
