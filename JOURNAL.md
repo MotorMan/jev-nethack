@@ -309,3 +309,16 @@ Now:
 
 ## 2026-09-29 20:22 — Overcorrected on blindness
 The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and Jev picked "Wait until you can see" at 83–95% over the attack options while unseen things bit it from 54 to 3 HP. A prayer refilled HP to 54, and the same thing happened again. While blind with an attack target, the wait option is now gone. Jev still won't walk blind.
+
+## 2026-09-29 20:47 — Shop prison and faster Jev calls
+- At T480 Jev ate a jackal corpse lying in Chicoutimi's general store ("You bite that, you pay for it!"). It had no gold, so the shopkeeper blocked the door for about 6000 turns while Jev tried "explore" and "door" over and over.
+  - While it was stuck, a shopkeeper '@' was also mistaken for Jev because the cursor was off the hero. Fixed by redrawing with Ctrl-R and picking the '@' nearest the last known position.
+- Fix:
+  - No eating or pickups while standing in a shop.
+  - A debt flag is set by "no gold or credit", "you pay for it" or "Pardon me, <Name>", and cleared by "You paid" and similar.
+  - While in debt, the only options are selling non-worn items and paying.
+  - Pay comes up as a "Pay for which items?" menu, which settle() used to Esc. act_pay now selects all.
+  - Result: a towel sold for 25 gold, Jev paid 19 for the corpse and walked out at T6426.
+- Jev latency: the client opened a new TLS connection for every call. With keep-alive the median went from 144 to 101 ms (p90 from 182 to 149).
+  - Prompt size and option count don't affect latency.
+  - Calls with a single option were already skipped.

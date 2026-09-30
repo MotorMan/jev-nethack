@@ -46,7 +46,7 @@ class Glyph:
 class Snapshot:
     """One clean (no overlay) screen, with the map classified."""
 
-    def __init__(self, term):
+    def __init__(self, term, hint=None):
         self.lines = list(term.lines())
         self.cursor = term.cursor()
         self.status = parse_status(self.lines)
@@ -54,15 +54,13 @@ class Snapshot:
         x, y = self.cursor
         on_map = MAP_TOP <= y <= MAP_BOT
         # invisible without see invisible: no @ is drawn, but the cursor still rests on the hero
-        self.me = (x, y) if on_map and self.lines[y][x] == '@' else self.find_me() or ((x, y) if on_map else None)
+        self.me = (x, y) if on_map and self.lines[y][x] == '@' else self.find_me(hint) or ((x, y) if on_map else None)
 
-    def find_me(self):
-        for y in range(MAP_TOP, MAP_BOT + 1):
-            for x in range(80):
-                g = self.grid[y][x]
-                if g.ch == '@' and g.fg in ('brightwhite', 'white', 'default') and not g.reverse:
-                    return (x, y)
-        return None
+    def find_me(self, hint=None):
+        # a human shopkeeper is a white @ too: with the cursor off the map, take the @ nearest where we just were
+        mes = [(x, y) for y in range(MAP_TOP, MAP_BOT + 1) for x in range(80)
+               if self.grid[y][x].ch == '@' and self.grid[y][x].fg in ('brightwhite', 'white', 'default') and not self.grid[y][x].reverse]
+        return min(mes, key=lambda p: max(abs(p[0] - hint[0]), abs(p[1] - hint[1])) if hint else 0, default=None)
 
     def at(self, x, y):
         return self.grid[y][x] if 0 <= x < 80 and MAP_TOP <= y <= MAP_BOT else None

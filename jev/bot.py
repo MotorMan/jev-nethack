@@ -100,6 +100,10 @@ class Bot:
                 self.run['lycanthropy'] = True
             if 'You feel purified' in text:
                 self.run['lycanthropy'] = False
+            if re.search(r'no gold or credit|you pay for it|Usage fee|You owe|Pardon me, [A-Z]', text):
+                self.run['debt'] = self.snap.status.get('dlvl') if self.snap else True
+            if re.search(r'You do not owe|You have paid|You paid|Thank you for shopping|pay .* in full', text, re.I):
+                self.run['debt'] = False
             self.run['recent'].append(text)
             del self.run['recent'][:-12]
 
@@ -149,7 +153,7 @@ class Bot:
 
     def answer_yn(self, q):
         self.add_msg(q)
-        rules = [('Really attack', 'n'), ('Pay?', 'y'), ('pray', 'y'), ('no return', 'n'), ('possessions identified', 'n'),
+        rules = [('Really attack', 'n'), ('Pay?', 'y'), ('Sell', 'y'), ('Itemized billing', 'n'), ('pray', 'y'), ('no return', 'n'), ('possessions identified', 'n'),
                  ('Stop eating', 'y'), ('Continue eating', 'n'), ('add to the current engraving', 'n'),
                  ('Do you want to keep the save file', 'n'), ('Dump core', 'n'), ('eat it', 'n')]
         if re.search(r'really \w+ (onto|into) that', q, re.I):  # paranoid trap confirmation: only drops and teleports are refused
@@ -179,7 +183,12 @@ class Bot:
 
     def observe(self):
         self.settle()
-        self.snap = Snapshot(self.t)
+        self.snap = Snapshot(self.t, self.snap.me if self.snap else None)
+        x, y = self.snap.cursor
+        if len(self.snap.find('@')) > 1 and self.snap.lines[y][x] != '@' and top_prompt(self.snap.lines)[0] is None:
+            self.t.send('\x12')  # redraw puts the cursor back on the hero (a shopkeeper @ was mistaken for Jev for 1800 turns)
+            self.settle()
+            self.snap = Snapshot(self.t, self.snap.me)
         s = self.snap.status
         if self.snap.me and s.get('dlvl'):
             lv = self.level()
@@ -463,6 +472,8 @@ class Bot:
         elif LOW_HP(s) and any(m['dist'] == 1 for m in hostiles) and last is not None and turn - last >= 300:
             opts['pray'] = ('Pray to Tyr (gamble)', f"Last prayer was only {turn - last} turns ago: Tyr may well be angry (bad luck, maybe smiting). But at {s.get('hp')} HP with a monster next to you, this may be the last chance.", self.act_pray)
 
+        # shop floor gold belongs to the shopkeeper: picking it up billed Jev, who then could not leave and died to Mr. Kipawa; eating its food kept another Jev locked in a shop for 4000 turns
+        shop = any(d == s.get('dlvl') and cheb(p, me) <= 7 and any('for sale' in i for i in v) for (d, p), v in self.run.get('here', {}).items()) or self.run.get('debt') == s.get('dlvl')
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):
             for it in self.inventory:
                 if re.search(FOOD, it['text']) and not any(n in it['text'] for n in NEVER_EAT) and it['text'] not in self.run.get('inedible', ()) \
@@ -471,10 +482,10 @@ class Bot:
             here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in NEVER_EAT)]
             age = s.get('turn', 0) - lv.corpses.get(me, s.get('turn', 0))
             fresh = [p for p, t0 in lv.corpses.items() if p != me and p in dist and s.get('turn', 0) - t0 < 30 and dist[p] < 25]
-            if fresh and not here:
+            if fresh and not here and not shop:
                 p = min(fresh, key=dist.get)
                 opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.", lambda p=p: self.act_goto_corpse(p))
-        if s.get('hunger') != 'Satiated':
+        if s.get('hunger') != 'Satiated' and not shop:
             here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in NEVER_EAT)]
             age = s.get('turn', 0) - lv.corpses.get(me, -10**6)  # a corpse we did not see appear is of unknown age: treat as rotten
             why = ' Packed food is rare and most deaths so far were fainting from hunger: eating fresh kills now, even when not hungry, is what keeps you alive later.'
@@ -485,8 +496,11 @@ class Bot:
                 p = min(fresh, key=dist.get)
                 opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.{why}", lambda p=p: self.act_goto_corpse(p))
 
-        # shop floor gold belongs to the shopkeeper: picking it up billed Jev, who then could not leave and died to Mr. Kipawa
-        shop = any(d == s.get('dlvl') and cheb(p, me) <= 7 and any('for sale' in i for i in v) for (d, p), v in self.run.get('here', {}).items())
+        if shop and self.run.get('debt'):  # broke and billed, the shopkeeper blocks the door forever: sell things (general stores buy anything)
+            if s.get('gold'):
+                opts['sell_pay'] = ('Pay the shopkeeper', 'You owe the shopkeeper and now have gold; pay so they let you out.', self.act_pay)
+            for it in [it for it in self.inventory if not re.search(r'weapon in|being worn|gold piece', it['text'])][:3]:
+                opts[f"sell_{it['letter']}"] = (f"Sell {it['text']} to pay your debt", "You owe the shopkeeper and have no gold, so they will not let you leave. Drop this to sell it for credit, then pay.", lambda l=it['letter']: (self.act_keys('d' + l, 'sold'), self.act_keys('p', 'paid'))[1])
         for i, item in enumerate([] if shop else self.here_items()[:4]):
             if 'for sale' in item or 'corpse' in item or HEAVY.search(item):
                 continue
@@ -593,6 +607,8 @@ class Bot:
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You are fighting bare-handed.', lambda l=weapon['letter']: self.act_wield(l))}
         elif not near and any(k.startswith('wear_') for k in opts):
             opts = {k: v for k, v in opts.items() if k.startswith('wear_')}
+        if not near and any(k.startswith('sell_') for k in opts):  # Jev chose "explore" into Chicoutimi 3000 times instead
+            opts = {k: v for k, v in opts.items() if k.startswith('sell_')}
         if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and not near:  # a confused bump into a shopkeeper attacks him
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {'rest': ('Wait until you are steady', 'You are confused or stunned: moves go in random directions and can attack peacefuls. Nothing hostile is near, so wait it out.', lambda: self.act_keys('5s', 'waited'))}
         elif 'Blind' in s.get('conditions', []):  # a blind step into an unseen watchman angered the whole Minetown watch
@@ -656,6 +672,16 @@ class Bot:
             return 'wore armor'
         self.run['unwearable'].add(it['text'])  # wrong slot taken, two-handed weapon, too big...: stop offering it
         return 'could not wear it: ' + (self.run['recent'][-1] if self.run['recent'] else '')
+
+    def act_pay(self):
+        self.t.send('p')
+        time.sleep(0.5)
+        if any('Pay for which' in l for l in self.t.lines()):  # used-up items (eaten shop food) come as a menu; settle() would Esc it
+            self.t.send('.\r')
+            time.sleep(0.5)
+        raw = ' | '.join(l.strip() for l in self.t.lines()[:3] if l.strip())
+        self.observe()
+        return 'paid: ' + raw
 
     def act_keys(self, keys, what):
         before = self.snap
