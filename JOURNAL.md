@@ -471,3 +471,6 @@ At 1/58 HP, Jev was offered the gamble prayer 478 turns after its last prayer an
 
 ## 2026-09-30 — no eating mid-fight (giant rat, T2344, Dlvl 2)
 While Hungry (not yet Weak), Jev ate corpses twice with a gecko, a giant rat and a jackal next to it, and dropped from 25 to 1 HP. The forced prayer then failed; it came 867 turns after the last one, so it should have worked about 90% of the time. Eating options are now removed while a non-passive hostile is within 2 squares, unless Jev is Weak or Fainting.
+
+## 2026-09-30 — prayer results are now logged (ape, T8587, Dlvl 7)
+This was the best game this session: T8587 and Dlvl 7, with 8 prayers roughly 400–1300 turns apart. The last one failed 770 turns after the previous one. An ape, a rothe, a rock mole and a lizard took Jev from 49 to 4 HP in 3 turns. I found no luck penalties in the messages, and rnz(350)'s long tail makes about 1 prayer in 8 fail. The pray outcome now includes the game's messages, so failures ("displeased", "smiting") can be told apart from bad luck.

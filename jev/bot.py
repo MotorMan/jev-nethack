@@ -996,12 +996,13 @@ class Bot:
         return True
 
     def act_pray(self):
+        nmsg = len(self.messages)
         self.t.send('#pray\r')
         self.observe()
         self.run['prayed_turn'] = self.snap.status.get('turn')
         with open(os.path.join(ROOT, 'runs', 'prayer.json'), 'w') as f:
             json.dump({'prayed_turn': self.run['prayed_turn']}, f)
-        return 'prayed'
+        return 'prayed: ' + ' '.join(m['text'] for m in self.messages[nmsg:])[:200]  # log success vs "You feel that Tyr is displeased"
 
     def act_eat(self, letter):
         nmsg = len(self.messages)
