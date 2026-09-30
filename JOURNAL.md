@@ -606,3 +606,6 @@ Operator note: "the bot gets stuck on elbereth too much. a better strategy might
 
 ## 2026-09-30 16:05 — held: fight or Elbereth, don't walk
 Run 20260930-140029 (Dlvl 7, T5125) closed on a rope golem, got grabbed and choked, then spent its last three turns on "Retreat one step" ("You cannot escape from the rope golem!"). 5.0 hack.c: a held hero's move escapes only on rn2(40), 7.5% (37.5% if the holder is helpless). Wiki (Rope golem): engrave Elbereth, which works while grabbed, or pick it off at range. Now a grab/choke message marks Jev held for that turn and the next, and only attack, Elbereth, pray and quaff are offered. (The game recorded the death as "wrath of Tyr", but both of its prayers were well-received; the choking did the damage.)
+
+## 2026-09-30 16:20 — no waiting on Elbereth next to elves
+Run 20260930-140639 (XL 6, Dlvl 7, T4259) killed a Woodland-elf, engraved Elbereth, then waited on it for 9 turns while another Woodland-elf readied its bow, and died to that elf. Wiki and monmove.c onscary(): @ (humans and elves) and minotaurs ignore Elbereth. The engrave option already skipped all-@ threats, but "Stay on Elbereth" did not; it is no longer offered while an @ or a minotaur is near.
