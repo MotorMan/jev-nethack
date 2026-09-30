@@ -475,8 +475,8 @@ class Bot:
                 # wiki (Fighting in corridors): a pack surrounds you on up to 8 sides; in a corridor only one or two can reach you
                 open_n = lambda q: sum(snap.walkable(q[0] + dx, q[1] + dy) for dx, dy in DIRS.values())
                 pack_near = [m for m in near if m['dist'] <= 5]
-                if len(pack_near) >= 2 and open_n(me) > 2:
-                    gap = min(m['dist'] for m in pack_near)
+                gap = min((m['dist'] for m in pack_near), default=0)
+                if len(pack_near) >= 2 and open_n(me) > 2 and gap >= 2:  # walked off with two apes adjacent at 14/42: free hits, dead (T2116)
                     choke = min((q for q, dq in dist.items() if 0 < dq <= 8 and open_n(q) <= 2 and q not in self.level().traps and not snap.is_monster(*q)
                                  and min(cheb(q, m['pos']) for m in pack_near) >= gap), key=dist.get, default=None)
                     if choke:
