@@ -449,3 +449,6 @@ Jev found and entered Sokoban at T2429. The rolling-boulder fix worked twice (T2
 
 ## 2026-09-30 — no "retreat" when there is nowhere to go (two ogres, T3455, Dlvl 6)
 Two ogres cornered Jev 5 turns after it prayed, so prayer was out. Jev picked "Retreat one step" 7 times and every one came back "nowhere to retreat", with no turn used each time. The stall guard only dropped the option after 3 tries per turn. Retreat is now offered only when an open square exists.
+
+## 2026-09-30 — starving next to a corpse (bat, T3207, fainted)
+With no food left, Jev turned Weak and prayed 639 turns after its last prayer. It failed ("Thou art arrogant"). Jev then fainted for 200 turns until a bat finished it. It had been standing on a floating eye corpse of unknown age, which the bot treats as rotten. Lichen and lizard corpses never rot, so they are now always offered. When Weak or Fainting with no prayer available, a corpse of unknown age is offered too, since risking food poisoning beats certain starvation.
