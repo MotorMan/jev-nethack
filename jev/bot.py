@@ -697,6 +697,8 @@ class Bot:
             opts['leave_nymph'] = ('Leave this level (a nymph lives here)', f"A nymph on this level keeps coming back to steal your things. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend.", lambda p=downs[0]: self.act_descend(p))
         if nymph_throw in opts and not any(m['dist'] <= 1 for m in hostiles):  # forced to throw at a nymph, a fire ant ate Jev at 10 HP
             opts = {k: v for k, v in opts.items() if k in (nymph_throw, 'pray') or k.startswith('eat_')}
+        if 'ascend' in opts and not any(m['dist'] <= 1 for m in hostiles):  # offered only, Jev rarely took it: 25 of 60 deaths were 2+ levels past XL
+            opts = {k: v for k, v in opts.items() if k in ('ascend', 'pray') or k.startswith(('eat_', 'quaff_'))}
         # stall guard: an option picked 3 times in a row without the game clock moving is not working
         streak = []
         for h in reversed(self.history):
@@ -711,6 +713,10 @@ class Bot:
                     opts.pop(c, None)
         if downs:  # a locked door can be a shop closed for inventory whose sign got scuffed: kicked one in, Mr. Kipawa killed Jev (runs before the empty guards: filtering after them left no options, 1100 turns searched)
             opts = {k: v for k, v in opts.items() if not (k.startswith('kick_') or 'locked door' in v[0])}
+        if not opts and downs and s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 and s.get('hunger') not in ('Hungry', 'Weak', 'Fainting') \
+                and sum(lv.searched.values()) < 400:
+            # 'anyway' took Jev past the pace limit 165 times in 60 games (median death XL5 on Dlvl 7): wait here for monsters and HP first
+            opts['rest'] = ('Rest and search 20 turns', f"This level is cleared, but Dlvl {s.get('dlvl', 0) + 1} is too deep for experience level {s.get('xl')}. Wait here: wandering monsters bring experience, and HP recovers.", lambda: self.act_search(20))
         if not opts and downs:  # the pace gate is advice; idle-searching a cleared level only burns food (one run searched 400+ turns in a corridor)
             opts['descend'] = ('Take the downstairs anyway', f"Nothing else is reachable on this level. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
         if not opts:

@@ -498,3 +498,8 @@ Live check of the roller fix: Jev stepped on the roller ("Click! You trigger a r
 - Fixed a KeyError when a re-plan ran before any stuck timer existed.
 
 Then a peaceful gnome king counted as `near`, which lifts the push-only filter, and Jev fetched gloves and took the '>' out with 8 pushes left. 'descend' is now removed while a Sokoban level is unsolved.
+
+## 2026-09-30 — enforce the pace rule (death analysis)
+Last 60 deaths: median T4134, Dlvl 7, XL 5. 13 were hunger, 4 were failed prayers, and 43 were fights against about 40 different monsters, none dominant. In 25 of the 60, the deepest level was 2+ below XL. Level changes that landed Jev 2+ levels past its XL came from the "Take the downstairs anyway" fallback 165 times and from "Head for the downstairs" 19 times. That fallback fires when a level has nothing left to do.
+- The fallback now waits first. Past XL+1, Jev rests and searches up to 400 turns on the cleared level (monsters come to it and HP recovers), unless it is Hungry or worse.
+- 'ascend' (offered at Dlvl ≥ XL+2) is now forced whenever no hostile is adjacent. Before, it was only an option and Jev rarely picked it.
