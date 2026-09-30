@@ -887,10 +887,10 @@ class Bot:
             return 'sokoban: ' + r
         nmsg = len(self.messages)
         self.act_keys(k, '')
+        # rolling-boulder trap: the roll animates past the pump's idle gap, and its message can land after we look, so always settle first
+        time.sleep(0.5); self.t.pump(1.0); self.observe()
         news = ' | '.join(x['text'] for x in self.messages[nmsg:])
-        if 'roll' in news:  # rolling-boulder trap: the roll animates past the pump's idle gap, and the stale screen read as a failed push
-            time.sleep(1); self.t.pump(1.0); self.observe()
-        if self.snap.me == b or 'roll' in news:  # we stepped into the boulder's old square: it moved (or fell in / rolled away)
+        if self.snap.me == b or 'roll' in news or self.snap.at(*b).ch != '0':  # we stepped into its square, or it left it (fell in / rolled away)
             self.run['soko_step'][m[0]] = self.run['soko_step'].get(m[0], 0) + 1
             return f"pushed the boulder {DIR_NAME[k]}" + (f": {news[:100]}" if news else '')
         return 'push failed' + (f": {news[:120]}" if news else '')

@@ -443,3 +443,6 @@ Jev had AC 9 and meleed a Woodland-elf from 70 HP down to 8 (elves are `@` and i
 
 ## 2026-09-30 — stop re-engraving under attack (tengu, T3479, Dlvl 6)
 With a tengu biting, Jev tried Elbereth 4 times in a row: 3 came out garbled and 1 was interrupted. Getting hit scuffs dust, so every try cost a turn and ~6 HP without a swing back. A garbled result now blocks Elbereth for 5 turns while something is adjacent, the same as an interrupted one. The death came at 12/58 HP, above the 1/7 prayer line, so praying would not have healed.
+
+## 2026-09-30 — second Sokoban attempt (soko4, 16 of ~20 pushes)
+Jev found and entered Sokoban at T2429. The rolling-boulder fix worked twice (T2455, T2464). Push 17 still desynced. At T2476/2478 a push onto a rolling-boulder trap printed its "rolls away" message only after act_soko had already read the messages. The push was scored as failed, the retry shoved a different boulder, and the plan fell apart. act_soko now always waits for the screen to settle before judging, and counts a push as done if the boulder has left its square, not only if we stepped into it.
