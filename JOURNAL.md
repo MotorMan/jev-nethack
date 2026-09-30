@@ -670,3 +670,6 @@ Run 162212 (XL 4, Dlvl 6, T4576) was Weak with a rothe and an elf zombie 2 steps
 
 ## 2026-09-30 22:35 — burden prompt pickup loop
 Run 162720 (XL 6, Dlvl 7) re-picked "2 yellow gems" every turn for 100+ turns. The pickup raised "You have a little trouble lifting 2 yellow gems. Continue? [ynq]" (pickup.c lift_object), which was escaped, so the gems stayed on the floor and were offered again. act_pickup now answers 'n' to that prompt and never offers the item again this game.
+
+## 2026-09-30 22:50 — trust "It's a wall."
+Run 163615 (Dlvl 8, T7444) re-tried the same explore step dozens of times in a dark, irregular room. The move answered "It's a wall.", but the remembered map showed '.' there, so the square was never marked blocked. Bumping a wall takes no game time, so the turn counter didn't advance. In 5.0, hack.c test_move prints "It's <a wall/solid stone>." only for IS_ROCK squares when mention_walls is on, so that message now marks the square blocked regardless of the remembered glyph.
