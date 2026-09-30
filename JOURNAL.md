@@ -452,3 +452,6 @@ Two ogres cornered Jev 5 turns after it prayed, so prayer was out. Jev picked "R
 
 ## 2026-09-30 — starving next to a corpse (bat, T3207, fainted)
 With no food left, Jev turned Weak and prayed 639 turns after its last prayer. It failed ("Thou art arrogant"). Jev then fainted for 200 turns until a bat finished it. It had been standing on a floating eye corpse of unknown age, which the bot treats as rotten. Lichen and lizard corpses never rot, so they are now always offered. When Weak or Fainting with no prayer available, a corpse of unknown age is offered too, since risking food poisoning beats certain starvation.
+
+## 2026-09-30 — stay on Elbereth when a pack surrounds (bugbears, T3443, Dlvl 6)
+At XL 4 on Dlvl 6, Jev sat safely on Elbereth at 40/44 HP with two bugbears, a hobgoblin, a kobold, a goblin and a gnome around it. Above 75% HP it was free to act, so it threw shuriken and stepped off. It was at 9 HP three turns later and dead on the fourth. That is still above the 1/7 line, so prayer could not help. With a pack in view, standing on Elbereth now forces "stay" at any HP. Also seen: the "Monsters in view" text sometimes swallows top-line messages ("The bugbear hits! ... 1 step west"). Not fixed yet.

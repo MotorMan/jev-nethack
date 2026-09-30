@@ -716,7 +716,8 @@ class Bot:
             fight = {k: v for k, v in opts.items() if k in ('pray', 'elbereth') or k.startswith(('quaff_', 'attack_', 'eat'))}  # blind engraving still scares: invisible quasits drained a blind Jev who could only swing
             # resting while unseen things bit a blind Jev from 54 to 4 HP (twice) is worse than swinging back
             opts = fight if any(k.startswith('attack_') for k in fight) else fight | {'rest': ('Wait until you can see', 'You are blind: walking bumps into unseen monsters and attacks them, peaceful or not. Wait for your sight to return.', lambda: self.act_keys('5s', 'waited'))}
-        if self.engraved_here() and s.get('hp', 1) < 0.75 * s.get('hpmax', 1) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles):
+        # a pack at any HP: left a working Elbereth at 40/44 to throw at bugbears and a goblin gang, dead 4 turns later
+        if self.engraved_here() and (pack or s.get('hp', 1) < 0.75 * s.get('hpmax', 1)) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles):
             # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'eat'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}
         # a safe prayer fully heals; Jev chose Elbereth over it at 1 HP and died. 500+ turns on, rnz(350) - elapsed < 200 most of the time:
