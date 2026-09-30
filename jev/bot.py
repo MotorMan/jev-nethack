@@ -1121,6 +1121,12 @@ class Bot:
             if g is None or g.ch in '|-+ 0#' and not (g.ch == '#' and g.fg not in ('green', 'cyan')) or self.snap.is_monster(*p):
                 return False
             p = (p[0] + sx, p[1] + sy)
+        for k in range(1, 10):  # a miss flies on: a dagger thrown at an 'i' hit a watchman behind it, and the watch killed Jev (T3629)
+            g = self.snap.at(b[0] + sx * k, b[1] + sy * k)
+            if g is None or g.ch in '|-+ 0':
+                break
+            if g.ch == '@':
+                return False
         return True
 
     def act_throw(self, letter, d, key='t'):

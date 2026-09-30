@@ -587,3 +587,6 @@ The first run after the squeeze fix logged 0 "carrying too much" bumps (was up t
 
 ## 2026-09-30 14:40 — catch Tyr's anger
 Run 20260930-133759 was "killed by the wrath of Tyr" (T5998, Dlvl 6). The T5378 prayer was answered "The voice of Tyr booms:" and the angry quote itself was never captured, so `god_angry` stayed False; Jev prayed again at T5687 ("rings out") and T5998 and was smitten. Any "voice of <god> booms / rings out" now marks the god angry.
+
+## 2026-09-30 14:55 — mind what stands behind the target
+Run 20260930-134227 died to the Minetown watch (T3629, Dlvl 6) right after throwing a dagger at an 'i': a missile that misses flies on, and the watchman beyond it turned hostile. Throws and zaps now also require no '@' within 9 squares past the target (up to the first wall).
