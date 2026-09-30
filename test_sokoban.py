@@ -26,3 +26,33 @@ for name, sol in solutions().items():
         b, k = step(m, 0)
         assert (b[0] - 3, b[1] - 2) == flip(tuple(sol['pushes'][0][:2]), f, sol['w'], sol['h']), (name, f)
 print('match ok')
+
+# replanning from a mid-solution screen state (a boulder rolled off-plan): the new plan must solve the level
+import time
+from jev.sokoban import replan
+for name, sol in solutions().items():
+    lv, me = from_lua(f'build/NetHack50/dat/{name}.lua')
+    f, ox, oy = 3, 3, 2
+    sc = lambda p: (lambda q: (q[0] + ox, q[1] + oy))(flip(p, f, sol['w'], sol['h']))
+    bs, ps = lv.boulders, lv.pits
+    for x, y, k in sol['pushes'][:len(sol['pushes']) * 9 // 10]:  # play 90% of the stored solution in level terms
+        dx, dy = DIRS[k]
+        land = lv._land((x, y), dx, dy, bs, ps)
+        nb = bs - {(x, y)} | ({land} if land else set())
+        ps = ps if land else ps - {lv._pit_hit((x, y), dx, dy, bs, ps)}
+        bs, me = nb, (x, y)
+    t0 = time.time()
+    plan = replan((name, f, ox, oy), sc(me), {sc(b) for b in bs}, {sc(p) for p in ps} | {sc(p) for p in lv.rollers})
+    assert plan, name
+    inv = {sc(p): p for p in lv.floor}
+    for b, k in plan:  # replay in level terms: mirror both axes flips h<->l and k<->j
+        b, k = inv[b], {'h': 'l', 'l': 'h', 'k': 'j', 'j': 'k'}[k]
+        dx, dy = DIRS[k]
+        assert (b[0] - dx, b[1] - dy) in lv.reach(me, bs, ps), (name, b, k)
+        land = lv._land(b, dx, dy, bs, ps)
+        assert land is not False, (name, b, k)
+        nb = bs - {b} | ({land} if land else set())
+        ps = ps if land else ps - {lv._pit_hit(b, dx, dy, bs, ps)}
+        bs, me = nb, b
+    assert not ps, (name, len(ps))
+    print(name, 'replan ok', len(plan), f'{time.time() - t0:.1f}s')

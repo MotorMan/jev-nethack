@@ -483,3 +483,8 @@ The waits added after each push worked: 20 pushes in a row succeeded. After T199
 
 ## 2026-09-30 — only the kill's own square counts as a fresh corpse (food poisoning, T4779, Soko 1)
 While Weak, Jev ate an ape corpse: "Ulch - that meat was tainted! You feel deathly sick." It prayed next, but Tyr was "displeased" (the new prayer log shows this), so the food poisoning killed it. The corpse had been marked fresh because it was first seen within 2 squares of a "You kill" message. The server restart had wiped the corpse memory, and an old corpse next to a new kill looks the same. A corpse now counts as fresh only if the previous screen showed a monster on that square.
+
+## 2026-09-30 — Sokoban re-plans from the screen (starved at T34423 in Sokoban)
+The worst game this session. On the first Sokoban level (soko4-1), push 29 of the stored solution became unreachable. The 200-turn give-up then left Jev in a pocket sealed by its own pushed boulders, with no way down to '>'. It searched for hidden passages for 31,000 turns, praying for food when it could, and starved.
+
+Now, when the next push is unreachable for 30 turns or its boulder is missing, `sokoban.replan()` solves the level from the current screen. It takes the '0' squares as boulders, the level's own pits that still show '^' as holes, and the rollers from the level file, then follows that plan. It tries at most 3 times per level before giving up. sokoban.json now also stores pits and rollers. The existing solver solves every level from a 90%-solved state (test_sokoban.py). From a fresh start it can't do soko1-1, soko1-2, soko2-1 or soko3-2, which is why the stored wiki solutions remain the first choice.

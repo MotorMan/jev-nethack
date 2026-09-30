@@ -656,8 +656,9 @@ class Bot:
         m = self.soko()
         if m and not self.run.get('soko_done'):
             i = self.run.setdefault('soko_step', {}).get(m[0], 0)
-            st = sokoban.step(m, i)
-            n = len(sokoban.solutions()[m[0]]['pushes'])
+            plan = self.run.setdefault('soko_plan', {}).get(m[0])
+            st = (plan[0] if plan else None) if plan is not None else sokoban.step(m, i)
+            n = i + len(plan) if plan is not None else len(sokoban.solutions()[m[0]]['pushes'])
             if st:
                 b, k = st
                 behind = (b[0] - DIRS[k][0], b[1] - DIRS[k][1])
@@ -665,12 +666,18 @@ class Bot:
                     opts['soko_push'] = (f"Sokoban: push the boulder {compass(me, b)} one square {DIR_NAME[k]} (push {i + 1} of {n})",
                                          f"Next move of a known solution to this Sokoban level. Filling every pit or hole opens the way up; each level has food, a ring and a wand, and the top one a bag of holding or amulet of reflection.",
                                          lambda m=m, b=b, behind=behind, k=k: self.act_soko(m, b, behind, k))
-                elif snap.at(*b).ch != '0' and not snap.is_monster(*b):
-                    self.log(f"sokoban {m[0]}: expected a boulder at {b} for push {i + 1}; the level no longer matches the plan, leaving", 'warn')
-                    self.run['soko_done'] = True
-                elif s.get('turn', 0) - self.run.setdefault('soko_stuck', {}).setdefault((m[0], i), s.get('turn', 0)) > 200:
-                    self.log(f"sokoban {m[0]}: push {i + 1} unreachable for 200 turns (a boulder rolled off-plan); leaving", 'warn')
-                    self.run['soko_done'] = True  # the stall was 2000 turns of search_hidden next to an off-plan boulder
+                elif snap.at(*b).ch != '0' and not snap.is_monster(*b) or \
+                        s.get('turn', 0) - self.run.setdefault('soko_stuck', {}).setdefault((m[0], i), s.get('turn', 0)) > 30:
+                    # off-plan (a boulder rolled, or the plan walled us into a pocket: starved 30000 turns there): solve from the screen
+                    tries = self.run.setdefault('soko_replans', {})
+                    tries[m[0]] = tries.get(m[0], 0) + 1
+                    new = sokoban.replan(m, me, set(snap.find('0')), set(snap.find('^'))) if tries[m[0]] <= 3 else None
+                    self.log(f"sokoban {m[0]}: push {i + 1} off-plan; replan -> {len(new) if new else 'no solution, leaving'}", 'warn')
+                    if new:
+                        self.run['soko_plan'][m[0]] = new
+                        self.run['soko_stuck'].pop((m[0], i), None)
+                    else:
+                        self.run['soko_done'] = True
                 if 'soko_push' in opts and not near:
                     opts = {k2: v for k2, v in opts.items() if k2 == 'soko_push' or k2 == 'pray' or k2.startswith('eat_')}
             elif m[0].startswith('soko1'):
@@ -923,6 +930,8 @@ class Bot:
         news = ' | '.join(x['text'] for x in self.messages[nmsg:])
         if self.snap.me == b or 'roll' in news or self.snap.at(*b).ch != '0':  # we stepped into its square, or it left it (fell in / rolled away)
             self.run['soko_step'][m[0]] = self.run['soko_step'].get(m[0], 0) + 1
+            if self.run.get('soko_plan', {}).get(m[0]):
+                self.run['soko_plan'][m[0]].pop(0)
             return f"pushed the boulder {DIR_NAME[k]}" + (f": {news[:100]}" if news else '')
         return 'push failed' + (f": {news[:120]}" if news else '')
 

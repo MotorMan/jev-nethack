@@ -187,6 +187,26 @@ def step(m, i):
     return (x + ox, y + oy), k
 
 
+
+def replan(m, me, boulders, holes, limit=20000):
+    """Solve the matched level from what the screen shows now: [(boulder_pos, dir_key)] in screen terms, or None.
+    boulders/holes are screen squares showing '0'/'^'; only the level's own pits count as holes."""
+    name, f, ox, oy = m
+    sol = solutions()[name]
+    to_lv = lambda p: flip((p[0] - ox, p[1] - oy), f, sol['w'], sol['h'])
+    to_sc = lambda p: (lambda q: (q[0] + ox, q[1] + oy))(flip(p, f, sol['w'], sol['h']))
+    floor = {(x, y) for y, r in enumerate(sol['map']) for x, c in enumerate(r) if c == '.'}
+    pits = {tuple(p) for p in sol['pits']} & {to_lv(p) for p in holes}
+    lv = Level(floor, {to_lv(b) for b in boulders} & floor, pits, [tuple(p) for p in sol['rollers']])
+    if to_lv(me) not in floor or len(lv.boulders) < len(pits):
+        return None
+    path = lv.solve(to_lv(me), limit)
+    if path is None:
+        return None
+    fk = lambda k: ({'h': 'l', 'l': 'h'}.get(k, k) if f & 1 else k) if k in 'hl' else ({'k': 'j', 'j': 'k'}.get(k, k) if f & 2 else k)
+    return [(to_sc(b), fk(k)) for b, k in path]
+
+
 WIKI_DIR = {'r': 'l', 'l': 'h', 'u': 'k', 'd': 'j'}
 
 
@@ -298,6 +318,6 @@ if __name__ == '__main__':  # python -m jev.sokoban: rebuild jev/sokoban.json fr
             sols[name] = {'me': me, 'pushes': [[b[0], b[1], k] for b, k in path]}
         src = open(f).read()
         rows = re.search(r'des\.map\(\[\[\n(.*?)\]\]', src, re.S)[1].rstrip('\n').split('\n')
-        out[name] = dict(map=rows, **sols[name])
+        out[name] = dict(map=rows, pits=sorted(lv.pits), rollers=sorted(lv.rollers), **sols[name])
         print(name, len(out[name]['pushes']), 'pushes')
     json.dump(out, open('jev/sokoban.json', 'w'), indent=None, separators=(',', ':'))
