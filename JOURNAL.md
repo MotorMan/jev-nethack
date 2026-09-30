@@ -517,3 +517,6 @@ On soko3-1, push 142 of 175 (a replanned route), Jev tried the same push for 200
 Killed by an owlbear on Dlvl 7, T6785, at XL 7 with 70/76 HP. After one Elbereth attempt was interrupted, Jev threw darts at the adjacent owlbear 4 turns running instead of meleeing with its spear, and dropped 60 → 49 → 35 → 18 → dead. The prompt also called the owlbear "weaker than you": the label was difficulty − XL − 1, which counts difficulty = XL as weaker.
 - Missiles are now offered only at range 2+. Passive monsters (floating eyes, molds) are still the exception.
 - Threat labels now use difficulty − XL, so difficulty = XL is "about your level".
+
+## 2026-09-30 — stall guard for blocked walks
+On Dlvl 6 Jev spent about 3500 turns (T4000–T7486) picking "Search for hidden passages". Each try ended "blocked after 1 steps" against the shopkeeper in a doorway, with a floating eye next to it. Every bump costs a game turn, and the stall guard only fired when the clock stood still. Now an option that comes back "blocked" 5 decisions in a row is dropped for the next decision.

@@ -707,6 +707,9 @@ class Bot:
             streak.append(h['choice'])
         if len(streak) >= 3 and len(set(streak[:3])) == 1:
             opts.pop(streak[0], None)
+        last = self.history[-5:]  # blocked walks cost a turn each, so the clock-frozen check misses them: 3500 turns bumping a shopkeeper past a floating eye
+        if len(last) == 5 and len({h['choice'] for h in last}) == 1 and all('blocked' in h['outcome'] for h in last) and len(opts) > 1:
+            opts.pop(last[0]['choice'], None)
         if len(streak) >= 4:  # several tries, clock frozen: everything tried this turn is failing
             for c in set(streak):
                 if len(opts) > 1:
