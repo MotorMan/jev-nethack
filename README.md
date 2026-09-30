@@ -5,6 +5,8 @@
 
 [Jev](https://typesafe.ai) plays NetHack 5.0. Jev is the `systemone` model from TypeSafe. No LLM is in the loop.
 
+<img width="692" height="800" alt="CleanShot 2026-09-29 at 22 22 39" src="https://github.com/user-attachments/assets/389ac3f4-2e59-4c88-bfd3-fc010781eeff" />
+
 ## How it works
 
 Jev does not write text or type commands. It only picks one answer from a list. This project uses that as follows:
