@@ -509,3 +509,6 @@ First game with the pace fix: never more than 2 levels deeper than its XL (Dlvl 
 
 ## 2026-09-30 — stay up after fleeing upstairs
 Died to a wolf, Dlvl 6, T5172. A warg and wolf pack hit Jev while it stood on Elbereth, and it fled up the stairs. On the very next decision it took the stairs back down into the pack and was eaten. Fleeing upstairs now blocks descending for 50 turns.
+
+## 2026-09-30 — Sokoban: replan when a push fails "in vain"
+On soko3-1, push 142 of 175 (a replanned route), Jev tried the same push for 200+ turns. Every try gave "You try to move the boulder, but in vain": something unseen was behind the boulder. A failed push never counted as stuck, so the replanner never ran. An "in vain" failure now forces an immediate replan. After 3 replans, Jev leaves the level.
