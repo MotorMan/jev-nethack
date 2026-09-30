@@ -431,3 +431,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-30 — root cause of the "no options" searches (offline, budget paused)
 Run 20260930-001801 searched ~1100 turns on Dlvl 6 with `>` in view. At XL 5 the pace gate hid `descend`; the only option left was a locked door. The "don't kick locked doors when downstairs are known" filter ran *after* the empty-options guards, so it emptied the list and decide() fell back to searching. Moved that filter above the guards, so now "Take the downstairs anyway" gets offered.
+
+## 2026-09-30T15:32Z — resumed
+The user OK'd a $25 credit. The server now runs with `JEV_BUDGET_USD=25` (total, $5 already spent).
