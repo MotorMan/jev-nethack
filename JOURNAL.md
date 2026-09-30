@@ -437,3 +437,6 @@ The user OK'd a $25 credit. The server now runs with `JEV_BUDGET_USD=25` (total,
 
 ## 2026-09-30 — invisibility blinds the bot (soldier ant, T5244, Dlvl 8)
 Jev put on a +0 cloak of invisibility. In 5.0 an invisible hero with no see-invisible gets no `@` on the map. `Snapshot.find_me` then locked onto a nearby elf `@`. The bot's "monsters in view" became terrain descriptions around the elf, and Jev searched and rested while a soldier ant and a lizard chewed it from 75 to 0 HP (it prayed once in between). Fix: never wear an identified cloak of invisibility, and take it off at once if worn, even with monsters near (it shares the levitation remove path).
+
+## 2026-09-30 — force the late gamble prayer (rothe/Woodland-elf, T5087, Dlvl 8)
+Jev had AC 9 and meleed a Woodland-elf from 70 HP down to 8 (elves are `@` and ignore Elbereth). The gamble prayer was offered 702 turns after the last prayer, and Jev threw darts instead. Prayer fixes low HP when the timeout is under 200. Timeout starts at rnz(350) and drops 1 per turn, so 500+ turns later it is usually safe. A low-HP gamble at 500+ turns is now forced the way a safe prayer is.
