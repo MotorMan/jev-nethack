@@ -679,3 +679,6 @@ Run 163841 (Dlvl 8 Minetown, T8716) spent its last ~1000 turns with the wrong id
 
 ## 2026-09-30 23:25 — no forced Elbereth wait under missile fire
 Run 164839 (XL 5, Dlvl 5, T2350) walked into a dwarf queen (36 → 13 HP) and engraved Elbereth. The forced "stay on Elbereth" rule then made it wait five turns while a bugbear threw orcish daggers at it. Elbereth only scares monsters out of melee (monmove.c onscary / m_move), and throwing, shooting, zapping and breath still reach you. Per the wiki it is not protection against ranged attackers. The forced wait is now skipped if any of the last 3 messages say something throws, shoots, zaps, breathes or spits, which leaves attack, retreat, quaff and pray on the table.
+
+## 2026-09-30 23:40 — nymph-stripped, then blind (logged, no fix)
+Run 165106 (XL 6, Dlvl 7, T3840) had its armor stolen by a water nymph at T3195, while it was engraving, and a conical hat stolen at T3601. At AC 10 a raven blinded it, and unseen biters took it from 58 to 0 HP. The existing "leave the level after a theft" rule needs a known downstairs, and none had been found. This is the second nymph-stripped death this evening. Idea for later: when armor is stolen, hunt the nymph (wiki: she teleports nearby, and killing her drops everything), or wear a spare from the stash first.
