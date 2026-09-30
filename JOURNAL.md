@@ -524,3 +524,6 @@ On Dlvl 6 Jev spent about 3500 turns (T4000–T7486) picking "Search for hidden 
 ## 2026-09-30 — blind in a shop: don't swing at the unseen shopkeeper
 Killed by Ms. Tipor the shopkeeper, Dlvl 7, T5068. Jev was blind in her shop ("You feel no objects here") and picked "Attack an unseen creature". That creature was the shopkeeper: "You miss it. It gets angry! Halt! You're under arrest!" Her wand of striking took it from 51 HP to dead in 5 turns. The game before ("killed by a wand" beside "for sale" items, attacking unseen creatures) looks like the same thing. While blind, Jev keeps attack options on purpose, because unseen biters had drained it while it rested. Now, when it is blind in a shop and nothing unseen is hitting it, the attacks are dropped.
 (81bb732 shipped with a syntax error; fixed in the next commit.)
+
+## 2026-09-30 — a blocked walk with a monster adjacent isn't retried
+Killed by a hill orc on Dlvl 8, T6782, XL 6. A prayer restored Jev to 80/80. It then picked "Head back upstairs" 5 times (the pace rule offers it at Dlvl ≥ XL+2), and each try was "blocked after 1 steps" by the orc pack in the way. HP went 75 → 62 → 47 → … → dead, and it never swung at the "weaker" hill orcs. Now a move that just came back blocked, with a hostile adjacent, isn't offered on the next decision.

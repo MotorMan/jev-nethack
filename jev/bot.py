@@ -707,6 +707,8 @@ class Bot:
             streak.append(h['choice'])
         if len(streak) >= 3 and len(set(streak[:3])) == 1:
             opts.pop(streak[0], None)
+        if self.history and 'blocked' in self.history[-1]['outcome'] and any(m['dist'] <= 1 for m in hostiles) and len(opts) > 1:
+            opts.pop(self.history[-1]['choice'], None)  # hill orcs blocked the stairs path: 5 'ascend' bumps at 80/80 HP without a swing, dead (T6782)
         last = self.history[-5:]  # blocked walks cost a turn each, so the clock-frozen check misses them: 3500 turns bumping a shopkeeper past a floating eye
         if len(last) == 5 and len({h['choice'] for h in last}) == 1 and all('blocked' in h['outcome'] for h in last) and len(opts) > 1:
             opts.pop(last[0]['choice'], None)
