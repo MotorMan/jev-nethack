@@ -561,6 +561,8 @@ class Bot:
         if not fr and not downs:
             molds = [m for m in hostiles if m['pos'] in self.avoid and (walled or ('floating eye' not in m['name'] and not (m['ch'] == 'e' and m['fg'] == 'blue')))
                      and ('gas spore' not in m['name'] or s.get('hp', 0) >= 30)]  # its 4d6 blast is survivable at 30+ HP
+            if any(not m['passive'] for m in hostiles) or s.get('hp', 0) < 0.9 * s.get('hpmax', 1):  # frozen by an eye with a giant ant in view: dead at T8374
+                molds = [m for m in molds if m['ch'] != 'e']
             if molds:
                 self.avoid -= {m['pos'] for m in molds}
                 d2, _ = self.dijkstra()
