@@ -553,9 +553,9 @@ class Bot:
         downs = [p for p in snap.find('>') if p in dist or p == me]
         too_deep = s.get('dlvl', 1) >= (s.get('xl') or 1) + 2  # pace: Dlvl <= XL+1 (XL+2 still lost most runs on Dlvl 4-5 before T2000)
         ups = [p for p in snap.find('<') if p in dist]
-        if too_deep and s.get('dlvl', 1) >= (s.get('xl') or 1) + 3 and ups and self.standing_on() != '<':
+        if too_deep and ups and self.standing_on() != '<':  # XL5 on Dlvl 7 died to a winter wolf; XL+3 was too late
             opts['ascend'] = ('Head back upstairs', f"This level is far too deep for experience level {s.get('xl')}. Walk to the up staircase ({dist[ups[0]]} steps {compass(me, ups[0])}) and climb to Dlvl {s.get('dlvl', 0) - 1}.", lambda p=ups[0]: self.act_descend(p, '<'))
-        if too_deep or s.get('hp', 1) < 0.8 * s.get('hpmax', 1):  # rest first; fleeing downward from a fight at this depth is how the pony and giant ant runs ended
+        if s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 or s.get('hp', 1) < 0.8 * s.get('hpmax', 1):  # rest first; fleeing downward from a fight at this depth is how the pony and giant ant runs ended
             pass
         elif self.standing_on() == '>':
             opts['descend'] = ('Go down the stairs', f"You are on the down staircase to Dlvl {s.get('dlvl', 0) + 1}.", lambda: self.act_keys('>', 'descended'))
@@ -605,7 +605,7 @@ class Bot:
             for c in set(streak):
                 if len(opts) > 1:
                     opts.pop(c, None)
-        if not opts and downs and too_deep and lv.resets:  # the pace gate is advice; being stuck forever is worse (a trap door once cut off the upstairs)
+        if not opts and downs and lv.resets:  # the pace gate is advice; being stuck forever is worse (a trap door once cut off the upstairs)
             opts['descend'] = ('Take the downstairs anyway', f"Nothing else is reachable on this level. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
         if not opts:
             # nothing to do usually means level memory has walled us in (once for 7800 turns): forget it and look again
