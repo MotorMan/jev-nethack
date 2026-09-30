@@ -658,3 +658,6 @@ Run 155444 died on T3099 at Dlvl 5. A leprechaun picked up a wand of death and z
 
 ## 2026-09-30 21:35 — flee upstairs from much-stronger monsters
 Run 155753 (XL 8, Dlvl 9, T8069) stepped off the upstairs and met a jabberwock (difficulty 18). It went 85 → 47 → 33 HP in two turns. The '<' was 2 steps away, but "Run for the upstairs" was offered only below 1/3 HP, so Jev engraved (garbled), meleed, prayed and died. The wiki advises fleeing a jabberwock. In 5.0, `levl_follower` (mondata.c) lets only M2_STALK monsters follow you up the stairs, and the jabberwock isn't a stalker. Now, when a "much stronger" monster (difficulty ≥ XL+5) is near and the upstairs is within 8 steps, flee_up/upstairs are offered and the attack/approach/explore options are dropped.
+
+## 2026-09-30 21:50 — retry armor after a theft
+Run 160545 (XL 5, Dlvl 6, T4388) died at AC 10 to a giant bat and a pony, with a studded leather armor in the pack. At T3033 it tried that spare while already wearing body armor. The failure ("already wearing some armor") marked the spare unwearable for the whole game. Wood nymphs then stole the +3 small shield (T3408) and the worn armor (T3504). A failed wear now records the AC at the time, and the item is offered again once AC gets worse.

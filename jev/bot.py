@@ -592,7 +592,7 @@ class Bot:
         if not near:
             for it in self.inventory:
                 t = it['text']
-                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and t not in self.run.setdefault('unwearable', set()):
+                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
                     opts[f"wear_{it['letter']}"] = (f"Wear {t}", "Put on this armor (takes a few turns; may be cursed if unidentified).", lambda it=it: self.act_wear(it))
             if any(k.startswith('wear_') for k in opts):  # offered, rarely taken: died at AC 6 with an orcish helm in the pack and no helm on (T3559)
                 opts = {k: v for k, v in opts.items() if k.startswith(('wear_', 'eat_')) or k == 'pray'}  # each try wears it or marks it unwearable, so no loop
@@ -872,7 +872,7 @@ class Bot:
         now = next((i['text'] for i in self.inventory if i['letter'] == it['letter']), '')
         if 'being worn' in now:
             return 'wore armor'
-        self.run['unwearable'].add(it['text'])  # wrong slot taken, two-handed weapon, too big...: stop offering it
+        self.run['unwearable'][it['text']] = self.snap.status.get('ac') or 0  # wrong slot taken, two-handed weapon, too big...: stop offering it
         return 'could not wear it: ' + (self.run['recent'][-1] if self.run['recent'] else '')
 
     def act_pay(self):
