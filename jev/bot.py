@@ -467,7 +467,7 @@ class Bot:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.act_keys('<', 'went up'))
         walled = len(dist) <= 3 and any(m['passive'] and m['dist'] == 1 for m in hostiles)  # boxed in by floating eyes
         if (near or walled or self.unseen_attacker()) and not self.engraved_here() and not (near and all(m['ch'] == '@' for m in near)) \
-                and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf'} \
+                and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} \
                 and not (any(m['dist'] == 1 for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # @ ignore it; engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
 
@@ -700,7 +700,7 @@ class Bot:
         if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and not near:  # a confused bump into a shopkeeper attacks him
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {'rest': ('Wait until you are steady', 'You are confused or stunned: moves go in random directions and can attack peacefuls. Nothing hostile is near, so wait it out.', lambda: self.act_keys('5s', 'waited'))}
         elif 'Blind' in s.get('conditions', []):  # a blind step into an unseen watchman angered the whole Minetown watch
-            fight = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'attack_', 'eat'))}
+            fight = {k: v for k, v in opts.items() if k in ('pray', 'elbereth') or k.startswith(('quaff_', 'attack_', 'eat'))}  # blind engraving still scares: invisible quasits drained a blind Jev who could only swing
             # resting while unseen things bit a blind Jev from 54 to 4 HP (twice) is worse than swinging back
             opts = fight if any(k.startswith('attack_') for k in fight) else fight | {'rest': ('Wait until you can see', 'You are blind: walking bumps into unseen monsters and attacks them, peaceful or not. Wait for your sight to return.', lambda: self.act_keys('5s', 'waited'))}
         if self.engraved_here() and s.get('hp', 1) < 0.75 * s.get('hpmax', 1) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles):

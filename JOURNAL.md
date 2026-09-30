@@ -399,3 +399,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-29 23:16 — nymphs
 - A rothe killed Jev while it was fainted at T3433. Earlier, water nymphs had stolen the food ration, then the spear and the +3 shield, and then the slime molds. Jev also wielded an unidentified flail to replace the stolen spear, and it turned out cursed. Now, when a nymph is 2–6 squares away and in a straight line, throwing a missile at it is the only choice besides praying and eating.
+
+## 2026-09-29 23:21 — blind vs. invisible quasits
+- Three invisible attackers (a quasit pack) killed a blind Jev on Dlvl 6. Its Dex was drained from 6 to 3. The Blind filter only allowed fighting, praying, quaffing and eating, so Elbereth was never offered, even though you can engrave while blind. Elbereth is now allowed while blind. It's no longer offered while levitating (Jev had quaffed levitation and can't reach the floor then).
