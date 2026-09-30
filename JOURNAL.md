@@ -423,3 +423,8 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-30 00:23 — empty options: take the stairs
 - A 9600-turn run starved after about 1,100 turns on Dlvl 6 choosing "Search 10 turns" about 200 times, with the downstairs in view. build_options came back empty, and decide() fell back to searching. I couldn't find which filter emptied it (replaying the saved screen without the level memory gives normal options), so the fallback now takes a reachable downstairs and logs a "no options" warning so the next case can be traced. Also, "orange gems" no longer count as food.
+
+## 2026-09-30 00:53 — paused: Jev budget exhausted
+- The $5.00 Jev budget cap (runs/budget.json) was reached at the start of run 20260930-002321, and play has stopped. I didn't raise the cap. That's the operator's call.
+- Fixed tonight: Sokoban solutions and play (first real attempt got 6 pushes in; then fixed rolling-boulder pushes), holding descent below the Oracle to find the Sokoban stairs, hold-position when surrounded, eating tins, nymphs (throw at them, leave their level), Elbereth while blind, gamble prayer at range, no Elbereth camping when healthy, no closing in on strong packs, taking off levitation boots, and an empty-options fallback that takes the stairs.
+- Best recent runs: T9602 Dlvl 7 and T7824 Dlvl 7 (XL 7). No ascension yet.
