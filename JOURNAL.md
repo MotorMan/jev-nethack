@@ -283,3 +283,6 @@ Two more runs:
 
 ## 2026-09-29 18:56 — Don't step off Elbereth
 Two runs in a row (a rothe on Dlvl 6, an ape on Dlvl 7) ended the same way. Jev healed on Elbereth to about 35% HP, then walked off toward an item or to explore while the monsters were still 2–3 squares away. It took a big hit, and the re-engrave came out garbled. Now, while standing on a verified Elbereth below 75% HP with any non-@ hostile within 7 squares, the only choices are staying put, praying, quaffing or eating.
+
+## 2026-09-29 19:07 — Praying every four turns
+Two runs died "while praying". Each got bitten by a were-creature ("You feel feverish"), and lycanthropy was on the list of fatal conditions that skip the prayer timeout. The first prayer cured it. The next bite re-infected Jev, so Jev prayed again 3 turns later: −3 Luck and an angry Tyr ("Thou hast angered me", then "Thou durst call upon me? Then die, mortal!"). Lycanthropy now follows the normal timeout. The normal gap goes from 600 to 1000 turns: after a successful prayer the timeout is rnz(350), which has a long tail. The low-HP gamble with a monster adjacent (≥300 turns) stays.

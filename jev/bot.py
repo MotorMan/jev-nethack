@@ -443,9 +443,8 @@ class Bot:
                     break
 
         fatal = [c for c in s.get('conditions', []) if c in ('FoodPois', 'Fpois', 'Poi', 'TermIll', 'Ill', 'Stone', 'Ston', 'Sto', 'Slime', 'Slim', 'Slm', 'Strngl', 'Stngl', 'Str', 'InLava', 'Lav')]  # kill in a few turns; prayer cures
-        if self.run.get('lycanthropy'):
-            fatal = fatal + ['lycanthropy (you will turn into a jackal; prayer cures it)']
-        trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting') or fatal
+        lyc = self.run.get('lycanthropy')  # slow, and each were bite re-infects: it follows the normal timeout (two runs prayed every 4 turns into "Then die, mortal!")
+        trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting') or fatal or lyc
         last = self.run.get('prayed_turn')
         if last is not None and last > (s.get('turn') or 0):
             last = self.run['prayed_turn'] = None
@@ -454,8 +453,9 @@ class Bot:
         # timeout after a good prayer is ~350 on average and major trouble is fixed below 200: 600 is a fair bet for
         # low HP, hunger can wait longer (a couatl killed the run that prayed 6 times in 33 turns)
         # 5.0 source: timeout starts at 300, drops 1/turn, and major trouble (all of these) is fixed at <= 200
-        if trouble and (fatal or (turn - last >= 600 if last is not None else turn >= 110)):
-            opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
+        # rnz(350) is heavy-tailed: 1000 is the usual safe gap; the gamble below covers dying with a monster adjacent
+        if trouble and (fatal or (turn - last >= 1000 if last is not None else turn >= 110)):
+            opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else 'lycanthropy: you will turn into a jackal' if lyc and s.get('hunger') not in ('Weak', 'Fainting') else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
         elif LOW_HP(s) and any(m['dist'] == 1 for m in hostiles) and last is not None and turn - last >= 300:
             opts['pray'] = ('Pray to Tyr (gamble)', f"Last prayer was only {turn - last} turns ago: Tyr may well be angry (bad luck, maybe smiting). But at {s.get('hp')} HP with a monster next to you, this may be the last chance.", self.act_pray)
 
