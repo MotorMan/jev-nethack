@@ -462,3 +462,6 @@ farlook: a reply that doesn't start with "<glyph> " is a stale top-line message.
 
 ## 2026-09-30 — #terrain finds stairs under objects
 One game spent 260+ turns on a Minetown-style Dlvl 6 (shops, temple, rock piles everywhere), alternating explore and search, with "no unexplored edges left" and no '>' ever seen. A downstair under an object pile never shows as '>'. When nothing is left to explore and no '>' is visible, the bot now runs `#terrain` (known map without monsters, objects and traps), at most every 300 turns per level. Any '>' it finds is remembered in `Level.stairs`, which feeds `downs`. Also turned off 5.0's `tips`, whose farlook tutorial popped up over the terrain view.
+
+## 2026-09-30 — don't chase unicorns (gray unicorn, T6045, Minetown)
+A cross-aligned gray unicorn (speed 24, butt d12 + kick d6) hovered 2 squares off Jev's Elbereth. When the engraving wore off, Jev chose "Close in on gray unicorn" at 38/55 HP and lost 24 HP in one turn. Its prayer was 53 turns old. Unicorns keep out of line and outrun you, so closing in only gives free hits. There's no approach option for unicorns now.
