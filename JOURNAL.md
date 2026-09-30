@@ -557,3 +557,6 @@ Checked armor at death for the last 19 runs. Several died at AC 6–10 wearing 0
 
 ## 2026-09-30 — hungry Jev isn't forced back upstairs
 Killed by a gecko "while fainted from lack of food", Dlvl 7, T3603. When Hungry, the pace rule lets Jev descend to find food. But the forced ascend at Dlvl ≥ XL+2 sent it straight back up, so its last 150 decisions included 33 ascends and 14 descends, burning food on stairs. The forced ascend now doesn't apply while Hungry, Weak or Fainting. It is still offered as an option.
+
+## 2026-09-30 — eat the fresh corpse underfoot
+Last 30 runs: "Eat the X here" was offered 98 times and taken 15. Explore, pickup and fetch won the rest. "Go eat the fresh corpse" was taken 489 of 772 times. The eat option is only offered for a fresh corpse (seen appearing within 40 turns, or a lichen or lizard) and while Jev isn't Satiated, and hunger is still the top single killer. With nothing hostile near, it is now forced.

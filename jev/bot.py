@@ -536,6 +536,8 @@ class Bot:
             if fresh and not here and not near and 'goto_corpse' not in opts:
                 p = min(fresh, key=dist.get)
                 opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.{why}", lambda p=p: self.act_goto_corpse(p))
+        if 'eat_corpse' in opts and not near:  # taken 15 of 98 offers (explore won), and hunger is the top killer: eat it
+            opts = {k: v for k, v in opts.items() if k in ('eat_corpse', 'pray')}
         if s.get('hunger') not in ('Weak', 'Fainting') and any(m['dist'] <= 2 for m in near):  # eating twice mid-swarm took 25 HP to 1 (giant rat, T2344)
             opts = {k: v for k, v in opts.items() if not k.startswith(('eat_', 'goto_corpse'))}
 
