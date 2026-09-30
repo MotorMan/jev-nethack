@@ -3,6 +3,7 @@ Jev chooses every option. No LLM anywhere."""
 import glob, heapq, json, os, random, re, threading, time
 from datetime import datetime, timezone
 
+from . import sokoban
 from .nh import (DIRS, DIR_OF, DIR_NAME, MAP_TOP, MAP_BOT, OBJECT_CHARS, Snapshot, top_prompt, messages_from)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -51,6 +52,7 @@ class Level:
         self.resets = 0        # times near/dead/blocked were wiped after fruitless searching
         self.corpses = {}      # square -> turn the corpse was first seen
         self.town = False      # a peaceful @ lives here (Izchak killed a run over a kicked shop door)
+        self.arrival = None    # where we first stood here: the other '<' on the Oracle+1 level leads to Sokoban
 
 
 class Bot:
@@ -207,7 +209,19 @@ class Bot:
         return self.snap
 
     def level(self):
-        return self.run['levels'].setdefault(self.snap.status.get('dlvl', 0), Level())
+        dl = self.snap.status.get('dlvl', 0)
+        lv = self.run['levels'].setdefault(('soko', dl) if self.soko() else dl, Level())  # Sokoban shares Dlvl numbers with the main dungeon
+        lv.arrival = lv.arrival or self.snap.me
+        return lv
+
+    def soko(self):
+        """(name, flip, ox, oy) when this is a Sokoban level (5.0 premaps them), else None; cached per screen."""
+        snap = self.snap
+        if getattr(self, '_soko_snap', None) is not snap:
+            walls = {(x, y) for y in range(MAP_TOP, MAP_BOT + 1) for x in range(80)
+                     if snap.at(x, y) is not None and snap.at(x, y).ch in '-|' and not snap.is_door(x, y)}
+            self._soko_snap, self._soko = snap, sokoban.match(walls)
+        return self._soko
 
     # ---------- pathing ----------
     def dijkstra(self, snap=None):
@@ -215,6 +229,7 @@ class Bot:
         lv = self.level()
         start = snap.me
         dist, prev = {start: 0}, {}
+        soko = self.soko() if snap is self.snap else None
         pq = [(0, start)]
         while pq:
             d, p = heapq.heappop(pq)
@@ -224,6 +239,8 @@ class Bot:
                 q = (p[0] + dx, p[1] + dy)
                 if q in lv.blocked or q in lv.traps or q in self.avoid or not snap.walkable(*q):
                     continue
+                if soko and (snap.at(*q).ch in '^0' or dx and dy and not all(snap.walkable(*c) and snap.at(*c).ch != '0' for c in ((p[0] + dx, p[1]), (p[0], p[1] + dy)))):
+                    continue  # Sokoban: never shove a boulder off-plan or drop into a hole; no squeezing past boulders diagonally
                 if dx and dy and (not snap.diag_ok(p, q) or (p == start and self.standing_on() == 'door')):
                     continue
                 nd = d + snap.cost(*q)
@@ -607,6 +624,32 @@ class Bot:
             spot = self.search_spot(dist)
             if spot:
                 opts['search_hidden'] = ('Search for hidden passages', f"No unexplored edges or downstairs are known. Walk {dist[spot]} steps {compass(me, spot)} to a likely spot (dead end or wall) and search there.", lambda: self.act_search_at(spot))
+        m = self.soko()
+        if m and not self.run.get('soko_done'):
+            i = self.run.setdefault('soko_step', {}).get(m[0], 0)
+            st = sokoban.step(m, i)
+            n = len(sokoban.solutions()[m[0]]['pushes'])
+            if st:
+                b, k = st
+                behind = (b[0] - DIRS[k][0], b[1] - DIRS[k][1])
+                if snap.at(*b).ch == '0' and (behind in dist or behind == me):
+                    opts['soko_push'] = (f"Sokoban: push the boulder {compass(me, b)} one square {DIR_NAME[k]} (push {i + 1} of {n})",
+                                         f"Next move of a known solution to this Sokoban level. Filling every pit or hole opens the way up; each level has food, a ring and a wand, and the top one a bag of holding or amulet of reflection.",
+                                         lambda m=m, b=b, behind=behind, k=k: self.act_soko(m, b, behind, k))
+                elif snap.at(*b).ch != '0' and not snap.is_monster(*b):
+                    self.log(f"sokoban {m[0]}: expected a boulder at {b} for push {i + 1}; the level no longer matches the plan, leaving", 'warn')
+                    self.run['soko_done'] = True
+                if 'soko_push' in opts and not near:
+                    opts = {k2: v for k2, v in opts.items() if k2 == 'soko_push' or k2 == 'pray' or k2.startswith('eat_')}
+            elif m[0].startswith('soko1'):
+                self.run['soko_done'] = True  # top level solved: the zoo and prize are ordinary exploring from here
+            elif ups and not near:
+                opts = {k2: v for k2, v in opts.items() if k2 == 'pray' or k2.startswith('eat_')}
+                opts['soko_up'] = ('Sokoban: climb to the next puzzle level', 'This level is solved. The next Sokoban level is up these stairs.', lambda p=ups[0]: self.act_descend(p, '<'))
+        elif not m and len(ups) >= 2 and not self.run.get('soko_done') and not near and hp >= 0.7 * hpmax:
+            p = max(ups, key=lambda u: cheb(u, lv.arrival or me))
+            opts = {k2: v for k2, v in opts.items() if k2 == 'pray' or k2.startswith('eat_')}
+            opts['enter_sokoban'] = ('Go up into Sokoban', f"This level has a second up staircase ({dist[p]} steps {compass(me, p)}): it leads to Sokoban, four puzzle levels with a known solution, safe food, rings, wands and a bag of holding or amulet of reflection at the top.", lambda p=p: self.act_descend(p, '<'))
         # stall guard: an option picked 3 times in a row without the game clock moving is not working
         streak = []
         for h in reversed(self.history):
@@ -814,6 +857,18 @@ class Bot:
             self.act_keys(key, '')
             return f'walked to the stairs and took them (Dlvl {dl} -> {self.snap.status.get("dlvl")})'
         return 'heading for the stairs: ' + r
+
+    def act_soko(self, m, b, behind, k):
+        r = self.act_go(behind)
+        if self.snap.me != behind:
+            return 'sokoban: ' + r
+        nmsg = len(self.messages)
+        self.act_keys(k, '')
+        news = ' | '.join(x['text'] for x in self.messages[nmsg:])
+        if self.snap.me == b:  # we stepped into the boulder's old square: it moved (or fell in / rolled away)
+            self.run['soko_step'][m[0]] = self.run['soko_step'].get(m[0], 0) + 1
+            return f"pushed the boulder {DIR_NAME[k]}" + (f": {news[:100]}" if news else '')
+        return 'push failed' + (f": {news[:120]}" if news else '')
 
     def act_retreat(self, hostiles):
         me, snap = self.snap.me, self.snap

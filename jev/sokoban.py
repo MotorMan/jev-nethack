@@ -141,6 +141,52 @@ def from_lua(path):
     return Level(floor, boulders, pits, rollers), (int(br[1]), int(br[2]))
 
 
+# ---------- runtime: find the level on screen and replay its stored solution ----------
+_SOLS = None
+
+
+def solutions():
+    global _SOLS
+    if _SOLS is None:
+        import json, os
+        _SOLS = json.load(open(os.path.join(os.path.dirname(__file__), 'sokoban.json')))
+        for sol in _SOLS.values():
+            rows = sol['map']
+            sol['w'], sol['h'] = max(map(len, rows)), len(rows)
+            sol['walls'] = {(x, y) for y, r in enumerate(rows) for x, c in enumerate(r) if c in '-|'}
+    return _SOLS
+
+
+def match(screen_walls):
+    """(name, flip, ox, oy) for the Sokoban level whose walls line up with these screen walls, else None.
+    5.0 may mirror each level horizontally (flip & 1) and/or vertically (flip & 2)."""
+    S = screen_walls
+    if len(S) < 60:
+        return None
+    sx, sy = min(x for x, _ in S), min(y for _, y in S)
+    for name, sol in solutions().items():
+        for f in range(4):
+            L = [flip(p, f, sol['w'], sol['h']) for p in sol['walls']]
+            ox, oy = sx - min(x for x, _ in L), sy - min(y for _, y in L)
+            L = {(x + ox, y + oy) for x, y in L}
+            if len(L & S) >= 0.95 * len(L) and len(S - L) <= 0.05 * len(S):
+                return name, f, ox, oy
+    return None
+
+
+def step(m, i):
+    """Push i of the matched level's solution in screen terms: (boulder_pos, dir_key), or None when done."""
+    name, f, ox, oy = m
+    sol = solutions()[name]
+    if i >= len(sol['pushes']):
+        return None
+    x, y, k = sol['pushes'][i]
+    x, y = flip((x, y), f, sol['w'], sol['h'])
+    k = {'h': 'l', 'l': 'h'}.get(k, k) if f & 1 else k
+    k = {'k': 'j', 'j': 'k'}.get(k, k) if f & 2 else k
+    return (x + ox, y + oy), k
+
+
 WIKI_DIR = {'r': 'l', 'l': 'h', 'u': 'k', 'd': 'j'}
 
 
