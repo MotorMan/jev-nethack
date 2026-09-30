@@ -393,3 +393,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-29 22:58 — first Sokoban attempt
 - Jev found the Sokoban stairs below the Oracle (T6408). The bot recognized the level as a mirrored soko4-1 and made pushes 1–6 correctly. Push 7 sent a boulder onto a rolling-boulder trap. It rolled into a hole, exactly as the solver's model predicted, but the roll animation outlasted the screen read, so the bot saw Jev still standing behind a boulder and called it a failed push. It retried, then found the boulder missing and abandoned the level. Now a "rolls away" message counts as a successful push, and the bot waits for the animation before reading the screen again.
+
+## 2026-09-29 23:10 — tins are food
+- A mumak killed Jev while it was fainted from hunger, even though it had carried an unidentified "tin" for 1000 turns. FOOD only matched identified "tin of X", so eating the tin was never offered. The regex now matches any tin. act_eat clicks through the "not so easy to open" --More-- messages and answers the tin's "Eat it?" prompt, declining anything on the NEVER_EAT list.
