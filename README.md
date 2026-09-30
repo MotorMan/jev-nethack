@@ -1,42 +1,76 @@
 # nethack-jev
 
-NetHack 5.0 played by [Jev](https://typesafe.ai) (TypeSafe's `systemone` API) with no LLM in the loop.
-This is a Jev-only take on [kenforthewin's LLM ascension run](https://kenforthewin.github.io/blog/posts/llm-nethack-ascension),
-structured like [jev-doom](https://github.com/olivier-motium/jev-doom). Code reads the tty and lists the legal,
-concrete options (attack a monster, explore an edge, eat, pray, descend, kick a door, dig...). Jev picks one
-per turn as a `choice` question, and code "motors" carry it out.
+[Jev](https://typesafe.ai) plays NetHack 5.0. Jev is the `systemone` model from TypeSafe. No LLM is in the loop.
+
+## How it works
+
+Jev does not write text or type commands. It only picks one answer from a list. This project uses that as follows:
+
+1. The code reads the game screen from the terminal.
+2. The code makes a list of the legal options for this turn. Examples are: attack a monster, explore, eat, pray, go down the stairs, kick a door, and dig.
+3. Jev gets the list as a `choice` question and picks one option.
+4. A "motor" (a small part of the code) does the keystrokes for that option.
+
+The idea comes from [kenforthewin's LLM ascension run](https://kenforthewin.github.io/blog/posts/llm-nethack-ascension). The structure comes from [jev-doom](https://github.com/olivier-motium/jev-doom).
 
 ## Run locally
 
+You need Python 3, Node.js, and a Jev API key.
+
 ```sh
-scripts/build-nethack.sh                    # Hardfought's NetHack50 fork + sysconf -> ./nethack
+scripts/build-nethack.sh                    # builds Hardfought's NetHack50 fork into ./nethack
 /opt/homebrew/bin/python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-(cd web && npm install && npm run build)    # SMUI dashboard -> web/dist
+(cd web && npm install && npm run build)    # builds the dashboard into web/dist
 echo 'JEV_API_KEY=...' > .env
 .venv/bin/python -m jev.server              # http://127.0.0.1:8770
 ```
 
-The dashboard shows the live terminal, Jev's options with probabilities, decision history, the budget, and
-run records. It can pause, step, set speed, start a new game, and give Jev a standing order.
-`JEV_BUDGET_USD` (default 5) caps spend. Each run's decisions go to `runs/<id>/decisions.jsonl`.
+Open http://127.0.0.1:8770 to see the dashboard. The dashboard shows:
 
-## Hardfought
+- The live game screen
+- The options for this turn, with the probability that Jev gave each one
+- The history of decisions and the money spent
+- The records of past games
+
+From the dashboard, you can pause the game, step one turn, change the speed, and start a new game. You can also give Jev a standing order.
+
+The default spend limit is $5. To change it, set `JEV_BUDGET_USD` in `.env`. Each game writes its decisions to `runs/<id>/decisions.jsonl`.
+
+## Play on Hardfought
+
+1. Add your account to `.env`:
+
+   ```sh
+   HARDFOUGHT_USERNAME=...
+   HARDFOUGHT_PASSWORD=...
+   ```
+
+2. Paste `jev/nethackrc` into your NetHack 5.0 options file at https://www.hardfought.org/nethack/rcedit/. You do this one time only.
+3. Start the server:
+
+   ```sh
+   .venv/bin/python -m jev.server --hardfought
+   ```
+
+The server connects through the web terminal of Hardfought (`jev/wsbridge.py`), because some networks block port 22. To connect with SSH instead, set `HARDFOUGHT_SSH=1`.
+
+## Watch in a terminal
+
+The server must be running. Open a terminal that is at least 80 columns by 40 rows, and run:
 
 ```sh
-# .env: HARDFOUGHT_USERNAME=... HARDFOUGHT_PASSWORD=...
-# once: paste jev/nethackrc into your NetHack 5.0 rc at https://www.hardfought.org/nethack/rcedit/
-.venv/bin/python -m jev.server --hardfought
+.venv/bin/python -m jev.watch
 ```
 
-The connection goes through Hardfought's web terminal websocket (`jev/wsbridge.py`), because port 22 is blocked
-on some networks. Set `HARDFOUGHT_SSH=1` to use ssh instead.
+The watcher shows the live game screen in color. Below the screen, it shows:
 
-See `JOURNAL.md` for the development log.
+- The options for this turn, with their probabilities
+- The last decisions and their results
+- The money spent on the Jev API
+- Recent deaths
 
-## Watching in a terminal
+To stop the watcher, push Ctrl-C.
 
-With the server running, keep this open in any terminal (at least 80x40):
+## More information
 
-    .venv/bin/python -m jev.watch
-
-It redraws the live game screen in color. Below the screen it shows Jev's current options with their probabilities, the last few decisions and their outcomes, the Jev API spend, and recent deaths. Ctrl-C quits.
+`JOURNAL.md` is the development log. It records each finding and decision in time order.
