@@ -96,7 +96,7 @@ class Bot:
         if self.run is not None:
             if re.search(r'Closed for inventory|stop damaging that door', text) and self.snap and self.snap.status.get('dlvl'):
                 self.level().town = True
-            if 'You feel feverish' in text:
+            if re.search(r'You feel feverish|You turn into a were', text):
                 self.run['lycanthropy'] = True
             if 'You feel purified' in text:
                 self.run['lycanthropy'] = False
@@ -609,6 +609,8 @@ class Bot:
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You are fighting bare-handed.', lambda l=weapon['letter']: self.act_wield(l))}
         elif not near and any(k.startswith('wear_') for k in opts):
             opts = {k: v for k, v in opts.items() if k.startswith('wear_')}
+        if downs:  # a locked door can be a shop closed for inventory whose sign got scuffed: kicked one in, Mr. Kipawa killed Jev
+            opts = {k: v for k, v in opts.items() if not (k.startswith('kick_') or 'locked door' in v[0])}
         if not near and 'rest' in opts and s.get('hp', 1) < 0.5 * s.get('hpmax', 1):  # explored on at 11/65 HP into a giant beetle
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door', 'descend', 'approach', 'kick', 'goto', 'search'))}
         if not near and any(k.startswith('sell_') for k in opts):  # Jev chose "explore" into Chicoutimi 3000 times instead

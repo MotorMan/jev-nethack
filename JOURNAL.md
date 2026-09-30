@@ -335,3 +335,7 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 - decisions.jsonl now logs ms.build and ms.act per decision (median build 44 ms).
 - Died frozen by a floating eye with a giant ant in view: kill_blocker chose the eye. The eye is now excluded while other hostiles are in view or HP is below 90%.
 - Giant beetle death: Jev explored at 11/65 HP. Below half HP with nothing near, exploring and descending options are now removed so it rests.
+
+## 2026-09-29 21:02 — Werejackal and shop-door deaths
+- Died of fainting while in werejackal form. "You turn into a werejackal!" at T2074 was never flagged as lycanthropy; only "You feel feverish" was, and that message was missed. Both messages now set the flag, which triggers prayer.
+- Killed by Mr. Kipawa on Dlvl 5. At T1288 Jev had kicked open a locked door, most likely a shop closed for inventory whose dust sign had been scuffed away. Once a downstairs is known, locked doors are no longer kicked.
