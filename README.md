@@ -16,7 +16,12 @@ Jev does not write text or type commands. It only picks one answer from a list. 
 3. Jev gets the list as a `choice` question and picks one option.
 4. A "motor" (a small part of the code) does the keystrokes for that option.
 
-The idea comes from [kenforthewin's LLM ascension run](https://kenforthewin.github.io/blog/posts/llm-nethack-ascension). The structure comes from [jev-doom](https://github.com/olivier-motium/jev-doom).
+## Inspiration
+
+This project is inspired by two other projects:
+
+- [An LLM ascends in NetHack](https://kenforthewin.github.io/blog/posts/llm-nethack-ascension) by kenforthewin. An LLM played NetHack and won the game. This project tries to do the same with Jev, and without an LLM.
+- [Jev Plays Doom](https://github.com/olivier-motium/jev-doom) by olivier-motium. Jev played Doom. This project copies its structure: code makes a list of options, Jev picks one, and a motor does the keystrokes. Some methods also come from it, such as the safety check and the limit on the number of options.
 
 ## Run locally
 
