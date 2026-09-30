@@ -624,3 +624,6 @@ Run 20260930-142133 died at T4650 to a black unicorn in Sokoban. Jev was only Hu
 
 ## 2026-09-30 17:50 — Offer Elbereth while blind and hurt
 Run 20260930-143412 died to apes at T6987 on Dlvl 8. A potion blinded Jev at 8/76 HP. The blind branch then only offered "Wait until you can see" (5 turns of searching). The unseen apes' "It hits!" messages got lost inside those rests, so the unseen-attacker check never fired and Elbereth was never offered. Jev now gets the Elbereth option whenever it is blind and below 70% HP. Engraving still works blind, and the blind branch already keeps elbereth in its option set.
+
+## 2026-09-30 18:05 — Wait out a walling floating eye before meleeing it
+Run 20260930-144207 died at T7290, killed by an imp while frozen by a floating eye's gaze. In Minetown, peaceful gnomes and a floating eye boxed Jev in, so the "walled" rule immediately offered "Kill the blocker" and Jev meleed the eye. Floating eyes move at speed 1 and peacefuls wander, so now a walled Jev gets "Search 10 turns" first. Meleeing an eye is offered only after more than 200 turns of being walled in.
