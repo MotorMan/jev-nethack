@@ -396,3 +396,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-29 23:10 — tins are food
 - A mumak killed Jev while it was fainted from hunger, even though it had carried an unidentified "tin" for 1000 turns. FOOD only matched identified "tin of X", so eating the tin was never offered. The regex now matches any tin. act_eat clicks through the "not so easy to open" --More-- messages and answers the tin's "Eat it?" prompt, declining anything on the NEVER_EAT list.
+
+## 2026-09-29 23:16 — nymphs
+- A rothe killed Jev while it was fainted at T3433. Earlier, water nymphs had stolen the food ration, then the spear and the +3 shield, and then the slime molds. Jev also wielded an unidentified flail to replace the stolen spear, and it turned out cursed. Now, when a nymph is 2–6 squares away and in a straight line, throwing a missile at it is the only choice besides praying and eating.
