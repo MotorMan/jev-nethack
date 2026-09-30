@@ -387,3 +387,6 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 
 ## 2026-09-29 22:38 — finding the Sokoban stairs
 - A run reached Dlvl 10 and walked right past Sokoban. The bot takes the downstairs as soon as it finds them, so it never saw the second '<' on the level below the Oracle. Now the Oracle level is recognized by its four fountains. On the next level down, the bot doesn't descend until a second '<' shows up or there's nothing left to explore.
+
+## 2026-09-29 22:52 — no "hold position" when surrounded
+- A werejackal's summoned pack surrounded Jev. Jev then picked "Hold position one turn (let monsters come to you)" three times and went from 42 to 0 HP. That option is now only offered when nothing hostile is adjacent.

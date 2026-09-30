@@ -452,7 +452,8 @@ class Bot:
                 opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', self.act_wait_elbereth)
             else:
                 fast = [m['name'] for m in near if (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12]  # our speed is 12
-                opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('ms', 'waited'))
+                if not any(m['dist'] <= 1 for m in near):  # "let them come" while six jackals and a werejackal already bit: 42 -> 0 HP in 3 waits
+                    opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('ms', 'waited'))
                 if not fast:  # retreating from a giant bat (speed 22) just gives it free hits
                     opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + ' Everything nearby is slower than you, so you can open a gap.', lambda: self.act_retreat(hostiles))
             ups_near = [p for p in snap.find('<') if dist.get(p, 99) <= 8]
