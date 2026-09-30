@@ -750,9 +750,9 @@ class Bot:
         if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and not near:  # a confused bump into a shopkeeper attacks him
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {'rest': ('Wait until you are steady', 'You are confused or stunned: moves go in random directions and can attack peacefuls. Nothing hostile is near, so wait it out.', lambda: self.act_keys('5s', 'waited'))}
         elif 'Blind' in s.get('conditions', []):  # a blind step into an unseen watchman angered the whole Minetown watch
-            fight = {k: v for k, v in opts.items() if k in ('pray', 'elbereth') or k.startswith(('quaff_', 'attack_', 'eat'))}  # blind engraving
+            fight = {k: v for k, v in opts.items() if k in ('pray', 'elbereth') or k.startswith(('quaff_', 'attack_', 'eat'))}  # blind engraving still scares: invisible quasits drained a blind Jev who could only swing
             if shop and not self.unseen_attacker():  # blind swings at the unseen shopkeeper angered Ms. Tipor, twice-dead to her wand
-                fight = {k: v for k, v in fight.items() if not k.startswith('attack_')} still scares: invisible quasits drained a blind Jev who could only swing
+                fight = {k: v for k, v in fight.items() if not k.startswith('attack_')}
             # resting while unseen things bit a blind Jev from 54 to 4 HP (twice) is worse than swinging back
             opts = fight if any(k.startswith('attack_') for k in fight) else fight | {'rest': ('Wait until you can see', 'You are blind: walking bumps into unseen monsters and attacks them, peaceful or not. Wait for your sight to return.', lambda: self.act_keys('5s', 'waited'))}
         # a pack at any HP: left a working Elbereth at 40/44 to throw at bugbears and a goblin gang, dead 4 turns later
