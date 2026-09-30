@@ -1105,8 +1105,10 @@ class Bot:
             return
         if self.follow_guard():
             return
+        t0 = time.time()
         opts, mons = self.build_options()
         state = self.state_text(mons)
+        t1 = time.time()
         question = ('Choose the single best action for the Valkyrie right now. Staying alive comes first; after that, '
                     'make steady progress (explore, gear up, descend). Use the status, monsters, recent outcomes and the standing order.')
         criteria = {k: f"{v[0]}. {v[1]}" for k, v in opts.items()}
@@ -1133,6 +1135,7 @@ class Bot:
         self.phase = 'acting'
         self.touch()
         label = opts[key][0]
+        t2 = time.time()
         try:
             outcome = opts[key][2]() or ''
         except Exception as e:  # a motor tripping over an unexpected screen should not kill the run
@@ -1140,7 +1143,8 @@ class Bot:
             self.t.send('\x1b')
             outcome = f'error: {e}'
         h = dict(id=self.decision['id'], at=now(), turn=s.get('turn') or 0, dlvl=s.get('dlvl') or 0, choice=key, label=label,
-                 p=probs.get(key, 1.0), confidence=conf, n_options=len(opts), latency_ms=meta['latency_ms'], outcome=outcome)
+                 p=probs.get(key, 1.0), confidence=conf, n_options=len(opts), latency_ms=meta['latency_ms'], outcome=outcome,
+                 ms=dict(build=round((t1 - t0) * 1000), act=round((time.time() - t2) * 1000)))
         with self.lock:
             self.history.append(h)
             del self.history[:-200]

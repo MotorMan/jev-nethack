@@ -322,3 +322,16 @@ The blind rule backfired within the hour. A raven blinded Jev (Dlvl 7, XL6), and
 - Jev latency: the client opened a new TLS connection for every call. With keep-alive the median went from 144 to 101 ms (p90 from 182 to 149).
   - Prompt size and option count don't affect latency.
   - Calls with a single option were already skipped.
+
+## 2026-09-29 21:00 — Harness speed; floating eye; low-HP exploring
+- I read olivier-motium/jev-doom for speed ideas.
+  - Its gateway uses Node fetch, which keeps connections alive; we now do the same.
+  - The engine runs in real time on its own thread and keeps executing the committed tactic while the next Jev call is in flight. That doesn't carry over to turn-based NetHack beyond our multi-turn macros (explore, search, rest).
+- Measured: Jev calls were only **17% of wall time**. The harness took about 490 ms per decision.
+  - Snapshot parsing is about 1 ms.
+  - Almost all the rest is Term.pump waiting for 40 ms of pty silence after every keypress.
+  - Local idle is now 15 ms (Hardfought stays at 300 ms). Throughput went from 13.5 to 22 game turns/s.
+  - Early stops rose, but all 96 "monster came into view" stops had a real monster at the next decision, so no partial frames.
+- decisions.jsonl now logs ms.build and ms.act per decision (median build 44 ms).
+- Died frozen by a floating eye with a giant ant in view: kill_blocker chose the eye. The eye is now excluded while other hostiles are in view or HP is below 90%.
+- Giant beetle death: Jev explored at 11/65 HP. Below half HP with nothing near, exploring and descending options are now removed so it rests.
