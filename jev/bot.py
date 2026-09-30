@@ -585,6 +585,9 @@ class Bot:
             opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('ms', 'waited'))
         if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and not near:  # a confused bump into a shopkeeper attacks him
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {'rest': ('Wait until you are steady', 'You are confused or stunned: moves go in random directions and can attack peacefuls. Nothing hostile is near, so wait it out.', lambda: self.act_keys('5s', 'waited'))}
+        if self.engraved_here() and s.get('hp', 1) < 0.75 * s.get('hpmax', 1) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles):
+            # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'eat'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}
         if LOW_HP(s) and opts.get('pray', ('',))[0] == 'Pray to Tyr':  # a safe prayer fully heals; Jev chose Elbereth over it at 1 HP and died
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')}
         return opts, mons

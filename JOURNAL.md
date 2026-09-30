@@ -280,3 +280,6 @@ Fixes:
 Two more runs:
 - **Dlvl 11 (a new record depth), Mines' End.** Jev was poisoned by an orcish arrow: poison instadeath from Thosogzai's volley while standing on Elbereth, which does nothing against missiles. Without poison resistance this is a dice roll. The parser now records "poisoned by …" instead of "game ended".
 - **Dlvl 5, frozen by a floating eye, then eaten by manes.** A walk to the stairs stepped into the eye after it drifted onto the path. A plain move into a monster is an attack. Walking now uses the `m` prefix whenever the next square holds a non-pet monster ("You move right into it" costs a turn but never attacks). Pets are shown in reverse video and still get swapped.
+
+## 2026-09-29 18:56 — Don't step off Elbereth
+Two runs in a row (a rothe on Dlvl 6, an ape on Dlvl 7) ended the same way. Jev healed on Elbereth to about 35% HP, then walked off toward an item or to explore while the monsters were still 2–3 squares away. It took a big hit, and the re-engrave came out garbled. Now, while standing on a verified Elbereth below 75% HP with any non-@ hostile within 7 squares, the only choices are staying put, praying, quaffing or eating.
