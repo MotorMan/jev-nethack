@@ -931,6 +931,7 @@ class Bot:
             if 'written' not in self.last_read:  # 5.0 engraving is an occupation: a fast attacker interrupts it before any letter lands
                 self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0
                 return 'nothing got written: the attack interrupted the engraving'
+            self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0  # hits scuff dust too: 3 garbled tries in a row fed a tengu 30 HP
             return 'engraving came out garbled; not protected'
         return 'engraved Elbereth'
 

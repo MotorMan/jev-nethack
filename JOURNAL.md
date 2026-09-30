@@ -440,3 +440,6 @@ Jev put on a +0 cloak of invisibility. In 5.0 an invisible hero with no see-invi
 
 ## 2026-09-30 — force the late gamble prayer (rothe/Woodland-elf, T5087, Dlvl 8)
 Jev had AC 9 and meleed a Woodland-elf from 70 HP down to 8 (elves are `@` and ignore Elbereth). The gamble prayer was offered 702 turns after the last prayer, and Jev threw darts instead. Prayer fixes low HP when the timeout is under 200. Timeout starts at rnz(350) and drops 1 per turn, so 500+ turns later it is usually safe. A low-HP gamble at 500+ turns is now forced the way a safe prayer is.
+
+## 2026-09-30 — stop re-engraving under attack (tengu, T3479, Dlvl 6)
+With a tengu biting, Jev tried Elbereth 4 times in a row: 3 came out garbled and 1 was interrupted. Getting hit scuffs dust, so every try cost a turn and ~6 HP without a swing back. A garbled result now blocks Elbereth for 5 turns while something is adjacent, the same as an interrupted one. The death came at 12/58 HP, above the 1/7 prayer line, so praying would not have healed.
