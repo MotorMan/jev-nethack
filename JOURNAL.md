@@ -1425,3 +1425,14 @@ Run 20261001-071129 died at T2658 on Dlvl 5. A pony killed Jev while it was pray
 - The pony interrupted the search with kicks and bites (18 to 7), and Jev's prayer 207 turns after the last one failed.
 
 Fix: the 15-turn rest also requires no non-passive hostile within 4 squares. Below half HP in that case, Jev is offered a one-turn wait instead. A replay at T2644 now offers ['explore_1', 'explore_2', 'wait'] instead of ['rest'].
+
+## 2026-10-01 — Low-HP explore filter also covers the new one-turn wait
+Run 20261001-071408 died at T4177 on Dlvl 4. A werejackal in @ form killed Jev while it was praying.
+
+- Jev was Weak, its last prayer was at T4000, and it was at AC 6 with a +1 spear that kept missing.
+- At 16/41 and 14/41 it explored with the werejackal 2 squares away and took a hit each time.
+- A potion brought it back to 33 HP, but four melee rounds took it down to 8.
+
+Change: the "hurt, so don't explore" filter now also applies when the new one-turn wait is offered, not only the 15-turn rest. The pony replay (T2644) now offers just ['wait'].
+
+This run's real killer is food again: Weak, no rations, and its prayer already spent. With Weak and no prayer, the wait is still removed by design.
