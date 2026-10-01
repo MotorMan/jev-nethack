@@ -35,6 +35,7 @@ def sell_price(base, ch, sur):
 
 def price_bases(cls, price, ch):
     return {b for b in BASES[cls] for sur in (0, 1) if sell_price(b, ch, sur) == price}
+JUNK = re.compile(r'\b(mail|plate|armor|shield|shoes|boots|cloak|wrapping|helm|helmet|gauntlets|gloves|short sword|long sword|broadsword|scimitar|axe|mace|club|bow|crossbow|pick-axe|morning star|flail|hammer|trident)\b')  # unworn copies: what to drop when Burdened
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
 WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber', 'short sword', 'spear', 'mace', 'morning star', 'war hammer', 'flail', 'trident', 'dagger', 'knife', 'club']
 WEAPON = re.compile(r'\b(' + '|'.join(WEAPON_RANK) + r')s?\b(?! corpse)')
@@ -738,8 +739,11 @@ class Bot:
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
         if 'Burdened' in s.get('conditions', []) or 'Stressed' in s.get('conditions', []):
             for it in self.inventory:
-                if HEAVY.search(it['text']) and not re.search(r'weapon in|being worn', it['text']):
+                if (HEAVY.search(it['text']) or JUNK.search(it['text'])) and not re.search(r'weapon in|being worn|alternate weapon|mithril|at the ready|quiver|pick-axe|mattock', it['text']):
                     opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", f"You are {'Burdened' if 'Burdened' in s['conditions'] else 'Stressed'}: slower, and you can't fight or flee well. {it['text']} is heavy and of little use.", lambda l=it['letter']: self.act_keys('d' + l, 'dropped it'))
+            if 'Stressed' in s['conditions'] and not near and any(k.startswith('drop_') for k in opts):  # Stressed 1600 turns with spare banded mail, 2 Uruk-hai shields, 2 iron shoes: half speed, killed by a mob (T7699)
+                opts = {k: v for k, v in opts.items() if k.startswith(('drop_', 'eat_', 'wear_')) or k == 'pray'}
+            opts = {k: v for k, v in opts.items() if not (k.startswith('pickup_') and JUNK.search(v[0]) and 'mithril' not in v[0])}
         lev = next((it for it in self.inventory if re.search(r'levitation|invisibility', it['text']) and re.search(r'being worn|on (left|right) hand', it['text'])), None)
         if lev and (not near or 'invisib' in lev['text']):  # -2 levitation boots floated Jev over the stairs for 2400 turns until it starved
             # invisible, the hero has no @ on screen: the bot took an elf for itself while a soldier ant ate it (T5244)

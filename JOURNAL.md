@@ -1260,3 +1260,12 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - Corpse eating now works: 21 of 21 offers were taken. The HP prayer at T5220 worked, but it used up the prayer timeout while Jev was Hungry.
 - The run then lost about 16 turns to "nothing got written: the attack interrupted the engraving" from unseen biters. The interrupt block keys on adjacent monster names, which are empty for unseen attackers. Jev went from Weak to Fainting and died.
 - Fix: no Elbereth offer after 2 interrupted engravings in the last 4 decisions.
+
+## 20261001-035715: Grey-elf, T7699, Dlvl 9, XL 8, AC -4 (best run of the night)
+- Jev was Stressed for the last 1600 turns, carrying a worn +4 crystal plate mail plus a spare banded mail, 2 Uruk-hai shields, 2 iron shoes, 3 cloaks and spare swords. It had half speed and no HP regeneration.
+- Drop options only matched HEAVY (boxes, polearms), so nothing was ever offered.
+- An owlbear, a giant beetle, a giant ant and a Grey-elf all came adjacent. Jev went 62 to 6 HP, prayed back to 66, then 66 to 0.
+- Fix:
+  - While Burdened, unworn armor and spare non-dagger weapons are offered as drops. Mithril and pick-axes are kept.
+  - While Stressed with nothing near, Jev may only drop, eat, wear or pray.
+  - No junk pickups while Burdened.
