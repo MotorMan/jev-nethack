@@ -1898,3 +1898,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** the bot meleed an animal-form werewolf for 17 turns from 63/63 (the tip said avoid only "when hurt") and prayed at 12. The next bite gave lycanthropy (T2054). 34 turns later it turned into a wolf and burst out of its splint mail, shield and helm. It came back to dwarven form at AC 10 with no weapon, and wolves killed it. (The new unknown-scroll escape did fire on T2077, but it was enchant armor.)
 - **Wiki:** never melee a were in animal form; each bite risks lycanthropy. Kill it with ranged attacks or from Elbereth, which scares the animal form. Cures are prayer, holy water or wolfsbane.
 - **Fix:** with an animal-form were adjacent and no lycanthropy yet, drop the attack options whenever Elbereth is offered or already engraved. The tips for all three weres now say to avoid melee in animal form at any HP.
+
+## Run 20261001-143047: killed by a winter wolf on T8516 (Dlvl 6, XL 6, AC 7)
+- **Cause:** at 58/69 the bot stepped off Elbereth to explore, with its prayer 20 turns old. Two winter wolves (difficulty 9) took 58 -> 0 in 6 turns, about 10 HP a turn. Two unknown potions healed only a little. The tip said "Fight if over half HP", so the bot meleed them.
+- **Wiki:** winter wolves are a mid-game threat (difficulty 9, 2d6 bite). A Valkyrie resists the breath, but the bite alone outdamages an XL 6 at AC 7. They respect Elbereth.
+- **Fix:** winter wolf danger 1 -> 2, and the tip now says fight only at XL 10+ with AC 3 or better, and otherwise use Elbereth or the stairs early.

@@ -400,7 +400,7 @@
 "white dragon": [20, 9, 0, "", "AC -1, MR 20, breath 4d6 cold, bite 3d8, claw 1d4, claw 1d4"],
 "white unicorn": [6, 24, 0, "Fight never (you are lawful: it costs you Luck); avoid it, let it go", "AC 2, MR 70, butt 1d12, kick 1d6"],
 "winged gargoyle": [11, 15, 0, "", "AC -2, MR 0, claw 3d6, claw 3d6, bite 3d4"],
-"winter wolf": [9, 12, 1, "Fight if over half HP (you resist its frost breath as a Valkyrie); avoid if hurt: strong bite", "AC 4, MR 20, bite 2d6, breath 2d6 cold"],
+"winter wolf": [9, 12, 2, "Fight if you are XL 10+ with AC 3 or better (you resist its frost breath as a Valkyrie); avoid if lower: its 2d6 bite lands about twice a turn, so engrave Elbereth (it respects it) or take the stairs before you are hurt", "AC 4, MR 20, bite 2d6, breath 2d6 cold"],
 "winter wolf cub": [7, 12, 0, "", "AC 4, MR 0, bite 1d8, breath 1d6 cold; small groups"],
 "wizard": [12, 12, 0, "", "AC 10, MR 3, weapon 1d6, spell mage spells"],
 "wolf": [6, 12, 0, "", "AC 4, MR 0, bite 2d4; small groups"],
