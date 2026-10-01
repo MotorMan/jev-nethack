@@ -1283,3 +1283,6 @@ Jev went from 36 to 32 to 15 to 0 in three turns. A fire ant (speed 18) gets abo
 In the dark Mines, "The fire ant bites!" arrived every turn, but no 'a' ever showed next to Jev. `unseen_attacker` only matched "It bites", so `rest` was the only option. The Elbereth came out garbled, then rest, rest: 33 → 0. A known scroll of teleportation sat unread in the pack. Fixes:
 - `unseen_attacker` now also counts a named attack when no hostile glyph is adjacent.
 - Below 1/2 HP, with no prayer available and a monster near or unseen, offer the scroll of teleportation. Below 1/3 HP it becomes one of the forced-gamble options.
+
+## Run 20261001-042954: ettin zombie, taking off clothes (T5019, Dlvl 7, XL 5, AC -3)
+The nymph rule kept Jev on Elbereth for 116 turns at 51/53 HP, because a mountain nymph hovered within 3 squares. Meanwhile zombies, orcs, a dwarf king and a jaguar gathered and fought each other. Jev then got hit and attacked off Elbereth, and the nymph charmed it into removing its banded mail. Mid-mob, it died from 48 HP. Source check: any attack from Elbereth erases it (mon.c setmangry), throwing included. Fix: after 30 waits in the last 40 decisions, the nymph rule also offers a throw at the nymph (when she is 2+ squares away).
