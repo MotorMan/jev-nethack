@@ -1769,3 +1769,10 @@ A wererat in @ form stood adjacent while Jev (12/72, prayed 90 turns earlier) wa
 
 ## Hosted 121507 — mumak, T8074, Dlvl 7
 Fresh off a successful prayer (81/81), Jev fought an invisible thing, then engraved Elbereth beside a mumak at 64/81. Between 70% and 90% HP on Elbereth, attacks are dropped (attacking erases it) but "Stay on Elbereth" was only offered under 70%, so the only options were explore: Jev stepped off past the mumak, 4d12 butt + bite 64 -> 29, then garbled/interrupted engravings, dead. Now an adjacent monster also offers the wait in that band, and explore/goto/fetch are dropped while one is adjacent.
+
+## Wiki lessons for the last four deaths (retroactive)
+Rule from the operator: every death is a lesson: cause, wiki prevention, record, fix the strategy. And: most NetHack games are winnable, so every death was avoidable.
+- 115052 hill orc pack: *Hill orc* page says groups are the first crowd-control test: draw them into a corridor so one attacks at a time, "be wary if any of them have scrolls or wands". Fixed via the corridor walk; strategy already says so.
+- 115737 wand of striking: *Wand of striking*: force bolt beam, no reflection, only magic resistance stops it. Elbereth (wiki: "melee only") does nothing. Prevention: kill the zapper fast (hill orcs are weak), or get magic resistance. Strategy text now says Elbereth never stops wands/arrows/breath: kill weak shooters.
+- 120033 wererat: *Wererat*: "take them out as quickly as possible", pull into a hallway, Elbereth repels only the animal form and its summons. Strategy text now names were-@ as ignoring Elbereth and says to kill wererats quickly.
+- 121507 mumak: *Mumak*: the strongest single melee hit outside the Riders, AC 0, but speed 9: use ranged attacks, hit-and-run, or walk away. Strategy text now says never trade blows with it; the wait-on-Elbereth fix keeps Jev from walking past it.
