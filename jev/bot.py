@@ -1372,6 +1372,7 @@ class Bot:
         return f'retreated {DIR_NAME[d]}' if self.snap.me != me else 'tried to retreat but did not move'
 
     def act_elbereth(self):
+        t0 = self.snap.status.get('turn')
         self.t.send('E')
         if 'write with' in self.t.lines()[0]:
             self.t.send('-')
@@ -1389,6 +1390,8 @@ class Bot:
                 break
         self.observe()
         if not self.elbereth_ok():
+            if 'written' not in self.last_read and self.snap.status.get('turn') == t0:  # no time passed: this form can't engrave (a wererat Jev), not an attack; blaming the rothe blocked Elbereth once back in dwarf form, 30 -> 0 (T7388)
+                return 'could not engrave in this form'
             if 'written' not in self.last_read:  # 5.0 engraving is an occupation: a fast attacker interrupts it before any letter lands
                 self.run['e_blockers'] = self.run.get('adj_names', ())  # a newt's hit blocked Elbereth against the rothe that came next: 19 -> 5, dead praying (T2568)
                 self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0

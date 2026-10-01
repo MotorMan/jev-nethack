@@ -1171,3 +1171,9 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 ### Run 20261001-020734: iguana while fainting, T1898 (Dlvl 3)
 - A prayer at T1494 cured wererat lycanthropy. A werejackal bit Jev at T1565, it turned into a jackal and dropped its dagger, and it had no packed food. It searched for a hidden downstair while going Weak and then Fainting. The 300-turn Fainting prayer bet at T1799 (305 turns after the last prayer) lost: "Thou must relearn thy lessons".
 - This was mostly the rnz gamble, so no code change. Food supply is still the open problem.
+
+### Run 20261001-020841: rothe, T7388 (Dlvl 9)
+- A wood nymph reached Jev, and its dust Elbereth came out garbled. The nymph stripped Jev from AC 2 to 10 (chain mail, shield, boots). A wererat then infected Jev, and at T7379 it turned into a wererat.
+- Engraving in rat form used no time. act_elbereth logged that as "the attack interrupted the engraving" and blamed the adjacent rothe. Back in dwarf form, that blocker held Elbereth off for 5 turns, and the rothe took Jev from 30 to 0.
+- **Fix:** if nothing got written and the turn didn't advance, the result is "could not engrave in this form", with no interruption and no blocker.
+- Still open: nymph theft (garbled Elbereth with the nymph adjacent).
