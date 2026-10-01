@@ -861,3 +861,6 @@ This was Jev's longest run so far: a dwarven Valkyrie that reached XL8 and survi
 
 ## 12:05 — Run 205713: hit the owlbear, not the pudding
 Jev died on Dlvl 8 at XL ~8, T5320. An owlbear grabbed it ("You are being crushed") while a brown pudding was also adjacent, and Jev attacked the pudding four times. Hitting a brown pudding with an iron weapon splits it (uhitm.c, the PM_BROWN_PUDDING check), so a second pudding appeared, and meanwhile the owlbear took Jev from 53 to 8 HP. It had last prayed 84 turns earlier, so it drank an unknown potion, which was sickness and killed it. Brown and black puddings now join shriekers as targets that are skipped whenever another adjacent hostile is something else.
+
+## 12:15 — Run 210255: hallucinated threat labels
+Jev was hallucinating from T3188 and died to a pony at T3336, XL6 on Dlvl 7. Every turn the threat labels came from a random name: an "Archon (much stronger)" got Retreat and Go-through-door options, an "acid blob (much weaker)" got hit. Jev spent turns retreating, climbing stairs and walking off, and lost 60 HP to the pony. Elbereth was correctly not offered: while hallucinating, each character is scrambled with a 1-in-2 chance (engrave.c:1249). `species()` now returns a neutral placeholder name while hallucinating, so there is no threat or speed label to mislead the choice.
