@@ -1035,3 +1035,6 @@ Weak with no food, a swarm appearing ("suddenly appears close by"), then a yello
 
 ## 2026-09-30 21:50 — panther in Sokoban (kev-4b, T4119)
 No fix. Pushing boulders at 65/65, AC 2, XL 6: a panther (two d6 claws and a d10 bite) took it 65 -> 43 -> 19 -> 9 in three turns. The prayer at 9/65, 764 turns after a good one (both earlier prayers "well-pleased", no luck penalties seen), was the right bet (~90%) and lost to rnz's tail.
+
+## 2026-09-30 22:10 — nymph level, then a wolf (kev-4b, T4895, Dlvl 5)
+Dlvl 5 kept making nymphs (wood, water, mountain): five thefts in 1000 turns — +3 small shield, elven mithril-coat, elven shield, orcish helm, daggers — AC 6 -> 10 and an empty pack; seven prayers (three gambles) kept it alive until a wolf and hill orcs finished it. The leave-a-nymph-level rule needs a known downstairs, and this level's was never found. With the downstairs unknown, a nymph level now offers only exploring (and eat/pray) while nothing is near, so it finds the way out.

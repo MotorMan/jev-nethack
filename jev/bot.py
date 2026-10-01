@@ -959,6 +959,8 @@ class Bot:
             # a nymph teleports back for more: one wood nymph took shield, spear, bag, ration and egg over 500 turns
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat_')}
             opts['leave_nymph'] = ('Leave this level (a nymph lives here)', f"A nymph on this level keeps coming back to steal your things. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend.", lambda p=downs[0]: self.act_descend(p))
+        elif self.run.get('nymph_lvl') == s.get('dlvl') and not downs and not near:  # downstairs unknown: 1000 turns on a nymph level, five thefts (shield, mithril, shield, helm, daggers), AC 10, killed by a wolf (T4895)
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'explore', 'door_', 'search'))} or opts
         if were_throw in opts and not any(m['dist'] <= 1 for m in hostiles):
             opts = {k: v for k, v in opts.items() if k.startswith(('throw_', 'zap_')) or k in ('elbereth', 'pray') or k.startswith('quaff_')}
         if nymph_throw in opts and not any(m['dist'] <= 1 for m in hostiles):  # forced to throw at a nymph, a fire ant ate Jev at 10 HP
