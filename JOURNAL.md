@@ -1994,3 +1994,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** at T729 the bot read an unknown scroll and was punished, chained to a heavy iron ball. At XL 4 with AC 5, a pony (speed 16) chipped it from 41 to 12 HP over ~10 turns of missed melee. The bot was carrying an identified **wand of cold** that it never zapped, because ray wands need 7+ squares of open line so the bounce can't come back. Then a garbled Elbereth and an unknown potion.
 - **Wiki:** Valkyrie: intrinsic cold resistance, so your own bouncing cold ray can't hurt you. The wand of cold is a top escape and kill tool for a Valkyrie at any range.
 - **Fix:** a wand of cold skips the bounce-room check.
+
+## Run 20261001-163711 — killed by a giant spider while fainted (T6684, Dlvl 8)
+- **Cause:** no permanent food, just prayers for Weak at T2048, 4522 and 5366. While Not hungry at T5976 the bot ate a homunculus corpse ("Ecch - that must have been poisonous!"), Str 17 → 13. Giant spider bites took it to 9, and a Weak-hunger giant beetle corpse took it to 5, then 4. By T6684 it was Weak, its prayer only 250 turns old after an HP prayer at 6435, at 32/73 HP. It fainted next to a giant spider on Dlvl 8.
+- **Wiki/source:** Poisonous corpses (monsters.h M1_POIS: bees, soldier ants, giant beetles, homunculi, rabid rats, giant spiders, scorpions, snakes, yellow molds...) cost Str or rnd(15) HP without poison resistance, and a dwarvish Valkyrie has none. Only eat them when the alternative is fainting.
+- **Fix:** POISONOUS joins NEVER_EAT, and is lifted like kobolds only when `desperate` (Weak/Fainting with no prayer).
