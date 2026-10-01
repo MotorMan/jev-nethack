@@ -515,7 +515,7 @@ class Bot:
         on_e = self.engraved_here() and hp < 0.9 * hpmax and not shot  # zapped on Elbereth by an adjacent orc, the only option left was 'retreat' (T4400); healthy: fight from it rather than wait out a speed-1 fog cloud
         for m in hostiles:
             if m['dist'] == 1 and m['pos'] not in self.avoid and not (on_e and m['ch'] != '@' and 'minotaur' not in m['name']):
-                if m['name'] == "unknown '@'":
+                if m['name'] == "unknown '@'" and (lv.town or any(o['peaceful'] and o['ch'] == '@' for o in mons) or (s.get('turn') or 0) - self.run.get('hit_turn', -99) > 1):  # hit in the Mines dark by two farlook-failed Woodland-elves, explored instead of fighting: 67 -> 0 (T3567)
                     continue  # unidentified @ can be a shopkeeper or watchman: Jev hit Sarnen beside a mimic in her shop, wand of striking, dead (T5361)
                 low = re.compile(r'shrieker|brown pudding|black pudding')
                 if low.search(m['name']) and any(o['dist'] == 1 and not low.search(o['name']) for o in hostiles):
@@ -981,7 +981,7 @@ class Bot:
             opts = food or {k: v for k, v in opts.items() if k != 'rest' and not (s.get('hunger') == 'Fainting' and k.startswith('approach_'))} or opts  # Fainting closed in on an Uruk-hai, fainted beside it (T3278)  # rested 9 times Weak -> Fainting with food 20 steps off, past fetch's 15-step radius (T2773)
         if (s.get('turn') or 0) - self.run.get('held', -99) <= 1:  # held: moving escapes 1 in 40 (hack.c); a rope golem choked Jev through 3 retreats (T5125). Wiki: Elbereth works while grabbed
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray') or k.startswith(('attack_', 'quaff_'))} or opts
-        if any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and any(k.startswith('attack_') for k in opts):  # explored away from 5 adjacent rats at 21/29: dead (T1354)
+        if any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and any(k.startswith(('attack_', 'flee_up', 'upstairs', 'retreat')) for k in opts):  # flee_up drops attacks, then explore was added back: explored 4 times beside Woodland-elves (T3567)  # explored away from 5 adjacent rats at 21/29: dead (T1354)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore_', 'search', 'throw_', 'pickup_', 'fetch', 'door_'))}  # picked up loot 3 times with Woodland-elves hitting (T6490); threw daggers at a far orc-captain with a giant spider adjacent: 19 -> 8 HP, dead (T4825); walked for a locked door 3 times inside a wererat's rat swarm: 17 -> 0 (T5245)
         if self.history and 'blocked' in self.history[-1]['outcome'] and any(m['dist'] <= 1 for m in hostiles) and len(opts) > 1:
             opts.pop(self.history[-1]['choice'], None)  # hill orcs blocked the stairs path: 5 'ascend' bumps at 80/80 HP without a swing, dead (T6782)

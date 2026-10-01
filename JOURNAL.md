@@ -1044,3 +1044,8 @@ Elbereth wore off at 18/47; kev-4b chose 'Close in' on a speed-18 giant ant with
 
 ## 2026-10-01 00:00 — ravens, blind (kev-4b, T4164, Dlvl 6)
 No fix. Ravens (speed 20, blinding claw) blinded it at 32/79; it swung back at the unseen attackers (the blind rule allows that when hit), two Elbereth tries were interrupted by attacks, 32 -> 7 over 12 turns, and the gamble prayer 300 turns after the last failed.
+
+## 2026-10-01 00:20 — Woodland-elves in the dark Mines (kev-4b, T3567, Dlvl 8)
+Elves in a dark Mines level: farlook failed on several, so they were "unknown '@'", which is never attacked (could be a shopkeeper). Worse, a pack beside it offers 'Run for the upstairs' and drops attack/explore options, but explore options are added again later in build_options, so kev-4b explored four times with elves adjacent: 67 -> 0. Two fixes:
+- An adjacent unknown '@' can be attacked if Jev was hit last turn, outside towns, with no peaceful '@' in view.
+- The "monster adjacent: no exploring" filter now also fires when flee_up/upstairs/retreat are on offer, not just attacks. Replayed T3563: options are now flee_up and retreat.
