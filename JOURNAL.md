@@ -1688,3 +1688,6 @@ Yellow lights blinded it three times (T8218, T9615, T9817), and fainting from hu
 
 ### Hosted 20261001-104100 — wolf, T13328, Dlvl 7/8 (XL 8, AC -1)
 leave_nymph took it down into a werewolf pack (wolves and a winter wolf), and it fled up. Twenty turns of rest later, leave_nymph sent it back down. It did this three times, 62 -> 28, and died. The 50-turn "fled up, don't go back down" guard filtered only descend/dig_down. **Fix:** it now filters leave_nymph too.
+
+### kev-4b 20261001-110454 — wolf, T9557, Dlvl 10 (XL 8, AC 2)
+It stepped off `<` to fight a raven, which blinded it, and a wolf pack arrived unseen. The prayer at T9521 healed it to 88/88, but it fought 3-4 unseen biters down to 1 HP. "Unseen creature" scored difficulty 1 in the pack sum, so `pack` never fired and flee_up was never offered. **Fix:** unseen creatures count as XL in the pack sum.
