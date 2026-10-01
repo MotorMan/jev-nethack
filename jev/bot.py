@@ -692,11 +692,12 @@ class Bot:
 
         # the bounce risk is only for unknown wands: a known wand of fire zapped at an adjacent foe in a corridor bounced back, 26 -> 0 (T7065)
         # an ape took 38 -> 3 with only 'attack' on offer, prayer 100 turns old, two unknown potions and an unknown wand unused (T4683)
+        # 11/47 beside a Woodland-elf hitting for 7-11 a turn, prayer unused but not yet 'trouble', 5 unknown potions: dead (T4520)
         # 11/63 among three hill orcs and a wand of striking, above prayer's 1/7, six unknown potions unused: dead (T6093)
         no_god = self.run.get('prayed_turn') is not None and (s.get('turn') or 0) - self.run['prayed_turn'] < 500 or self.run.get('god_angry')
         if danger:
             for it in sorted(self.inventory, key=lambda i: 'healing' not in i['text']):  # healing first: the break offered an unknown yellow potion over 2 potions of healing, dead (T8671)  # unknown potion beside a Woodland-elf at 25/90: asleep, dead (T9392); an unknown potion on a working Elbereth: 11% heal, sleeping killed a Jev the warhorse was fleeing from
-                if re.search(r'\bpotions?\b', it['text']) and (not self.engraved_here() or shot and LOW_HP(s) or 'healing' in it['text']) and ('healing' in it['text'] or LOW_HP(s) or no_god or not any(m['dist'] <= 1 for m in hostiles) or hp * 4 < hpmax and sum(m['dist'] <= 1 for m in hostiles) >= 2) \
+                if re.search(r'\bpotions?\b', it['text']) and (not self.engraved_here() or shot and LOW_HP(s) or 'healing' in it['text']) and ('healing' in it['text'] or LOW_HP(s) or no_god or not any(m['dist'] <= 1 for m in hostiles) or hp * 4 < hpmax and (sum(m['dist'] <= 1 for m in hostiles) >= 2 or any(m['dist'] <= 1 and 'weaker' not in self.threat(m) for m in hostiles))) \
                         and not re.search(r'sleeping|blindness|hallucination|confusion|booze|sickness|paralysis|water|oil|clear', it['text']):  # clear = water: 4 blind quaffs of it vs a housecat pack (T2801); drank a known potion of sleeping held by an ape (T9512)
                     opts[f"quaff_{it['letter']}"] = (f"Quaff {it['text']}", f"Drink this potion hoping it heals.{danger}", lambda l=it['letter']: (self.act_keys('q' + l, 'quaffed'), self.read_inventory())[0])  # stale inventory re-offered a drunk potion 3-4 times in a fight (T2801, T5616)
                     break

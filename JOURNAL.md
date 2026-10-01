@@ -2042,3 +2042,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** the bot descended to Dlvl 5 at XL 3 (pace again). A jaguar (speed 15, three attacks) and a Green-elf shooting arrows took it 31 → 14. It then chose "Run for the upstairs" twice with the jaguar adjacent, taking free hits each step: 14 → 8 → 0. Elbereth was on offer and unused. Prayer was never used, but at 8/31 HP it doesn't count as major trouble (≤5 or under 1/7 HP).
 - **Wiki:** Elbereth stops the jaguar's melee. You can't outrun a faster monster, so walking away from it is worse than standing.
 - **Fix:** with Elbereth available, an Elbereth-respecting hostile faster than 12 adjacent, and '<' not adjacent, flee_up is dropped.
+
+## Run 20261001-165326 — killed by a Woodland-elf (T4520, Dlvl 7, XL 5, AC 6)
+- **Cause:** pace again: XL 5 on Dlvl 7. A Woodland-elf, which ignores Elbereth, hit for 7–11 a turn, 47 → 11. Prayer was never used, but 11/47 is above major trouble (under 1/7 or ≤5), and the next hit killed it. Its five unknown potion types were never offered with only one monster adjacent.
+- **Wiki:** Woodland-elf: avoid below XL 6 unless at a choke point, go upstairs. When one more hit kills you, an unknown potion beats a swing.
+- **Fix:** below 1/4 HP, unknown potions are offered if any adjacent hostile isn't "weaker" (previously required two adjacent).
