@@ -852,3 +852,6 @@ The xlogfile turn match was widened from 5 to 200 turns: this death's last scree
 
 ## 11:15 — Hit an unknown '@' in a shop
 Run 204556 was killed by shopkeeper Sarnen at T5361. In her liquor emporium Jev fought a large mimic, then took "Attack unknown '@' (south)": the farlook had failed, and the @ was Sarnen. She got angry and used a wand of striking. Attack options are no longer offered for an unidentified '@'.
+
+## 11:25 — Pace-cap resting is the starvation engine
+Run 204704 was killed by a dog at T3853 while fainted, XL5 on Dlvl 6. About 95 of its "rest and search" choices were pace-cap rests ("Dlvl+1 is too deep for your XL, wait here for wandering monsters"): roughly 1,900 of 3,200 turns spent waiting for XP that rarely came. Run 203259 had 47 such rests and run 204125 had 30. Waiting burns 1 nutrition a turn, and early on wandering monsters spawn about once per 70 turns, so it trades food for very little XP. Pace-cap resting is now off once Hungry, and the per-level allowance at XL+1 is cut from 1,500 to 800 searched turns.
