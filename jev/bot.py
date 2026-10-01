@@ -761,6 +761,10 @@ class Bot:
             if fresh and not here and not near and 'goto_corpse' not in opts:
                 p = min(fresh, key=dist.get)
                 opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.{why}", lambda p=p: self.act_goto_corpse(p))
+        ew = next((it for it in self.inventory if re.search(r'\bwand\b', it['text']) and 'wand of' not in it['text'] and it['text'] not in self.run.setdefault('etested', set())), None)
+        if ew and not hostiles and not LOW_HP(s) and s.get('hunger') not in ('Weak', 'Fainting') and 'Blind' not in s.get('conditions', []) and self.standing_on() not in ('<', '>', '_', '{', '#') and not self.soko():
+            # wiki (Engrave-identification): digging, fire and lightning auto-identify; 3 unknown wands rode to a lightning death on Dlvl 10 with no '<' known (T5319)
+            opts = {f"engrave_id_{ew['letter']}": (f"Engrave-test {ew['text']}", 'Nothing hostile in view: engrave with the unknown wand to learn what it is (digging is an escape hole).', lambda it=ew: self.act_engrave_id(it))}
         if 'eat_corpse' in opts and not near:  # taken 15 of 98 offers (explore won), and hunger is the top killer: eat it
             opts = {k: v for k, v in opts.items() if k in ('eat_corpse', 'pray')}
         elif 'goto_corpse' in opts and not near:  # passed up for explore/rest ~60% of the time; one Jev prayed 6 times for food in 7700 turns
@@ -1679,6 +1683,31 @@ class Bot:
                 self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0
             return 'engraving came out garbled; not protected'  # engrave.c: each dust letter has a 1/25 typo, so a retry is a fresh ~72% shot; blocking retries after 2 garbles had 3 wolves bite 29 -> 0 (T2624)
         return 'engraved Elbereth'
+
+    def act_engrave_id(self, it):
+        self.run['etested'].add(it['text'])
+        self.t.send('E')
+        if 'write with' not in self.t.lines()[0]:
+            self.t.send('\x1b')
+            return 'could not engrave here'
+        self.t.send(it['letter'])
+        for _ in range(8):
+            top = self.t.lines()[0]
+            if 'add to the current engraving' in top or 'Call ' in top:
+                self.t.send('n' if 'add to' in top else '\x1b')
+            elif 'For what do you wish' in top:
+                self.t.send('blessed +2 gray dragon scale mail\r')
+            elif 'What do you want to' in top:
+                self.t.send('x\r')
+                break
+            elif '--More--' in '\n'.join(self.t.lines()):
+                self.add_msg(messages_from('\n'.join(self.t.lines())))
+                self.t.send('\r')
+            else:
+                break
+        self.observe()
+        self.read_inventory()
+        return 'engrave-tested: ' + ' '.join(self.run['recent'][-2:])[-120:]
 
     def flee_up(self, act):
         self.run['fled_up'] = self.snap.status.get('turn') or 0
