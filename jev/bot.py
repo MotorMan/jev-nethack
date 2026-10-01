@@ -661,10 +661,14 @@ class Bot:
         if lev and (not near or 'invisib' in lev['text']):  # -2 levitation boots floated Jev over the stairs for 2400 turns until it starved
             # invisible, the hero has no @ on screen: the bot took an elf for itself while a soldier ant ate it (T5244)
             opts = {f"remove_{lev['letter']}": (f"Take off {lev['text']}", 'It keeps you from playing normally (no stairs while levitating; while invisible you cannot see where you are). Remove it.', lambda it=lev: self.act_keys(('R' if 'hand' in it['text'] else 'T') + it['letter'] + '\x1b', 'took it off'))}
+        # cursed plain cloak: only blocks body-armor swaps (wiki), and any cloak is MC1 against were bites; cursed mithril still beats AC 7+.
+        # Unknown-look cloaks (tattered cape, opera cloak...) can be invisibility: still need a known BUC.
+        worn_ac = max((suit_ac(it['text']) or 0 for it in self.inventory if 'being worn' in it['text']), default=0)
+        better_body = any((suit_ac(it['text']) or 0) > worn_ac and 'being worn' not in it['text'] and it['text'] not in self.run.get('unwearable', {}) for it in self.inventory)
         if not near:
             for it in self.inventory:
                 t = it['text']
-                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|mantelet|mithril-coat|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and not (re.search(r'cloak|mantelet|mithril', t) and not re.search(r'\b(uncursed|blessed)\b', t)) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
+                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|mantelet|mithril-coat|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and not (re.search(r'cloak|mantelet|mithril', t) and not re.search(r'\b(uncursed|blessed)\b', t) and not (re.search(r'\b(dwarvish|hooded|orcish|leather|elven) cloak|mantelet|faded pall', t) and not better_body) and not ('mithril' in t and (s.get('ac') or 0) >= 7)) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
                     opts[f"wear_{it['letter']}"] = (f"Wear {t}", "Put on this armor (takes a few turns; may be cursed if unidentified).", lambda it=it: self.act_wear(it))
             worn = next((it for it in self.inventory if 'being worn' in it['text'] and suit_ac(it['text']) is not None), None)
             better = max((it for it in self.inventory if 'being worn' not in it['text'] and (suit_ac(it['text']) or 0) > (suit_ac(worn['text']) if worn else 99)

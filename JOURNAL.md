@@ -889,3 +889,9 @@ Jev died at XL6 on Dlvl 6, T4835: killed by a hill orc pack mid-gamble-prayer. A
 ## 14:00 — Lycanthropy: kill weres at range
 The user flagged lycanthropy as a big problem. Across all runs, 44 of 509 caught it (9%). Each infection means a transformation about every 80 turns (allmain.c: 1 in 80, 1 in 60 at night), and every transformation drops armor and weapon (see 13:50). The cure is usually a prayer, which then isn't available for HP or hunger. Of the last 15 infected runs, 5 died still infected. Only an animal-form were's bite infects: 1 in 4 per hit, minus MC (uhitm.c mhitm_ad_were). The wiki's prevention advice is to kill them before they reach melee range. Now, when an animal-form were (name has "were", glyph isn't @) is 2–6 squares away in a straight line and Jev has missiles, the options narrow to throw, zap, Elbereth, pray and quaff. Approaching it is no longer an option.
 Not done: cloaks for MC1 still need a known BUC (user rule); holy water and wolfsbane aren't handled.
+
+## 14:10 — Unknown-BUC armor when the risk is small
+The user said: in an emergency, wear the armor; think smart. The rule is now about the cost of a cursed item, not a blanket BUC requirement:
+- Plain-looking cloaks (dwarvish/hooded, orcish/coarse mantelet, leather, elven/faded pall) are worn even with unknown BUC, as long as no better body armor waits in the pack. Cursed, the cloak only blocks body-armor swaps; worn, it gives MC1 (about 30% of were bites and other special melee negated) plus 1 AC.
+- Unknown-appearance cloaks (tattered cape, opera cloak, ornamental cope, piece of cloth) still need a known BUC. One of them can be invisibility, and a cursed one stuck on breaks the bot's hero tracking.
+- Mithril with unknown BUC is worn whenever AC is 7 or worse: even cursed at -3, it beats nothing.
