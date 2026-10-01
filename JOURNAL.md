@@ -1934,3 +1934,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** ~1000 turns on Mines level 6 without finding the downstairs, mostly camped on Elbereth. A water nymph stole the shield (T3749, right after an attack from Elbereth), then the dagger and helm (T4641), then the bronze plate mail (T4701). With only gold left, AC 10 and bare hands, a hill orc pack finished it. leave_nymph needs known downstairs, so it never fired.
 - **Wiki:** nymphs respect Elbereth, so don't attack from it (that erases it). Kill them with missiles, and leave the level once one has started stealing.
 - **Fix:** the nymph tips now say never melee, wait on Elbereth when she's adjacent, and leave the level once she has stolen. Still open: leaving by the upstairs when the downstairs is unknown, which risks ping-ponging, plus the Mines/pace question.
+
+## 20261001-151630 — poisoned by a rotted hill orc corpse (T2660, Dlvl 6)
+- Cause: corpse age is tracked per square. A fresh lizard kill landed on an old hill orc corpse; after eating the lizard (age 17) the bot ate the orc under the same "21 turns" stamp. It was tainted (eat.c: age/(10+rn2(20)) > 5, so ≥50 turns old). The prayer then failed ("Tyr is displeased").
+- Wiki: only eat corpses you saw die, or that are under 50 turns old; in a pile, the top corpse is the newest and the ones below are of unknown age.
+- Fix: after eating a corpse, the square's age is reset to unknown, so leftover corpses there are treated as rotten.

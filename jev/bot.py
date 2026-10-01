@@ -1757,6 +1757,8 @@ class Bot:
         top = self.t.lines()[0]
         if ('eat it?' in top or 'eat one?' in top) and not any(n in top for n in self.never_eat()):
             self.t.send('y')
+            if self.snap.me:  # age is per square and the top corpse is the newest: a fresh lizard sat on an old hill orc, ate both, food poisoning (T2656)
+                self.level().corpses[self.snap.me] = -10**6
         else:
             self.t.send('\x1b')
         self.observe()
