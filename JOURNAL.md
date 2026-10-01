@@ -1643,3 +1643,6 @@ Elbereth held off a crowd (rothe, jackal, cave spider, giant bat, orc zombie, an
 
 ## Djev 101801 — giant ant while asleep, T6117, Dlvl 4
 It zapped an unknown wand at an adjacent kobold lady with a wall close behind her. The wand was sleep, the ray bounced back, and a giant ant killed the sleeping Valkyrie. zap.c buzz(): range rn1(7,7) = 7..13, and rays bounce off walls. Fix: unknown wands and known ray wands are only zapped along a line with 7 or more open squares, so a bounce can't reach us.
+
+## Hosted 101910 — giant bat while fainted, T5749, Dlvl 3
+Lycanthropy: the first shift (T4627) dropped the splint mail, shield and spear. A second shift (T4694) dropped nothing, but its "You turn into a were" message overwrote the drop spot, so fetch_gear never went back for the pile. The bot, unarmed and at AC 10, starved for 900 turns near a floating eye on a level with no '>' found. Fix: the drop spot is set only by the real drop messages ("Your armor falls", "You find you must drop", "can no longer hold your").

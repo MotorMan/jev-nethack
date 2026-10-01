@@ -147,7 +147,7 @@ class Bot:
                 self.run['lycanthropy'] = True
             if 'strange mental acuity' in text:  # telepathy: blind, you still see the floating eye, so a blindfold no longer stops its gaze (uhitm.c passive: !canseemon)
                 self.run['telepathic'] = True
-            if re.search(r'You turn into a were|You find you must drop', text) and self.snap and self.snap.me:  # armor and weapon fall to the floor here (polyself.c break_armor/drop_weapon)
+            if re.search(r'Your armor falls|You find you must drop|can no longer hold your', text) and self.snap and self.snap.me:  # armor and weapon fall to the floor here (polyself.c break_armor/drop_weapon); a bare 'You turn into' re-shift moved the spot off the real pile, gear lost, starved (T5749)
                 self.run['dropped'] = (self.snap.status.get('dlvl'), self.snap.me)
             if re.search(r'is displeased|Thou durst call upon me|Then die, mortal|voice of \w+ (booms|rings out|thunders)|relearn thy lessons|Thou hast angered me', text) and 'desecrate my altar' not in text:  # pray.c altar_wrath: engraving on your own altar costs 1 Wis and 1 alignment, not anger; flagged angry, no prayer offered at 7/56 888 turns on, dead (T5954)  # prayed too soon: god angry, Luck -3 (the quote after 'booms:' can be lost: wrath of Tyr killed T5998), praying again only makes it worse
                 self.run['god_angry'] = True
