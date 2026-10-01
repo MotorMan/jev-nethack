@@ -1124,3 +1124,7 @@ Fix: when the shooter is weaker than Jev and a stronger monster is within 3 squa
 ## Rope golem + snake on Dlvl 8 at XL 4 (T2908)
 A hole dropped Jev from Dlvl 5 to Dlvl 8, and it was still exploring there to find '<'. A rope golem (stronger) and a snake reached it. At 22/43, with Elbereth on offer, kev-4b chose to swing: 22 → 10. The late Elbereth was then interrupted by the fast snake, and that blocks re-engraving for 5 turns. Jev went back to swinging and died.
 Fix: when Elbereth is on offer, HP is below 60% and an adjacent hostile is stronger than Jev, Elbereth (or pray/quaff) is forced. A replay of T2907 offered attack or Elbereth before the change and forces Elbereth after it.
+
+## Uruk-hai arrows: reading the screen mid-animation (T3349, Dlvl 5)
+After each Uruk-hai volley, every monster in view came back as "unknown", and Jev once attacked thin air where a stale 'G' had been drawn. In 5.0, tty_delay_output sleeps 50 ms per missile frame (termcap.c, flags.nap). The local terminal reader treats 15 ms of silence as "the game is waiting for input", so it parsed the map and sent farlook keys mid-animation. With every name unknown, the shooter-in-view check failed, and Jev was choosing blind under fire. It left Elbereth, threw, then fell 24 → 9 HP, and the last Elbereth was interrupted.
+Fix: `!timed_delay` in jev/nethackrc makes animations instant. The Hardfought rc needs the same line when it is pasted there.
