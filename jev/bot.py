@@ -1062,11 +1062,12 @@ class Bot:
         if 'elbereth' in opts and adj and (len(adj) >= 2 and s.get('hp', 1) * 2 < s.get('hpmax', 1) or losing or pack and len(adj) >= 3 or s.get('hp', 1) < 0.6 * s.get('hpmax', 1) and any('stronger' in self.threat(m) for m in adj) or s.get('hp', 1) < 0.4 * s.get('hpmax', 1)) and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in adj):  # swung at a giant ant (speed 18) from 23/62 to 14 with Elbereth on offer, then garbled + interrupted, dead (T5591)  # XL4 swung at a rope golem at 22/43 with Elbereth on offer: 22 -> 10, a snake interrupted the late engraving, dead (T2908)  # traded blows with 3 wolves 70 -> 6 with Elbereth on offer, died praying (T4527)
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray') or k.startswith('quaff_')}
         g = self.run.get('gear_at')
-        if g and g[0] == s.get('dlvl') and s.get('exp') is not None and not near:
+        if g and g[0] == s.get('dlvl') and s.get('exp') is not None and not any(m['dist'] <= 1 for m in near):  # 'not near': a speed-3 rock mole stayed in view 230 turns, the shield never recovered, dead at AC 10 (T3665)
             if me == g[1]:
                 self.run['gear_at'] = None  # the pickup and wear options take it from here
             elif g[1] in dist:
-                opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'pickup_', 'wear_', 'wield_'))}
+                if not near:
+                    opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'pickup_', 'wear_', 'wield_'))}
                 opts['recover_gear'] = ('Go back for your dropped armor', f"Your armor and weapon fell off when you changed form. They lie {dist[g[1]]} steps {compass(me, g[1])}: walk there, pick them up and put them back on.", lambda p=g[1]: self.act_go(p))
         tp = next((it for it in self.inventory if 'scroll of teleportation' in it['text']), None)
         if tp and 'pray' not in opts and s.get('hp', 1) * 2 < s.get('hpmax', 1) and (near or self.unseen_attacker()) and not self.soko():

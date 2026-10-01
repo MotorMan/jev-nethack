@@ -1365,3 +1365,6 @@ This was the best-geared run so far: orcish chain mail, a helm and a +3 shield. 
 
 ## Run 20261001-062152: red dragon's fire, T1845 (Dlvl 4, XL 2, 11/25 HP)
 A red dragon (difficulty 20, probably from a bones file or a polymorph trap) turned up on Dlvl 4 while Jev, at XL 2, was resting on Elbereth at 9 HP. Elbereth made the dragon flee, but breath works at range, and Jev was walking to the upstairs when it got breathed on. It had no wand, no escape item and no prayer. That's unwinnable at this point, so no code change.
+
+## Run 20261001-062248: hill orc, T3665 (Dlvl 5, XL 5, AC 10)
+Lycanthropy struck twice. The first time (T3167), Jev went back for the gear it shed. The second time (T3397), the prayer at T3432 cured it, but "recover_gear" required no monster in view at all, and a speed-3 rock mole stayed nearby for over 200 turns. Jev fought on at AC 10 with an orcish dagger until hill orcs killed it. Fix: recover_gear is now offered whenever no hostile is adjacent. Other options are only filtered out when nothing is in view.
