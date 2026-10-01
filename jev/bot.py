@@ -1454,6 +1454,9 @@ class Bot:
                 break
         self.observe()
         if not self.elbereth_ok():
+            if re.search(r"can't reach the (floor|ground)", ' '.join(self.run['recent'][-3:])):  # grabbed by a rope golem or in a pit: logged as 'garbled' 3 times at 5 HP, dead (T3597)
+                self.run['no_engrave'] = self.snap.status.get('turn') or 0
+                return 'could not engrave: cannot reach the floor'
             if 'written' not in self.last_read and self.snap.status.get('turn') == t0:  # no time passed: this form can't engrave (a wererat Jev), not an attack; blaming the rothe blocked Elbereth once back in dwarf form, 30 -> 0 (T7388)
                 self.run['no_engrave'] = self.snap.status.get('turn') or 0  # in a spiked pit 'You can't reach the floor': offered and refused 3 times a turn while golems choked Jev (T5699)
                 return 'could not engrave in this form'

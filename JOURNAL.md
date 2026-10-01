@@ -1308,3 +1308,6 @@ On a bones level, a hobgoblin threw darts and a spear, so `shot` was set. While 
 Jev was in a spiked pit, choked by two rope golems. A successful prayer at T5692 restored it to 70 HP, then 70 → 0 in 5 turns. An uncursed wand of fire (rope golems burn) went unused, because the held filter keeps only Elbereth, pray, attack and quaff. Elbereth was refused three times a turn: "You can't reach the floor" from the pit. Fixes:
 - The held filter now keeps `zap_` options.
 - After "could not engrave", Elbereth isn't offered for 5 turns.
+
+## Run 20261001-045805: rope golem (T3597, Dlvl 7, XL 5)
+A rope golem grabbed Jev at 23/59, and "You can't reach the ground" refused each Elbereth. An old garbled engraving still lay on the square, so every refusal was logged as "garbled", 3 times per turn, and the new `no_engrave` never fired. 23 → 5 → 0. Fix: act_elbereth checks for "can't reach the floor/ground" directly. The prayer at T3125 most likely angered Tyr, so none was available.
