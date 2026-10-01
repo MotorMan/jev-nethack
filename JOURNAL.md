@@ -1326,3 +1326,6 @@ A fire ant kept biting Jev while the map showed it 3 squares away or not at all.
 
 ## Run 20261001-053341: hill orc, praying on T4145 (Sokoban)
 An unseen hill orc zapped a wand of lightning, and the flash blinded Jev. 'Rest' was the only option offered between hits, because unseen_attacker() didn't count "You hear a nearby zap" or "The bolt of lightning hits you" as an attack. HP went 52 -> 30 -> 13 -> 7, then Jev prayed 300 turns after its last prayer and died. Fix: those two messages now count as an unseen attacker, so rest, explore and search are dropped. AC 5 with no escape items is still the underlying weakness.
+
+## Run 20261001-054214: soldier ant, T6068 (Dlvl 9, XL 7)
+Jev ran out of food rations by T4391. It prayed at 9 HP while Hungry (T5955). Off an altar with Luck 0, pray.c picks action rn1(2,1), so half the time only the worst trouble is fixed: it fixed HP, not hunger. Jev was Weak 85 turns later with no prayer left, so the Weak filter made it forage instead of waiting. It met a soldier ant (47 -> 24 HP in one turn) and then a fire ant. The second prayer fixed only Weak (the worst trouble), leaving 4 HP. No code change: corpse eating works (56 corpses eaten across 5 runs), and food buying is offered when a shop is in view. Packed food just runs out around T3000-4400. Still open: a reliable food supply.
