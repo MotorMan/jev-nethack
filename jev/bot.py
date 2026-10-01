@@ -532,7 +532,7 @@ class Bot:
         # unless it is shooting: rested 15 turns on Elbereth while unreachable Uruk-hai shot it 29 -> 5, dead (T5766)
         shot = (s.get('turn') or 0) - self.run.get('shot_turn', -99) <= (20 if any(m['name'] == self.run.get('shooter') and m['dist'] <= 8 for m in hostiles) else 3)  # an Uruk-hai shot between Elbereth waits 4 turns apart: 16 -> 0 (T4338)  # one volley is 3-4 messages: "shoots 2 arrows", "1st hits", "2nd misses" pushed 'shoots' out of a 3-line window; Jev waited on Elbereth at 4 HP under Uruk-hai fire (T7290)
         near = [m for m in hostiles if m['dist'] <= 6 and not m['passive'] and (m['dist'] <= 2 or m['pos'] in dist or shot)]  # <= 1: a jaguar 2 steps off (square not in dist) left only 'explore' while an Uruk-hai's wand of striking took 34 -> 0 (T7138)
-        opts = {}
+        opts, charge = {}, None
         if shot and any(m['name'] == self.run.get('shooter') and 'weaker' in self.threat(m) for m in hostiles) and any('weaker' not in self.threat(m) and m['dist'] <= 3 for m in hostiles):  # a hobbit's dagger beside two fire ants ('your level') dropped the Elbereth wait at 27/47: dead (T4266)
             shot = False  # a goblin's thrown dagger pulled Jev off Elbereth into a killer bee hive at 8/29, dead (T2693)
         self.run['adj_names'] = {m['name'] for m in hostiles if m['dist'] <= 1}
@@ -606,9 +606,11 @@ class Bot:
         hallu = bool(set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl'})  # names are random: closed in on a 'nickelpede' that was a mumak at 39/73, dead (T7654)
         # a pyrolisk's fire gaze reaches across the room and Elbereth does nothing about it (wiki); it is slow (6) with a 1d6 bite: close in.
         # Waited on Elbereth 2 squares from one at 16/75 while it gazed, dead (T7302)
-        for m in near[:2] if not (danger or hp * 2 < hpmax or pack or hallu and hp < 0.8 * hpmax) else [m for m in near if 'pyrolisk' in m['name']]:  # walking into a fight at a third of max HP killed three giant-bat runs; at 18/47 closed in on a giant ant + werejackal, 18 -> 6, failed prayer (T4446)
+        for m in near[:2] if not (danger or hp * 2 < hpmax or pack or hallu and hp < 0.8 * hpmax) else [m for m in near if 'pyrolisk' in m['name'] or shot and m['name'] == self.run.get('shooter') and 'weaker' in self.threat(m)]:  # Elbereth doesn't stop wands: a fleeing hill orc zapped striking at 13/54 while Jev waited and explored, dead (T4612)  # walking into a fight at a third of max HP killed three giant-bat runs; at 18/47 closed in on a giant ant + werejackal, 18 -> 6, failed prayer (T4446)
             if m['dist'] > 1 and m['pos'] in dist and not re.search(r'unicorn|yellow light|nymph|rope golem|owlbear|mumak', m['name']) and 'stronger' not in self.threat(m):  # polymorphed weak, left Elbereth to close on a giant ant with a giant spider near: dead (T5835); let them come, first hit is ours  # nymph: stepping up to one cost a shield and a helm in one game, AC 10, dead (T6402); throw or let her come  # yellow light: its explosion blinds 10d20 turns, 5 of 6 blind deaths; throw instead (wiki). unicorn: speed 24, keeps its distance, butt+kick took 24 HP in one turn
-                opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
+                opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}." + (' It is shooting you and Elbereth does not stop that: kill it.' if shot and m['name'] == self.run.get('shooter') else ''), lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
+                if shot and m['name'] == self.run.get('shooter') and (danger or hp * 2 < hpmax):
+                    charge = f"approach_{m['pos'][0]}_{m['pos'][1]}"
         strong = False
         open_n = lambda q: sum(snap.walkable(q[0] + dx, q[1] + dy) for dx, dy in DIRS.values())
         pack_near = [m for m in near if m['dist'] <= 5]
@@ -1160,7 +1162,9 @@ class Bot:
         if sum(m['dist'] <= 3 for m in near) >= 3:  # held a doorway against 15 Mines monsters, a kill left no one adjacent and explore stepped into the room: 22 -> 5 HP in 2 turns (T2970)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door_', 'search', 'goto_'))} or opts
         if near and 'wait' in opts and self.engraved_here() and s.get('hp', 1) * 2 < s.get('hpmax', 1):  # explored off Elbereth at 12/63 among 8 monsters, 3 times 'took damage after 1 steps' (T7921)
-            opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door_', 'sell_', 'approach_', 'fetch'))}
+            opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door_', 'sell_', 'approach_', 'fetch')) or k == charge}
+        if charge in opts:
+            opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door_', 'sell_', 'fetch', 'wait', 'search', 'rest'))}
         if not near and ({'eat_corpse', 'goto_corpse'} & opts.keys()):  # the earlier forcing ran before explore/descend were added: 22 corpse offers, 2 taken, 4 hunger prayers, fainted (T3843)
             opts = {k: v for k, v in opts.items() if k in ('eat_corpse', 'goto_corpse', 'pray')}
         if self.history and 'blocked' in self.history[-1]['outcome'] and any(m['dist'] <= 1 for m in hostiles) and len(opts) > 1:

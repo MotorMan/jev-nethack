@@ -1760,3 +1760,6 @@ Not done (noted): blindfolding against yellow lights/ravens (no blindfold logic 
 
 ## Hosted 115052 — hill orc while praying, T5005, Dlvl 6 Mines
 Choke walk and Elbereth alternated: the walk stopped after 1 step each time on "a monster came into view" (the pack itself), scuffing each fresh Elbereth, 22 -> 10 HP. Fix: the choke walk passes `stop_new=False` (it still stops on damage); below 50% HP with Elbereth offered/engraved, choke is dropped so Jev holds the square.
+
+## Hosted 115737 — killed by a wand (hill orc), T4612, Dlvl 7
+A hill orc with a wand of striking zapped Jev 32 -> 12 during a choke walk; Jev engraved Elbereth, the orc "turned to flee" but kept zapping from 2-3 squares off-line, Jev waited and then explored: dead. Elbereth doesn't stop ranged attacks. Fix: like the pyrolisk rule, a *weaker* shooter gets "Close in" even when hurt, and that charge survives the on-Elbereth filter and displaces explore/wait/search.
