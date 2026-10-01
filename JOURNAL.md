@@ -1516,3 +1516,7 @@ Change: Elbereth is forced (with pray, quaff, upstairs and dig) when two or more
 ## Run 20261001-075611: Woodland-elves, T5738, Dlvl 7
 Two Woodland-elves (adjacent N and E; @-shaped, so they ignore Elbereth) took Jev from 67 to 16 HP. The last-resort zap filter offered only a wand of magic missile, aimed at a C 5 steps south. The cause: in a losing melee, zap targets skipped anything marked "weaker than you", and that excluded the elves.
 **Fix:** adjacent foes now count as zap targets once HP is below half.
+
+## Run 20261001-080017: werejackal, fainted, T6255, max Dlvl 6
+Jev prayed for lycanthropy 516 turns after its last prayer and got "Tyr is displeased", so the god was angry and there were no more prayers. It went Weak, then Fainting, with no food. A rock mole (speed 3, edible) kept biting, but the slow-monster rule walked away from it 6 times instead of killing it for food.
+**Fix:** that retreat no longer fires while Weak or Fainting. The prayer gamble itself (about 87% safe at 500 turns) is unchanged.
