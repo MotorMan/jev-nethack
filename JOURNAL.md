@@ -703,3 +703,6 @@ Run 171932 (Dlvl 6, T5752): a chameleon turned into a yeti and took Jev from 41 
 
 ## 2026-10-01 01:10 — no forced Sokoban push while hurt with hostiles in view
 Run 172609 (Sokoban, T5149) was resting on Elbereth at 25/64 HP. The hill orc and snake had "turned to flee", so they fell outside `near` and the Sokoban rule forced the next push. That step took Jev off Elbereth: 26 → 14 HP the next turn, then the orc read a scroll of earth and the boulder killed it. The push is no longer forced while any hostile is in view and HP is below 60%.
+
+## 2026-10-01 01:25 — Weak waits for the starvation clock
+Run 173208 (T8071, max Dlvl 5) lived on prayer: it prayed for Weak at T1894, 2747 and 3600, and the fourth, at T4451 (851 turns later), drew "Thou art arrogant, mortal" (p_type 0, timeout still > 200 because rnz(350) has a long tail). With the god angry it eventually fainted to death under a hobgoblin. Weak costs nothing by itself, and the new Fainting rule prays about 40 turns before starvation. So the Weak gate goes from 400 to 1000 turns, letting the timeout run as long as possible. The real issue is that this Jev found almost no food in 8000 turns; still open.

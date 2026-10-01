@@ -534,6 +534,7 @@ class Bot:
             self.run.pop('faint_start', None)
         # eat.c: Fainting starts at nutrition 0, starvation below -(100 + 10 Con): pray ~40 turns before that, as late as is safe.
         # A fixed 150 since the last prayer prayed 171 turns after a good one: "Tyr is displeased", angry, fainted to death (T2527)
+        # Weak at 400 prayed 851 turns after a good prayer: "Thou art arrogant", angry god, fainted to death (T8071). Weak can't kill; 'starving' covers the end
         starving = turn - self.run.get('faint_start', turn) >= 60 + 10 * (s.get('co') or 10)
         # prayer timeout is ~50-1000 turns; praying early angers the god (a couatl killed an earlier run)
         # timeout after a good prayer is ~350 on average and major trouble is fixed below 200: 600 is a fair bet for
@@ -542,7 +543,7 @@ class Bot:
         # rnz(350) is heavy-tailed, so waiting buys little: P(rnz - elapsed < 200) is .66 at 300, .87 at 500, .94 at 1000 turns (simulated;
         # nethack-tools' prayer timer uses the same model). 1000 left low-HP Jevs dying unprayed; the gamble below covers dying with a monster adjacent;
         # starving is certain death, so hunger bets earlier (1000 let a Weak Jev faint to death 640 turns after praying; 600 did it again at 524, T5771)
-        if trouble and not self.run.get('god_angry') and (fatal or starving or (turn - last >= {'Weak': 400}.get(s.get('hunger'), 500) if last is not None else turn >= 110)):
+        if trouble and not self.run.get('god_angry') and (fatal or starving or (turn - last >= {'Weak': 1000}.get(s.get('hunger'), 500) if last is not None else turn >= 110)):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else 'lycanthropy: you will turn into a jackal' if lyc and s.get('hunger') not in ('Weak', 'Fainting') else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
         elif LOW_HP(s) and (any(m['dist'] <= 7 for m in hostiles) or self.unseen_attacker()) and last is not None and turn - last >= 100:  # a quasit's wand took 29 -> 0 from range; 3/54 HP 243 turns after a prayer, no gamble offered, dead (T5218). rnz(350)<=200+t is ~50% at t=100; failing angers Tyr, but death was certain
             opts['pray'] = ('Pray to Tyr (gamble)', f"Last prayer was only {turn - last} turns ago: Tyr may well be angry (bad luck, maybe smiting). But at {s.get('hp')} HP with a monster attacking, this may be the last chance.", self.act_pray)
