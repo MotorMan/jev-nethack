@@ -1670,3 +1670,9 @@ It spent 17k turns walled in on Dlvl 2, choosing search_hidden over dead_end (th
 
 ### Djev 20261001-103511 — werejackal, T2336, Dlvl 4
 It prayed for Weak at T2296, then a human-form werejackal (Elbereth doesn't stop @) hit it 25 -> 14. Then it summoned jackals, and the pack rule removed all attack options. flee_up walked 4 steps with speed-12 attackers adjacent, and it died. **Fix:** skip the pack/strong attack filter when every adjacent monster is weaker and the stairs aren't underfoot.
+
+### Hosted 20261001-103620 — rope golem while praying, T5202, Dlvl 7
+It approached a rope golem at 45/64 and got grabbed: it can't engrave or step away while held, and the choking took it to 4 HP. Its last prayer was 369 turns earlier, so the gamble prayer failed. This is the third rope-golem death.
+
+### kev-4b 20261001-103839 — owlbear, T7718, Dlvl 7
+A water nymph had already stripped it to bare hands and AC 10. It approached an owlbear, got grabbed, and died 81 -> 0 in five turns. **Fix (both):** rope golems and owlbears join the no-approach list (let them come or throw), with threat text warning about grabs.
