@@ -471,6 +471,8 @@ class Bot:
         on_e = self.engraved_here() and hp < 0.9 * hpmax  # healthy: fight from it rather than wait out a speed-1 fog cloud
         for m in hostiles:
             if m['dist'] == 1 and m['pos'] not in self.avoid and not (on_e and m['ch'] != '@' and 'minotaur' not in m['name']):
+                if m['name'] == "unknown '@'":
+                    continue  # unidentified @ can be a shopkeeper or watchman: Jev hit Sarnen beside a mimic in her shop, wand of striking, dead (T5361)
                 if 'shrieker' in m['name'] and any(o['dist'] == 1 and 'shrieker' not in o['name'] for o in hostiles):
                     continue  # no attacks: Jev hit a shrieker 3 turns while a werejackal and iguana killed it (T1402)
                 d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]

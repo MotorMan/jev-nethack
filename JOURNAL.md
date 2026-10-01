@@ -849,3 +849,6 @@ Run 203601 (XL7, Dlvl 6) was killed by a killer bee at T8224. A werejackal infec
 Run 204125 starved at T5244 (xlogfile: "died of starvation, while fainted") on Dlvl 3 at XL2. A yellow mold and a red mold blocked the two corridors out of the start area, with rats behind them. Molds are avoided squares, but unexplored areas still showed as reachable, so the blocker logic (which needs "nothing left to explore") never fired. Jev looped explore → "monster came into view" → wait → approach for ~4,000 turns: 289 waits, 289 explores, 7 attacks. Now, if no experience has been gained in 500 turns and a reachable mold is around (HP ≥ 60%, no mobile hostile within 3), Jev is made to kill it. Molds can't move or attack; the passive damage is small, and act_kill_blocker stops at half HP.
 
 The xlogfile turn match was widened from 5 to 200 turns: this death's last screen read T5200 against the xlogfile's 5244, so the override hadn't applied.
+
+## 11:15 — Hit an unknown '@' in a shop
+Run 204556 was killed by shopkeeper Sarnen at T5361. In her liquor emporium Jev fought a large mimic, then took "Attack unknown '@' (south)": the farlook had failed, and the @ was Sarnen. She got angry and used a wand of striking. Attack options are no longer offered for an unidentified '@'.
