@@ -1586,3 +1586,6 @@ It stood in Ermenak's shop doorway for about 600 turns. search_hidden walked int
 
 ### kev-4b 20261001-093510: fainted and killed by a garter snake on Dlvl 7 (T4246)
 A low-HP prayer at T3015 worked. A Weak prayer 1013 turns later angered Tyr. pray.c angers the god both for "too soon" and for bad luck or alignment, so the log cannot tell which happened. That makes three runs today where a prayer about 1000 turns on failed. Fix, from goto_corpse outcomes across ~120 recent runs: many "no edible corpse there" trips ended on giant bat, acid blob, kobold or dog corpses that were never edible, or on a slime mold, tripe, fortune cookie or eggs. Kills of never-eat species are no longer recorded as fresh corpses. An empty corpse trip now picks up non-corpse food there; eggs are skipped (cockatrice risk).
+
+### Djev 20261001-093151: Uruk-hai archers on Dlvl 6 (Minetown), T6959
+It had prayed 44 turns earlier. Uruk-hai shot it from 3 squares while it stood on Elbereth, from 21 HP down to 7. It carried two unknown potions, but on Elbereth only known healing is offered (an earlier lesson: sleeping on a working Elbereth). Elbereth does nothing against arrows, so when being shot at LOW_HP the unknown-potion gamble is now offered on Elbereth too.
