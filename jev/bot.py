@@ -784,7 +784,7 @@ class Bot:
             for it in self.inventory:  # identify, enchant armor (worn armor only: else the scroll is wasted) and remove curse are always safe to read
                 if re.search(r'scrolls? of (identify|remove curse|enchant armor)|priced as (identify|enchant armor)', it['text']) and ('identify' in it['text'] or 'remove curse' in it['text'] or worn):
                     opts[f"read_{it['letter']}"] = (f"Read {it['text']}", 'Identify shows what an unknown item is; enchant armor lowers AC by 1 (or more); remove curse frees cursed gear.', lambda l=it['letter']: self.act_read(l))
-        if not near:
+        if not near or self.engraved_here() and not any(m['dist'] <= 1 for m in near):  # a nymph's charm left the mithril-coat in the pack: 50 turns waiting on Elbereth at AC 11, quasit 22 -> 1, dead (T9072)
             for it in self.inventory:
                 t = it['text']
                 if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|mantelet|wrapping|mithril-coat|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and not (re.search(r'cloak|mantelet|mithril', t) and not re.search(r'\b(uncursed|blessed)\b', t) and not (re.search(r'\b(dwarvish|hooded|orcish|leather|elven|oilskin) cloak|mantelet|faded pall|mummy wrapping', t) and not better_body) and not ('mithril' in t and not worn_ac)) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
@@ -1179,7 +1179,7 @@ class Bot:
                 and not shot \
                 and not any((m['ch'] == '@' or 'minotaur' in m['name']) and m['dist'] <= 7 for m in hostiles):  # a bugbear threw daggers at a waiting Jev (Elbereth only stops melee): 13 -> 0 (T2350)  # a Woodland-elf (ignores Elbereth) walked up to a waiting Jev: 36 -> 0 (T7182)
             # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
-            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'eat'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'eat', 'wear_'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}
         # a safe prayer fully heals; Jev chose Elbereth over it at 1 HP and died. 500+ turns on, rnz(350) - elapsed < 200 most of the time:
         # Jev threw darts at 8 HP instead of a 700-turn gamble and died (T5087)
         if LOW_HP(s) and 'pray' in opts:  # the gamble (100+ turns) is ~.5-.87: Jev engraved at 1 HP 478 turns after praying and died (T4535)

@@ -1398,3 +1398,12 @@ Run 20261001-065349 died at T4702 on Dlvl 6. A hill orc killed Jev while it was 
 - Blind, Jev fought unseen hill orcs and went from 56 to 4 HP. Four Elbereth attempts were interrupted by attacks, and the final prayer failed.
 
 Fix: when Jev stands on Elbereth and a yellow light is one of the threats, the explore, goto, fetch and pickup options are removed. That leaves waiting on Elbereth (which yellow lights respect), throwing, or attacking.
+
+## 2026-10-01 — Put armor back on while standing on Elbereth
+Run 20261001-065614 died to a quasit at T9072 on Dlvl 8.
+
+- A mountain nymph charmed Jev into taking off its elven mithril-coat, then stole its shield.
+- The coat stayed in the pack. Wear options are only offered with no hostile in view, and the quasit was always nearby. The stay-on-Elbereth filter also kept only pray, quaff and eat.
+- Jev waited about 50 turns on Elbereth at AC 11. The quasit got through anyway, taking it from 22 to 1 HP, and the next prayer came too soon ("Thou art arrogant").
+
+Fix: wearing armor is also offered while Jev stands on Elbereth with no hostile adjacent, and the stay-on-Elbereth filter keeps wear_. A replay of T9017–T9031 now offers ['wait', 'wear_k'].
