@@ -51,7 +51,7 @@ STRATEGY = ("You are a dwarven Valkyrie (NetHack 5.0): strong melee, cold resist
             "Prayer fixes low HP (at or below 1/5 of max at XL 1-5, 1/6 at XL 6-13, or 5 HP) and Weak hunger, but only about once per 1000 turns; "
             "the first prayer is safe after roughly turn 300. Elbereth in the dust (fails about 1 time in 4: check it) stops melee from most monsters, "
             "not @ humans or elves (including were-creatures in @ form), minotaurs, shopkeepers or peacefuls, and never wands, arrows or breath: kill a weak monster that zaps or shoots at you instead of waiting it out. A scared monster with nowhere to flee can still hit you, and attacking, throwing or zapping from it erases it. Elbereth is for healing, not for living on: new monsters keep arriving (about one every 70 turns), so once healed, fight the weakest one and re-engrave when hurt. An invisible attacker: search one turn to mark it (I), then attack that square. "
-            "Mumakil (speed 9) hit hardest of anything early: never trade blows, throw things or walk away. Kill wererats quickly, before they summon rats. A yellow light blinds you for up to 200 turns when it explodes at you, even on Elbereth if it is cornered: kill it (killing it is safe) rather than wait beside it. Soldier ants (speed 18, poison) kill more players than anything: Elbereth works on them, never let them surround you, and zap or read teleportation to escape when hurt. A monster that is scared but cornered still attacks you on Elbereth: if you are hit there, Elbereth is not protecting you, so pray, quaff or leave. Never rest for long with a fast monster that keeps coming back; find the up stairs. "
+            "Mumakil (speed 9) hit hardest of anything early: never trade blows, throw things or walk away. Kill wererats quickly, before they summon rats. A yellow light blinds you for up to 200 turns when it explodes at you, even on Elbereth if it is cornered: put on a towel or blindfold first (the explosion then does nothing), else kill it (killing it is safe) rather than wait beside it. Blind and bitten by something unseen while engraving fails: fight back. Soldier ants (speed 18, poison) kill more players than anything: Elbereth works on them, never let them surround you, and zap or read teleportation to escape when hurt. A monster that is scared but cornered still attacks you on Elbereth: if you are hit there, Elbereth is not protecting you, so pray, quaff or leave. Never rest for long with a fast monster that keeps coming back; find the up stairs. "
             "Collect gold: a temple priest sells permanent AC for about 400-500 gold per experience level; keep 2000-4000 after that for shops. "
             "Food is scarce (killed monsters no longer drop food): eat fresh corpses of what you kill (not cockatrices, kobolds or old ones), keep packed food for emergencies, never start eating while Satiated, eat when Hungry. "
             "Open chests and large boxes: early ones often hold potions of healing. Explore each level for useful items, "
@@ -1253,6 +1253,12 @@ class Bot:
                 fight.pop('rest', None)
                 if not self.engraved_here():
                     fight['elbereth'] = ('Engrave Elbereth', 'You are blind and something unseen is biting you. Engraving works blind and scares most monsters off.', self.act_elbereth)
+            felt = [m for m in hostiles if m['dist'] == 1 and 'unseen' in m['name']]
+            if felt and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5:  # blind, 5 Elbereths in a row "interrupted" by unseen fire ants, never swung back: 36 -> 0 (T5164)
+                fight.pop('elbereth', None)
+                for m in felt:
+                    d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
+                    fight.setdefault(f'attack_{d}', (f"Attack the unseen creature ({DIR_NAME[d]})", 'Engraving keeps getting interrupted by its attacks: fight back.', lambda d=d: self.act_fight(d)))
             opts = fight if any(k.startswith(('attack_', 'wield_', 'elbereth')) for k in fight) else fight | {'rest': ('Wait until you can see', 'You are blind: walking bumps into unseen monsters and attacks them, peaceful or not. Wait for your sight to return.', lambda: self.act_keys('5s', 'waited'))}
         # a pack at any HP: left a working Elbereth at 40/44 to throw at bugbears and a goblin gang, dead 4 turns later
         # Weak is only nutrition 1-50 (eat.c): 23 turns camping on Elbereth there fainted Jev into a kitten's jaws (T4709)
@@ -1264,7 +1270,12 @@ class Bot:
         # yellow light: its explosion is its attack (mhitu.c AT_EXPL); killing it does not explode (mon.c). On Elbereth in a crowd it can't flee, panic-attacks (monmove.c)
         # and blinds anyway: waited at 72/72 beside one, blinded, 3 unseen rothes 72 -> 0 (T5778). Wiki: kill it, or be blind already
         yl = [m for m in hostiles if 'yellow light' in m['name'] and m['dist'] == 1]
-        if yl and 'Blind' not in s.get('conditions', []) and not LOW_HP(s):
+        cover = next((it for it in self.inventory if re.search(r'\b(blindfold|towel)\b', it['text'])), None)  # wiki (Yellow light): be blind already when it explodes
+        if cover and 'being worn' in cover['text'] and not any('yellow light' in m['name'] for m in hostiles):
+            opts = {'unblind': ('Take off the ' + cover['text'], 'No yellow light in view any more: see again.', lambda l=cover['letter']: (self.act_keys('R' + l, 'took it off'), self.read_inventory())[0])}
+        elif yl and cover and 'Blind' not in s.get('conditions', []):  # melee missed one at 36/56: blinded, unseen fire ants, dead (T5164)
+            opts = {'blindfold': ('Put on the ' + cover['text'], 'A yellow light is next to you: its explosion only blinds, so cover your eyes first and it does nothing.', lambda l=cover['letter']: (self.act_keys('P' + l, 'put it on'), self.read_inventory())[0])}
+        elif yl and 'Blind' not in s.get('conditions', []) and not LOW_HP(s):
             d = DIR_OF[(yl[0]['pos'][0] - me[0], yl[0]['pos'][1] - me[1])]
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {f'attack_{d}': ('Kill the yellow light', 'It explodes and blinds you for 10-200 turns when it attacks, and cornered on Elbereth it still attacks. Killing it is safe: it only explodes as an attack.', lambda d=d: self.act_fight(d))}
         # a safe prayer fully heals; Jev chose Elbereth over it at 1 HP and died. 500+ turns on, rnz(350) - elapsed < 200 most of the time:
