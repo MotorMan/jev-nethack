@@ -1655,3 +1655,6 @@ It meleed an ettin zombie and a snake (speed 15) at 56/85. 5.0 knockback ("knock
 
 ## Djev 102351 — raven, T5905, Dlvl 7
 This is the second raven death. A raven (speed 20) kept blinding it, and every Elbereth attempt was interrupted (5.0 engraving is an occupation). Blind, it fought "It", 49 -> 5, 36 turns after a prayer. No fix yet. If ravens keep killing: fight them in a corridor, or offer the upstairs when blinded by a fast monster.
+
+## kev-4b 102926 — two rothes while stunned, T3736, Dlvl 5
+Weak, 886 turns after its last prayer, with only tripe packed. The Weak prayer wait is 1000 turns, so it ate tripe instead. eat.c makes a non-orc vomit 1 in 2 times: "slightly confused", "can't think straight", "incredibly sick", then stunned. Two rothes arrived during that, 38 -> 6, and the gamble prayer failed. Fix: Weak waits only 500 turns to pray when the pack has no food except tripe, and a safe prayer removes eat-tripe options.
