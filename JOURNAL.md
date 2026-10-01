@@ -1338,3 +1338,9 @@ Two giant ants (speed 18) attacked Jev in the Mines at 40/40 HP. It went 38 -> 2
 
 ## Run 20261001-055157: rock mole, fainted from hunger, T4008 (Dlvl 6)
 Packed food ran out at T2563. Once Hungry, Jev chose "Hold position" 74 turns in a row: it was offered every turn while a mountain nymph 4 steps away never came closer. At Weak it prayed 1062 turns after its last prayer and got "Thou art arrogant", losing a level. The prayer timeout must still have been above 200; rnz(350) has a long tail. Jev fainted and a rock mole killed it. Fix: "Hold position" is no longer offered after 5 consecutive waits that brought nothing adjacent. Starvation is still the top killer.
+
+## Run 20261001-055446: red dragon breath, T1893 (Dlvl 4 bones, XL 3)
+This was the bones level of the earlier wand-of-polymorph death, and its red dragon was still there. With the dragon 3 steps away at full HP, Jev was offered only explore and Elbereth (breath ignores Elbereth). flee_up required '<' within 8 steps, and the '<' was about 30 away. Fix: against a "much stronger" monster, flee_up considers any reachable '<' (nearest first). A red dragon has speed 9 to our 12.
+
+## Run 20261001-055607: shopkeeper Asidonhopo's wand of striking, T596 (Dlvl 2, XL 1)
+Jev kicked open a locked door with no visible sign. The "Closed for inventory" dust had been wiped away. It was a shop, and the shopkeeper attacked. A search_hidden option was also on offer. Fix: locked-door kicks are dropped while search_hidden is offered and fewer than 200 turns have been searched on the level, as well as when downstairs are known (the existing rule).
