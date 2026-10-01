@@ -904,3 +904,6 @@ Killed by a pyrolisk on Dlvl 9 at T7302. Jev's last prayer was 80 turns earlier,
 - "gaze!" counts as being shot, so the bot no longer camps on Elbereth.
 - No new Elbereth when the only threats near are pyrolisks.
 - Close in on a pyrolisk even at low HP.
+
+## 14:50 — Run 215901: gamble prayer instead of a fresh Elbereth
+Killed by an Uruk-hai in Minetown at T4295, XL5, AC6. Jev's previous prayer was at T4116. It had just engraved Elbereth at 10/54 HP. Because HP was low, the forced filter left only the "gamble" prayer, 176 turns after the last one. Tyr was displeased, and the next hit killed Jev. With pray.c's rnz(350) timeout, the odds were about even. A fresh Elbereth against an orc is better. The gamble is now skipped while standing on Elbereth when HP > 5, nothing is shooting, and no @ or minotaur is within 7 squares.
