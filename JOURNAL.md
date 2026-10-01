@@ -1019,3 +1019,6 @@ Prayed for HP at T3039 (fine), Hungry 40 turns later with no packed food; the on
 
 ## 2026-09-30 20:10 — the Minetown watch (kev-4b, T6313, Dlvl 8, AC 2, XL 7)
 Blind in Minetown, "You feel an unseen monster!" put an 'I' next to Jev and the only option was to swing at it: a peaceful watchman. "Halt! You're under arrest!", two watchmen killed, then the captain. The blind no-swing-unless-hit rule only covered shops; it now covers any town level.
+
+## 2026-09-30 20:30 — giant bat, praying (kev-4b, T4860, Dlvl 4, XL 5)
+No single bug. A slow game: XL 5 with 179 exp at T4800, four prayers spent on HP (1756/2677/3710/4607), ~100 turns camped on Elbereth healing beside a sleeping leprechaun. A swarm of weak spawns (fox, manes, giant rat, newt, giant bat) took 31 -> 8 in three turns once it fought off the square; the re-engrave garbled and the 250-turn gamble prayer failed. Left as is; watching whether kev-4b games are generally this slow compared with hosted Jev's.
