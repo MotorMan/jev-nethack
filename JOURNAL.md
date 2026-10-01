@@ -1332,3 +1332,6 @@ Jev ran out of food rations by T4391. It prayed at 9 HP while Hungry (T5955). Of
 
 ## Run 20261001-054726: red dragon breath, T4125 (Dlvl 4)
 A sewer rat gave Jev lycanthropy. Turning into a wererat repeatedly dropped its spear and armor, and a prayer at T3593 came too soon ("displeased"), so the lycanthropy wasn't cured. Jev was at AC 10 with no weapon when it zapped its unknown maple wand at a floating eye 3 squares away, which identification zaps allow for passive targets. The first zap made the eye "disappear" (it was polymorphed into something invisible). The second turned a floating eye into a red dragon, whose fire breath killed Jev. Fix: identification zaps at passive monsters are allowed only when Jev is walled in (3 or fewer reachable squares), the original reason for allowing them. Still open: lycanthropy loses gear.
+
+## Run 20261001-055017: giant ant, praying on T2246 (Dlvl 5, XL 4, AC 6)
+Two giant ants (speed 18) attacked Jev in the Mines at 40/40 HP. It went 38 -> 28 -> 19 HP while fighting. The ants hit it while it engraved, which garbles dust engravings (wipe_engr_at on being hit), so the Elbereth came out garbled. Then 19 -> 8, and a prayer 389 turns after the last one failed. No code change: fighting at 70% HP was reasonable, and two fast ants against AC 6 at XL 4 is the underlying problem (low AC, as in earlier runs).
