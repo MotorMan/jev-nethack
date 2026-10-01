@@ -944,3 +944,8 @@ User: "i'd buy mithril if you can afford it, also price-ID scrolls and potions a
 - Death: starved on Mines 7. A floating eye blocked the only corridor; Jev waited 200 turns, got Hungry, meleed it (`kill_blocker`), was frozen, and starved. A blindfold sat in the pack the whole time.
 - Wiki: blind yourself and melee. 5.0 source `uhitm.c` passive AD_PLYS only freezes the hero `if canseemon(mon)`. Telepathy breaks this, so "strange mental acuity" sets `run.telepathic`.
 - Fix: `act_kill_blocker` on a blue `e` puts on a non-cursed blindfold or towel, fights until exp changes (up to 12 swings or half HP), then removes it. With a blindfold the option appears at once instead of after 200 turns of waiting.
+
+## 2026-10-01 16:50 — Blind/low-HP: zap known attack wands (death 222641)
+- Death: a yellow light exploded next to Jev on Elbereth. In 5.0, a scared monster that can't move away still panic-attacks (monmove.c MMOVE_NOMOVES → panicattk). Jev went blind, and a giant beetle took it from 62 to 8 HP while the Blind filter left only "swing". At 8 HP the low-HP filter left only a gamble prayer, 257 turns after the last one: about 62% by an rnz(350) simulation. It failed.
+- Jev had a wand of cold the whole time, but the zap option used the first wand in the pack (an unknown spiked wand).
+- Fix: known attack wands (sleep, cold, fire, striking, magic missile, lightning) come first. Zaps survive the Blind filter (except in shops), and known attack-wand zaps survive the low-HP filter when the prayer is a gamble.
