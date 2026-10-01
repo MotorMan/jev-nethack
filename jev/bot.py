@@ -138,6 +138,8 @@ class Bot:
                 self.level().town = True
             if re.search(r'You feel feverish|You turn into a were', text):
                 self.run['lycanthropy'] = True
+            if 'strange mental acuity' in text:  # telepathy: blind, you still see the floating eye, so a blindfold no longer stops its gaze (uhitm.c passive: !canseemon)
+                self.run['telepathic'] = True
             if re.search(r'You turn into a were|You find you must drop', text) and self.snap and self.snap.me:  # armor and weapon fall to the floor here (polyself.c break_armor/drop_weapon)
                 self.run['dropped'] = (self.snap.status.get('dlvl'), self.snap.me)
             if re.search(r'is displeased|Thou durst call upon me|Then die, mortal|voice of \w+ (booms|rings out)', text):  # prayed too soon: god angry, Luck -3 (the quote after 'booms:' can be lost: wrath of Tyr killed T5998), praying again only makes it worse
@@ -861,7 +863,7 @@ class Bot:
             long_walled = walled and (s.get('turn') or 0) - self.run.setdefault('walled', s.get('turn') or 0) > 200
             if walled and not long_walled:
                 opts['wait_eye'] = ('Search 10 turns and let it drift off', 'A monster you must not melee boxes you in. Floating eyes drift and peacefuls wander off; waiting is safe, hitting it risks long paralysis.', lambda: self.act_search(10))
-            molds = [m for m in hostiles if m['pos'] in self.avoid and (long_walled or ('floating eye' not in m['name'] and not (m['ch'] == 'e' and m['fg'] == 'blue')))
+            molds = [m for m in hostiles if m['pos'] in self.avoid and (long_walled or self.blindfold() or ('floating eye' not in m['name'] and not (m['ch'] == 'e' and m['fg'] == 'blue')))
                      and ('gas spore' not in m['name'] or s.get('hp', 0) >= 30)]  # its 4d6 blast is survivable at 30+ HP
             if any(not m['passive'] for m in hostiles) or s.get('hp', 0) < 0.9 * s.get('hpmax', 1):  # frozen by an eye with a giant ant in view: dead at T8374
                 molds = [m for m in molds if m['ch'] != 'e']
@@ -872,6 +874,7 @@ class Bot:
                 if any(m['pos'] in d2 for m in molds) and (len(self.frontiers(d2)) > 0 or len(d2) > len(dist) + 5):  # or it walls us in
                     m = min((m for m in molds if m['pos'] in d2), key=lambda m: d2[m['pos']])
                     why = (f"Its explosion does at most 24 damage and you have {s.get('hp')} HP, so you survive it" if 'gas spore' in m['name']
+                           else "You blindfold yourself first, so its gaze cannot freeze you" if m['ch'] == 'e' and self.blindfold()
                            else "Last resort: if it survives a hit it may paralyze you for a long time while other monsters attack; killing it in one blow is safe" if m['ch'] == 'e'
                            else "It hurts you passively when you hit it; the fight stops if HP gets low")
                     opts['kill_blocker'] = (f"Kill the {m['name']} blocking the way", f"The {m['name']} {m['where']} blocks the only way out: you are stuck here until it dies. Walk next to it and fight it. {why}.", lambda m=m: self.act_kill_blocker(m['pos']))
@@ -1413,6 +1416,10 @@ class Bot:
         self.run['here'][key] = self.look_here()
         return 'ate corpse'
 
+    def blindfold(self):
+        return None if self.run.get('telepathic') or 'Blind' in str(self.snap.status.get('conditions')) else \
+            next((i for i in self.inventory if re.search(r'\b(blindfold|towel)\b', i['text']) and not re.search(r'\bcursed', i['text'])), None)
+
     def act_kill_blocker(self, pos):
         self.avoid.discard(pos)
         r = self.act_go(pos, adjacent_ok=True)
@@ -1420,7 +1427,25 @@ class Bot:
         if not me or cheb(me, pos) != 1:
             return 'going to the blocker: ' + r
         d = DIR_OF[(pos[0] - me[0], pos[1] - me[1])]
-        ch = self.snap.at(*pos).ch
+        g = self.snap.at(*pos)
+        ch = g.ch
+        # floating eye: its passive gaze only freezes a hero who can see it (uhitm.c passive AD_PLYS !canseemon); wiki: blindfold up, then melee.
+        # Meleed one sighted with a blindfold in the pack: frozen while Hungry, starved (T5165)
+        fold = self.blindfold() if ch == 'e' and g.fg == 'blue' else None
+        if fold:
+            self.act_keys('P' + fold['letter'], '')
+            exp = self.snap.status.get('exp')
+            for i in range(12):
+                if self.snap.status.get('exp') != exp or self.snap.status.get('hp', 0) < 0.5 * self.snap.status.get('hpmax', 1):
+                    break
+                self.act_fight(d)
+            self.t.send('R')
+            if 'What do you want to remove' in self.t.lines()[0]:
+                self.t.send(fold['letter'])
+            self.settle()
+            self.observe()
+            self.read_inventory()
+            return 'blindfolded, killed the floating eye' if self.snap.status.get('exp') != exp else f'blindfolded, fought the floating eye {i + 1} times'
         for i in range(10):
             g = self.snap.at(*pos)
             if not g or g.ch != ch or self.snap.status.get('hp', 0) < 0.5 * self.snap.status.get('hpmax', 1):

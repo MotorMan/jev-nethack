@@ -939,3 +939,8 @@ User: "i'd buy mithril if you can afford it, also price-ID scrolls and potions a
 - `JEV_ENDPOINT` / `JEV_MODEL` (env or .env) point the bot at any server speaking `/v1/systemone`; plain http is fine for localhost. Local endpoints skip the budget check and keep their own ledger (`runs/budget-local.json`).
 - The three question texts now live in `bot.QUESTIONS` so tools can reuse them verbatim.
 - `scripts/compare_jev.py` replays logged multi-option decisions against the endpoint: latency p50/p90 versus hosted, top-1 action agreement, safest agreement, danger delta and 0.6-trigger agreement. Smoke-tested against a stub server.
+
+## 2026-10-01 16:30 — Floating eye: blindfold first (death 221529)
+- Death: starved on Mines 7. A floating eye blocked the only corridor; Jev waited 200 turns, got Hungry, meleed it (`kill_blocker`), was frozen, and starved. A blindfold sat in the pack the whole time.
+- Wiki: blind yourself and melee. 5.0 source `uhitm.c` passive AD_PLYS only freezes the hero `if canseemon(mon)`. Telepathy breaks this, so "strange mental acuity" sets `run.telepathic`.
+- Fix: `act_kill_blocker` on a blue `e` puts on a non-cursed blindfold or towel, fights until exp changes (up to 12 swings or half HP), then removes it. With a blindfold the option appears at once instead of after 200 turns of waiting.
