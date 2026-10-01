@@ -2004,7 +2004,10 @@ class Bot:
                 return 'opened the door'
             if door not in self.level().locked:
                 return 'door did not open: ' + r
-        if self.level().town:
+        sale = [p for (dl, p), v in self.run.get('here', {}).items() if dl == self.snap.status.get('dlvl') and any('for sale' in i for i in v)]
+        # dokick.c: only a shop's own door (shop cost) or a door in Minetown (the watch) is punished. Any shop on the level vetoed every door:
+        # 4400 turns on Dlvl 2 beside an unkicked locked door 15 squares from the shop, starved (T6390)
+        if self.level().town and (not sale or any(cheb(p, door) <= 3 for p in sale) or self.snap.find('{')):
             self.level().dead.add(door)
             return 'did not kick: shopkeepers and the watch punish broken doors'
         for i in range(6):
