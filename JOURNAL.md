@@ -1699,3 +1699,9 @@ A mob gathered in Sokoban: an Uruk-hai, a kitten, a jackal, a grid bug and a kob
 
 ### Hosted 20261001-111326 — Woodland-elf while praying, T5934, Dlvl 7
 It waited on Elbereth to 38/55, then leave_nymph took the stairs to Dlvl 7 at XL 5. A Woodland-elf and a Mordor orc took it 38 -> 7 in 2 turns, and its T5421 prayer was too recent. leave_nymph had no HP gate. **Fix:** require 80% HP, the same as normal descending.
+
+### Hosted 20261001-111713 — giant bat, T3549, Dlvl 3 (XL 3)
+It had prayed at T3493, then a giant bat (speed 22) and a hostile little dog wore it down on Elbereth. The bat's erratic flight lands hits when Elbereth erodes, and it re-engraved at 5 HP. No fix.
+
+### 2026-10-01 — local engines
+LunaRoute is still suspended. The user started local MLX servers: kev-4b on 8784 (warm ~195 ms) and kev-0.8b on 8785 (~47 ms). `Jev` on 8770 now continues on local kev-4b. A new `Kev08` instance on 8772 runs kev-0.8b; it logs to runs/Kev08/ and has its own save.
