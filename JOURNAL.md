@@ -1436,3 +1436,15 @@ Run 20261001-071408 died at T4177 on Dlvl 4. A werejackal in @ form killed Jev w
 Change: the "hurt, so don't explore" filter now also applies when the new one-turn wait is offered, not only the 15-turn rest. The pony replay (T2644) now offers just ['wait'].
 
 This run's real killer is food again: Weak, no rations, and its prayer already spent. With Weak and no prayer, the wait is still removed by design.
+
+## 2026-10-01 — Altar desecration isn't god anger; no Elbereth on altars
+Run 20261001-071653 died to a yeti at T5954 on Dlvl 9.
+
+- At T5298 a quasit was fighting Jev while it stood on Tyr's altar, and Jev engraved Elbereth there. The game answered: "The voice of Tyr booms out: How darest thou desecrate my altar!"
+- The bot's anger regex matched "voice of Tyr booms" and set god_angry, so prayer was never offered again.
+- Per 5.0 pray.c altar_wrath, desecrating your own altar costs only 1 Wis and 1 alignment, not anger. A cross-aligned altar costs Luck instead.
+- 650 turns later Jev was at 7/56 HP, 888 turns after a good prayer, surrounded by a yeti, an orc-captain and a chickatrice. Its only options were to explore off Elbereth. Dead.
+
+Fixes:
+- "desecrate my altar" no longer sets god_angry.
+- Elbereth is never offered while standing on an altar.
