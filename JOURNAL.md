@@ -1194,3 +1194,8 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 ### Run 20261001-022116: werejackal while praying, T2936 (Dlvl 3)
 - At 17/42 a werejackal and its summoned jackals attacked. Jev's attack from Elbereth erased the engraving, and the fight took it to 7/42. It took the gamble prayer 361 turns after a good one (roughly 70% odds by rnz(350)) and lost.
 - This was the dice, so no code change.
+
+### Run 20261001-022240: hobgoblin while fainting, T2801 (Dlvl 5)
+- Jev went Weak at T2429 with no food. Blind, with an unseen jackal and gecko biting, it had only 'pray' and 'rest' to choose from, and it rested 12 times (44 -> 21 HP). The prayer it finally made, 532 turns after the last one, got "Tyr is displeased", so the god was unhelpful but not angry. It then fainted repeatedly and died to a hobgoblin.
+- **Fix 1:** when blind with an unseen attacker and no attack option, Elbereth replaces rest, since engraving works blind.
+- **Fix 2:** when Hungry with nothing near, if any food option exists (eat, a corpse, food to fetch, buy, or shop food), only food options and pray are offered. Food was being passed up for exploring until Jev was Weak; 4 of the last 6 deaths were fainting deaths.

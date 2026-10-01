@@ -1005,6 +1005,8 @@ class Bot:
             # sat 69 turns on Elbereth Weak -> Fainting with food in view, dead (T2958); wiki: Weak is major trouble, eat or pray
             food = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'goto_corpse')) or k == 'fetch' and '(food?)' in v[0]}
             opts = food or {k: v for k, v in opts.items() if k != 'rest' and not (s.get('hunger') == 'Fainting' and k.startswith('approach_'))} or opts  # Fainting closed in on an Uruk-hai, fainted beside it (T3278)  # rested 9 times Weak -> Fainting with food 20 steps off, past fetch's 15-step radius (T2773)
+        if s.get('hunger') == 'Hungry' and not near:  # food is offered but passed up for exploring until Weak: 4 of the last 6 deaths fainted (T2801)
+            opts = {k: v for k, v in opts.items() if k.startswith(('eat_', 'goto_corpse', 'buy_')) or k in ('pray', 'shop_food') or k == 'fetch' and '(food?)' in v[0]} or opts
         if s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts and s.get('hp', 1) * 3 > s.get('hpmax', 1):  # no prayer, so waiting only starves: sat 60 turns on Elbereth at 25-32/65 Weak -> Fainting beside a weak orc shaman, fainted, fire ant (T5305)
             opts = {k: v for k, v in opts.items() if k not in ('wait', 'rest')} or opts
         if 'elbereth' in opts:  # at 4/54 Jev drank an unknown potion over Elbereth: sleeping, a fire ant killed it frozen (T4193)
@@ -1094,7 +1096,11 @@ class Bot:
             if (shop or lv.town) and not any(re.search(r"\bIt (hits|bites|touches|stings|butts|kicks)", m) for m in self.run['recent'][-2:]):  # blind swings at the unseen shopkeeper angered Ms. Tipor, twice-dead to her wand  # Minetown: swung at a felt 'I', a peaceful watchman: the watch killed Jev (T6313)
                 fight = {k: v for k, v in fight.items() if not k.startswith(('attack_', 'zap_'))}
             # resting while unseen things bit a blind Jev from 54 to 4 HP (twice) is worse than swinging back
-            opts = fight if any(k.startswith(('attack_', 'wield_')) for k in fight) else fight | {'rest': ('Wait until you can see', 'You are blind: walking bumps into unseen monsters and attacks them, peaceful or not. Wait for your sight to return.', lambda: self.act_keys('5s', 'waited'))}
+            if self.unseen_attacker() and not any(k.startswith(('attack_', 'wield_')) for k in fight):  # blind and Weak, bitten by unseen things with only pray/rest: rested 12 times 44 -> 21 (T2471)
+                fight.pop('rest', None)
+                if not self.engraved_here():
+                    fight['elbereth'] = ('Engrave Elbereth', 'You are blind and something unseen is biting you. Engraving works blind and scares most monsters off.', self.act_elbereth)
+            opts = fight if any(k.startswith(('attack_', 'wield_', 'elbereth')) for k in fight) else fight | {'rest': ('Wait until you can see', 'You are blind: walking bumps into unseen monsters and attacks them, peaceful or not. Wait for your sight to return.', lambda: self.act_keys('5s', 'waited'))}
         # a pack at any HP: left a working Elbereth at 40/44 to throw at bugbears and a goblin gang, dead 4 turns later
         # Weak is only nutrition 1-50 (eat.c): 23 turns camping on Elbereth there fainted Jev into a kitten's jaws (T4709)
         if self.engraved_here() and s.get('hunger') not in ('Weak', 'Fainting') and (pack or s.get('hp', 1) < 0.75 * s.get('hpmax', 1)) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles) \
