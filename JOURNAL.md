@@ -1562,3 +1562,6 @@ Nymphs in Minetown had stripped Jev down to a knife (AC 10). Beside two Mordor o
 - Each instance keeps its own save and `runs/NAME/runs.json` (Jev's is `runs/`). Stats come from the `engine` field across those files.
 - `python -m jev.watch` now watches all three: keys 1-3 or Tab switch games, q quits, and the top bar shows each game's turn.
 - A code fix now means restarting all three.
+
+### Hosted 20261001-091022: starved on Dlvl 5 (T5819)
+Hunger prayers at T2809 and T3923 worked, but the one at T5085, 1162 turns later, angered Tyr ("Thou must relearn thy lessons"). The prayer timeout was reset to rnz(350), which has about a 4% tail above 1360. After that it fainted with no food and died to a rothe. NEVER_EAT still listed 'pony', so it skipped two 250-nutrition pony corpses. eat.c only penalizes dogs and cats, so ponies are now edible.
