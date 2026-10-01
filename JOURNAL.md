@@ -1752,3 +1752,8 @@ Changes:
 - Hosted 113219 (imp T7465, fainted): Hungry for ~6000 of 7465 turns. It prayed for food 4 times, the last only 787 turns after the previous one ("Tyr is displeased"), then fainted with no food and 37 gold. Box food/potions and a fuller food policy are the lever.
 
 Not done (noted): blindfolding against yellow lights/ravens (no blindfold logic yet), mirror vs nymphs, throwing food to tame hostile d/f, kicking gray stones before picking them up.
+
+## Hosted 113735: killed by a grid bug while praying, T15494, max Dlvl 3
+- **Blind on a Mines-like level** (the level counted as a town because of the peacefuls). Attacks only stay on offer in town when the last messages show "It hits/bites", and here the attackers had names ("The grid bug bites!", "The rothe bites!"). With them filtered out, "Wait until you can see" won: 55 -> 6 HP, then a gamble prayer. Fix: the pattern also accepts `The <monster> hits/bites/...`.
+- **14000 turns on Dlvl 3** with "downstairs not found yet". The east half of the map was blank. The 591 searches were all spread over the explored west rooms, never at the right room's east wall or the dead-end corridor. Fix: `search_spot` subtracts (blank map cells within ±10 columns / ±5 rows) / 12, so walls facing unmapped space win (test_search_spot.py).
+- (The XL "dropping" 6 -> 3 in my first look was my analysis regex matching "XL 3" in the new strategy text, not a game event.)

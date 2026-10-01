@@ -1230,7 +1230,7 @@ class Bot:
         elif 'Blind' in s.get('conditions', []):  # a blind step into an unseen watchman angered the whole Minetown watch
             fight = {k: v for k, v in opts.items() if k in ('pray', 'elbereth') or k.startswith(('quaff_', 'attack_', 'eat', 'wield_', 'zap_'))}  # zaps point at the monster biting you: a blind Jev with a wand of cold only had 'swing', 62 -> 8, died praying (T5509)  # weaponless, opts was just 'wield': this dropped it and a blind Jev waited while a dog bit 37 -> 0 (T4631)  # blind engraving still scares: invisible quasits drained a blind Jev who could only swing
             # 'You feel an unseen monster' is just sensing: swung at it blind in Aklavik's store, and she zapped Jev dead (T3012)
-            if (shop or lv.town) and not any(re.search(r"\bIt (hits|bites|touches|stings|butts|kicks)", m) for m in self.run['recent'][-2:]):  # blind swings at the unseen shopkeeper angered Ms. Tipor, twice-dead to her wand  # Minetown: swung at a felt 'I', a peaceful watchman: the watch killed Jev (T6313)
+            if (shop or lv.town) and not any(re.search(r"\b(It|The [a-z' -]+?) (hits|bites|touches|stings|butts|kicks|claws)", m) for m in self.run['recent'][-2:]):  # blind on a Mines level, 'The grid bug bites!' didn't count as being attacked: waited 55 -> 6 beside it and a rothe, died praying (T15494)  # blind swings at the unseen shopkeeper angered Ms. Tipor, twice-dead to her wand  # Minetown: swung at a felt 'I', a peaceful watchman: the watch killed Jev (T6313)
                 fight = {k: v for k, v in fight.items() if not k.startswith(('attack_', 'zap_'))}
             # resting while unseen things bit a blind Jev from 54 to 4 HP (twice) is worse than swinging back
             if self.unseen_attacker() and not any(k.startswith(('attack_', 'wield_')) for k in fight):  # blind and Weak, bitten by unseen things with only pray/rest: rested 12 times 44 -> 21 (T2471)
@@ -1265,12 +1265,20 @@ class Bot:
     def search_spot(self, dist):
         snap, lv = self.snap, self.level()
         best = None
+        # wiki (Searching): hidden passages lead to the unmapped part. 14000 turns on a Dlvl 3 searching the explored west half while the east half stayed blank (T15494)
+        W, H = 80, MAP_BOT + 1
+        acc = [[0] * (W + 1) for _ in range(H + 1)]
+        for y in range(H):
+            row = snap.lines[y] if y < len(snap.lines) else ''
+            for x in range(W):
+                acc[y + 1][x + 1] = acc[y][x + 1] + acc[y + 1][x] - acc[y][x] + (MAP_TOP <= y and (x >= len(row) or row[x] == ' '))
+        blank = lambda x, y: (lambda x0, x1, y0, y1: acc[y1][x1] - acc[y0][x1] - acc[y1][x0] + acc[y0][x0])(max(0, x - 10), min(W, x + 11), max(0, y - 5), min(H, y + 6))
         for p, d in dist.items():
             walls = sum(1 for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy) and (g := snap.at(p[0] + dx, p[1] + dy)) is not None and g.ch in ' |-')
             exits = sum(1 for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy) and snap.walkable(p[0] + dx, p[1] + dy))
             if walls < 3:
                 continue
-            score = lv.searched.get(p, 0) * 2 + d / 4 - (8 if snap.at(*p).ch == '#' and exits <= 1 else 0) - walls
+            score = lv.searched.get(p, 0) * 2 + d / 4 - (8 if snap.at(*p).ch == '#' and exits <= 1 else 0) - walls - blank(*p) / 12
             if best is None or score < best[0]:
                 best = (score, p)
         return best and best[1]
