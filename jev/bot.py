@@ -232,7 +232,7 @@ class Bot:
             recent = ' '.join(self.run['recent'][-3:]) if self.run else ''
             fresh = 'You kill' in recent and 'You destroy' not in recent
             for p in self.snap.find('%'):
-                lv.corpses.setdefault(p, (s.get('turn') or 0) if fresh and cheb(p, self.snap.me) <= 2 and prev and prev.is_monster(*p) else -10**6)  # only where the kill stood: an old ape corpse next to a new kill was eaten tainted (T4763)
+                lv.corpses.setdefault(p, (s.get('turn') or 0) if fresh and cheb(p, self.snap.me) <= 2 and prev and prev.is_monster(*p) else -10**9 if 'You destroy' in recent and cheb(p, self.snap.me) <= 2 else -10**6)  # only where the kill stood: an old ape corpse next to a new kill was eaten tainted (T4763)
             if self.run is not None:
                 self.run['max_dlvl'] = max(self.run['max_dlvl'], s['dlvl'])
                 self.run['turns'] = s.get('turn') or self.run['turns']
@@ -595,7 +595,7 @@ class Bot:
             age = s.get('turn', 0) - lv.corpses.get(me, -10**6)  # a corpse we did not see appear is of unknown age: treat as rotten
             why = ' Packed food is rare and most deaths so far were fainting from hunger: eating fresh kills now, even when not hungry, is what keeps you alive later.'
             # lichens and lizards never rot; starving with no prayer left, a maybe-tainted corpse beats certain death (walked past a floating eye corpse, fainted to a bat)
-            if here and (age < 40 or re.search(r'lichen|lizard', here[0]) or s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts):
+            if here and (age < 40 or re.search(r'lichen|lizard', here[0]) or s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts and lv.corpses.get(me, -10**6) > -10**9):  # a destroyed zombie's corpse is pre-aged: always tainted, Weak Jev ate one and died of food poisoning (T2797)
                 opts['eat_corpse'] = (f"Eat the {here[0]} here", f"Eat {here[0]} on this square. It appeared about {age} turns ago (old corpses can be rotten or poisonous).{why}", self.act_eat_corpse)
             fresh = [p for p, t0 in lv.corpses.items() if p != me and p in dist and s.get('turn', 0) - t0 < 30 and dist[p] < 10]
             if fresh and not here and not near and 'goto_corpse' not in opts:

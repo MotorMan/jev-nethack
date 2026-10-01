@@ -788,3 +788,6 @@ Run 20260930-194011 (T5756, Dlvl 6, "killed by a bugbear, while sleeping off a m
 - Set by: engulfs/swallows you, "The exit?", "laden with moisture", "cloud of steam".
 - Cleared by: expelled/regurgitated, killing it, "dissipates", "thin air".
 - When one message contains both kinds of event, the last one wins.
+
+## 2026-10-01 07:55 — Never eat a destroyed zombie's corpse
+Run 20260930-194550 (T2797, Mines 5) was "Poisoned by a rotted elf corpse". Jev was Weak, and its last prayer was 920 turns ago, under the 1000-turn threshold. That allowed the starving fallback ("eat an unknown-age corpse"), and the corpse was the one left by an elf zombie Jev had just destroyed. Zombie and mummy corpses are created pre-aged and are always tainted. The prayer for FoodPois then failed. Fix: a corpse that appears next to Jev right after "You destroy" is recorded as undead (-10**9), and the Weak fallback never eats it.
