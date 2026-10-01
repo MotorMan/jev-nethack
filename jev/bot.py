@@ -689,7 +689,8 @@ class Bot:
             for it in self.inventory:
                 if re.search(FOOD, it['text']) and not any(n in it['text'] for n in NEVER_EAT) and it['text'] not in self.run.get('inedible', ()) \
                         and not re.search(r'potion|gem|stone|glass|spellbook|wand|ring|scroll|amulet|opener', it['text']) \
-                        and (s.get('hunger') != 'Hungry' or 'tripe' not in it['text'] and not any(m['dist'] <= 1 for m in hostiles)):
+                        and (s.get('hunger') == 'Fainting' or not any(m['dist'] <= 1 and not m['passive'] for m in hostiles)) and (s.get('hunger') != 'Hungry' or 'tripe' not in it['text']):
+                    # eat.c: food older than 30 turns rots 1 in 7 (rations too), rotten can knock you out: ate a ration Weak beside a pony, unconscious, dead (T4291)
                     # tripe: rn2(2) vomiting for non-orc non-cavemen (eat.c); ate it Hungry beside a black unicorn, confused+stunned, dead (T4650)
                     opts[f"eat_{it['letter']}"] = (f"Eat {it['text']}", f"You are {s.get('hunger')}: eat item {it['letter']} from your pack now, before you weaken and faint (fainting next to a monster is how most of your games have ended).", lambda l=it['letter']: self.act_eat(l))
             here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in self.never_eat())]

@@ -1353,3 +1353,6 @@ The corpse fix is working: 4+ corpses eaten before T5500, and no hunger trouble 
 
 ## Run 20261001-060459: wolf while praying, T4477 (Dlvl 7, XL 5, AC 6, hallucinating)
 Jev fell through a trap door into a crowd of monsters and dropped from 58 to 11 HP in about 10 turns. Elbereth came out garbled (Jev was hallucinating). At 11/63, which counts as major trouble under the 5.0 XL-scaled rule, Jev prayed 251 turns after its last prayer and lost the gamble. That gamble was reasonable. No code change. AC is the root problem again: this run and the last one never saw body armor on the floor, so the next lever is buying or looting armor.
+
+## Run 20261001-060705: pony, unconscious from rotten food, T4291 (Dlvl 5)
+While Weak, Jev picked up 2 food rations and ate one with a pony adjacent. In 5.0's eat.c, any non-cursed food older than 30 turns rots 1 time in 7, and that includes rations, so they aren't safe. The rotten one knocked Jev out and the pony killed it. Fix: eating from the pack is now blocked while a hostile that isn't passive is adjacent, unless Jev is Fainting. Weak alone doesn't kill, so the fight comes first.
