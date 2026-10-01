@@ -1335,3 +1335,6 @@ A sewer rat gave Jev lycanthropy. Turning into a wererat repeatedly dropped its 
 
 ## Run 20261001-055017: giant ant, praying on T2246 (Dlvl 5, XL 4, AC 6)
 Two giant ants (speed 18) attacked Jev in the Mines at 40/40 HP. It went 38 -> 28 -> 19 HP while fighting. The ants hit it while it engraved, which garbles dust engravings (wipe_engr_at on being hit), so the Elbereth came out garbled. Then 19 -> 8, and a prayer 389 turns after the last one failed. No code change: fighting at 70% HP was reasonable, and two fast ants against AC 6 at XL 4 is the underlying problem (low AC, as in earlier runs).
+
+## Run 20261001-055157: rock mole, fainted from hunger, T4008 (Dlvl 6)
+Packed food ran out at T2563. Once Hungry, Jev chose "Hold position" 74 turns in a row: it was offered every turn while a mountain nymph 4 steps away never came closer. At Weak it prayed 1062 turns after its last prayer and got "Thou art arrogant", losing a level. The prayer timeout must still have been above 200; rnz(350) has a long tail. Jev fainted and a rock mole killed it. Fix: "Hold position" is no longer offered after 5 consecutive waits that brought nothing adjacent. Starvation is still the top killer.

@@ -586,7 +586,7 @@ class Bot:
                     opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', self.act_wait_elbereth)
             else:
                 fast = [m['name'] for m in near if (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12]  # our speed is 12
-                if not shot and not any(m['dist'] <= 1 for m in near):  # "let them come" while six jackals and a werejackal already bit: 42 -> 0 HP in 3 waits
+                if not shot and not any(m['dist'] <= 1 for m in near) and sum(h['choice'] == 'wait' and h['outcome'] == 'waited' for h in self.history[-5:]) < 5:  # held 74 turns Hungry for a mountain nymph 4 steps off that never came, starved (T4008)  # "let them come" while six jackals and a werejackal already bit: 42 -> 0 HP in 3 waits
                     opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('ms', 'waited'))
                 # wiki (Fighting in corridors): a pack surrounds you on up to 8 sides; in a corridor only one or two can reach you
                 open_n = lambda q: sum(snap.walkable(q[0] + dx, q[1] + dy) for dx, dy in DIRS.values())
