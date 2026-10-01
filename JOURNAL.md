@@ -1914,3 +1914,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Wiki/source:** zap.c buzz() rays travel rn1(7,7) squares and bounce off walls, so a wall close behind the target sends the ray back through you. Only zap known ray wands where there's room.
 - **Fix:** skip the room check only for unknown wands; known ray wands always need 7 squares of room.
 - **Second lesson, AC 10 with a plate mail in the pack from T3173:** an 'apron' (alchemy smock) is a cloak, but the cloak regexes missed it. Wearing body armor failed with "You cannot wear armor over a apron", and the armor was marked unwearable. Fix: 'apron' is now in the cloak regexes, so act_wear takes it off first and puts it back on afterwards.
+
+## Run 20261001-150143: killed by a land mine on T4823 (Dlvl 6, XL 4)
+- **Cause:** at 14/50 on Dlvl 6 (XL 4: descend pace again), Uruk-hai were shooting poisoned arrows from 4 steps. Shots skip the forced Elbereth wait, because Elbereth doesn't stop missiles. The bot explored away instead and stepped on a hidden land mine (rnd(16) damage, trap.c), which was lethal at 14 HP.
+- **Wiki:** a land mine is invisible until found or triggered. Wandering unexplored floor at low HP risks it, and the real fix is to rest before exploring. Breaking line of sight from archers is the right reaction to being shot.
+- **Fix:** none yet. This is about 12% bad luck on top of two open items: the descend pace (awaiting the user) and moving out of a shooter's line (still to do).
