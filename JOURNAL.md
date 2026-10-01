@@ -1087,3 +1087,7 @@ No code change. The lever would be a branch policy: stop at Minetown until a hig
 Two bugs.
 1. look_here read the tty "Things that are here" overlay as whole screen lines, so map rows became item names ("|..--  ...  a mummy wrapping"). Jev spent 15 decisions at T2997 'picking up' map rows. look_here now slices each line from the overlay's column and stops at --More--. Checked with a mock screen.
 2. Weak, with an unseen attacker one step away. The no-rest food filter only fires when no hostile is within 3, so 'rest' stayed on offer next to 'pray' (859 turns after the last prayer). kev-4b rested, Jev fainted, and a rothe killed it. When Weak or Fainting with 'pray' on offer, 'rest' is now dropped.
+
+## 2026-10-01 — rothe while frozen by a floating eye (kev-4b, T5195, Dlvl 3)
+Three floating eyes plugged a corridor. Jev waited 190 turns ('wait_eye') for them to drift off. Then 'kill_blocker' meleed one at 48/48 HP, the eye survived, and its gaze froze Jev. A rothe wandered in and killed it. Jev had no missiles, so no throw option existed and the melee 'last resort' was the only way through.
+- With no missiles or arrows and no active hostile in view, a floating eye within 3 squares can now be hit by throwing the wielded dagger, spear or javelin. A thrown weapon can't trigger the passive freeze. Any throw option already removes kill_blocker for eyes. The existing 'bare-handed: wield' and fetch logic recover the weapon. Replaying T5194 shows throw_j and throw_l.
