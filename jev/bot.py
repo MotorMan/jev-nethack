@@ -977,6 +977,8 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k.startswith(('throw_', 'zap_')) or k in ('elbereth', 'pray') or k.startswith('quaff_')}
         if nymph_throw in opts and not any(m['dist'] <= 1 for m in hostiles):  # forced to throw at a nymph, a fire ant ate Jev at 10 HP
             opts = {k: v for k, v in opts.items() if k in (nymph_throw, 'pray') or k.startswith('eat_')}
+        if any('nymph' in m['name'] and m['dist'] <= 3 for m in hostiles) and not any(m['ch'] == '@' and m['dist'] <= 3 for m in hostiles) and not shot:  # nymphs respect Elbereth and steal by melee: one froze Jev and took spear + scale mail in a turn, AC 10, dead (T4896); four nymph-stripped deaths
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | ({'wait': ('Stay on Elbereth one turn', 'A nymph is near: she cannot steal from you while you stand on Elbereth.', self.act_wait_elbereth)} if self.engraved_here() else {'elbereth': ('Engrave Elbereth', 'A nymph is near: she steals armor and weapons by touch, but will not melee you on Elbereth.', self.act_elbereth)})
         if 'ascend' in opts and not any(m['dist'] <= 1 for m in hostiles) and s.get('hunger') not in ('Hungry', 'Weak', 'Fainting'):  # hungry descents were forced back up: 33 ascends/14 descends while starving (T3603)  # offered only, Jev rarely took it: 25 of 60 deaths were 2+ levels past XL
             opts = {k: v for k, v in opts.items() if k in ('ascend', 'pray') or k.startswith(('eat_', 'quaff_'))}
         # stall guard: an option picked 3 times in a row without the game clock moving is not working

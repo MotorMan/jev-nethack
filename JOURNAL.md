@@ -1068,3 +1068,13 @@ A mountain nymph stole Jev's spear at T3216, and later its shield. Jev tried to 
 ## 2026-10-01 — wolf pack in Minetown (kev-4b, T4527, Dlvl 7)
 Three wolves surrounded Jev at 70/74 HP, AC 2. Jev attacked nine times in a row and went down to 13 HP. Elbereth was on offer every turn, but kev-4b rated it last, and the 'safest' head also picked attack. Danger was 0.42, under the 0.6 override. Jev prayed at 6 HP, 398 turns after its last prayer, and died praying.
 - Two or more adjacent hostiles that respect Elbereth (not '@' or minotaurs) at under half HP: options are cut to Elbereth, pray and quaff. Replaying T4524 (34/74) leaves only 'elbereth'.
+
+## 2026-10-01 — Woodland-elf after nymph and monkey thefts (kev-4b, T4896, Dlvl 6)
+A monkey took two shields and a key. Then a wood nymph next to Izchak's shop froze Jev and took its spear, scale mail, potion and gems in one go. Jev was left with 5 gold and AC 10 and wandered Minetown hurt. It spent 10 turns bouncing between 'go to the locked door' and 'retreat' with an orc mummy nearby. A Woodland-elf finished it from 24/60 HP; its last prayer was 320 turns earlier. This is the fourth death caused by nymph thefts.
+- A hostile nymph within 3 squares, with no '@' near and no missiles flying, forces Elbereth. If Elbereth is already under Jev, it waits on it. Nymphs respect Elbereth, and stealing is a melee attack. Replaying T4491 (the turn before the theft) leaves only 'elbereth'.
+
+## 2026-10-01 — little dog, blind and asleep (kev-4b, T1664, Mines 4) — journal only
+A magic trap's flash and roar blinded and deafened Jev at 38/38 HP. Two unseen dogs bit it while it tried Elbereth (interrupted) and attacked. Then it fell asleep and went from 15 HP to dead within one decision. It had never prayed, but at 15/38 HP it wasn't low enough to pray. Bad luck.
+
+## 2026-10-01 — rolling boulder (kev-4b, T692, Dlvl 2) — journal only
+Jev had prayed at T606 and was resting at 8/18 HP. Its kitten triggered a rolling boulder trap, and the boulder hit Jev. Bad luck.
