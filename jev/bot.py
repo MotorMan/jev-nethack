@@ -329,9 +329,11 @@ class Bot:
                 keys += k.upper(); dx -= 8 * sx; dy -= 8 * sy
             else:
                 keys += k; dx -= sx; dy -= sy
+        before = self.t.lines()[0]
         self.t.send(keys + '.')
-        for _ in range(20):
-            if not self.t.lines()[0].startswith('Pick a'):
+        for _ in range(20):  # wait for the answer itself: a stale "The 2nd elven arrow misses it." read as the reply made two adjacent elves "unknown '@'" (never attacked), dead (T7343)
+            l0 = self.t.lines()[0]
+            if re.match(r'^\S\s', l0) or '--More--' in ''.join(self.t.lines()[:3]) or l0 != before and not l0.startswith('Pick a'):
                 break
             self.t.pump(0.2)
         lines = self.t.lines()
