@@ -1757,3 +1757,6 @@ Not done (noted): blindfolding against yellow lights/ravens (no blindfold logic 
 - **Blind on a Mines-like level** (the level counted as a town because of the peacefuls). Attacks only stay on offer in town when the last messages show "It hits/bites", and here the attackers had names ("The grid bug bites!", "The rothe bites!"). With them filtered out, "Wait until you can see" won: 55 -> 6 HP, then a gamble prayer. Fix: the pattern also accepts `The <monster> hits/bites/...`.
 - **14000 turns on Dlvl 3** with "downstairs not found yet". The east half of the map was blank. The 591 searches were all spread over the explored west rooms, never at the right room's east wall or the dead-end corridor. Fix: `search_spot` subtracts (blank map cells within ±10 columns / ±5 rows) / 12, so walls facing unmapped space win (test_search_spot.py).
 - (The XL "dropping" 6 -> 3 in my first look was my analysis regex matching "XL 3" in the new strategy text, not a game event.)
+
+## Hosted 115052 — hill orc while praying, T5005, Dlvl 6 Mines
+Choke walk and Elbereth alternated: the walk stopped after 1 step each time on "a monster came into view" (the pack itself), scuffing each fresh Elbereth, 22 -> 10 HP. Fix: the choke walk passes `stop_new=False` (it still stops on damage); below 50% HP with Elbereth offered/engraved, choke is dropped so Jev holds the square.

@@ -631,7 +631,7 @@ class Bot:
                 choke = min((q for q, dq in dist.items() if 0 < dq <= 15 and open_n(q) <= 2 and q not in self.level().traps and not snap.is_monster(*q)
                              and min(cheb(q, m['pos']) for m in pack_near) >= min(gap, 3)), key=dist.get, default=None)
                 if choke:
-                    opts['choke'] = ('Fight from a corridor', f"Walk {dist[choke]} steps {compass(me, choke)} to a corridor or doorway square, so the {len(pack_near)} monsters can only reach you one or two at a time.", lambda q=choke: self.act_go(q, steps=15))
+                    opts['choke'] = ('Fight from a corridor', f"Walk {dist[choke]} steps {compass(me, choke)} to a corridor or doorway square, so the {len(pack_near)} monsters can only reach you one or two at a time.", lambda q=choke: self.act_go(q, steps=15, stop_new=False))  # the pack is already in view: stopping on each 'new' one left a Mines walk at 1 step, 3 times, between garbled Elbereths (T5005)
             # jabberwock (difficulty 18) at XL 8, '<' 2 steps away: stood and fought, 85 -> 0 (T8069). Non-stalkers never follow upstairs (mondata.c levl_follower)
             strong = any('much stronger' in self.threat(m) for m in near)
             ups_near = sorted((p for p in snap.find('<') if dist.get(p, 99) <= (60 if strong else 8)), key=dist.get)  # a bones red dragon (speed 9) 3 steps off at XL 3: only explore was offered, breathed dead (T1893)
@@ -664,6 +664,8 @@ class Bot:
                 and (s.get('turn') or 0) - self.run.get('no_engrave', -99) > 5 \
                 and not (any(m['dist'] == 1 and m['name'] in self.run.get('e_blockers', ()) for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # count: unseen biters left adj_names empty, 16 interrupted engravings in a row while Hungry turned Weak, then Fainting (T5312)  # @ ignore it (monmove.c onscary: S_HUMAN); 2 Elbereths at 9/49 beside a Woodland-elf, a rock mole also near, dead (T2543); engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
+        if hp < 0.5 * hpmax and ('elbereth' in opts or self.engraved_here()):  # choke <-> Elbereth alternation at 21/68 -> 10: each step off wasted the engraving (T5005)
+            opts.pop('choke', None)
         held = len(pack_near) >= 2 and open_n(me) <= 2 and not strong and not shot  # already in the corridor: fight them one at a time, don't stop to engrave
         if ('choke' in opts or held) and hp >= 0.5 * hpmax and not self.unseen_attacker():
             if 'choke' in opts and opts.get('wait', ('',))[0].startswith('Stay on Elbereth'):
@@ -1419,7 +1421,7 @@ class Bot:
         self.run['elbereth'].discard((before.status.get('dlvl'), before.me))
         return f'attacked {DIR_NAME[d]}'
 
-    def act_go(self, target, dist_prev=None, steps=40, adjacent_ok=False):
+    def act_go(self, target, dist_prev=None, steps=40, adjacent_ok=False, stop_new=True):
         """Walk toward target one step at a time; stop on new threats, damage or arrival."""
         taken = 0
         n_seen = len(self.hostile_glyphs())
@@ -1467,7 +1469,7 @@ class Bot:
                 return f'took damage after {taken} steps'
             # monsters move, so compare counts rather than positions
             near = [q for q in self.hostile_glyphs() if cheb(q, snap.me) <= 7]  # by count alone, Izchak and a watchman leaving view hid a rope golem and a nymph arriving: walked into both, choked (T5445)
-            if near and (len(self.hostile_glyphs()) > n_seen or any(snap.at(*q).ch not in chs for q in near)):
+            if stop_new and near and (len(self.hostile_glyphs()) > n_seen or any(snap.at(*q).ch not in chs for q in near)):
                 return f'stopped after {taken} steps: a monster came into view'
             if any(re.search(r'You (see|feel) here|There are (several|many) objects|trap|You fall|stairs', m) for m in news):
                 return f'stopped after {taken} steps: {news[-1]}'
