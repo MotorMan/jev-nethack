@@ -838,3 +838,6 @@ Run 202445 (raven at T4464, while fainted) was a hunger death. Few corpses were 
 Run 202732 fell through an unseen trap door from Dlvl 7 to Mines 9 at XL6. A jabberwock (difficulty 18) came into view 3 squares away. Jev was offered "Close in on jabberwock" and no Elbereth (that needed HP < 70%), and went 67 → 0 in two turns at T4199. Now, when a much stronger monster that respects Elbereth (not @ or a minotaur) is within 5 squares, Jev gets Elbereth and waiting on it, and loses approach and explore.
 
 Death reasons now come from `nethack/lib/xlogfile` (death, plus the `while` field) when the turn count matches. The screen scrape had reported this run as "orc zombie, while fainted" by reading another game's line in the high-score list.
+
+## 10:45 — Pony, while fainted
+Run 203259 (confirmed by the xlogfile) was killed by a pony at T4381 while fainted. Jev was still XL4 at T4300, so the pace cap kept it waiting on Dlvl 6 (Minetown) for ~900 turns, mostly explore/wait/rest. It bought the store's only affordable food, an 11-zorkmid apple, with 27 gold. The Fainting prayer came 946 turns after a good one and drew "Thou art arrogant" (prayer timeout still above 200, about a 6% chance at that gap). No code change. The pattern to watch is slow levelling plus the pace cap turning into hunger.
