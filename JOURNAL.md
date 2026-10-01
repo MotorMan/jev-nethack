@@ -782,3 +782,9 @@ Run 20260930-191717 died at T7290 on Mines 6, "killed by an orcish arrow". It ha
 
 ## 2026-10-01 07:25 — Don't start a corpse meal mid-fight
 Run 20260930-193441 (T8225, Dlvl 5): Jev killed one Woodland-elf and went to eat a corpse while the rest of the group was hidden in a dark room. The meal rolled "Rotten food! The world spins and goes dark." The elves took Jev from 46 HP to 1, and the gamble prayer failed. In 5.0 eat.c:1953 every corpse has a 1/7 rotten roll and about 1/37 meals cause unconsciousness for up to 10 turns; an elf corpse also takes ~15 turns to eat. Corpse meals (eat_corpse/goto_corpse) are now blocked unless Weak or worse, whenever a hostile is within 6 squares or something hit Jev in the last 5 turns. That may cost fresh corpses after fights, but hunger is still covered by prayer and packed food.
+
+## 2026-10-01 07:40 — Engulfed state is now a flag
+Run 20260930-194011 (T5756, Dlvl 6, "killed by a bugbear, while sleeping off a magical draught"). A fog cloud engulfed Jev at T5735. "You are laden with moisture" repeats every turn and pushed "engulfs you" out of the 3-message window the engulf check reads. Jev then chose "Search for hidden passages" inside the cloud for 20 turns ("What are you looking for? The exit?"). It came out at low HP next to a rothe and a bugbear. Engulfment is now a persistent `run['engulfed']` flag:
+- Set by: engulfs/swallows you, "The exit?", "laden with moisture", "cloud of steam".
+- Cleared by: expelled/regurgitated, killing it, "dissipates", "thin air".
+- When one message contains both kinds of event, the last one wins.
