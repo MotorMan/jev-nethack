@@ -1705,3 +1705,13 @@ It had prayed at T3493, then a giant bat (speed 22) and a hostile little dog wor
 
 ### 2026-10-01 — local engines
 LunaRoute is still suspended. The user started local MLX servers: kev-4b on 8784 (warm ~195 ms) and kev-0.8b on 8785 (~47 ms). `Jev` on 8770 now continues on local kev-4b. A new `Kev08` instance on 8772 runs kev-0.8b; it logs to runs/Kev08/ and has its own save.
+
+### 2026-10-01 — Gold and protection (user request)
+The user wants gold collected until it buys protection, then kept at 2000–4000 for shopping. Encumbrance should never shed gold, and any temple priest will do.
+- **5.0 priest.c:**
+  - The prompt reads "suggested: A or B". A = s×q and B = 2×s×q, where s = peak XL × rn1(101,150) (+40 per cheapskate) and q = max(1, gold / 3s).
+  - Offering B gives q AC points (one per 2s). Offering 0 means −1 alignment and +1 cheapskate. Offering below A while holding more than 2× the offer counts as cheapskate.
+- **`fetch_gold`:** any reachable `$` outside shops, offered while gold < 4000. The old fetch only reached 15 steps, and the last 15 Hosted games peaked at 13–533 gold.
+- **`donate`:** shown when a peaceful "priest(ess) of X" is in view, nothing is near, and gold ≥ 500×XL (+4000 once already protected).
+  - `act_donate` walks next to the priest, `#chat`s, parses A/B from the prompt, and offers B, or A or all of its gold if it can't afford B.
+- Gold was already autopicked and never in the Burdened drop list. The strategy notes now mention protection.

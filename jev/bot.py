@@ -49,7 +49,7 @@ STRATEGY = ("You are a dwarven Valkyrie: strong melee, cold resistant, stealthy,
             "Fight weak monsters in melee; do not melee floating eyes (blue 'e') or cockatrices ('c' yellow) bare-handed. "
             "Prayer fixes low HP (below 1/7 max or below 6) and weakness from hunger, but only about once per 1000 turns; "
             "the first prayer is safe after roughly turn 300. Elbereth engraved in the dust scares most melee monsters "
-            "(not @ humans or minotaurs) until you attack from it. Eat when Hungry. Food is scarce and fainting kills: eat fresh corpses of what you kill (not cockatrices, not old ones). Explore each level for useful items, "
+            "(not @ humans or minotaurs) until you attack from it. Collect gold: a temple priest sells permanent AC for about 400-500 gold per experience level; keep 2000-4000 after that for shops. Eat when Hungry. Food is scarce and fainting kills: eat fresh corpses of what you kill (not cockatrices, not old ones). Explore each level for useful items, "
             "then take the downstairs. A good pace is dungeon level no deeper than experience level + 1 early on. "
             "Wear armor you find if it covers an empty slot. The ultimate goal is to retrieve the Amulet and ascend.")
 
@@ -898,6 +898,15 @@ class Bot:
             if wares:
                 q = min(wares, key=dist.get)
                 opts['shop_look'] = (f"Go look at the {snap.at(*q).ch} for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the item and its price (you have {s.get('gold')} gold). Armor lowers AC; a price can identify a scroll or potion.", lambda q=q: self.act_go(q))
+        gold, xl = s.get('gold', 0), s.get('xl') or 1
+        if not near and not shop and gold < 4000:  # user: gold buys protection, then keep 2000-4000 for shopping; fetch's 15-step radius left games at 13-533 gold
+            coins = [q for q in snap.find('$') if q in dist and dist[q] > 0 and (s.get('dlvl'), q) not in self.run['here'] and sum(cheb(q, o) <= 3 for c in ')[%?/=!("' for o in snap.find(c)) < 6]
+            if coins and 'fetch' not in opts or coins and snap.at(*min(coins, key=dist.get)).ch == '$':
+                q = min(coins, key=dist.get)
+                opts['fetch_gold'] = (f"Pick up the gold {compass(me, q)}", f"Walk {dist[q]} steps to the '$'. You have {gold} gold: about {500 * xl} buys permanent AC from a temple priest, and more buys food and armor in shops.", lambda q=q: self.act_go(q))
+        priest = [m for m in mons if m['peaceful'] and re.match(r'(peaceful )?priest(ess)? of ', m['name'])]
+        if priest and not near and gold >= 500 * xl + (4000 if self.run.get('protection') else 0):  # 5.0 priest.c: offering the larger "suggested" sum gives 1 AC per 2x base (base = peak XL x 150-250), any temple priest
+            opts['donate'] = (f"Buy protection from the {priest[0]['name'].replace('peaceful ', '')}", f"You have {gold} gold. Walk to the priest ({priest[0]['where']}) and donate: about {400 * xl}-{500 * xl} gold buys permanent divine protection (lower AC).", lambda p=priest[0]['pos']: self.act_donate(p))
         fr = self.frontiers(dist)
         picked = []
         for d, p in fr:
@@ -1312,6 +1321,27 @@ class Bot:
             return 'wore armor'
         self.run['unwearable'][it['text']] = self.snap.status.get('ac') or 0  # wrong slot taken, two-handed weapon, too big...: stop offering it
         return 'could not wear it: ' + (self.run['recent'][-1] if self.run['recent'] else '')
+
+    def act_donate(self, pos):
+        me = self.snap.me
+        if cheb(me, pos) > 1:
+            return 'toward the priest: ' + self.act_go(pos, adjacent_ok=True)
+        self.t.send('#chat\r')
+        self.t.send(DIR_OF[(pos[0] - me[0], pos[1] - me[1])])
+        top = ' '.join(self.t.lines()[:2])
+        m = re.search(r'suggested: (\d+) or (\d+)', top)
+        if not m:
+            self.t.send('\x1b')
+            self.observe()
+            return 'chatted: ' + ' | '.join(self.run['recent'][-2:])
+        a, b = map(int, m.groups())
+        gold = self.snap.status.get('gold', 0)
+        offer = b if gold >= b else a if gold >= a else gold  # under a with more than 2x left over is 'Cheapskate' (raises the price); all of it is safe
+        self.t.send(f'{offer}\r')
+        self.observe()
+        if offer == b:
+            self.run['protection'] = self.run.get('protection', 0) + 1
+        return f'offered {offer} (suggested {a} or {b}): ' + ' | '.join(self.run['recent'][-2:])
 
     def act_pay(self):
         self.t.send('p')
