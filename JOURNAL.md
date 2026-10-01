@@ -1989,3 +1989,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** the bot prayed at T9226, then descended into killer bees, a jaguar and a pony. It got to 4/68 HP on a working Elbereth (the jaguar "turns to flee"), but the forced Elbereth-wait still offered flee_up. Twice it stepped off toward '<' 3 squares away. The jaguar (speed 15, 3 attacks) is faster than the bot and finished it.
 - **Wiki:** Elbereth: when it's working, stay on it. A faster monster gets free hits while you walk away, and fleeing only works if you can outpace it or the stairs are adjacent.
 - **Fix:** the forced Elbereth-wait keeps flee_up only at or above 1/3 max HP. Below that it's wait/quaff/pray/teleport.
+
+## Run 20261001-163526 — killed by a pony (T3251, Dlvl 5)
+- **Cause:** at T729 the bot read an unknown scroll and was punished, chained to a heavy iron ball. At XL 4 with AC 5, a pony (speed 16) chipped it from 41 to 12 HP over ~10 turns of missed melee. The bot was carrying an identified **wand of cold** that it never zapped, because ray wands need 7+ squares of open line so the bounce can't come back. Then a garbled Elbereth and an unknown potion.
+- **Wiki:** Valkyrie: intrinsic cold resistance, so your own bouncing cold ray can't hurt you. The wand of cold is a top escape and kill tool for a Valkyrie at any range.
+- **Fix:** a wand of cold skips the bounce-room check.
