@@ -1107,3 +1107,8 @@ Jev walked down into a beehive at 37/37 HP: six killer bees adjacent, and it die
 ## 2026-10-01 — invisible chameleon as a minotaur (kev-4b, T7302, Dlvl 8)
 Jev was hallucinating while resting at 57/77 HP. An invisible chameleon took minotaur form and hit it down to 6 in one turn. Jev prayed for the first time this game and died praying. The minotaur part is bad luck, but Jev was also bare-handed for its last 170 turns, and that was my doing. The new 'throw the wielded weapon at a floating eye' option (10580ad) fired at T6013 (at a yellow mold) and at T7132. The second time the spear flew past the eye and landed out of reach.
 - The wielded-weapon throw is now a real last resort. It needs 5 or more 'wait_eye' choices in the last 20 decisions, and it only targets floating eyes.
+
+## Wolf pack after garbled Elbereths (T2624, Dlvl 5)
+A nymph took Jev's armor (AC 6 → 10) while a wolf was biting. Jev prayed at 8 HP, and the wolves hesitated while it prayed. After that, two dust Elbereths came out garbled, and the bot then stopped offering Elbereth for 5 turns. Jev meleed three wolves, 29 → 0.
+The 5.0 source shows that monster hits don't scuff the hero's square. Only a monster's movement wipes dust, and only on the square it stands on (monmove.c:734). The garbling is engrave.c's 1/25 per-letter typo for dust, so each retry has about a 72% chance of working.
+Fix: a garbled result no longer blocks the next Elbereth.
