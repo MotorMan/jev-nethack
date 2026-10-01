@@ -1298,3 +1298,8 @@ Jev never carried food. Successful prayers at T2598 and T3613 fed it. The Fainti
 
 ## Run 20261001-044801: kitten, fainted from lack of food (T3459, Dlvl 5)
 The prayer at T2343, 581 turns after the last, came back "Thou art arrogant": angry god, and Jev fainted for 1100 turns. In that time it killed about 5 kobolds, all skipped as NEVER_EAT (poisonous). Second starvation in a row. Source check (eat.c): a poisonous corpse without resistance costs rnd(15) HP and maybe Str. Fix: when Weak or Fainting, with no prayer on offer and HP above 15, kobold corpses become edible (`never_eat()`). The food-supply problem stays open.
+
+## Run 20261001-045014: rothe, while praying (T2445, Dlvl 5 bones, XL 4)
+On a bones level, a hobgoblin threw darts and a spear, so `shot` was set. While shot, `on_e` is off, so attacks from Elbereth came back and the Elbereth wait went away. At 13/51 on a fresh Elbereth, with a rothe adjacent, the only option was "attack the rothe". That erased Elbereth: the rothe hit 13 → 8, and the prayer 626 turns after the last one failed. Fixes:
+- On Elbereth while shot, attacks are offered only against the shooter.
+- The Elbereth wait stays available whenever a non-shooter is adjacent.

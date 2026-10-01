@@ -528,7 +528,7 @@ class Bot:
         # attacking from Elbereth erases it and costs alignment (5.0: "You feel like a hypocrite"); only @ and minotaurs ignore it
         on_e = self.engraved_here() and hp < 0.9 * hpmax and not shot  # zapped on Elbereth by an adjacent orc, the only option left was 'retreat' (T4400); healthy: fight from it rather than wait out a speed-1 fog cloud
         for m in hostiles:
-            if m['dist'] == 1 and m['pos'] not in self.avoid and not (on_e and m['ch'] != '@' and 'minotaur' not in m['name']):
+            if m['dist'] == 1 and m['pos'] not in self.avoid and not ((on_e or shot and self.engraved_here() and hp < 0.9 * hpmax and m['name'] != self.run.get('shooter')) and m['ch'] != '@' and 'minotaur' not in m['name']):  # shot by a hobgoblin, Jev hit the adjacent rothe off Elbereth instead: 13 -> 0 (T2445)
                 if m['name'] == "unknown '@'" and (lv.town or any(o['peaceful'] and o['ch'] == '@' for o in mons) or (s.get('turn') or 0) - self.run.get('hit_turn', -99) > 1):  # hit in the Mines dark by two farlook-failed Woodland-elves, explored instead of fighting: 67 -> 0 (T3567)
                     continue  # unidentified @ can be a shopkeeper or watchman: Jev hit Sarnen beside a mimic in her shop, wand of striking, dead (T5361)
                 low = re.compile(r'shrieker|brown pudding|black pudding')
@@ -580,7 +580,7 @@ class Bot:
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
         strong = False
         if near:
-            if self.engraved_here() and not shot:  # Elbereth only stops melee (wiki); stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
+            if self.engraved_here() and (not shot or any(m['dist'] <= 1 and m['name'] != self.run.get('shooter') for m in near)):  # shot, but a rothe adjacent: Elbereth still stops its 3 bites (T2445)  # Elbereth only stops melee (wiki); stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
                 if (hp < 0.7 * hpmax or dread) and not any((m['ch'] == '@' or 'minotaur' in m['name']) and m['dist'] <= 2 for m in near):  # dist: an unfarlooked '@' 5 squares off (Minetown) removed the wait at 12/63 among 8 monsters; Jev explored into a pony, dead (T7921)  # @ (elves, humans) and minotaurs ignore it (monmove.c onscary): sat 9 turns on it by a Woodland-elf, dead (T4259); 'stuck on Elbereth': up to 44% of a game's decisions were waits on it (0.9 before); at 77/80 HP Jev sat on Elbereth ~1400 turns watching a fog cloud
                     opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', self.act_wait_elbereth)
             else:
