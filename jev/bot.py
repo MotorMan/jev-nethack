@@ -687,7 +687,7 @@ class Bot:
         # an ape took 38 -> 3 with only 'attack' on offer, prayer 100 turns old, two unknown potions and an unknown wand unused (T4683)
         no_god = self.run.get('prayed_turn') is not None and (s.get('turn') or 0) - self.run['prayed_turn'] < 500 or self.run.get('god_angry')
         if danger:
-            for it in self.inventory:  # unknown potion beside a Woodland-elf at 25/90: asleep, dead (T9392); an unknown potion on a working Elbereth: 11% heal, sleeping killed a Jev the warhorse was fleeing from
+            for it in sorted(self.inventory, key=lambda i: 'healing' not in i['text']):  # healing first: the break offered an unknown yellow potion over 2 potions of healing, dead (T8671)  # unknown potion beside a Woodland-elf at 25/90: asleep, dead (T9392); an unknown potion on a working Elbereth: 11% heal, sleeping killed a Jev the warhorse was fleeing from
                 if re.search(r'\bpotions?\b', it['text']) and (not self.engraved_here() or shot and LOW_HP(s) or 'healing' in it['text']) and ('healing' in it['text'] or LOW_HP(s) or no_god or not any(m['dist'] <= 1 for m in hostiles)) \
                         and not re.search(r'sleeping|blindness|hallucination|confusion|booze|sickness|paralysis|water|oil|clear', it['text']):  # clear = water: 4 blind quaffs of it vs a housecat pack (T2801); drank a known potion of sleeping held by an ape (T9512)
                     opts[f"quaff_{it['letter']}"] = (f"Quaff {it['text']}", f"Drink this potion hoping it heals.{danger}", lambda l=it['letter']: (self.act_keys('q' + l, 'quaffed'), self.read_inventory())[0])  # stale inventory re-offered a drunk potion 3-4 times in a fight (T2801, T5616)
@@ -857,9 +857,9 @@ class Bot:
             wand = next((it for it in self.inventory if 'wand of wishing' in it['text'] and not re.search(r':0\)', it['text'])), None)
             if wand and not self.run.get('wand_empty'):  # carried an identified wand of wishing unused to an Elvenqueen death at AC 10 (T6359)
                 opts['wish'] = (f"Zap {wand['text']}", f"Make a wish: {WISHES[min(self.run.get('wishes', 0), len(WISHES) - 1)]}.", lambda l=wand['letter']: self.act_wish(l))
-            ls = next((it for it in self.inventory if 'amulet of life saving' in it['text'] and 'being worn' not in it['text']), None)
+            ls = next((it for it in self.inventory if re.search(r'amulet of (life saving|reflection|guarding|ESP)', it['text']) and 'being worn' not in it['text'] and not re.search(r'\bcursed', it['text'])), None)  # an uncursed amulet of guarding (AC 2, MC 2) rode in the pack to a soldier ant death (T8671)
             if ls and not any('amulet' in it['text'] and 'being worn' in it['text'] for it in self.inventory):
-                opts['wear_amulet'] = (f"Put on {ls['text']}", 'Life saving brings you back once when you would die.', lambda l=ls['letter']: self.act_keys('P' + l, 'put on the amulet'))
+                opts['wear_amulet'] = (f"Put on {ls['text']}", 'A known good amulet: life saving brings you back once, reflection bounces rays, guarding gives AC and magic cancellation.', lambda l=ls['letter']: self.act_keys('P' + l, 'put on the amulet'))
 
         # altars (wiki "Altar", "Sacrifice"; 5.0 pray.c): dropping identifies BUC on any altar; a fresh (<50 turns) corpse offered on a lawful one
         # cuts prayer timeout, adds luck, and at timeout 0 gives a 1 in 6 first-gift chance (bestow_artifact)
@@ -1318,6 +1318,8 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0] or k == 'dig_down' and 'gamble' in opts['pray'][0]
                     or k in ('elbereth', 'wait', 'teleport') and 'gamble' in opts['pray'][0] and turn - (self.run.get('prayed_turn') or 0) < 200  # pray-only on Elbereth 113 turns on: "Thou art arrogant", lost a level, dead (T7362) # rnz(350) is ~.5 at 100-200 turns vs ~.72 for a dust Elbereth: pray-only 123 turns on at 11/69 by a jaguar, dead (T7122)
                     or k.startswith('zap_') and 'gamble' in opts['pray'][0] and re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', v[0])}  # chose an unknown black potion over a ~.7 prayer at 8/43: dead (T3559)
+        if 'flee_up' in opts and len(opts) > 1 and all(h['choice'] == 'flee_up' and 'after 1 steps' in h['outcome'] for h in self.history[-2:]):
+            opts.pop('flee_up')  # 4 one-step flee_ups between an elf mummy, a Woodland-elf and soldier ants, 55 -> 0, wand of fire and 2 healing potions unused (T8671)
         if LOW_HP(s) and 'teleport' in opts and 'pray' not in opts and any(m['dist'] <= 1 and not m['peaceful'] for m in hostiles):
             opts.pop('flee_up', None)  # walking off at 1/74 beside a Green-elf took a hit per step: dead with 13 unread scrolls (T7362)
         if s.get('hunger') in ('Weak', 'Fainting') and 'goto_corpse' in opts and not starving and not LOW_HP(s):  # Weak, a fresh corpse 10 steps off: dropped a helm, prayed 790 turns on (failed), explored, fainted, giant spider (T7451)

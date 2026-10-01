@@ -1974,3 +1974,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: all 7 earlier prayers were for Weak (no food found in 8600 turns). Three nymphs on Dlvl 5 stripped it from AC 0 to AC 10 and took the spear. The downstairs was never found, and the nymph rule ("on Elbereth, a nymph within 3: only wait") produced 874 waits in 2200 turns, e.g. 228 with a water nymph sitting 2 steps away. A raven blinded it and bit it from 46 to 7, unarmed at AC 10. A 639-turn prayer failed.
 - Wiki (Nymph): leave her level or kill her. Waiting on Elbereth does not make a nymph leave, and every turn spent there is nutrition and exploration lost.
 - Fix: the nymph wait-only filter is skipped once 70 of the last 80 choices were waits, so exploring (and finding the stairs) resumes.
+
+## 20261001-160052 — killed by a soldier ant (T8671, Dlvl 8)
+- Cause: at 65/76 a Woodland-elf shot it, then soldier ants and an elf mummy joined. It chose flee_up 4 times in a row; each step was cut short after 1 square and hit (55 -> 17 -> 0). It had a wand of fire and two potions of healing: the danger-quaff loop breaks on the first potion in inventory order, so only an unknown yellow potion was ever offered. An identified uncursed amulet of guarding sat unworn.
+- Wiki (Soldier ant): "the top killer": don't run from speed 18 in the open. Fight from Elbereth (it respects it), quaff healing, zap attack wands. Running for stairs only works if they are a few squares away.
+- Fix: known healing potions are offered first. flee_up is dropped after two one-step flee_up attempts in a row (when other options exist). Known-good uncursed amulets (life saving, reflection, guarding, ESP) are worn.
