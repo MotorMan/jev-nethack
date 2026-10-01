@@ -873,3 +873,6 @@ Jev died at XL5 on Dlvl 8, T3746: killed by a Mordor orc while praying. The '<' 
 
 ## 12:55 — Run 211251: no door-walking mid-melee
 Jev died at XL6 on Dlvl 7, T5245, to a sewer rat. A wererat kept summoning sewer, giant and rabid rats; this was a bones level, and Jev's own ghost was there too. Jev chose "Go through the locked door" three times while surrounded, and every step was free bites. The adjacent-melee filter already dropped explore, search, throw, pickup and fetch; now it drops `door_` too.
+
+## 13:10 — Yellow lights count as dread
+Two deaths in a row started with a yellow light. Run 212916 died to a rabid rat at T2307, Dlvl 6: Jev was blinded at T2246 and four unseen rats killed it through a prayer. Run 210625 was the blind-and-weaponless dog death. A yellow light's only attack is AT_EXPL AD_BLND 10d20 (monsters.h), and at speed 15 Jev cannot outrun it. The wiki's answers are a blindfold or killing it at range. Elbereth also holds it off, since the explosion is a melee attack and lights are not @ or minotaurs. Yellow lights within 5 squares now join the `dread` list, so Elbereth is offered, approaches are dropped, and Jev waits on the engraving.
