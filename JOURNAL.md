@@ -1592,3 +1592,6 @@ It had prayed 44 turns earlier. Uruk-hai shot it from 3 squares while it stood o
 
 ### Djev 20261001-094012: unconscious from rotten food, killed by a rothe on Dlvl 5 (T3021)
 It killed a rothe and ate the fresh corpse at full HP, 46/46. The corpse rolled rotten (eat.c, 1 in 7) and knocked it out, and the rothe's packmate killed it. act_eat_corpse now engraves Elbereth first unless it is Fainting. That costs one turn per meal, and the packmates respect it while it is out.
+
+### Djev 20261001-094239: frozen by a floating eye in Minetown, killed by an iguana (T6695)
+Two floating eyes boxed it into a corridor. It stood on 8 rocks with no other missiles. After the 200-turn wait, kill_blocker meleed one eye and was frozen. Rocks now count as missiles against passive monsters (d3 by hand). When an eye is the blocker and rocks lie here, kill_blocker picks them up instead of meleeing.

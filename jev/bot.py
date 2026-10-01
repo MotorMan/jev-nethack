@@ -559,7 +559,7 @@ class Bot:
         missiles = [it for it in self.inventory if re.search(r'\b(daggers?|knife|knives|darts?|shuriken|spears?|javelins?)\b', it['text'])
                     and 'weapon in' not in it['text'] and 'wielded' not in it['text'].replace('not wielded', '')]
         # hand-thrown arrows do rnd(2) (uhitm.c): only for passives. Boxed by a floating eye with 7 arrows, meleed it, paralysed, starved (T2426)
-        arrows = [it for it in self.inventory if re.search(r'\b(arrows?|bolts?)\b', it['text'])]
+        arrows = [it for it in self.inventory if re.search(r'\b(arrows?|bolts?|rocks?)\b', it['text'])]  # a thrown rock does d3 (objects.c): stood on 8 rocks and meleed a floating eye, frozen (T6695)
         last_resort = not missiles and not arrows and not any(not m['passive'] for m in hostiles) and any('floating eye' in m['name'] and m['dist'] <= 3 for m in hostiles) \
             and sum(h['choice'] == 'wait_eye' for h in self.history[-20:]) >= 5  # only once waiting failed: a missed spear flew past an eye out of reach, bare-handed 170 turns (T7302)
         if last_resort:
@@ -961,8 +961,11 @@ class Bot:
                            else "Last resort: if it survives a hit it may paralyze you for a long time while other monsters attack; killing it in one blow is safe" if m['ch'] == 'e'
                            else "It hurts you passively when you hit it; the fight stops if HP gets low")
                     opts['kill_blocker'] = (f"Kill the {m['name']} blocking the way", f"The {m['name']} {m['where']} blocks the only way out: you are stuck here until it dies. Walk next to it and fight it. {why}.", lambda m=m: self.act_kill_blocker(m['pos']))
+                    rk = next((i for i in self.here_items() if re.search(r'\brocks?\b', i) and 'for sale' not in i), None)
                     if m['ch'] == 'e' and any(k.startswith(('throw_', 'zap_')) for k in opts):
                         del opts['kill_blocker']  # throw at it instead: melee paralyses for up to 127 turns
+                    elif m['ch'] == 'e' and rk and not self.blindfold():
+                        opts['kill_blocker'] = ('Pick up the rocks here to throw at the eye', 'Rocks thrown at the floating eye hurt it without touching it; melee risks paralysis.', lambda rk=rk: self.act_pickup(rk))
         # stagnant: yellow + red molds plugged both corridors, rats behind them; explore/approach/wait looped 4000 turns at XL2, starved (T5244)
         if s.get('exp') != self.run.get('exp_seen'):
             self.run['exp_seen'], self.run['exp_turn'] = s.get('exp'), s.get('turn') or 0
