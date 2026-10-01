@@ -1999,3 +1999,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** no permanent food, just prayers for Weak at T2048, 4522 and 5366. While Not hungry at T5976 the bot ate a homunculus corpse ("Ecch - that must have been poisonous!"), Str 17 → 13. Giant spider bites took it to 9, and a Weak-hunger giant beetle corpse took it to 5, then 4. By T6684 it was Weak, its prayer only 250 turns old after an HP prayer at 6435, at 32/73 HP. It fainted next to a giant spider on Dlvl 8.
 - **Wiki/source:** Poisonous corpses (monsters.h M1_POIS: bees, soldier ants, giant beetles, homunculi, rabid rats, giant spiders, scorpions, snakes, yellow molds...) cost Str or rnd(15) HP without poison resistance, and a dwarvish Valkyrie has none. Only eat them when the alternative is fainting.
 - **Fix:** POISONOUS joins NEVER_EAT, and is lifted like kobolds only when `desperate` (Weak/Fainting with no prayer).
+
+## Operator rule: scrolls (after run 20261001-163526's punishment)
+- **Rule (operator):** NEVER read an unknown scroll unless it's price-ID'd as identify. Always read identify when there's a major non-gem unknown.
+- **Wiki:** Price identification: identify is the only base-20 scroll and the most common (18%). Unknown scrolls include fire, amnesia, punishment, create monster, teleportation, destroy armor and aggravate monster.
+- **Fix:** removed all three unknown-scroll reads (stuck searching, trapped/walled in, emergency "teleport" gamble). Known or price-ID'd identify is now forced when nothing hostile is in view and an unknown wand, ring, amulet, potion or scroll is in the pack. The identify menu picks wands, then amulets, rings, armor, potions, scrolls, and gems last.

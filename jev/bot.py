@@ -1057,10 +1057,7 @@ class Bot:
             spot = self.search_spot(dist)
             if spot:
                 opts['search_hidden'] = ('Search for hidden passages', f"No unexplored edges or downstairs are known. Walk {dist[spot]} steps {compass(me, spot)} to a likely spot (dead end or wall) and search there.", lambda: self.act_search_at(spot))
-            scroll = next((it for it in self.inventory if re.search(r'scrolls? labeled', it['text'])), None)
-            if scroll and sum(lv.searched.values()) >= 300 and not set(s.get('conditions', [])) & {'Blind', 'Conf', 'Cnf'}:  # 6000 turns searching Dlvl 3 for a hidden corridor with 3 unknown scrolls in the pack, starved at XL 8 (T10905)
-                opts.pop('search_hidden', None)
-                opts[f"read_{scroll['letter']}"] = (f"Read {scroll['text']}", 'Searching has found nothing for a long time. An unknown scroll may be magic mapping (shows the stairs) or teleportation (moves you elsewhere on the level).', lambda l=scroll['letter']: self.act_read(l))
+            # never read unknown scrolls (only known or price-ID'd identify): ZLORFIK read here 'to find the stairs' was punishment, ball and chain, dead to a pony (T3251)
         m = self.soko()
         if m and not self.run.get('soko_done'):
             i = self.run.setdefault('soko_step', {}).get(m[0], 0)
@@ -1168,10 +1165,7 @@ class Bot:
                     opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'pickup_', 'wear_', 'wield_'))}
                 opts['recover_gear'] = ('Go back for your dropped armor', f"Your armor and weapon fell off when you changed form. They lie {dist[g[1]]} steps {compass(me, g[1])}: walk there, pick them up and put them back on.", lambda p=g[1]: self.act_go(p))
         tp = next((it for it in self.inventory if 'scroll of teleportation' in it['text']), None)
-        # a werewolf's summoned pack (7 wolves) took 47 -> 0 twice in 7 turns with 2 unknown scrolls in the pack (T3278): teleportation is the commonest escape scroll
-        # bled out 29 -> 0 over 100 turns of Elbereth/rest among zombies, apes and a rope golem, prayer used, 4 unknown scrolls unread (T4257)
-        if not tp and (sum(m['dist'] <= 1 and not m['peaceful'] for m in hostiles) >= 3 and s.get('hp', 1) * 2 < s.get('hpmax', 1) or no_god and LOW_HP(s) and any(m['dist'] <= 3 for m in hostiles)) and not self.soko():
-            tp = next((it for it in self.inventory if re.search(r'scrolls? labeled', it['text'])), None)
+        # unknown scrolls are never read (operator rule; the emergency read could be fire, amnesia, punishment or create monster)
         if tp and 'pray' not in opts and s.get('hp', 1) * 2 < s.get('hpmax', 1) and (near or self.unseen_attacker()) and not self.soko():
             opts['teleport'] = (f"Read {tp['text']}", 'Teleports you to a random spot on this level, away from whatever is hurting you.', lambda l=tp['letter']: self.act_read(l))
         tw = next((it for it in self.inventory if 'wand of teleportation' in it['text'] and not re.search(r':0\)', it['text'])), None)
@@ -1241,10 +1235,7 @@ class Bot:
             lv.resets += 1
             opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('ms', 'waited'))
             # a trap door dropped Jev into a shop closed for inventory: 10000 turns waiting at a locked door (T399-T10300). wiki: unlock it, teleport out, or kick it and pay 400zm
-            scroll = next((it for it in self.inventory if re.search(r'scrolls? labeled', it['text'])), None)
-            if lv.resets > 100 and scroll:
-                opts = {f"read_{scroll['letter']}": (f"Read {scroll['text']}", 'Trapped: an unknown scroll may be teleportation.', lambda l=scroll['letter']: self.act_read(l))}
-            elif lv.resets > 300:
+            if lv.resets > 300:
                 d = next((k for k, v in DIRS.items() if not (v[0] and v[1]) and (me[0] + v[0], me[1] + v[1]) in lv.locked), None)
                 if d:
                     opts = {f'kick_{d}': ('Kick the locked door', 'Trapped for hundreds of turns with no other way out.', lambda d=d: self.act_kick(d, force=True))}
@@ -1336,6 +1327,9 @@ class Bot:
             opts = {'pray': opts['pray']}
         if opts.get('pray', ('',))[0] == 'Pray to Tyr':  # a safe prayer fixes hunger with no 1-in-2 tripe vomiting (T3736)
             opts = {k: v for k, v in opts.items() if not (k.startswith('eat_') and 'tripe' in v[0])} or opts
+        rid = next((k for k, v in opts.items() if k.startswith('read_') and 'identify' in v[0]), None)  # operator: read identify as soon as anything major is unknown
+        if rid and not hostiles and any(re.search(r'\b(wand|ring|amulet)\b(?! of| mail)|scrolls? labeled|potions?\b(?! of)', it['text']) and not re.search(r'\bcalled\b|\bnamed\b', it['text']) for it in self.inventory if it['letter'] != rid[5:]):
+            opts = {rid: opts[rid]}
         eid = next((k for k in opts if k.startswith('engrave_id_')), None)
         if eid and not hostiles:  # offered 39 times, explore always won: a balsa wand rode unknown to a fainting death (T7765)
             opts = {eid: opts[eid]}
@@ -1412,7 +1406,9 @@ class Bot:
             lines = self.t.lines()
             kind, _ = top_prompt(lines)
             if kind == 'menu':
-                pick = next((m[1] for l in lines for m in [re.search(r'(?:^|\s)([a-zA-Z]) - ', l)] if m), None)  # the menu lists only unidentified things
+                items = [m.groups() for l in lines for m in [re.search(r'(?:^|\s)([a-zA-Z]) - (.*)', l)] if m]  # the menu lists only unidentified things
+                rank = lambda x: next((i for i, w in enumerate(('wand', 'amulet', 'ring', 'armor|mail|cloak|boots|gloves|helm|shield|pall|cape|robe|apron|tunic', 'potion', 'scroll', 'spellbook')) if re.search(w, x[1])), 9 if re.search(r'gem|stone|glass|rock', x[1]) else 8)
+                pick = min(items, key=rank)[0] if items else None  # gems last: an identify spent on a black gem leaves the wands unknown
                 self.t.send((pick or '') + '\r')
             elif kind == 'more':
                 self.add_msg(messages_from('\n'.join(lines)))
