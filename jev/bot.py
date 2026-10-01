@@ -1066,7 +1066,7 @@ class Bot:
         prev = next((h for h in self.history[-2:-1] if h.get('hp') and (s.get('turn') or 0) - h['turn'] <= 3), None)
         losing = prev and prev['hp'] - s.get('hp', 0) >= s.get('hp', 0)  # an ape + pony took 34 -> 14 in two turns, Jev swung on with Elbereth offered: dead next turn (T3767)
         if 'elbereth' in opts and adj and (len(adj) >= 2 and s.get('hp', 1) * 2 < s.get('hpmax', 1) or losing or pack and len(adj) >= 3 or s.get('hp', 1) < 0.6 * s.get('hpmax', 1) and any('stronger' in self.threat(m) for m in adj) or s.get('hp', 1) < 0.4 * s.get('hpmax', 1)) and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in adj):  # swung at a giant ant (speed 18) from 23/62 to 14 with Elbereth on offer, then garbled + interrupted, dead (T5591)  # XL4 swung at a rope golem at 22/43 with Elbereth on offer: 22 -> 10, a snake interrupted the late engraving, dead (T2908)  # traded blows with 3 wolves 70 -> 6 with Elbereth on offer, died praying (T4527)
-            opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray', 'upstairs') or k.startswith('quaff_')}  # upstairs: arrived on '<' into ~10 monsters, only Elbereth left, 67 -> 8 -> prayed -> dead (T8603)
+            opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray', 'upstairs', 'dig_down') or k.startswith('quaff_')}  # upstairs: arrived on '<' into ~10 monsters, only Elbereth left, 67 -> 8 -> prayed -> dead (T8603)
         g = self.run.get('gear_at')
         if g and g[0] == s.get('dlvl') and s.get('exp') is not None and not any(m['dist'] <= 1 for m in near):  # 'not near': a speed-3 rock mole stayed in view 230 turns, the shield never recovered, dead at AC 10 (T3665)
             if me == g[1]:
@@ -1078,8 +1078,11 @@ class Bot:
         tp = next((it for it in self.inventory if 'scroll of teleportation' in it['text']), None)
         if tp and 'pray' not in opts and s.get('hp', 1) * 2 < s.get('hpmax', 1) and (near or self.unseen_attacker()) and not self.soko():
             opts['teleport'] = (f"Read {tp['text']}", 'Teleports you to a random spot on this level, away from whatever is hurting you.', lambda l=tp['letter']: self.act_read(l))
-        if 'pray' not in opts and s.get('hp', 1) * 3 < s.get('hpmax', 1) and any(k.startswith(('zap_', 'teleport')) for k in opts):  # an unknown wand sat unzapped while a Woodland-elf meleed 30 -> 2, prayer 90 turns old (T5409)
-            opts = {k: v for k, v in opts.items() if k.startswith(('zap_', 'quaff_', 'flee')) or k in ('elbereth', 'upstairs', 'ascend', 'teleport')}
+        dig = next((it for it in self.inventory if 'wand of digging' in it['text'] and not re.search(r':0\)', it['text'])), None)
+        if dig and s.get('hp', 1) * 2 < s.get('hpmax', 1) and any(m['dist'] <= 1 for m in near) and not self.soko() and self.standing_on() not in ('<', '>', '_', '\\', '{'):  # a hill orc pack, a wand of digging unused, gamble prayer failed, dead (T2926)
+            opts['dig_down'] = (f"Zap {dig['text']} down", 'Dig a hole through the floor and fall to the level below, leaving every monster here behind.', lambda l=dig['letter']: (self.act_keys('z' + l + '>', 'dug down'), self.read_inventory())[0])
+        if 'pray' not in opts and s.get('hp', 1) * 3 < s.get('hpmax', 1) and any(k.startswith(('zap_', 'teleport', 'dig_down')) for k in opts):  # an unknown wand sat unzapped while a Woodland-elf meleed 30 -> 2, prayer 90 turns old (T5409)
+            opts = {k: v for k, v in opts.items() if k.startswith(('zap_', 'quaff_', 'flee')) or k in ('elbereth', 'upstairs', 'ascend', 'teleport', 'dig_down')}
         if self.unseen_attacker():  # a fire ant bit from a square the map showed empty; 3 x 15-turn searches and explores, 47 -> 8, prayed too soon (T3879)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'search', 'rest', 'door_', 'goto_', 'choke'))} or opts
         adj = [m for m in hostiles if m['dist'] <= 1]
@@ -1179,7 +1182,7 @@ class Bot:
         # Jev threw darts at 8 HP instead of a 700-turn gamble and died (T5087)
         if LOW_HP(s) and 'pray' in opts:  # the gamble (100+ turns) is ~.5-.87: Jev engraved at 1 HP 478 turns after praying and died (T4535)
             # a gamble prayer is ~.6 at 250 turns (rnz(350) simulated); a known attack wand at the attacker beats it: pray-only at 8/62 with a wand of cold, dead (T5509)
-            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0]
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0] or k == 'dig_down' and 'gamble' in opts['pray'][0]
                     or k.startswith('zap_') and 'gamble' in opts['pray'][0] and re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', v[0])}  # chose an unknown black potion over a ~.7 prayer at 8/43: dead (T3559)
         if 'pray' in opts and 'fatal within' in opts['pray'][1]:  # FoodPois with prayer ready: Jev rested and walked for corpses until it died (T2090)
             opts = {'pray': opts['pray']}
