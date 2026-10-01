@@ -1046,7 +1046,7 @@ class Bot:
             p = max(ups, key=lambda u: cheb(u, lv.arrival or me))
             opts = {k2: v for k2, v in opts.items() if k2 == 'pray' or k2.startswith('eat_')}
             opts['enter_sokoban'] = ('Go up into Sokoban', f"This level has a second up staircase ({dist[p]} steps {compass(me, p)}): it leads to Sokoban, four puzzle levels with a known solution, safe food, rings, wands and a bag of holding or amulet of reflection at the top.", lambda p=p: self.act_descend(p, '<'))
-        if self.run.get('nymph_lvl') == s.get('dlvl') and not hops and downs and s.get('dlvl', 1) <= (s.get('xl') or 1) + 1 and not near and not m:
+        if self.run.get('nymph_lvl') == s.get('dlvl') and not hops and downs and s.get('dlvl', 1) <= (s.get('xl') or 1) + 1 and not near and not m and s.get('hp', 1) >= 0.8 * s.get('hpmax', 1):  # left at 38/55 into a Woodland-elf + Mordor orc: 38 -> 7 in 2 turns (T5934)
             # a nymph teleports back for more: one wood nymph took shield, spear, bag, ration and egg over 500 turns
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat_')}
             opts['leave_nymph'] = ('Leave this level (a nymph lives here)', f"A nymph on this level keeps coming back to steal your things. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend.", lambda p=downs[0]: self.act_descend(p))

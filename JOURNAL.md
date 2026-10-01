@@ -1696,3 +1696,6 @@ It stepped off `<` to fight a raven, which blinded it, and a wolf pack arrived u
 A mob gathered in Sokoban: an Uruk-hai, a kitten, a jackal, a grid bug and a kobold mummy. Two Elbereths came out garbled and others were scuffed, taking it 31 -> 14. Its prayer at T4856 made the 2-HP gamble prayer fail. No fix.
 
 (LunaRoute engines kev-4b and djev were suspended by the user at this point; Hosted Jev continues alone.)
+
+### Hosted 20261001-111326 — Woodland-elf while praying, T5934, Dlvl 7
+It waited on Elbereth to 38/55, then leave_nymph took the stairs to Dlvl 7 at XL 5. A Woodland-elf and a Mordor orc took it 38 -> 7 in 2 turns, and its T5421 prayer was too recent. leave_nymph had no HP gate. **Fix:** require 80% HP, the same as normal descending.
