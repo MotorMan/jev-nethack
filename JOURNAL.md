@@ -1939,3 +1939,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: corpse age is tracked per square. A fresh lizard kill landed on an old hill orc corpse; after eating the lizard (age 17) the bot ate the orc under the same "21 turns" stamp. It was tainted (eat.c: age/(10+rn2(20)) > 5, so ≥50 turns old). The prayer then failed ("Tyr is displeased").
 - Wiki: only eat corpses you saw die, or that are under 50 turns old; in a pile, the top corpse is the newest and the ones below are of unknown age.
 - Fix: after eating a corpse, the square's age is reset to unknown, so leftover corpses there are treated as rotten.
+
+## 20261001-152045 — killed by a Green-elf (T7362, Dlvl 8)
+- Cause: XL7 at 47/86 meleed a Green-elf beside a giant spider, and both together took it to 11. It engraved Elbereth, and then the low-HP filter left only `pray`, 113 turns after its last prayer. Tyr: "Thou art arrogant", so it lost a level. At 1/74 it chose flee_up over an unread scroll (13 unknown scrolls in pack) and was hit on the way.
+- Wiki (Prayer): the timeout after a good prayer is rnz(350) (median ~350), and major trouble is only fixed when timeout < 200. At ~100 turns the prayer is a coin flip with smiting on failure. On Elbereth, waiting for HP regen, or reading an unknown scroll (teleport is the most common), beats it.
+- Fix: the low-HP filter keeps `wait` and `teleport` beside `elbereth` when the prayer is a <200-turn gamble. At low HP with no prayer and a hostile adjacent, drop `flee_up` when a teleport scroll is available.
