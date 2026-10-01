@@ -1616,3 +1616,6 @@ A bones level: Jev's own dwarf zombie, a wolf and a dog. HP was already low with
 
 ## Hosted 100249 — wererat while fainted, T2273, Dlvl 4
 It had no food left by T1542, and the slime mold it ate was rotten. Its first prayer, Weak at T1727, got "Tyr is displeased". Prayer timeout was 0 by then (u_init 300, minus 1 per turn), so Luck or alignment had to be below 0. No peaceful kill, mirror, or "Really attack" shows in the logged messages; multi-step explores can hide messages. Cause unknown, no fix.
+
+## Djev 100244 — hill orc while fainted, T3978, Dlvl 4
+Not hungry at 16 HP, it ate a hill orc corpse in a room an orc pack was using (corpse-forcing). It was hit mid-meal, 16 -> 9, and made a gamble prayer 146 turns after the last one: "Thou art arrogant", level drained, Tyr angry. With no food left and prayer unusable, it fainted at T3940. Fix: optional corpse meals (Not hungry) are skipped below half HP.

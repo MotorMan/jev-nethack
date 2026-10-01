@@ -743,7 +743,8 @@ class Bot:
             opts.pop('goto_corpse', None)
         # eat.c:1953: any corpse has a 1/7 rotten roll, ~1 in 37 meals knocks you out up to 10 turns; an elf takes ~15 turns to eat.
         # Elves out of sight in a dark room beat an unconscious Jev 46 -> 1 HP (T8218)
-        if s.get('hunger') not in ('Weak', 'Fainting') and (any(m['dist'] <= 6 for m in hostiles) or (s.get('turn') or 0) - self.run.get('hit_turn', -99) <= 5):
+        if s.get('hunger') not in ('Weak', 'Fainting') and (any(m['dist'] <= 6 for m in hostiles) or (s.get('turn') or 0) - self.run.get('hit_turn', -99) <= 5
+                                                             or s.get('hunger') != 'Hungry' and s.get('hp', 1) < 0.5 * s.get('hpmax', 1)):  # Not hungry at 16 HP, ate an orc corpse in an orc pack's room: hit mid-meal 16 -> 9, gamble prayer angered Tyr, fainted later (T3978)
             opts = {k: v for k, v in opts.items() if k not in ('eat_corpse', 'goto_corpse')}
         if s.get('hunger') not in ('Weak', 'Fainting') and any(m['dist'] <= 2 for m in near):  # eating twice mid-swarm took 25 HP to 1 (giant rat, T2344)
             opts = {k: v for k, v in opts.items() if not k.startswith(('eat_', 'goto_corpse'))}
