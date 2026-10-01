@@ -1457,3 +1457,12 @@ Run 20261001-072204 died to a gecko at T3299 on Dlvl 6.
 - The other wait options already used `ms`. The stun wait and the "let it move off" wait had the same bug.
 
 Fix: every one-turn wait now sends `ms`.
+
+## 2026-10-01 — Level-teleported to Dlvl 9 at XL5 (no fix)
+Run 20261001-072918 died to a Green-elf at T3810.
+
+- At T3497 a level teleport trap on Dlvl 6 dropped Jev to Dlvl 9 at XL5.
+- It never found the '<' in 300 turns, so "ascend" was never offered.
+- Its fights there were with hill orcs, ettin and orc zombies, a soldier ant, and finally two Green-elves (they ignore Elbereth). The prayer at T3801 fully healed it, but the Green-elves took 48 HP in 5 turns.
+
+Bad luck rather than a decision bug. The chance of a fix is low: walking around to find '<' is already what explore does.
