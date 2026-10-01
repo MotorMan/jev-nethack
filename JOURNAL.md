@@ -870,3 +870,6 @@ Jev died at XL5 on Dlvl 5, T4631. A yellow light exploded and blinded it, and it
 
 ## 12:45 — Run 210857: no 50-step stair walk while surrounded
 Jev died at XL5 on Dlvl 8, T3746: killed by a Mordor orc while praying. The '<' was 50 steps away, and with two Mordor orcs and a snake adjacent, Jev chose "Head back upstairs" seven times. Each try stopped after one or two steps ("took damage"), and every step gave free hits: 44 HP to 9, then a gamble prayer 146 turns after the previous one. "Head back upstairs" is now only offered with nothing adjacent, or when '<' is within 2 steps. Its "level above already waited out its pace cap" check now uses the new 800-turn cap instead of 1500.
+
+## 12:55 — Run 211251: no door-walking mid-melee
+Jev died at XL6 on Dlvl 7, T5245, to a sewer rat. A wererat kept summoning sewer, giant and rabid rats; this was a bones level, and Jev's own ghost was there too. Jev chose "Go through the locked door" three times while surrounded, and every step was free bites. The adjacent-melee filter already dropped explore, search, throw, pickup and fetch; now it drops `door_` too.
