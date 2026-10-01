@@ -1007,7 +1007,9 @@ class Bot:
         if any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and any(k.startswith(('attack_', 'flee_up', 'upstairs', 'retreat')) for k in opts):  # flee_up drops attacks, then explore was added back: explored 4 times beside Woodland-elves (T3567)  # explored away from 5 adjacent rats at 21/29: dead (T1354)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore_', 'search', 'throw_', 'pickup_', 'fetch', 'door_'))}  # picked up loot 3 times with Woodland-elves hitting (T6490); threw daggers at a far orc-captain with a giant spider adjacent: 19 -> 8 HP, dead (T4825); walked for a locked door 3 times inside a wererat's rat swarm: 17 -> 0 (T5245)
         adj = [m for m in hostiles if m['dist'] <= 1 and not m['passive']]
-        if 'elbereth' in opts and len(adj) >= 2 and s.get('hp', 1) * 2 < s.get('hpmax', 1) and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in adj):  # traded blows with 3 wolves 70 -> 6 with Elbereth on offer, died praying (T4527)
+        prev = next((h for h in self.history[-2:-1] if h.get('hp') and (s.get('turn') or 0) - h['turn'] <= 3), None)
+        losing = prev and prev['hp'] - s.get('hp', 0) >= s.get('hp', 0)  # an ape + pony took 34 -> 14 in two turns, Jev swung on with Elbereth offered: dead next turn (T3767)
+        if 'elbereth' in opts and adj and (len(adj) >= 2 and s.get('hp', 1) * 2 < s.get('hpmax', 1) or losing) and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in adj):  # traded blows with 3 wolves 70 -> 6 with Elbereth on offer, died praying (T4527)
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray') or k.startswith('quaff_')}
         if self.history and 'blocked' in self.history[-1]['outcome'] and any(m['dist'] <= 1 for m in hostiles) and len(opts) > 1:
             opts.pop(self.history[-1]['choice'], None)  # hill orcs blocked the stairs path: 5 'ascend' bumps at 80/80 HP without a swing, dead (T6782)
@@ -1855,7 +1857,7 @@ class Bot:
             self.log(f'motor {key} failed: {e!r} at {traceback.extract_tb(e.__traceback__)[-1][:3]}', 'error')
             self.t.send('\x1b')
             outcome = f'error: {e}'
-        h = dict(id=self.decision['id'], at=now(), turn=s.get('turn') or 0, dlvl=s.get('dlvl') or 0, choice=key, label=label,
+        h = dict(id=self.decision['id'], at=now(), turn=s.get('turn') or 0, dlvl=s.get('dlvl') or 0, hp=s.get('hp'), choice=key, label=label,
                  p=probs.get(key, 1.0), confidence=conf, n_options=len(opts), latency_ms=meta['latency_ms'], outcome=outcome,
                  ms=dict(build=round((t1 - t0) * 1000), act=round((time.time() - t2) * 1000)))
         with self.lock:

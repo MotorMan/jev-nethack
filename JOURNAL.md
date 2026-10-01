@@ -1095,3 +1095,7 @@ Three floating eyes plugged a corridor. Jev waited 190 turns ('wait_eye') for th
 ## 2026-10-01 — hobbit, after a nymph took the armor anyway (kev-4b, T1554, Dlvl 5, XL 4)
 The new nymph rule worked for 18 turns: Jev sat on Elbereth at 48/48 while two nymphs, an ape and a pony fled from it. Then a hobbit threw an elven dagger. That set `shot`, which switched off the nymph rule. kev-4b attacked a nymph from the square, erasing Elbereth, and the nymph took its armor (AC 6 to 10). A dust vortex then engulfed and blinded it, and the crowd killed it through a prayer.
 - The nymph rule now holds while being shot as long as HP is above half. A d5 dagger costs far less than the armor a nymph steals.
+
+## 2026-10-01 — pony + ape on arrival (kev-4b, T3767, Dlvl 5)
+Jev stepped down at 41/41 HP into a giant bat, an ape and a pony. Three trades took it to 14 HP, and kev-4b kept swinging with Elbereth on offer. The pack rule didn't fire because only the pony was adjacent at the end, and 14/41 isn't low enough to pray, so it died next turn.
+- History entries now record HP. If HP lost over the last two decisions is at least the HP left, with any Elbereth-respecting hostile adjacent, options are cut to Elbereth, pray and quaff. Replaying T3767 (34 to 14) leaves only 'elbereth'.
