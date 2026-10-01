@@ -1028,3 +1028,4 @@ Dwarven Valkyrie in the Gnomish Mines: gnomes, dwarves and hobbits are peaceful,
 
 ## 2026-09-30 21:10 — jaguar (kev-4b, T3976, Dlvl 7)
 Camped on Elbereth at 23/54 while a jaguar fled; once it was out of view the camp rule (hostile within 7) let go, and the rest-before-exploring rule only fires below 50% — 27/54 is exactly 50%. Explored two steps into the jaguar in the dark: three attacks a turn, 28 -> 0. Rest-before-exploring now holds to 75% when Jev was hit in the last 50 turns. (It also carried an unworn polished silver shield — maybe reflection — next to its +3 small shield.)
+Also: a polished silver shield (always the shield of reflection, objects.h) next to a worn shield is now swapped in (take off, wear, drop the old one; a cursed worn shield marks it unwearable). Checked on that run's T1775 screen: forced 'wear_e'.

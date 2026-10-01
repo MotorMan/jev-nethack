@@ -741,6 +741,10 @@ class Bot:
                           and it['text'] not in self.run.setdefault('unwearable', {})), key=lambda it: suit_ac(it['text']), default=None)
             if better and not any(re.search(r'cloak|wrapping|mantelet|faded pall|cape|robe', it['text']) and 'being worn' in it['text'] for it in self.inventory):  # 'cannot wear armor over a cloak'
                 opts[f"wear_{better['letter']}"] = (f"Swap {worn['text']} for {better['text']}", f"Body armor: {better['text']} gives {suit_ac(better['text'])} AC, {worn['text']} only {suit_ac(worn['text'])}. Take it off, put the better one on.", lambda w=worn, b=better: self.act_swap(w, b))
+            sor = next((it for it in self.inventory if re.search(r'polished silver shield|shield of reflection', it['text']) and 'being worn' not in it['text'] and it['text'] not in self.run['unwearable']), None)
+            held = next((it for it in self.inventory if re.search(r'\bshield\b', it['text']) and 'being worn' in it['text']), None)
+            if sor and held:  # the polished silver shield is always reflection (objects.h): carried unworn beside a +3 small shield to a jaguar death (T3976)
+                opts[f"wear_{sor['letter']}"] = (f"Swap {held['text']} for {sor['text']}", 'A polished silver shield is a shield of reflection: rays (wands, breath) bounce off you. Worth more than a few points of AC.', lambda w=held, b=sor: self.act_swap(w, b))
             if any(k.startswith('wear_') for k in opts):  # offered, rarely taken: died at AC 6 with an orcish helm in the pack and no helm on (T3559)
                 opts = {k: v for k, v in opts.items() if k.startswith(('wear_', 'eat_')) or k == 'pray'}  # each try wears it or marks it unwearable, so no loop
 
