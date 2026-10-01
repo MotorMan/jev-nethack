@@ -1146,3 +1146,7 @@ Still open: food. This run reached Weak twice with nothing to eat.
 Monster names came back "unknown" again mid-zap. With timed_delay off, tty_delay_output still sends a "$<50>" pad through tputs when the `null` option is on (the default), and that is still a real delay. I tested it in wizard mode by zapping a wand of lightning and checking whether the screen changed after the reader's quiet period ended. It changed in 3 of 3 trials with only !timed_delay, and in 0 of 3 with !timed_delay,!null.
 Fix: `!null` in jev/nethackrc. The Hardfought rc needs it too.
 The death itself: a werejackal in @ form ignores Elbereth and zapped lightning twice at AC 10, 24/46.
+
+## Tainted horse corpse (T6692, Dlvl 8)
+Jev was Weak and had prayed 219 turns earlier, so 'pray' wasn't offered. The Weak exception let it eat any corpse whose age was known, and this horse was 234 turns old. eat.c makes a corpse tainted when age/(10+rn2(20)) > 5, so at 234 turns that is near-certain. Jev got deadly food poisoning, prayed too soon, was smitten (it lost a level and was slowed), and died.
+Fix: the Weak exception now requires age < 60. Below that age, an uncursed corpse can't be tainted.

@@ -683,7 +683,7 @@ class Bot:
             why = ' Packed food is rare and most deaths so far were fainting from hunger: eating fresh kills now, even when not hungry, is what keeps you alive later.'
             # eat.c: rotted = age / (10 + rn2(20)), +2 if cursed; > 5 tainted (never before age 60 uncursed), > 3 only rnd(8) HP: so < 50 is safe, and arrival from 15 steps at < 35 stays under it (one Jev ate nothing for 1650 turns of kills, fainted, T4698)
             # lichens and lizards never rot; starving with no prayer left, a maybe-tainted corpse beats certain death (walked past a floating eye corpse, fainted to a bat)
-            if here and (age < 50 or re.search(r'lichen|lizard', here[0]) or s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts and lv.corpses.get(me, -10**6) > -10**9):  # a destroyed zombie's corpse is pre-aged: always tainted, Weak Jev ate one and died of food poisoning (T2797)
+            if here and (age < 50 or re.search(r'lichen|lizard', here[0]) or s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts and age < 60):  # eat.c: tainted when age/(10+rn2(20)) > 5, never below 60 uncursed; a 234-turn horse killed a Weak Jev (T6692)  # a destroyed zombie's corpse is pre-aged: always tainted, Weak Jev ate one and died of food poisoning (T2797)
                 opts['eat_corpse'] = (f"Eat the {here[0]} here", f"Eat {here[0]} on this square. It appeared about {age} turns ago (old corpses can be rotten or poisonous).{why}", self.act_eat_corpse)
             fresh = [p for p, t0 in lv.corpses.items() if p != me and p in dist and s.get('turn', 0) - t0 < 35 and dist[p] < 10]
             if fresh and not here and not near and 'goto_corpse' not in opts:
