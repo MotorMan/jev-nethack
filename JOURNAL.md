@@ -1064,3 +1064,7 @@ An Uruk-hai 5 squares away shot arrows at Jev on and off. The "you're being shot
 ## 2026-10-01 — lynx, bare-handed at AC 10 (kev-4b, T4777, Dlvl 5)
 A mountain nymph stole Jev's spear at T3216, and later its shield. Jev tried to wield its spare dagger, but the dagger was in the quiver, so NetHack asked "You have that readied. Wield it instead?". Jev didn't answer yes, so the wield failed and the dagger was marked unwieldable. For 1500 turns it fought bare-handed. It closed on a lynx at 43/54 HP and two rounds took it to 7. Its last prayer had been 50 turns earlier.
 - act_wield now answers 'y' to "Wield ... instead?" (wield.c ready_weapon).
+
+## 2026-10-01 — wolf pack in Minetown (kev-4b, T4527, Dlvl 7)
+Three wolves surrounded Jev at 70/74 HP, AC 2. Jev attacked nine times in a row and went down to 13 HP. Elbereth was on offer every turn, but kev-4b rated it last, and the 'safest' head also picked attack. Danger was 0.42, under the 0.6 override. Jev prayed at 6 HP, 398 turns after its last prayer, and died praying.
+- Two or more adjacent hostiles that respect Elbereth (not '@' or minotaurs) at under half HP: options are cut to Elbereth, pray and quaff. Replaying T4524 (34/74) leaves only 'elbereth'.
