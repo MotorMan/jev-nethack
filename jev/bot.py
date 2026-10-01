@@ -51,7 +51,7 @@ STRATEGY = ("You are a dwarven Valkyrie (NetHack 5.0): strong melee, cold resist
             "Prayer fixes low HP (at or below 1/5 of max at XL 1-5, 1/6 at XL 6-13, or 5 HP) and Weak hunger, but only about once per 1000 turns; "
             "the first prayer is safe after roughly turn 300. Elbereth in the dust (fails about 1 time in 4: check it) stops melee from most monsters, "
             "not @ humans or elves (including were-creatures in @ form), minotaurs, shopkeepers or peacefuls, and never wands, arrows or breath: kill a weak monster that zaps or shoots at you instead of waiting it out. A scared monster with nowhere to flee can still hit you, and attacking, throwing or zapping from it erases it. "
-            "Mumakil (speed 9) hit hardest of anything early: never trade blows, throw things or walk away. Kill wererats quickly, before they summon rats. A yellow light blinds you for up to 200 turns when it explodes at you, even on Elbereth if it is cornered: kill it (killing it is safe) rather than wait beside it. "
+            "Mumakil (speed 9) hit hardest of anything early: never trade blows, throw things or walk away. Kill wererats quickly, before they summon rats. A yellow light blinds you for up to 200 turns when it explodes at you, even on Elbereth if it is cornered: kill it (killing it is safe) rather than wait beside it. Soldier ants (speed 18, poison) kill more players than anything: Elbereth works on them, never let them surround you, and zap or read teleportation to escape when hurt. "
             "Collect gold: a temple priest sells permanent AC for about 400-500 gold per experience level; keep 2000-4000 after that for shops. "
             "Food is scarce (killed monsters no longer drop food): eat fresh corpses of what you kill (not cockatrices, kobolds or old ones), keep packed food for emergencies, never start eating while Satiated, eat when Hungry. "
             "Open chests and large boxes: early ones often hold potions of healing. Explore each level for useful items, "
@@ -1087,7 +1087,7 @@ class Bot:
             p = max(ups, key=lambda u: cheb(u, lv.arrival or me))
             opts = {k2: v for k2, v in opts.items() if k2 == 'pray' or k2.startswith('eat_')}
             opts['enter_sokoban'] = ('Go up into Sokoban', f"This level has a second up staircase ({dist[p]} steps {compass(me, p)}): it leads to Sokoban, four puzzle levels with a known solution, safe food, rings, wands and a bag of holding or amulet of reflection at the top.", lambda p=p: self.act_descend(p, '<'))
-        if self.run.get('nymph_lvl') == s.get('dlvl') and not hops and downs and s.get('dlvl', 1) <= (s.get('xl') or 1) + 1 and not near and not m and s.get('hp', 1) >= 0.8 * s.get('hpmax', 1):  # left at 38/55 into a Woodland-elf + Mordor orc: 38 -> 7 in 2 turns (T5934)
+        if self.run.get('nymph_lvl') == s.get('dlvl') and not hops and downs and s.get('dlvl', 1) <= (s.get('xl') or 1) and not near and not m and s.get('hp', 1) >= 0.8 * s.get('hpmax', 1):  # left at 38/55 into a Woodland-elf + Mordor orc: 38 -> 7 in 2 turns (T5934)
             # a nymph teleports back for more: one wood nymph took shield, spear, bag, ration and egg over 500 turns
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat_')}
             opts['leave_nymph'] = ('Leave this level (a nymph lives here)', f"A nymph on this level keeps coming back to steal your things. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend.", lambda p=downs[0]: self.act_descend(p))
@@ -1148,6 +1148,9 @@ class Bot:
         tp = next((it for it in self.inventory if 'scroll of teleportation' in it['text']), None)
         if tp and 'pray' not in opts and s.get('hp', 1) * 2 < s.get('hpmax', 1) and (near or self.unseen_attacker()) and not self.soko():
             opts['teleport'] = (f"Read {tp['text']}", 'Teleports you to a random spot on this level, away from whatever is hurting you.', lambda l=tp['letter']: self.act_read(l))
+        tw = next((it for it in self.inventory if 'wand of teleportation' in it['text'] and not re.search(r':0\)', it['text'])), None)
+        if tw and 'teleport' not in opts and 'pray' not in opts and not self.soko() and (s.get('hp', 1) * 2 < s.get('hpmax', 1) and (near or self.unseen_attacker()) or s.get('hp', 1) < 0.7 * s.get('hpmax', 1) and any(m['dist'] <= 1 and 'stronger' in self.threat(m) for m in near)):  # a known wand of teleportation sat unused while a Green-elf and a soldier ant took 43 -> 0 at XL 5 (T3107); wiki (Escape items): zap yourself
+            opts['teleport'] = (f"Zap {tw['text']} at yourself", 'Teleports you to a random spot on this level, away from everything hurting you.', lambda l=tw['letter']: (self.act_keys('z' + l + '.', 'teleported'), self.read_inventory())[0])
         dig = next((it for it in self.inventory if 'wand of digging' in it['text'] and not re.search(r':0\)', it['text'])), None)
         if dig and s.get('hp', 1) * 2 < s.get('hpmax', 1) and any(m['dist'] <= 1 for m in near) and not self.soko() and self.standing_on() not in ('<', '>', '_', '\\', '{'):  # a hill orc pack, a wand of digging unused, gamble prayer failed, dead (T2926)
             opts['dig_down'] = (f"Zap {dig['text']} down", 'Dig a hole through the floor and fall to the level below, leaving every monster here behind.', lambda l=dig['letter']: (self.act_keys('z' + l + '>', 'dug down'), self.read_inventory())[0])
