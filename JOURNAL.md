@@ -700,3 +700,6 @@ Run 171700 (Dlvl 5, T2680) was stunned in Izchak's lighting store, with a small 
 
 ## 2026-10-01 01:00 — chameleon as yeti (variance)
 Run 171932 (Dlvl 6, T5752): a chameleon turned into a yeti and took Jev from 41 to 14 HP in three turns. Its Elbereth came out garbled. Not yet low enough to pray (14·7 > 65), Jev drank an unknown black potion. It was sleeping, so the chameleon (now a hell hound pup) killed it while frozen. No fix: the unknown-quaff gamble at ~20% HP is still positive on average.
+
+## 2026-10-01 01:10 — no forced Sokoban push while hurt with hostiles in view
+Run 172609 (Sokoban, T5149) was resting on Elbereth at 25/64 HP. The hill orc and snake had "turned to flee", so they fell outside `near` and the Sokoban rule forced the next push. That step took Jev off Elbereth: 26 → 14 HP the next turn, then the orc read a scroll of earth and the boulder killed it. The push is no longer forced while any hostile is in view and HP is below 60%.

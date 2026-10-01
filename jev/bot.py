@@ -738,7 +738,7 @@ class Bot:
                         self.run.setdefault('soko_stuck', {}).pop((m[0], i), None)
                     else:
                         self.run['soko_done'] = True
-                if 'soko_push' in opts and not near:
+                if 'soko_push' in opts and not near and not (hostiles and hp < 0.6 * hpmax):  # forced push off Elbereth at 26/64 with fled orcs in view: 14 HP next turn, dead (T5149)
                     opts = {k2: v for k2, v in opts.items() if k2 == 'soko_push' or k2 == 'pray' or k2.startswith('eat_')}
                 opts.pop('descend', None)  # a gnome king nearby lifted the filter and Jev walked out with 8 of 41 pushes left
             elif m[0].startswith('soko1'):
