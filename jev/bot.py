@@ -1001,10 +1001,12 @@ class Bot:
             streak.append(h['choice'])
         if len(streak) >= 3 and len(set(streak[:3])) == 1:
             opts.pop(streak[0], None)
-        if s.get('hunger') in ('Weak', 'Fainting') and not any(m['dist'] <= 3 and not m['passive'] for m in hostiles):  # dist<=1 forced 'fetch' food off Elbereth past a rothe and elf zombie 2 steps away: 35 -> 0 (T4576)
+        if s.get('hunger') in ('Weak', 'Fainting') and not any(m['dist'] <= (7 if self.engraved_here() and s.get('hp', 1) * 2 < s.get('hpmax', 1) else 3) and not m['passive'] for m in hostiles):  # Weak at 21/54 left Elbereth to fetch food 33 steps off, a fire ant 5 steps away: 21 -> 4 (T4193)  # dist<=1 forced 'fetch' food off Elbereth past a rothe and elf zombie 2 steps away: 35 -> 0 (T4576)
             # sat 69 turns on Elbereth Weak -> Fainting with food in view, dead (T2958); wiki: Weak is major trouble, eat or pray
             food = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'goto_corpse')) or k == 'fetch' and '(food?)' in v[0]}
             opts = food or {k: v for k, v in opts.items() if k != 'rest' and not (s.get('hunger') == 'Fainting' and k.startswith('approach_'))} or opts  # Fainting closed in on an Uruk-hai, fainted beside it (T3278)  # rested 9 times Weak -> Fainting with food 20 steps off, past fetch's 15-step radius (T2773)
+        if 'elbereth' in opts:  # at 4/54 Jev drank an unknown potion over Elbereth: sleeping, a fire ant killed it frozen (T4193)
+            opts = {k: v for k, v in opts.items() if not k.startswith('quaff_') or 'healing' in v[0]}
         if s.get('hunger') in ('Weak', 'Fainting') and 'pray' in opts:  # Weak with an unseen thing 1 step off skipped the food filter: rested over a safe prayer, fainted, rothe (T3180)
             opts.pop('rest', None)
             if not any(k.startswith(('eat_', 'goto_corpse')) for k in opts):

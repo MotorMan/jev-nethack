@@ -1150,3 +1150,7 @@ The death itself: a werejackal in @ form ignores Elbereth and zapped lightning t
 ## Tainted horse corpse (T6692, Dlvl 8)
 Jev was Weak and had prayed 219 turns earlier, so 'pray' wasn't offered. The Weak exception let it eat any corpse whose age was known, and this horse was 234 turns old. eat.c makes a corpse tainted when age/(10+rn2(20)) > 5, so at 234 turns that is near-certain. Jev got deadly food poisoning, prayed too soon, was smitten (it lost a level and was slowed), and died.
 Fix: the Weak exception now requires age < 60. Below that age, an uncursed corpse can't be tainted.
+
+## Fire ant while Weak, then frozen by a potion (T4193, Dlvl 6)
+At 21/54, Weak and standing on a fresh Elbereth, the food filter (which only checks for hostiles within 3) offered only goto_corpse/fetch. A speed-18 fire ant was 5 steps away, and walking toward food took Jev from 21 to 12. Elbereth garbled. A gamble prayer at 4 HP worked but fixed only the hunger (starvation ranks above low HP in fix_worst_trouble). At 4 HP, kev-4b then drank an unknown potion over Elbereth: sleeping, and the ant killed Jev while it was frozen.
+Fixes: while on Elbereth below half HP, the Weak food filter looks out to 7 squares, so 'wait' survives. When Elbereth is on offer, unidentified potions are dropped; only known healing stays.
