@@ -119,6 +119,8 @@ class Bot:
                 self.run['debt'] = self.snap.status.get('dlvl') if self.snap else True
             if re.search(r'You do not owe|You have paid|You paid|Thank you for shopping|pay .* in full', text, re.I):
                 self.run['debt'] = False
+            if re.search(r'\b(throws|shoots|zaps|breathes|spits)\b|\b(arrow|dart|dagger|knife|bolt|spear|shuriken|missile|ray)s? (hits|misses|bounces)', text):
+                self.run['shot_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
             self.run['recent'].append(text)
             del self.run['recent'][:-12]
 
@@ -444,7 +446,7 @@ class Bot:
         dist, prev = self.dijkstra()
         # a monster we cannot reach (behind walls, across water) is not a reason to stand still
         # unless it is shooting: rested 15 turns on Elbereth while unreachable Uruk-hai shot it 29 -> 5, dead (T5766)
-        shot = any(re.search(r'\b(throws|shoots|zaps|breathes|spits)\b', t) for t in self.run['recent'][-3:])
+        shot = (s.get('turn') or 0) - self.run.get('shot_turn', -99) <= 3  # one volley is 3-4 messages: "shoots 2 arrows", "1st hits", "2nd misses" pushed 'shoots' out of a 3-line window; Jev waited on Elbereth at 4 HP under Uruk-hai fire (T7290)
         near = [m for m in hostiles if m['dist'] <= 6 and not m['passive'] and (m['dist'] <= 1 or m['pos'] in dist or shot)]
         opts = {}
         hp, hpmax = s.get('hp', 1), s.get('hpmax', 1)
@@ -861,7 +863,7 @@ class Bot:
         # a pack at any HP: left a working Elbereth at 40/44 to throw at bugbears and a goblin gang, dead 4 turns later
         # Weak is only nutrition 1-50 (eat.c): 23 turns camping on Elbereth there fainted Jev into a kitten's jaws (T4709)
         if self.engraved_here() and s.get('hunger') not in ('Weak', 'Fainting') and (pack or s.get('hp', 1) < 0.75 * s.get('hpmax', 1)) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles) \
-                and not any(re.search(r'\b(throws|shoots|zaps|breathes|spits)\b', t) for t in self.run['recent'][-3:]) \
+                and not shot \
                 and not any((m['ch'] == '@' or 'minotaur' in m['name']) and m['dist'] <= 7 for m in hostiles):  # a bugbear threw daggers at a waiting Jev (Elbereth only stops melee): 13 -> 0 (T2350)  # a Woodland-elf (ignores Elbereth) walked up to a waiting Jev: 36 -> 0 (T7182)
             # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'eat'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}
