@@ -799,3 +799,8 @@ Run 20260930-194723 ("killed by a werejackal, while fainted", T11246) never got 
 
 ## 2026-10-01 08:20 — Variance: low-HP prayer 748 turns after the last
 Run 20260930-195647 (T3866, Dlvl 5, "hallucinogen-distorted kobold lord, while praying"). Jev was hallucinating on a bones level (with "Jev's ghost") and fighting a crowd at 10/50 HP. It prayed 748 turns after its T3118 prayer, a clock correctly carried across the save/restore through prayer.json. The prayer failed. In pray.c, a major-trouble prayer needs timeout < 200; after rnz(350), P(timeout − 748 < 200) ≈ 0.9, so this falls in the ~10% tail. A slightly earlier Elbereth or retreat might have helped, but I don't see a rule change worth making.
+
+## 08:45 — Boxed in by a dug hole
+Run 195747 starved at T9952 on Dlvl 5. At T4163 a large kobold dug a hole in the only doorway out of a dead-end stub. The bot answers 'n' to "Really step into that hole?" and never paths through known traps, so Jev was stuck for 5,000 turns, kept alive by prayer until it starved. dead_end needs a reachable '<', and there wasn't one.
+
+In trap.c, hole_destination sends a hole or trap door 1+ levels down in the same dungeon branch, so it is just a way to descend. Refused holes and trap doors are now remembered separately from level teleporters. When there's no frontier and no reachable '>' or '<', Jev walks next to a known hole (orthogonally, since you can't step diagonally into a doorway) and answers 'y'. Level teleporters stay avoided.

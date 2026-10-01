@@ -57,6 +57,7 @@ class Level:
         self.locked = set()
         self.dead = set()      # exploration targets we gave up on
         self.traps = set()     # trap doors, holes, level teleporters: never path through (survives memory wipes)
+        self.holes = set()     # the trap doors/holes among them: a way down when boxed in
         self.resets = 0        # times near/dead/blocked were wiped after fruitless searching
         self.corpses = {}      # square -> turn the corpse was first seen
         self.town = False      # a peaceful @ lives here (Izchak killed a run over a kicked shop door)
@@ -69,6 +70,7 @@ class Bot:
     def __init__(self, launcher, jev, mode='local'):
         self.fresh = False  # operator asked for a brand-new game
         self.refused_trap = False
+        self.jump_hole = False
         self.frozen, self.frozen_turn = 0, None
         self.avoid = set()  # squares never to step into (floating eyes, molds)
         self.launcher, self.jev, self.mode = launcher, jev, mode
@@ -183,8 +185,10 @@ class Bot:
                  ('Do you want to keep the save file', 'n'), ('Dump core', 'n'), ('eat it', 'n')]
         if re.search(r'really \w+ (onto|into) that', q, re.I):  # paranoid trap confirmation: only drops and teleports are refused
             bad = re.search(r'trap door|hole|level teleporter|magic portal|polymorph|fire', q, re.I)
+            if bad and self.jump_hole and bad.group(0).lower() in ('trap door', 'hole'):
+                return 'y'
             if bad:
-                self.refused_trap = True
+                self.refused_trap = bad.group(0).lower()
             return 'n' if bad else 'y'
         for pat, ans in rules:
             if pat.lower() in q.lower():
@@ -749,6 +753,10 @@ class Bot:
         if not fr and not downs and ups and sum(lv.searched.values()) >= 1000 and not self.soko():
             # a Mines level whose '>' was never found: 6000 turns of searching, living on prayer, fainted (T11246). Go up, try another way down
             opts['dead_end'] = ('Give up on this level and go back up', f"You have searched this level for {sum(lv.searched.values())} turns without finding a way down. Climb to Dlvl {s.get('dlvl', 0) - 1} and look for another down staircase.", lambda p=ups[0]: self.act_dead_end(p))
+        hole = min(((h, q) for h in sorted(lv.holes) for q in dist if max(abs(q[0] - h[0]), abs(q[1] - h[1])) == 1), key=lambda t: t[0][0] != t[1][0] and t[0][1] != t[1][1], default=None)  # orthogonal first: no diagonal steps into doorways
+        if hole and not fr and not downs and not ups and not self.soko():
+            # a kobold dug a hole in the only doorway: refusing it boxed Jev in a stub for 5000 turns, starved (T9952). trap.c: holes drop 1+ levels in this dungeon
+            opts['dead_end'] = ('Jump into the hole', f"The only way out is a hole/trap door at {hole[0]}. Step into it and fall to a lower level.", lambda h=hole: self.act_hole(*h))
         if 'dead_end' in opts and not near:
             opts = {k: v for k, v in opts.items() if k in ('dead_end', 'pray') or k.startswith('eat_')}
         if not fr and not downs:
@@ -1024,6 +1032,8 @@ class Bot:
             snap = self.after_move(before)
             if self.refused_trap:
                 self.level().traps.add((me[0] + DIRS[d][0], me[1] + DIRS[d][1]))
+                if self.refused_trap in ('trap door', 'hole'):
+                    self.level().holes.add((me[0] + DIRS[d][0], me[1] + DIRS[d][1]))
                 return f'stopped after {taken} steps: a known trap door or teleporter lies on the path'
             taken += 1
             news = [m['text'] for m in self.messages[nmsg:]]
@@ -1096,6 +1106,19 @@ class Bot:
             self.run['levels'].pop(dl, None)  # forget it: another branch at this depth must start fresh
             self.run['bad_down'][(self.snap.status.get('dlvl'), self.snap.me)] = self.snap.status.get('turn') or 0
         return r
+
+    def act_hole(self, h, q):
+        r = self.act_go(q)
+        if self.snap.me != q:
+            return 'heading for the hole: ' + r
+        dl = self.snap.status.get('dlvl')
+        k = next(k for k, v in DIRS.items() if (q[0] + v[0], q[1] + v[1]) == h)
+        self.jump_hole = True
+        try:
+            self.act_keys(k, '')
+        finally:
+            self.jump_hole = False
+        return f'jumped into the hole (Dlvl {dl} -> {self.snap.status.get("dlvl")})'
 
     def act_descend(self, p, key='>'):
         r = self.act_go(p)
