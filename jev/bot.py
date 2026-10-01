@@ -666,12 +666,15 @@ class Bot:
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'throw_', 'zap_', 'explore', 'retreat', 'choke', 'goto_'))} or opts
             if stun:
                 opts.setdefault('wait', ('Wait out the stun', 'You are stunned: any move or attack goes in a random direction. Search in place one turn until it wears off.', lambda: self.act_keys('ms', 'waited')))
+        big_hit = bool(self.history) and (self.history[-1]['hp'] or 0) - hp >= hp and any(m['dist'] <= 1 for m in hostiles)  # one more turn like the last one kills
         if (near and hp < 0.7 * hpmax or dread or pack or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
-                and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} \
+                and not set(s.get('conditions', [])) & ({'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} | (set() if big_hit else {'Hallu', 'Hal', 'Hl'})) \
                 and sum(h['choice'] == 'elbereth' and 'interrupted' in h['outcome'] for h in self.history[-4:]) < 2 \
                 and (s.get('turn') or 0) - self.run.get('no_engrave', -99) > 5 \
                 and not (any(m['dist'] == 1 and m['name'] in self.run.get('e_blockers', ()) for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # count: unseen biters left adj_names empty, 16 interrupted engravings in a row while Hungry turned Weak, then Fainting (T5312)  # @ ignore it (monmove.c onscary: S_HUMAN); 2 Elbereths at 9/49 beside a Woodland-elf, a rock mole also near, dead (T2543); engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
+        if big_hit and {'elbereth', 'retreat', 'flee_up', 'upstairs'} & opts.keys():  # hallucinating, a 'shrieker' was a dwarf king: 35 -> 14 in a turn, threw a dart, dead (T4026)
+            opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'throw_', 'approach_')) and k not in ('rest', 'wait')}
         if hp < 0.5 * hpmax and ('elbereth' in opts or self.engraved_here()):  # choke <-> Elbereth alternation at 21/68 -> 10: each step off wasted the engraving (T5005)
             opts.pop('choke', None)
         held = len(pack_near) >= 2 and open_n(me) <= 2 and not strong and not shot  # already in the corridor: fight them one at a time, don't stop to engrave
