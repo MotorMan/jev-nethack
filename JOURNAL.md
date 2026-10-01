@@ -1577,3 +1577,6 @@ A yellow light blinded it, and while blind it killed two unseen "it"s (T2622, T2
 
 ### Hosted 20261001-091842: jaguar in Sokoban, AC 10 (T5123)
 A wood nymph that could not teleport in Sokoban stayed near for about 700 turns. At T4820 she charmed it out of its studded leather and +3 shield. Both stayed in the pack, but the bot did not know. The charm message did not mark the inventory stale, so it still showed them "(being worn)". The nymph-nearby rule also allowed only wait or Elbereth, so a wear option could never come up. It spent 300 turns at AC 10, and a jaguar killed it. Fix: "gladly start removing" now marks the inventory stale. On Elbereth with nothing adjacent, wear options survive the nymph filter.
+
+### Djev 20261001-091604: starved and killed by a coyote on Dlvl 7 (T6480)
+It made 8 prayers in 3400 turns, several of them low-HP gambles 320 turns apart, and they worked. At T6262 a Weak prayer angered Tyr ("You feel foolish! Farvel level 6"). The bot did not notice: in 5.0 the god's voice can "thunder" (pray.c godvoices), and the anger regex knew only booms and rings out. It prayed again 145 turns later and Tyr was displeased. The regex now also matches thunders, "relearn thy lessons" and "Thou hast angered me". This miss probably also hid the anger in Hosted 091022.

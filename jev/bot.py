@@ -149,7 +149,7 @@ class Bot:
                 self.run['telepathic'] = True
             if re.search(r'You turn into a were|You find you must drop', text) and self.snap and self.snap.me:  # armor and weapon fall to the floor here (polyself.c break_armor/drop_weapon)
                 self.run['dropped'] = (self.snap.status.get('dlvl'), self.snap.me)
-            if re.search(r'is displeased|Thou durst call upon me|Then die, mortal|voice of \w+ (booms|rings out)', text) and 'desecrate my altar' not in text:  # pray.c altar_wrath: engraving on your own altar costs 1 Wis and 1 alignment, not anger; flagged angry, no prayer offered at 7/56 888 turns on, dead (T5954)  # prayed too soon: god angry, Luck -3 (the quote after 'booms:' can be lost: wrath of Tyr killed T5998), praying again only makes it worse
+            if re.search(r'is displeased|Thou durst call upon me|Then die, mortal|voice of \w+ (booms|rings out|thunders)|relearn thy lessons|Thou hast angered me', text) and 'desecrate my altar' not in text:  # pray.c altar_wrath: engraving on your own altar costs 1 Wis and 1 alignment, not anger; flagged angry, no prayer offered at 7/56 888 turns on, dead (T5954)  # prayed too soon: god angry, Luck -3 (the quote after 'booms:' can be lost: wrath of Tyr killed T5998), praying again only makes it worse
                 self.run['god_angry'] = True
             if re.search(r'grabs you|You are being choked|cannot escape from|swings itself around you', text) and self.snap:
                 self.run['held'] = self.snap.status.get('turn') or 0
