@@ -17,6 +17,9 @@ suit_ac = lambda t: next((v for k, v in SUIT.items() if k in t), None)
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
 WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber', 'short sword', 'spear', 'mace', 'morning star', 'war hammer', 'flail', 'trident', 'dagger', 'knife', 'club']
 WEAPON = re.compile(r'\b(' + '|'.join(WEAPON_RANK) + r')s?\b(?! corpse)')
+# pray.c: never offer own race (dwarf), a former pet, a co-aligned (white) unicorn; touching a cockatrice bare-handed stones you
+NEVER_OFFER = ('cockatrice', 'chickatrice', 'dwarf', 'kitten', 'housecat', 'large cat', 'little dog', 'large dog', 'dog corpse', 'pony', 'horse', 'white unicorn', 'Medusa', 'Death', 'Pestilence', 'Famine', 'were')
+UNKNOWN_BUC = lambda t: not re.search(r'\b(cursed|uncursed|blessed)\b|being worn|weapon in|gold piece|corpse', t)
 NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy', 'dwarf', 'were', 'kobold', 'bat', 'ghoul', 'vampire', 'chameleon', 'dog', 'cat', 'kitten', 'pony', 'acid blob', 'spotted jelly')  # undead corpses are pre-aged: always tainted
 # pray.c critically_low_hp: the major-trouble line prayer fixes
 LOW_HP = lambda s: s.get('hp', 1) <= 5 or s.get('hp', 1) * (5 if s.get('xl', 1) <= 5 else 6 if s.get('xl', 1) <= 13 else 7) <= min(s.get('hpmax', 1), 15 * s.get('xl', 1))
@@ -430,6 +433,9 @@ class Bot:
                 l = l.replace('--More--', '').strip()
                 if l and not l.startswith('Things') and len(l) > 2:
                     items.append(l)
+        alt = re.search(r'altar to .+? \((lawful|neutral|chaotic|unaligned)\)', blob.replace('\n', ' '))
+        if alt and self.snap and self.snap.me:
+            self.run.setdefault('altars', {})[(self.snap.status.get('dlvl'), self.snap.me)] = alt[1]
         return [i for i in items if not re.search(r'engraving|written|There is|Dlvl|St:', i)]
 
     # ---------- options ----------
@@ -623,7 +629,7 @@ class Bot:
         if not near:
             for it in self.inventory:
                 t = it['text']
-                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
+                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|mantelet|mithril-coat|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and not (re.search(r'cloak|mantelet|mithril', t) and not re.search(r'\b(uncursed|blessed)\b', t)) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
                     opts[f"wear_{it['letter']}"] = (f"Wear {t}", "Put on this armor (takes a few turns; may be cursed if unidentified).", lambda it=it: self.act_wear(it))
             worn = next((it for it in self.inventory if 'being worn' in it['text'] and suit_ac(it['text']) is not None), None)
             better = max((it for it in self.inventory if 'being worn' not in it['text'] and (suit_ac(it['text']) or 0) > (suit_ac(worn['text']) if worn else 99)
@@ -633,6 +639,30 @@ class Bot:
             if any(k.startswith('wear_') for k in opts):  # offered, rarely taken: died at AC 6 with an orcish helm in the pack and no helm on (T3559)
                 opts = {k: v for k, v in opts.items() if k.startswith(('wear_', 'eat_')) or k == 'pray'}  # each try wears it or marks it unwearable, so no loop
 
+        # altars (wiki "Altar", "Sacrifice"; 5.0 pray.c): dropping identifies BUC on any altar; a fresh (<50 turns) corpse offered on a lawful one
+        # cuts prayer timeout, adds luck, and at timeout 0 gives a 1 in 6 first-gift chance (bestow_artifact)
+        altars = self.run.get('altars', {})
+        here_alt = altars.get((s.get('dlvl'), me)) if self.standing_on() == '_' else None
+        if not near and not shop:
+            unseen = [p for p in snap.find('_') if p in dist and (s.get('dlvl'), p) not in altars and p != me]
+            if unseen or (self.standing_on() == '_' and here_alt is None):
+                q = min(unseen, key=dist.get) if unseen else me
+                opts['altar'] = (f"Go check the altar {compass(me, q)}", f"Walk {dist.get(q, 0)} steps to the altar '_' to learn its alignment. Altars reveal whether items are cursed, and a lawful one takes sacrifices.", lambda q=q: self.act_altar(q))
+            unk = [it for it in self.inventory if UNKNOWN_BUC(it['text']) and it['text'] not in self.run.setdefault('buc_done', set())]
+            if here_alt and unk:
+                opts['buc'] = ('Drop your unknown items on the altar to learn if they are cursed', f"Drop {len(unk)} item(s) whose curse status is unknown and pick them back up: a black flash means cursed, amber blessed. Then you can safely wear the armor.", lambda unk=unk: self.act_buc(unk))
+            lawful = [p for (dl, p), a in altars.items() if dl == s.get('dlvl') and a == 'lawful' and (p in dist or p == me)]
+            carried = next((it for it in self.inventory if 'corpse' in it['text'] and not any(n in it['text'] for n in NEVER_OFFER)), None)
+            if lawful and carried and s.get('turn', 0) - self.run.get('carry_turn', -99) < 45:
+                opts['offer'] = (f"Offer {carried['text']} at the lawful altar", f"Walk {dist.get(lawful[0], 0)} steps to Tyr's altar and sacrifice it while fresh: lowers prayer timeout, raises luck, may bring a gift.", lambda l=carried['letter'], q=lawful[0]: self.act_offer(l, q))
+            elif lawful and s.get('hunger') not in ('Hungry', 'Weak', 'Fainting'):
+                cands = [(p, t0) for p, t0 in lv.corpses.items() if p in dist and (s.get('dlvl'), p) not in self.run.setdefault('sac_skip', set())
+                         and dist[p] + 2 * cheb(p, lawful[0]) < 40 - (s.get('turn', 0) - t0)]
+                if cands:
+                    p, t0 = min(cands, key=lambda c: dist[c[0]])
+                    opts['carry'] = ('Carry the fresh corpse to the altar', f"Walk {dist[p]} steps {compass(me, p)}, pick up the corpse and offer it at Tyr's altar before it gets too old.", lambda p=p, t0=t0: self.act_carry(p, t0))
+        if not near and {'altar', 'buc', 'offer', 'carry'} & opts.keys():
+            opts = {k: v for k, v in opts.items() if k in ('altar', 'buc', 'offer', 'carry', 'pray') or k.startswith('eat')}
         if any('stop damaging' in t for t in self.run['recent']):
             self.run.setdefault('door_warned', set()).add(s.get('dlvl'))
         # dokick.c: the watch only reacts if it can see you (first a warning); town closets locked Jev in for 10000 turns of searching (T16506)
@@ -703,11 +733,6 @@ class Bot:
         if pick and not near and s.get('dlvl', 1) < (s.get('xl') or 1) + 1 and not soko_hunt and self.standing_on() not in ('<', '>', '_', '{'):
             # same pace as the stairs: 'not too_deep' let XL5 dig 6 -> 7 and XL6 7 -> 8, dead to a giant spider (T4825)
             opts['dig_down'] = ('Dig down with the pick-axe', f"Apply {pick['text']} downward to dig a hole to Dlvl {s.get('dlvl', 0) + 1} (takes several turns; skips the rest of this level).", lambda l=pick['letter']: self.act_dig(l))
-        # wiki "Excalibur" + fountain.c:413: a lawful XL5+ dip of a lone long sword makes Excalibur 1 in 30 times (and clears rust). XL7: water demons (1 in ~41 dips) are deadly earlier; town guards anger on success
-        sword = next((it for it in self.inventory if re.match(r'an? .*\blong sword\b', it['text']) and not re.search(r'named|Excalibur', it['text'])), None)
-        founts = [p for p in snap.find('{') if p in dist] + ([me] if self.standing_on() == '{' else [])
-        if sword and founts and not hostiles and not lv.town and (s.get('xl') or 1) >= 7 and s.get('hp', 0) >= 0.9 * s.get('hpmax', 1) and not self.run.get('excalibur') and self.run.get('dips', 0) < 90:
-            opts['dip'] = ('Dip the long sword into the fountain', f"As a lawful level {s.get('xl')} Valkyrie, each dip of {sword['text']} has a 1 in 30 chance of the Lady of the Lake turning it into Excalibur (+d10 damage, blessed, rustproof). Risks per dip: rust, a 1 in 30 curse, and rarely a water demon, water nymph or snakes. Dipped {self.run.get('dips', 0)} times so far.", lambda l=sword['letter'], p=founts[0]: self.act_dip(l, p))
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
         if not near and not self.unseen_attacker() and s.get('hp', 1) < 0.85 * s.get('hpmax', 1):  # blind, Jev rested beside an orc and died (T3212)
             opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
@@ -835,6 +860,8 @@ class Bot:
         weapon = min((it for it in self.inventory if WEAPON.search(it['text']) and it['text'] not in self.run.setdefault('unwieldable', set())), key=lambda it: WEAPON_RANK.index(WEAPON.search(it['text'])[1]), default=None)
         if weapon and self.inventory and not any('weapon in' in it['text'] for it in self.inventory):
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You are fighting bare-handed.', lambda l=weapon['letter']: self.act_wield(l))}
+        elif not near and (art := next((it for it in self.inventory if 'named' in it['text'] and WEAPON.search(it['text']) and 'weapon in' not in it['text'] and it['text'] not in self.run['unwieldable']), None)):
+            opts = {f"wield_{art['letter']}": (f"Wield {art['text']}", 'An artifact weapon beats anything else you carry.', lambda l=art['letter']: self.act_wield(l))}
         elif not near and any(k.startswith('wear_') for k in opts):
             opts = {k: v for k, v in opts.items() if k.startswith('wear_')}
         if not near and 'rest' in opts and s.get('hp', 1) < 0.5 * s.get('hpmax', 1):  # explored on at 11/65 HP into a giant beetle
@@ -909,7 +936,7 @@ class Bot:
                 self.run['under'][key] = g
             elif before.is_door(*snap.me):
                 self.run['under'][key] = 'door'
-            if g in OBJECT_CHARS or g == '0':
+            if g in OBJECT_CHARS or g in '0_':
                 self.run['here'][key] = self.look_here()
             else:
                 self.run['here'].pop(key, None)
@@ -1273,23 +1300,79 @@ class Bot:
         self.read_inventory()
         return f'picked up {item}'
 
-    def act_dip(self, letter, p):
-        r = self.act_go(p)
-        if self.snap.me != p:
-            return 'heading for the fountain: ' + r
+    def act_altar(self, q):
+        r = self.act_go(q)
+        if self.snap.me != q:
+            return 'heading for the altar: ' + r
+        key = (self.snap.status.get('dlvl'), q)
+        self.run['here'][key] = self.look_here()
+        return f"the altar is {self.run['altars'].setdefault(key, 'unknown')}"  # blind or garbled: don't revisit forever
+
+    def act_buc(self, unk):
         nmsg = len(self.messages)
-        self.t.send('#dip\r')
-        if 'dip' in self.t.lines()[0]:
-            self.t.send(letter)
-        if 'into the fountain?' in self.t.lines()[0]:
-            self.t.send('y')
+        for it in unk:
+            self.t.send('d' + it['letter'])
+            self.settle()
+        self.t.send(',')
+        if top_prompt(self.t.lines())[0] == 'menu':
+            self.t.send(',\r')  # select everything on the altar
+        for _ in range(4):
+            top = self.t.lines()[0]
+            if re.search(r'Continue\?|lifting', top):
+                self.t.send('y')
+            elif '--More--' in top:
+                self.t.send('\r')
+            else:
+                break
         self.observe()
         self.read_inventory()
-        self.run['dips'] = self.run.get('dips', 0) + 1
+        self.run['buc_done'] |= {it['text'] for it in unk} | {it['text'] for it in self.inventory}
+        self.run['here'][(self.snap.status.get('dlvl'), self.snap.me)] = self.look_here()
+        return 'BUC-tested: ' + ' '.join(m['text'] for m in self.messages[nmsg:])[:200]
+
+    def act_carry(self, p, t0):
+        r = self.act_go(p)
+        if self.snap.me != p:
+            return 'going to the corpse: ' + r
+        self.run['sac_skip'].add((self.snap.status.get('dlvl'), p))
+        item = next((i for i in self.here_items() if 'corpse' in i and not any(n in i for n in NEVER_OFFER)), None)
+        if not item:
+            return 'no corpse worth offering here'
+        self.act_pickup(item)
+        self.run['carry_turn'] = t0
+        return f'picked up {item} for the altar'
+
+    def act_offer(self, letter, q):
+        r = self.act_go(q)
+        if self.snap.me != q:
+            return 'heading for the altar: ' + r
+        nmsg = len(self.messages)
+        self.t.send('#offer\r')
+        for _ in range(6):
+            top = self.t.lines()[0]
+            if 'sacrifice it?' in top:
+                self.t.send('n')  # a floor corpse of unknown age; offer the one we carried
+            elif 'want to sacrifice' in top:
+                self.t.send(letter)
+            elif '--More--' in top:
+                self.t.send('\r')
+            else:
+                break
+        self.observe()
+        self.read_inventory()
         said = ' '.join(m['text'] for m in self.messages[nmsg:])
-        if 'hand reaches up' in said:
-            self.run['excalibur'] = True
-        return 'dipped: ' + said[:200]
+        if 'reconciliation' in said:  # pray.c: ublesscnt reached 0, prayer is safe
+            self.run['prayed_turn'] = (self.snap.status.get('turn') or 0) - 2000
+        if 'gift' in said:  # bestow_artifact: ublesscnt = rnz(300 + 50n); the artifact lands at our feet
+            self.run['prayed_turn'] = self.snap.status.get('turn')
+            art = next((i for i in self.look_here() if 'named' in i), None)
+            if art:
+                self.act_pickup(art)
+        if not any(it['letter'] == letter and 'corpse' in it['text'] for it in self.inventory):
+            self.run.pop('carry_turn', None)
+        else:
+            self.t.send('d' + letter); self.observe(); self.read_inventory(); self.run.pop('carry_turn', None)
+        return 'offered: ' + said[:200]
 
     def act_wield(self, letter):
         self.t.send('w' + letter)

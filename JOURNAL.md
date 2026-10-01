@@ -766,3 +766,16 @@ statico's checklist ranks an artifact weapon 4th, after MR, reflection and poiso
 
 ## 2026-10-01 06:35 — Ranged fire lasted longer than the 3-message window
 Run 20260930-191717 died at T7290 on Mines 6, "killed by an orcish arrow". It had 4 HP and was waiting on Elbereth while an Uruk-hai shot poisoned arrows. The ranged-fire guard looked only at the last 3 messages, and a single volley ("shoots 2 arrows", "1st hits", "2nd misses", poison) pushes "shoots" out of that window. The forced Elbereth wait then made "wait" the only option. Fix: record the turn of the latest ranged message, including "<missile> hits/misses you". For 3 turns after it, `shot` holds, and both Elbereth-wait paths respect it. Note: the earlier summary blamed a magic missile; the real cause is in the record file.
+
+## 2026-10-01 07:10 — Altars, sacrifice, darts, BUC-gated cloaks (checklist + user tips)
+- **Excalibur dipping dropped** at the user's request. 5.0 nerfed it to 1/30 for non-Knights (fountain.c:413).
+- **Mjollnir isn't available to Jev.** It's neutral (artilist.h:111), and `mk_artifact` only considers role artifacts whose alignment matches the altar. A lawful dwarf would get a random lawful gift such as Grayswandir or Sunsword instead.
+- **Sacrifice (pray.c `offer_corpse`/`bestow_artifact`):**
+  - Corpses must be at most 50 turns old; value = difficulty + 1.
+  - On a co-aligned altar, each offering reduces prayer timeout by value×300/24. At timeout 0 there's a 1/(6 + 2·gifts·artifacts) gift chance (XL > 2, Luck ≥ 0); otherwise Luck goes up.
+  - Jev records altar alignment from ':' ("altar to X (lawful)"). It carries a fresh corpse it saw die to a lawful altar on the same level, then runs #offer.
+  - Never offered: dwarves (own race), pet species, white unicorns, cockatrices (touching one bare-handed stones you).
+  - "Feeling of reconciliation" marks prayer as safe. A gift resets the prayer clock, and the artifact is picked up and wielded.
+- **BUC testing:** standing on any altar, Jev drops every item with unknown BUC and picks it back up. `!implicit_uncursed` makes "uncursed" always visible.
+- **Cloaks and mithril** (including `mantelet`, which the wear regex was missing) are only worn once known uncursed or blessed (user tip).
+- **Darts and daggers:** `AUTOPICKUP_EXCEPTION="<(^| )(dart|dagger)( |$)"`. In pickup.c an exception overrides pickup_types, and pickup_thrown brings thrown ones back. Existing throw logic already targets floating eyes and spheres (user tip).
