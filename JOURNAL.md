@@ -1211,3 +1211,9 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
   - A stair hop guard: 4 or more upstairs/flee_up/leave_nymph in the last 6 decisions disables the pack filter and leave_nymph.
   - No gamble prayer while polymorphed (exp shows None). At 0 HP Jev only reverts to its normal form.
 - Also seen: the 5.0 hypocrite penalty (attacking from Elbereth, -5 alignment). It happened 4 times this game. Not fixed yet.
+
+## 20261001-024802: human zombie, T3534, Dlvl 6, XL 5
+- A water nymph stood still 2 squares away (asleep) from T2613 on. The nymph rule left only "wait on Elbereth", and Jev waited about 850 turns.
+- When the nymph finally moved, she stole the +3 shield anyway. Jev went Weak, and its prayer 846 turns after the last one got "displeased" (bad luck in the rnz timeout).
+- A yellow light then blinded Jev, and it fainted and died under zombies.
+- Fix: if the nymph has not moved for 30 turns, treat her as asleep and drop the nymph lock. Valkyries have intrinsic stealth.
