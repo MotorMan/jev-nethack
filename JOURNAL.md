@@ -1416,3 +1416,12 @@ Run 20261001-070143 died at T7451 on Dlvl 9. A giant spider killed Jev while it 
 - Afterwards it explored and headed for the upstairs past the same corpse option, then fainted.
 
 Fix: when Jev is Weak or Fainting and goto_corpse is offered, the options shrink to goto_corpse plus fight, eat, Elbereth, zap and quaff. Prayer stays only when HP is low or starvation is imminent.
+
+## 2026-10-01 — No 15-turn rest with a monster 4 squares away
+Run 20261001-071129 died at T2658 on Dlvl 5. A pony killed Jev while it was praying.
+
+- A pony took Jev from 41 to 14 HP. It backed off, and Jev chose "Rest and search 15 turns" three times while the pony circled 3–4 squares away.
+- The pony's square wasn't in the reachable-distance map, so it didn't count as `near`.
+- The pony interrupted the search with kicks and bites (18 to 7), and Jev's prayer 207 turns after the last one failed.
+
+Fix: the 15-turn rest also requires no non-passive hostile within 4 squares. Below half HP in that case, Jev is offered a one-turn wait instead. A replay at T2644 now offers ['explore_1', 'explore_2', 'wait'] instead of ['rest'].
