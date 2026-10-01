@@ -1631,3 +1631,6 @@ At AC 10, 28/53 HP and 50 turns after a prayer, it chose 'approach' toward a fle
 
 ## kev-4b 100216 — Uruk-hai pack, T6636, Dlvl 5
 At T5888 a wood nymph stole the helm and the +3 shield, and the scale mail went too, leaving AC 10. A pack of four Uruk-hai then shot it while it stood on Elbereth ("You are hit", ranged attacks ignore Elbereth). That marked them as Elbereth-blockers, so only melee was offered: 61 -> 8. Note: djev's jaguar death was also at AC 10 after a nymph took its shield. Nymph theft is now a top cause of deaths. No fix yet; candidates are chasing the nymph down, or going back up when stripped (the AC>=9 pace rule exists).
+
+## Hosted 100917 — raven, T6043, Dlvl 6
+A raven (speed 20) blinded it during a monkey/giant-ant fight. Blind, its Elbereth engravings kept getting interrupted. A prayer took it back to 51 HP, but unseen biters took that to 5 in 7 turns. No clear fix: it was fighting blind against faster monsters.
