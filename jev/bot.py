@@ -578,6 +578,7 @@ class Bot:
                         were_throw = f'throw_{d}'
         wand = next((it for it in sorted(self.inventory, key=lambda i: not re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', i['text'])) if re.search(r'\bwand\b', it['text'])
                      and not re.search(r'probing|light|nothing|opening|locking|enlightenment|secret door|create monster|wishing|undead turning|polymorph|make invisible|speed monster', it['text'])
+                     and it['text'] not in self.run.get('bad_wands', ())
                      and self.run.setdefault('zaps', {}).get((it['text'], s.get('dlvl')), 0) < 4), None)  # a silent unknown wand (polymorph) zapped 379 times at molds turned one into a gargoyle that pinned Jev until it starved (T5526)
         if wand:  # walled in by floating eyes once for 13000 turns with an unknown wand in the pack
             for m in hostiles:
@@ -587,7 +588,7 @@ class Bot:
                 # 'weaker' foes count when adjacent: two Woodland-elves took 67 -> 0 while the wand of magic missile went at a C 5 steps south (T5738)
                 if (m['passive'] and len(dist) <= 3 or hp < 0.5 * hpmax and ('weaker' not in self.threat(m) or m['dist'] <= 1)) and (2 if 'gas spore' in m['name'] else 1) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
-                    opts[f'zap_{d}'] = (f"Zap {wand['text']} at {m['name']}", f"Zap wand {wand['letter']} {DIR_NAME[d]} at the {m['name']} {m['where']}. Unknown effect; many wands kill or move monsters, and it identifies the wand.", lambda l=wand['letter'], d=d, t=(wand['text'], s.get('dlvl')): (self.run['zaps'].__setitem__(t, self.run['zaps'].get(t, 0) + 1), self.act_throw(l, d, 'z'))[1])
+                    opts[f'zap_{d}'] = (f"Zap {wand['text']} at {m['name']}", f"Zap wand {wand['letter']} {DIR_NAME[d]} at the {m['name']} {m['where']}. Unknown effect; many wands kill or move monsters, and it identifies the wand.", lambda l=wand['letter'], d=d, t=(wand['text'], s.get('dlvl')): self.act_zap(l, d, t))
         # yellow light: its only attack is a 10d20-turn blinding explosion (monsters.h AT_EXPL), speed 15 so no outrunning it; Elbereth stops it (wiki). Blinded twice, both dead to unseen biters (T4631, T2307)
         # a jabberwock (difficulty 18) 3 squares off at XL6 got "Close in on" and no Elbereth: 67 -> 0 in two turns (T4199). @ and minotaurs ignore Elbereth
         dread = [m for m in hostiles if (m['dist'] <= 5 and 'much stronger' in self.threat(m) or 'yellow light' in m['name']) and m['ch'] != '@' and 'minotaur' not in m['name']]
@@ -1689,6 +1690,13 @@ class Bot:
         self.observe()
         self.read_inventory()
         return 'wished for ' + WISHES[min(n, len(WISHES) - 1)] + ': ' + (self.run['recent'][-1] if self.run['recent'] else '')
+
+    def act_zap(self, l, d, t):
+        self.run['zaps'][t] = self.run['zaps'].get(t, 0) + 1
+        out = self.act_throw(l, d, 'z')
+        if any('vanishes!' in m for m in self.run['recent'][-3:]):  # unknown oak wand was make invisible: zapped 3x at a rope golem that then choked Jev unseen (T5475)
+            self.run.setdefault('bad_wands', []).append(t[0])
+        return out
 
     def act_wish(self, letter):
         self.t.send('z' + letter)

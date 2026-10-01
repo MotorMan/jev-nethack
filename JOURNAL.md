@@ -1601,3 +1601,6 @@ A chameleon (seen as a "peaceful displacer beast", then as an arch-lich) cast su
 
 ### Hosted 20261001-092455: Woodland-elf on Dlvl 6 (T20657) after 13,000 turns stuck on Dlvl 2
 It prayed as a gamble at 12/82, 377 turns after the last prayer, and the elf killed it mid-prayer. The bigger loss was turns 2,500 to 15,500 on Dlvl 2 with the downstairs unfound. Several floating eyes sat in the corridors to the unexplored east side. There were 307 wait_eye turns, 1230 search_hidden turns, 160 rounds of the "Pardon me, Pakka Pakka" pay loop, and dead_end trips up to Dlvl 1 and back. Most of this is covered by today's fixes: Elbereth before wait_eye, rocks against eyes, and Pardon me no longer meaning debt. The game was resumed under each restart, so it ran a mix of old and new code.
+
+## kev-4b 095357 — invisible rope golem, T5475, Dlvl 6
+Zapped an unknown oak wand at a rope golem: "The rope golem vanishes!" (make invisible). It kept zapping it while being choked, then died to the unseen golem at 16/71. Fix: a zap that makes a monster vanish marks that wand text bad for the rest of the run.
