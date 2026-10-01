@@ -10,9 +10,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FOOD = re.compile(r'\b(?:food ration|cram|lembas|biscuit|pancake|apple|orange(?! gem)|banana|melon|carrot|egg|tins?|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen)e?s?\b')  # word-bounded: 'dwarvish spear' is not a pear
 MONSTERS = json.load(open(os.path.join(os.path.dirname(__file__), 'monsters.json')))  # name -> [difficulty, speed], from monsters.h
 # objects.h ARMOR(... ac ...) is 10 - bonus; body armor only, best first matches first
-SUIT = {'crystal plate mail': 7, 'bronze plate mail': 6, 'plate mail': 7, 'splint mail': 6, 'banded mail': 6, 'dwarvish mithril-coat': 6, 'elven mithril-coat': 5,
+SUIT = {'dragon scale mail': 9, 'crystal plate mail': 7, 'bronze plate mail': 6, 'plate mail': 7, 'splint mail': 6, 'banded mail': 6, 'dwarvish mithril-coat': 6, 'elven mithril-coat': 5,
         'orcish chain mail': 4, 'crude chain mail': 4, 'chain mail': 5, 'scale mail': 4, 'studded leather armor': 3, 'orcish ring mail': 2, 'crude ring mail': 2, 'ring mail': 3,
         'leather armor': 2, 'leather jacket': 1}
+# wiki "Wish": AC and reflection first, then life saving, speed and to-hit/damage for a melee Valkyrie
+WISHES = ('blessed greased +2 gray dragon scale mail', 'blessed amulet of life saving', 'blessed fixed +2 speed boots', 'blessed fixed +2 gauntlets of power', 'blessed +2 silver dragon scale mail')
 suit_ac = lambda t: next((v for k, v in SUIT.items() if k in t), None)
 # price identification (wiki "Price identification"; 5.0 shk.c get_cost, objects.h): base prices per class
 BASES = {'scroll': (20, 50, 60, 80, 100, 200, 300), 'potion': (20, 50, 100, 150, 200, 250, 300), 'ring': (100, 150, 200, 300)}
@@ -160,6 +162,8 @@ class Bot:
                 self.run['debt'] = False
             if re.search(r'\b(throws|shoots|zaps|breathes|spits)\b|gaze!|\b(arrow|dart|dagger|knife|bolt|spear|shuriken|missile|ray)s? (hits|misses|bounces)', text):
                 self.run['shot_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
+                if m := re.search(r'The ([\w -]+?) (?:throws|shoots|zaps|breathes|spits)\b', text):
+                    self.run['shooter'] = m[1]
             if re.search(r'\b(hits|bites|stings|kicks|butts|claws|touches)!', text):
                 self.run['hit_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
             ev = re.findall(r'(engulfs you|swallows you|The exit\?|laden with moisture|enveloped in a cloud of steam)|get expelled|regurgitates you|expels you|You (?:destroy|kill) (?:it|the)|dissipates|thin air|You get released', text)
@@ -505,7 +509,7 @@ class Bot:
         dist, prev = self.dijkstra()
         # a monster we cannot reach (behind walls, across water) is not a reason to stand still
         # unless it is shooting: rested 15 turns on Elbereth while unreachable Uruk-hai shot it 29 -> 5, dead (T5766)
-        shot = (s.get('turn') or 0) - self.run.get('shot_turn', -99) <= 3  # one volley is 3-4 messages: "shoots 2 arrows", "1st hits", "2nd misses" pushed 'shoots' out of a 3-line window; Jev waited on Elbereth at 4 HP under Uruk-hai fire (T7290)
+        shot = (s.get('turn') or 0) - self.run.get('shot_turn', -99) <= (20 if any(m['name'] == self.run.get('shooter') and m['dist'] <= 8 for m in hostiles) else 3)  # an Uruk-hai shot between Elbereth waits 4 turns apart: 16 -> 0 (T4338)  # one volley is 3-4 messages: "shoots 2 arrows", "1st hits", "2nd misses" pushed 'shoots' out of a 3-line window; Jev waited on Elbereth at 4 HP under Uruk-hai fire (T7290)
         near = [m for m in hostiles if m['dist'] <= 6 and not m['passive'] and (m['dist'] <= 1 or m['pos'] in dist or shot)]
         opts = {}
         hp, hpmax = s.get('hp', 1), s.get('hpmax', 1)
@@ -746,6 +750,14 @@ class Bot:
             held = next((it for it in self.inventory if re.search(r'\bshield\b', it['text']) and 'being worn' in it['text']), None)
             if sor and held:  # the polished silver shield is always reflection (objects.h): carried unworn beside a +3 small shield to a jaguar death (T3976)
                 opts[f"wear_{sor['letter']}"] = (f"Swap {held['text']} for {sor['text']}", 'A polished silver shield is a shield of reflection: rays (wands, breath) bounce off you. Worth more than a few points of AC.', lambda w=held, b=sor: self.act_swap(w, b))
+            wand = next((it for it in self.inventory if 'wand of wishing' in it['text'] and not re.search(r':0\)', it['text'])), None)
+            if wand and not self.run.get('wand_empty'):  # carried an identified wand of wishing unused to an Elvenqueen death at AC 10 (T6359)
+                opts['wish'] = (f"Zap {wand['text']}", f"Make a wish: {WISHES[min(self.run.get('wishes', 0), len(WISHES) - 1)]}.", lambda l=wand['letter']: self.act_wish(l))
+            ls = next((it for it in self.inventory if 'amulet of life saving' in it['text'] and 'being worn' not in it['text']), None)
+            if ls and not any('amulet' in it['text'] and 'being worn' in it['text'] for it in self.inventory):
+                opts['wear_amulet'] = (f"Put on {ls['text']}", 'Life saving brings you back once when you would die.', lambda l=ls['letter']: self.act_keys('P' + l, 'put on the amulet'))
+            if 'wish' in opts:
+                opts = {'wish': opts['wish']}
             if any(k.startswith('wear_') for k in opts):  # offered, rarely taken: died at AC 6 with an orcish helm in the pack and no helm on (T3559)
                 opts = {k: v for k, v in opts.items() if k.startswith(('wear_', 'eat_')) or k == 'pray'}  # each try wears it or marks it unwearable, so no loop
 
@@ -1497,11 +1509,34 @@ class Bot:
             self.t.send(letter)
         if 'direction' in self.t.lines()[0].lower():
             self.t.send(d)
+        elif 'wish' in self.t.lines()[0].lower():  # an unknown wand zapped at a red mold was wishing: the Escape here threw the wish away (T2871)
+            return self.wish()
         else:
             self.t.send('\x1b')
         self.observe()
         self.read_inventory()
         return f"{'zapped' if key == 'z' else 'threw'} item {letter} {DIR_NAME[d]}"
+
+    def wish(self):
+        n = self.run.get('wishes', 0)
+        self.run['wishes'] = n + 1
+        self.t.send(WISHES[min(n, len(WISHES) - 1)] + '\r')
+        self.observe()
+        self.read_inventory()
+        return 'wished for ' + WISHES[min(n, len(WISHES) - 1)] + ': ' + (self.run['recent'][-1] if self.run['recent'] else '')
+
+    def act_wish(self, letter):
+        self.t.send('z' + letter)
+        if '--More--' in ''.join(self.t.lines()[:3]):
+            self.t.send('\r')
+        if 'wish' in self.t.lines()[0].lower():
+            return self.wish()
+        self.t.send('\x1b')
+        self.observe()
+        self.read_inventory()
+        if not any('Unfortunately' in m for m in self.run['recent'][-2:]):  # zap.c: bad luck burns a charge, "Unfortunately, nothing happens."; plain "Nothing happens." is no charges
+            self.run['wand_empty'] = True
+        return 'the wand did nothing: ' + (self.run['recent'][-1] if self.run['recent'] else '')
 
     def act_goto_corpse(self, p):
         r = self.act_go(p)

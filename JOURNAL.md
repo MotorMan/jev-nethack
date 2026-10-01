@@ -1049,3 +1049,14 @@ No fix. Ravens (speed 20, blinding claw) blinded it at 32/79; it swung back at t
 Elves in a dark Mines level: farlook failed on several, so they were "unknown '@'", which is never attacked (could be a shopkeeper). Worse, a pack beside it offers 'Run for the upstairs' and drops attack/explore options, but explore options are added again later in build_options, so kev-4b explored four times with elves adjacent: 67 -> 0. Two fixes:
 - An adjacent unknown '@' can be attacked if Jev was hit last turn, outside towns, with no peaceful '@' in view.
 - The "monster adjacent: no exploring" filter now also fires when flee_up/upstairs/retreat are on offer, not just attacks. Replayed T3563: options are now flee_up and retreat.
+
+## 2026-10-01 — Elvenqueen with an unused wand of wishing (kev-4b, T6359)
+Nymphs and a monkey stripped Jev to AC 10, and an Elvenqueen killed it. Its pack held an identified wand of wishing it never zapped. At T2871 it had zapped the wand (unidentified) at a red mold, and the "For what do you wish?" prompt got Escape, so that wish was wasted.
+- Any zap that brings up the wish prompt now answers it. Wishes, in order: blessed greased +2 GDSM, blessed amulet of life saving, blessed fixed +2 speed boots, blessed fixed +2 gauntlets of power, blessed +2 SDSM.
+- An identified wand of wishing with charges left forces a wish. An unworn life-saving amulet gets put on.
+- Dragon scale mail ranks first among suits (AC 9).
+- Live-tested in a wizard-mode game: the zap brought up the wish prompt and GDSM landed in the pack.
+
+## 2026-10-01 — Uruk-hai archer while waiting on Elbereth (kev-4b, T4338, Dlvl 7)
+An Uruk-hai 5 squares away shot arrows at Jev on and off. The "you're being shot" flag only lasts 3 turns after a volley. Between volleys it lapsed, so Jev waited on Elbereth at 16/58 and then 11/58 until a poisoned arrow killed it.
+- Jev now remembers who shot it. Being shot stays in effect for 20 turns while that monster is within 8 squares, so Jev won't wait on Elbereth in its line of fire.
