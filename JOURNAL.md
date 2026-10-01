@@ -1016,3 +1016,6 @@ The T2530 prayer at 9/49 HP was real trouble after all: pray.c's critically_low_
 
 ## 2026-09-30 19:55 — fainted beside an Uruk-hai (kev-4b, T3278)
 Prayed for HP at T3039 (fine), Hungry 40 turns later with no packed food; the only meal was an imp corpse (10 nutrition), Weak at 3180, Fainting at ~3240, then it closed in on an Uruk-hai and fainted in melee. Fainting with a hostile within 3 now gets the gamble prayer (100+ turns since the last), and approach_* options are dropped while Fainting.
+
+## 2026-09-30 20:10 — the Minetown watch (kev-4b, T6313, Dlvl 8, AC 2, XL 7)
+Blind in Minetown, "You feel an unseen monster!" put an 'I' next to Jev and the only option was to swing at it: a peaceful watchman. "Halt! You're under arrest!", two watchmen killed, then the captain. The blind no-swing-unless-hit rule only covered shops; it now covers any town level.

@@ -1036,7 +1036,7 @@ class Bot:
         elif 'Blind' in s.get('conditions', []):  # a blind step into an unseen watchman angered the whole Minetown watch
             fight = {k: v for k, v in opts.items() if k in ('pray', 'elbereth') or k.startswith(('quaff_', 'attack_', 'eat', 'wield_', 'zap_'))}  # zaps point at the monster biting you: a blind Jev with a wand of cold only had 'swing', 62 -> 8, died praying (T5509)  # weaponless, opts was just 'wield': this dropped it and a blind Jev waited while a dog bit 37 -> 0 (T4631)  # blind engraving still scares: invisible quasits drained a blind Jev who could only swing
             # 'You feel an unseen monster' is just sensing: swung at it blind in Aklavik's store, and she zapped Jev dead (T3012)
-            if shop and not any(re.search(r"\bIt (hits|bites|touches|stings|butts|kicks)", m) for m in self.run['recent'][-2:]):  # blind swings at the unseen shopkeeper angered Ms. Tipor, twice-dead to her wand
+            if (shop or lv.town) and not any(re.search(r"\bIt (hits|bites|touches|stings|butts|kicks)", m) for m in self.run['recent'][-2:]):  # blind swings at the unseen shopkeeper angered Ms. Tipor, twice-dead to her wand  # Minetown: swung at a felt 'I', a peaceful watchman: the watch killed Jev (T6313)
                 fight = {k: v for k, v in fight.items() if not k.startswith(('attack_', 'zap_'))}
             # resting while unseen things bit a blind Jev from 54 to 4 HP (twice) is worse than swinging back
             opts = fight if any(k.startswith(('attack_', 'wield_')) for k in fight) else fight | {'rest': ('Wait until you can see', 'You are blind: walking bumps into unseen monsters and attacks them, peaceful or not. Wait for your sight to return.', lambda: self.act_keys('5s', 'waited'))}
