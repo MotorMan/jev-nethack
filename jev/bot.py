@@ -482,6 +482,7 @@ class Bot:
                     continue  # no attacks: Jev hit a shrieker 3 turns while a werejackal and iguana killed it (T1402); hit a brown pudding 4 times (iron splits it, uhitm.c) while an owlbear crushed it 53 -> 8, dead (T5320)
                 d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
                 opts[f'attack_{d}'] = (f"Attack {m['name']} ({DIR_NAME[d]})", f"Melee the adjacent {m['name']} to the {DIR_NAME[d]}.{danger}", lambda d=d: self.act_fight(d))
+        were_throw = None  # an animal-form were's bite gives lycanthropy 1 in 4 hits (uhitm.c mhitm_ad_were): 44 of 509 runs caught it; wiki: kill them before melee range
         nymph_throw = None  # nymphs stole a ration, spear, shield and slime molds in one game: hit them before they arrive
         missiles = [it for it in self.inventory if re.search(r'\b(daggers?|knife|knives|darts?|shuriken|spears?|javelins?)\b', it['text'])
                     and 'weapon in' not in it['text'] and 'wielded' not in it['text'].replace('not wielded', '')]
@@ -496,6 +497,8 @@ class Bot:
                     opts[f'throw_{d}'] = (f"Throw {it['text']} at {m['name']}", f"Throw item {it['letter']} {DIR_NAME[d]} at {m['name']} {m['where']}. Safe way to hit monsters you must not melee (floating eyes, molds); pick it up again afterwards.", lambda l=it['letter'], d=d: self.act_throw(l, d))
                     if 'nymph' in m['name'] and m['dist'] >= 2:
                         nymph_throw = f'throw_{d}'
+                    if 'were' in m['name'] and m['ch'] != '@' and not self.run.get('lycanthropy'):
+                        were_throw = f'throw_{d}'
         wand = next((it for it in self.inventory if re.search(r'\bwand\b', it['text'])
                      and not re.search(r'probing|light|nothing|opening|locking|enlightenment|secret door|create monster|wishing|undead turning|polymorph|make invisible|speed monster', it['text'])
                      and self.run.setdefault('zaps', {}).get((it['text'], s.get('dlvl')), 0) < 4), None)  # a silent unknown wand (polymorph) zapped 379 times at molds turned one into a gargoyle that pinned Jev until it starved (T5526)
@@ -869,6 +872,8 @@ class Bot:
             # a nymph teleports back for more: one wood nymph took shield, spear, bag, ration and egg over 500 turns
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat_')}
             opts['leave_nymph'] = ('Leave this level (a nymph lives here)', f"A nymph on this level keeps coming back to steal your things. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend.", lambda p=downs[0]: self.act_descend(p))
+        if were_throw in opts and not any(m['dist'] <= 1 for m in hostiles):
+            opts = {k: v for k, v in opts.items() if k.startswith(('throw_', 'zap_')) or k in ('elbereth', 'pray') or k.startswith('quaff_')}
         if nymph_throw in opts and not any(m['dist'] <= 1 for m in hostiles):  # forced to throw at a nymph, a fire ant ate Jev at 10 HP
             opts = {k: v for k, v in opts.items() if k in (nymph_throw, 'pray') or k.startswith('eat_')}
         if 'ascend' in opts and not any(m['dist'] <= 1 for m in hostiles) and s.get('hunger') not in ('Hungry', 'Weak', 'Fainting'):  # hungry descents were forced back up: 33 ascends/14 descends while starving (T3603)  # offered only, Jev rarely took it: 25 of 60 deaths were 2+ levels past XL
