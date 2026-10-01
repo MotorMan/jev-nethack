@@ -485,11 +485,15 @@ class Bot:
         if m:
             items.append(m[1])
         if 'Things that are here' in blob or 'Things that you feel here' in blob:
-            block = blob.split('here:', 1)[1]
-            for l in block.split('\n'):
-                l = l.replace('--More--', '').strip()
+            head = next(l for l in blob.split('\n') if re.search(r'Things that (are|you feel) here', l))
+            col = re.search(r'Things that', head).start()  # tty draws the list as an overlay over the map: read only its columns (a gnome corpse came back as 15 map rows, T2997)
+            for l in blob.split('here:', 1)[1].split('\n'):
+                done = '--More--' in l
+                l = l[col:].replace('--More--', '').strip()
                 if l and not l.startswith('Things') and len(l) > 2:
                     items.append(l)
+                if done:
+                    break
         alt = re.search(r'altar to .+? \((lawful|neutral|chaotic|unaligned)\)', blob.replace('\n', ' '))
         if alt and self.snap and self.snap.me:
             self.run.setdefault('altars', {})[(self.snap.status.get('dlvl'), self.snap.me)] = alt[1]
@@ -993,6 +997,8 @@ class Bot:
             # sat 69 turns on Elbereth Weak -> Fainting with food in view, dead (T2958); wiki: Weak is major trouble, eat or pray
             food = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'goto_corpse')) or k == 'fetch' and '(food?)' in v[0]}
             opts = food or {k: v for k, v in opts.items() if k != 'rest' and not (s.get('hunger') == 'Fainting' and k.startswith('approach_'))} or opts  # Fainting closed in on an Uruk-hai, fainted beside it (T3278)  # rested 9 times Weak -> Fainting with food 20 steps off, past fetch's 15-step radius (T2773)
+        if s.get('hunger') in ('Weak', 'Fainting') and 'pray' in opts:  # Weak with an unseen thing 1 step off skipped the food filter: rested over a safe prayer, fainted, rothe (T3180)
+            opts.pop('rest', None)
         if (s.get('turn') or 0) - self.run.get('held', -99) <= 1:  # held: moving escapes 1 in 40 (hack.c); a rope golem choked Jev through 3 retreats (T5125). Wiki: Elbereth works while grabbed
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray') or k.startswith(('attack_', 'quaff_'))} or opts
         if any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and any(k.startswith(('attack_', 'flee_up', 'upstairs', 'retreat')) for k in opts):  # flee_up drops attacks, then explore was added back: explored 4 times beside Woodland-elves (T3567)  # explored away from 5 adjacent rats at 21/29: dead (T1354)

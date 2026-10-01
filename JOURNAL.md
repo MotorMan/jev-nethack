@@ -1082,3 +1082,8 @@ Jev had prayed at T606 and was resting at 8/18 HP. Its kitten triggered a rollin
 ## 2026-10-01 — fainted from hunger at Mines 9 (kev-4b, T5348) — journal only
 In 2700 turns Jev found one food ration and two edible fresh corpses. Two prayers fixed its hunger (T2636 and T4333), and the third prayer, at T5181, was spent on other trouble. At Mines 9 its pack had no food and only zombies were around, whose corpses are never safe to eat. It went Weak at T5239 and Fainting at T5314, and was too close to its last prayer to pray. A gnome zombie killed it while it fainted.
 No code change. The lever would be a branch policy: stop at Minetown until a higher XL, then do the main dungeon and Sokoban, which have more food. Mines deaths so far: wolf at 7, Woodland-elves at 8, this one at 9, and a yeti at 10. But as a dwarf, Jev finds most of the Mines peaceful, so this is a strategy bet, not a fix. Implementation note: `#overview` (5.0 dungeon.c:3586) marks the current level with "<- You are here." under its branch heading, so branch detection is one menu read per new level.
+
+## 2026-10-01 — rothe while fainted (kev-4b, T3180, Dlvl 6)
+Two bugs.
+1. look_here read the tty "Things that are here" overlay as whole screen lines, so map rows became item names ("|..--  ...  a mummy wrapping"). Jev spent 15 decisions at T2997 'picking up' map rows. look_here now slices each line from the overlay's column and stops at --More--. Checked with a mock screen.
+2. Weak, with an unseen attacker one step away. The no-rest food filter only fires when no hostile is within 3, so 'rest' stayed on offer next to 'pray' (859 turns after the last prayer). kev-4b rested, Jev fainted, and a rothe killed it. When Weak or Fainting with 'pray' on offer, 'rest' is now dropped.
