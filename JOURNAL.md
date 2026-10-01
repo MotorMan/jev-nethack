@@ -822,3 +822,6 @@ Run 201602 was killed by an ogre at T4539 on Dlvl 7 (XL6). Water nymphs stole th
 
 Still open: Jev wore no armor for 900 turns after losing the shield (nothing to wear was found), and it never used the expensive camera or the two unknown wands in a losing fight.
 Unknown wands can now also be zapped at a monster that isn't weaker than Jev once HP is below half, not only at passive monsters. Same limit as before: 4 zaps per wand per level.
+
+## 09:55 — Lycanthropy mid-fight
+Run 202106 was killed by a werejackal at T2711. A bite at T2642 left Jev "feverish", meaning lycanthropy. Prayer had never been used, but the lycanthropy cure was held back whenever a hostile was within 2 squares (a wererat death at 18/46 HP once followed curing it mid-fight). Jev waited on Elbereth at 26-31/41 HP beside the werejackal, which ignores Elbereth, and turned into a jackal at T2676. That dropped the +3 shield and the +1 spear, and the werejackal picked them up and killed Jev with them. The cure (pray.c: TROUBLE_LYCANTHROPE is major trouble) is now also allowed mid-fight at 60% HP or more.
