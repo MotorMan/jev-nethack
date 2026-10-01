@@ -1227,3 +1227,8 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - Elbereth wore off with a yellow light adjacent. Jev's melee swing missed, the light exploded and blinded Jev, and an unseen giant ant bit it from 23 HP down to 10.
 - The low-HP prayer came 707 turns after the last one and failed: the rnz(350) timeout has a long tail.
 - No code change. The yellow-light handling was right (killing it in melee stops the explosion), and the failure was dice.
+
+## 20261001-030736: coyote while fainting, T3843, Dlvl 6
+- Hunger forced 4 prayers in 3800 turns. The last two were gambles that angered Tyr and drained levels: XL 5 to 3, max HP 53 to 33.
+- Fresh corpses were offered 22 times and eaten only twice. The "always eat corpses" filter ran before the explore and descend options were added, so it never had any effect.
+- Fix: run the corpse forcing again after all options are built, whenever no hostile monster is near.
