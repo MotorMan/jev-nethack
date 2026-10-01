@@ -804,3 +804,6 @@ Run 20260930-195647 (T3866, Dlvl 5, "hallucinogen-distorted kobold lord, while p
 Run 195747 starved at T9952 on Dlvl 5. At T4163 a large kobold dug a hole in the only doorway out of a dead-end stub. The bot answers 'n' to "Really step into that hole?" and never paths through known traps, so Jev was stuck for 5,000 turns, kept alive by prayer until it starved. dead_end needs a reachable '<', and there wasn't one.
 
 In trap.c, hole_destination sends a hole or trap door 1+ levels down in the same dungeon branch, so it is just a way to descend. Refused holes and trap doors are now remembered separately from level teleporters. When there's no frontier and no reachable '>' or '<', Jev walks next to a known hole (orthogonally, since you can't step diagonally into a doorway) and answers 'y'. Level teleporters stay avoided.
+
+## 08:55 — Lost a gamble
+Run 200913 died at T2331 on Mines 5. A giant ant and a giant bat cornered Jev, and an Elbereth engraving came out garbled. Jev made the low-HP gamble prayer (100+ turns since the last one) and was killed mid-prayer. The gamble was the right call there; this one is variance.
