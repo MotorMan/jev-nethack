@@ -29,3 +29,11 @@ step({5: ' ' * 10 + '@%' + ' ' * 4 + 'h%'}, 121)
 step({5: ' ' * 10 + '@%' + ' ' * 4 + '%%'}, 122, 'You kill the hobbit!')
 assert b.level().corpses[(17, 5)] < 0, b.level().corpses  # still old (T2090)
 print('ok')
+
+# 5.0 corpse rules: poisonous only when desperate, bad-effect corpses never
+from jev.bot import Bot
+class _F: pass
+for desperate, corpse, banned in [(False, 'giant beetle corpse', True), (True, 'giant beetle corpse', False), (True, 'giant mimic corpse', True),
+                                  (True, 'acid blob corpse', False), (True, 'yellow mold corpse', True), (False, 'floating eye corpse', False)]:
+    _f = _F(); _f.run = {'desperate': desperate}
+    assert any(n in corpse for n in Bot.never_eat(_f)) == banned, (desperate, corpse)

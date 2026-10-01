@@ -2015,3 +2015,25 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** about 13 hill orcs arrived one or two at a time in Minetown, and one zapped a wand of striking. Elbereth is no help against wands, and its engraving was wiped or garbled while fighting. It went 35 → 16 in one turn, then down to 11/63 with three orcs adjacent. Prayer wasn't offered because 11 is above the 1/7 low-HP threshold, and none of its six unknown potions was offered while orcs were adjacent. Dead next turn.
 - **Wiki:** Potion: when death is otherwise certain, an unknown potion is a fair gamble. Healing-family potions are about 12% of potions, and few outcomes are worse than dying. A wand-zapping orc is a priority kill.
 - **Fix:** below 1/4 HP with two or more hostiles adjacent, unknown potions are offered even in melee.
+
+## Operator request: 5.0 corpse safety review
+- **Source (eat.c 5.0, monsters.h):**
+  - Tainted means rotted > 5. In 5.0 you survive food poisoning with only a Con-in-100 chance (timeout.c), so it's still deadly; prayer cures it.
+  - Globs no longer taint in 5.0; they shrink away.
+  - Lizards, lichens and acid blobs never rot. Acid blobs do rnd(15) acid damage.
+  - Poisonous corpses (M1_POIS) cost rnd(4) Str and rnd(15) HP 4 times in 5.
+  - cpostfx side effects:
+    - polymorph: chameleon, doppelganger, genetic engineer;
+    - helpless 20-50 turns as gold: mimics;
+    - stun: stalker 60+, bat 30, giant bat 60;
+    - speed toggle: quantum mechanic;
+    - random intrinsic loss: disenchanter;
+    - 200 turns of hallucination: violet fungus, yellow mold;
+    - aggravate monster: dogs and cats;
+    - lycanthropy: human-form weres;
+    - cannibalism (Luck -2..-5, aggravate): dwarves, for a dwarven Valkyrie. Humans and elves are fine, and elves give sleep resistance.
+- **Fix:**
+  - POISONOUS now covers the full list (snakes, jellyfish, salamander, guardian naga, green dragon) and is allowed only when desperate.
+  - New BAD_EFFECT list is never eaten, even when desperate.
+  - Acid blobs are allowed when desperate at any age.
+  - Added a check to test_corpse.py.

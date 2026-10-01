@@ -43,8 +43,11 @@ WEAPON = re.compile(r'\b(' + '|'.join(WEAPON_RANK) + r')s?\b(?! corpse)')
 # pray.c: never offer own race (dwarf), a former pet, a co-aligned (white) unicorn; touching a cockatrice bare-handed stones you
 NEVER_OFFER = ('cockatrice', 'chickatrice', 'dwarf', 'kitten', 'housecat', 'large cat', 'little dog', 'large dog', 'dog corpse', 'pony', 'horse', 'white unicorn', 'Medusa', 'Death', 'Pestilence', 'Famine', 'were')
 UNKNOWN_BUC = lambda t: not re.search(r'\b(cursed|uncursed|blessed)\b|being worn|weapon in|gold piece|corpse', t)
-POISONOUS = ('killer bee', 'soldier ant', 'giant beetle', 'queen bee', 'homunculus', 'rabid rat', 'giant spider', 'scorpion', 'yellow mold', 'snake', 'gremlin', 'xan')  # monsters.h M1_POIS: Str loss or rnd(15) HP without poison res; a homunculus and a giant beetle took Str 17 -> 5 (T6625)
-NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy', 'dwarf', 'were', 'kobold', 'bat', 'ghoul', 'vampire', 'chameleon', 'dog', 'cat', 'kitten', 'acid blob', 'spotted jelly') + POISONOUS  # undead corpses are pre-aged: always tainted
+POISONOUS = ('killer bee', 'soldier ant', 'giant beetle', 'queen bee', 'homunculus', 'rabid rat', 'giant spider', 'scorpion', 'snake', 'water moccasin', 'pit viper', 'cobra', 'gremlin', 'xan', 'jellyfish', 'salamander', 'guardian naga', 'green dragon')  # monsters.h M1_POIS, eat.c 5.0: 4 in 5 cost rnd(4) Str + rnd(15) HP without poison res (dwarven Valks have none); a homunculus and a giant beetle took Str 17 -> 5 (T6625)
+# eat.c 5.0 cpostfx: polymorph (chameleon, doppelganger, genetic engineer), helpless 20-50 turns as gold (mimics), stun 60+ (stalker), speed toggle (quantum mechanic),
+# random intrinsic loss (disenchanter), 200 turns hallucination (violet fungus, yellow mold, which is poisonous too)
+BAD_EFFECT = ('doppelganger', 'genetic engineer', 'mimic', 'stalker', 'quantum mechanic', 'disenchanter', 'violet fungus', 'yellow mold')
+NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy', 'dwarf', 'were', 'kobold', 'bat', 'ghoul', 'vampire', 'chameleon', 'dog', 'cat', 'kitten', 'acid blob', 'spotted jelly') + POISONOUS + BAD_EFFECT  # undead corpses are pre-aged: always tainted
 # pray.c critically_low_hp: the major-trouble line prayer fixes
 LOW_HP = lambda s: s.get('hp', 1) <= 5 or s.get('hp', 1) * (5 if s.get('xl', 1) <= 5 else 6 if s.get('xl', 1) <= 13 else 7 if s.get('xl', 1) <= 21 else 8 if s.get('xl', 1) <= 29 else 9) <= min(s.get('hpmax', 1), 15 * s.get('xl', 1))
 STRATEGY = ("You are a dwarven Valkyrie (NetHack 5.0): strong melee, cold resistant, infravision; stealthy from XL 3, fast from XL 7. Gnomes and dwarves (the Mines) are peaceful to you. Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. Each monster in view shows its AC, attacks and, for the dangerous ones, a 'Fight if ...; avoid if ...' rule: follow it. "
@@ -763,7 +766,7 @@ class Bot:
             why = ' Packed food is rare and most deaths so far were fainting from hunger: eating fresh kills now, even when not hungry, is what keeps you alive later.'
             # eat.c: rotted = age / (10 + rn2(20)), +2 if cursed; > 5 tainted (never before age 60 uncursed), > 3 only rnd(8) HP: so < 50 is safe, and arrival from 15 steps at < 35 stays under it (one Jev ate nothing for 1650 turns of kills, fainted, T4698)
             # lichens and lizards never rot; starving with no prayer left, a maybe-tainted corpse beats certain death (walked past a floating eye corpse, fainted to a bat)
-            if here and (age < 50 or re.search(r'lichen|lizard', here[0]) or s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts and age < 60):  # eat.c: tainted when age/(10+rn2(20)) > 5, never below 60 uncursed; a 234-turn horse killed a Weak Jev (T6692)  # a destroyed zombie's corpse is pre-aged: always tainted, Weak Jev ate one and died of food poisoning (T2797)
+            if here and (age < 50 or re.search(r'lichen|lizard|acid blob', here[0]) or s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts and age < 60):  # eat.c: tainted when age/(10+rn2(20)) > 5, never below 60 uncursed; a 234-turn horse killed a Weak Jev (T6692)  # a destroyed zombie's corpse is pre-aged: always tainted, Weak Jev ate one and died of food poisoning (T2797)
                 opts['eat_corpse'] = (f"Eat the {here[0]} here", f"Eat {here[0]} on this square. It appeared about {age} turns ago (old corpses can be rotten or poisonous).{why}", self.act_eat_corpse)
             fresh = [p for p, t0 in lv.corpses.items() if p != me and p in dist and s.get('turn', 0) - t0 < 35 and dist[p] < 10]
             if fresh and not here and not near and 'goto_corpse' not in opts:
@@ -2141,7 +2144,7 @@ class Bot:
         return 'going to search: ' + r
 
     def never_eat(self):
-        return tuple(n for n in NEVER_EAT if not (n in ('kobold', 'bat', 'dog', 'cat', 'kitten') + POISONOUS and self.run.get('desperate')))  # bat only stuns, pets only aggravate (eat.c): Weak with no prayer, explored off a 50-turn giant bat corpse, fainted, dead (T1956)
+        return tuple(n for n in NEVER_EAT if not (n in ('kobold', 'bat', 'dog', 'cat', 'kitten', 'acid blob') + POISONOUS and n not in BAD_EFFECT and self.run.get('desperate')))  # bat only stuns, pets only aggravate (eat.c): Weak with no prayer, explored off a 50-turn giant bat corpse, fainted, dead (T1956)
 
     def unseen_attacker(self):
         return any(re.search(r"\b(It|ghost) (hits|bites|touches|stings|butts|kicks|misses)|feel an unseen monster|You hear a nearby zap|The bolt of \w+ hits you", m) for m in self.run['recent'][-2:]) \
