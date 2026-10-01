@@ -46,11 +46,14 @@ UNKNOWN_BUC = lambda t: not re.search(r'\b(cursed|uncursed|blessed)\b|being worn
 NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy', 'dwarf', 'were', 'kobold', 'bat', 'ghoul', 'vampire', 'chameleon', 'dog', 'cat', 'kitten', 'acid blob', 'spotted jelly')  # undead corpses are pre-aged: always tainted
 # pray.c critically_low_hp: the major-trouble line prayer fixes
 LOW_HP = lambda s: s.get('hp', 1) <= 5 or s.get('hp', 1) * (5 if s.get('xl', 1) <= 5 else 6 if s.get('xl', 1) <= 13 else 7 if s.get('xl', 1) <= 21 else 8 if s.get('xl', 1) <= 29 else 9) <= min(s.get('hpmax', 1), 15 * s.get('xl', 1))
-STRATEGY = ("You are a dwarven Valkyrie: strong melee, cold resistant, stealthy, infravision. Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. "
-            "Fight weak monsters in melee; do not melee floating eyes (blue 'e') or cockatrices ('c' yellow) bare-handed. "
-            "Prayer fixes low HP (below 1/7 max or below 6) and weakness from hunger, but only about once per 1000 turns; "
-            "the first prayer is safe after roughly turn 300. Elbereth engraved in the dust scares most melee monsters "
-            "(not @ humans or minotaurs) until you attack from it. Collect gold: a temple priest sells permanent AC for about 400-500 gold per experience level; keep 2000-4000 after that for shops. Eat when Hungry. Food is scarce and fainting kills: eat fresh corpses of what you kill (not cockatrices, not old ones). Explore each level for useful items, "
+STRATEGY = ("You are a dwarven Valkyrie (NetHack 5.0): strong melee, cold resistant, infravision; stealthy from XL 3, fast from XL 7. Gnomes and dwarves (the Mines) are peaceful to you. Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. "
+            "Fight weak monsters in melee; do not melee floating eyes (blue 'e') or cockatrices ('c' yellow) bare-handed. Against a group, fight from a corridor or doorway so only one or two reach you. Back off to heal at half HP, not at 1 HP. "
+            "Prayer fixes low HP (at or below 1/5 of max at XL 1-5, 1/6 at XL 6-13, or 5 HP) and Weak hunger, but only about once per 1000 turns; "
+            "the first prayer is safe after roughly turn 300. Elbereth in the dust (fails about 1 time in 4: check it) stops melee from most monsters, "
+            "not @ humans or elves, minotaurs, shopkeepers or peacefuls; a scared monster with nowhere to flee can still hit you, and attacking, throwing or zapping from it erases it. "
+            "Collect gold: a temple priest sells permanent AC for about 400-500 gold per experience level; keep 2000-4000 after that for shops. "
+            "Food is scarce (killed monsters no longer drop food): eat fresh corpses of what you kill (not cockatrices, kobolds or old ones), keep packed food for emergencies, never start eating while Satiated, eat when Hungry. "
+            "Open chests and large boxes: early ones often hold potions of healing. Explore each level for useful items, "
             "then take the downstairs. A good pace is dungeon level no deeper than experience level + 1 early on. "
             "Wear armor you find if it covers an empty slot. The ultimate goal is to retrieve the Amulet and ascend.")
 
@@ -448,7 +451,7 @@ class Bot:
             return ''
         d = lv[0] - (self.snap.status.get('xl') or 1)  # the -1 called an owlbear (difficulty 7) 'weaker' than XL 7; it killed Jev from 70 HP
         rel = 'much weaker than you' if d <= -3 else 'weaker than you' if d < 0 else 'about your level' if d <= 1 else 'stronger than you' if d <= 4 else 'much stronger than you'
-        extra = {'rope golem': '; grabs and chokes (no Elbereth or escape once held): do not step up to it, let it come or throw', 'owlbear': '; grabs and crushes 2d8 a turn (no Elbereth once held): do not step up to it, let it come or throw', 'gargoyle': '; AC -4 and three attacks for up to 28 damage a turn: do not trade melee hits when hurt, Elbereth stops it', 'floating eye': '; harmless, but never melee it (paralysis)', 'gelatinous cube': '; hitting it paralyzes you, its touch too: shoot it or walk away (it is slow)', 'gas spore': '; explodes for 4d6 (up to 24 damage) when killed: throw things at it from 2+ squares away (the blast hits every square next to it) or walk away, melee only with 30+ HP'}.get(name, '')
+        extra = {'rope golem': '; grabs and chokes (no Elbereth or escape once held): do not step up to it, let it come or throw', 'owlbear': '; grabs and crushes 2d8 a turn (no Elbereth once held): do not step up to it, let it come or throw', 'mumak': '; its butt is the hardest single hit in the early game (4d12): do not trade blows with it, it is slow (speed 9), walk away or use Elbereth', 'gargoyle': '; AC -4 and three attacks for up to 28 damage a turn: do not trade melee hits when hurt, Elbereth stops it', 'floating eye': '; harmless, but never melee it (paralysis)', 'gelatinous cube': '; hitting it paralyzes you, its touch too: shoot it or walk away (it is slow)', 'gas spore': '; explodes for 4d6 (up to 24 damage) when killed: throw things at it from 2+ squares away (the blast hits every square next to it) or walk away, melee only with 30+ HP'}.get(name, '')
         return f' (difficulty {lv[0]}, speed {lv[1]}, {rel}{extra})'
 
     # ---------- inventory ----------
@@ -604,7 +607,7 @@ class Bot:
         # a pyrolisk's fire gaze reaches across the room and Elbereth does nothing about it (wiki); it is slow (6) with a 1d6 bite: close in.
         # Waited on Elbereth 2 squares from one at 16/75 while it gazed, dead (T7302)
         for m in near[:2] if not (danger or hp * 2 < hpmax or pack or hallu and hp < 0.8 * hpmax) else [m for m in near if 'pyrolisk' in m['name']]:  # walking into a fight at a third of max HP killed three giant-bat runs; at 18/47 closed in on a giant ant + werejackal, 18 -> 6, failed prayer (T4446)
-            if m['dist'] > 1 and m['pos'] in dist and not re.search(r'unicorn|yellow light|nymph|rope golem|owlbear', m['name']) and 'stronger' not in self.threat(m):  # polymorphed weak, left Elbereth to close on a giant ant with a giant spider near: dead (T5835); let them come, first hit is ours  # nymph: stepping up to one cost a shield and a helm in one game, AC 10, dead (T6402); throw or let her come  # yellow light: its explosion blinds 10d20 turns, 5 of 6 blind deaths; throw instead (wiki). unicorn: speed 24, keeps its distance, butt+kick took 24 HP in one turn
+            if m['dist'] > 1 and m['pos'] in dist and not re.search(r'unicorn|yellow light|nymph|rope golem|owlbear|mumak', m['name']) and 'stronger' not in self.threat(m):  # polymorphed weak, left Elbereth to close on a giant ant with a giant spider near: dead (T5835); let them come, first hit is ours  # nymph: stepping up to one cost a shield and a helm in one game, AC 10, dead (T6402); throw or let her come  # yellow light: its explosion blinds 10d20 turns, 5 of 6 blind deaths; throw instead (wiki). unicorn: speed 24, keeps its distance, butt+kick took 24 HP in one turn
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
         strong = False
         open_n = lambda q: sum(snap.walkable(q[0] + dx, q[1] + dy) for dx, dy in DIRS.values())
@@ -789,6 +792,9 @@ class Bot:
             if shop or 'for sale' in item or 'corpse' in item or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
+        box = next((i for i in self.here_items() if re.search(r'\b(chest|large box)\b', i) and 'for sale' not in i), None)
+        if box and not shop and not any(m['dist'] <= 6 for m in hostiles) and self.run.setdefault('looted', {}).get((s.get('dlvl'), me), 0) < 2:  # 5.0 mklev.c: 2/3 of levels above the Oracle get a box, half with healing potions; the Mines entry level's always has food
+            opts['loot'] = (f"Open {box} and take what is inside", 'Boxes on early levels often hold potions of healing, enchant scrolls or food. If it is locked, force it with your weapon (takes a few turns; a bashed box can break its potions).', self.act_loot)
         if 'Burdened' in s.get('conditions', []) or 'Stressed' in s.get('conditions', []):
             for it in self.inventory:
                 if (HEAVY.search(it['text']) or JUNK.search(it['text'])) and not re.search(r'weapon in|being worn|alternate weapon|mithril|at the ready|quiver|pick-axe|mattock', it['text']):
@@ -1822,6 +1828,31 @@ class Bot:
         self.run['here'][key] = self.look_here()
         self.read_inventory()
         return f'picked up {item}'
+
+    def act_loot(self):
+        key = (self.snap.status.get('dlvl'), self.snap.me)
+        self.run.setdefault('looted', {})[key] = self.run['looted'].get(key, 0) + 1
+        seen = ''
+        for cmd in ('#loot\r', '#force\r', '#loot\r'):  # lock.c doforce: a non-blade weapon bashes (1 in 3 destroys the box), so loot first
+            self.t.send(cmd)
+            for _ in range(12):
+                lines = self.t.lines()
+                kind, text = top_prompt(lines)
+                seen += ' ' + lines[0].strip()
+                if kind == 'menu':
+                    self.t.send('o' if 'Do what with' in text else 'aA\r' if 'what type' in text else '.\r' if 'Take out what' in text else '\x1b')
+                elif kind == 'more':
+                    self.t.send('\r')
+                elif kind in ('yn', 'ask'):
+                    self.t.send('y' if re.search(r'loot it\?|force its lock\?', text) else '\x1b')
+                else:
+                    break
+            if cmd == '#loot\r' and 'locked' not in seen or cmd == '#force\r' and not re.search(r'You succeed|totally destroyed', seen):
+                break
+        self.observe()
+        self.read_inventory()
+        self.run['here'][key] = self.look_here()
+        return ' '.join(seen.split())[-150:] or 'looted'
 
     def act_altar(self, q):
         r = self.act_go(q)

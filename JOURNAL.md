@@ -1732,3 +1732,23 @@ User: "still taking on multiple monsters at once. instead of standing on elberet
 - `choke` ("Fight from a corridor") was offered only when off Elbereth. It's now offered on Elbereth too, the reach is 15 steps (was 8), and while HP ≥ 50% it replaces the Elbereth engrave/wait options.
 - Once in a corridor/doorway square (≤2 open neighbours) with 2+ monsters near, Elbereth is no longer offered above 50% HP: fight them one at a time there. Below 50% Elbereth comes back.
 - Hosted 112847 (killed by a mumak T8267, Dlvl 8): sat on Elbereth at 82/83 inside a tiny ring shop while 4 soldier ants circled. Then a mumak walked up and hit it to death, 83 -> 67 -> 28 -> dead. There was no reachable corridor (ants adjacent, shopkeeper at the door), so this fix wouldn't have saved it.
+
+## Strategy revisit: wiki x 5.0.0 source (user request)
+Re-read the wiki Strategy hub and its subpages (Standard strategy, Why do I keep dying?, Going to die next turn, Valkyrie, Movement tactics, Elbereth, Protection racket, Nutrition, Prayer/Trouble, plus soldier ant, nymph, yellow light, raven, owlbear, rope golem, mumak), and checked fixes5-0-0/5-0-1 against build/NetHack50/src.
+
+5.0 differences that matter here (verified in source):
+- mon.c make_corpse: a kill's random drop is deleted if it is food. Corpses are the main food source.
+- mklev.c: 2/3 of levels above the Oracle get a chest or large box (5/6 locked), about half with potions of healing; the Mines entry level's box always has food. The bot never opened boxes (they're in HEAVY), so this was the biggest gap.
+- monmove.c panicattk: a scared monster with nowhere to go still attacks. Elbereth is not a guarantee. Scaring does **not** erode it in 5.0; fighting, the per-turn random wipe and monsters standing on it do.
+- attrib.c: Valkyrie stealth is XL 3, not XL 1; speed is XL 7. The starting weapon is a +1 (dwarvish) spear, not a long sword.
+- eat.c: the first Weak -> Fainting always faints; starvation comes sooner (-(100+10 Con)).
+- pray.c critically_low_hp: 1/5 at XL 1-5, 1/6 at XL 6-13 (LOW_HP already matched; the strategy text said 1/7).
+- priest.c donation (already implemented): pay the larger "suggested" sum.
+
+Changes:
+- New `loot` option: standing on a chest or large box with no hostile within 6, `#loot` it. If it's locked, `#force` it with the wielded weapon (lock.c: a spear bashes, and 1 time in 3 the box is destroyed and its potions break), then loot. In the menus: 'o', then 'a'+'A' (all types plus auto-select; 'A' alone is rejected without paranoid_confirm:A), or '.' to select all. Two tries per box.
+- STRATEGY text rewritten for 5.0: correct prayer threshold, stealth/speed XLs, Elbereth caveats (who ignores it, panic attacks, erased by any attack from it, ~1 in 4 engrave failure), corridor fighting, heal at half HP, food (no kill drops, corpses, never eat Satiated, avoid kobolds), open boxes.
+- Mumak: threat warning (4d12 butt, slow: walk away or Elbereth) and no "close in" option. Hosted 112847 died to one.
+- Hosted 113219 (imp T7465, fainted): Hungry for ~6000 of 7465 turns. It prayed for food 4 times, the last only 787 turns after the previous one ("Tyr is displeased"), then fainted with no food and 37 gold. Box food/potions and a fuller food policy are the lever.
+
+Not done (noted): blindfolding against yellow lights/ravens (no blindfold logic yet), mirror vs nymphs, throwing food to tame hostile d/f, kicking gray stones before picking them up.
