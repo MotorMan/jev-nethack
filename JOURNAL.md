@@ -1598,3 +1598,6 @@ Two floating eyes boxed it into a corridor. It stood on 8 rocks with no other mi
 
 ### kev-4b 20261001-093854: Aleax on Dlvl 9, XL 8 (T10337), the best kev-4b run of the session
 A chameleon (seen as a "peaceful displacer beast", then as an arch-lich) cast summon monsters next to it, bringing an Aleax, an owlbear and a tengu. The Aleax is a lawful minion, which onscary exempts from Elbereth. A prayer at 4 HP worked, but the Aleax took 77 HP to 19 in three turns, with the upstairs 47 steps away. Bad luck, no fix.
+
+### Hosted 20261001-092455: Woodland-elf on Dlvl 6 (T20657) after 13,000 turns stuck on Dlvl 2
+It prayed as a gamble at 12/82, 377 turns after the last prayer, and the elf killed it mid-prayer. The bigger loss was turns 2,500 to 15,500 on Dlvl 2 with the downstairs unfound. Several floating eyes sat in the corridors to the unexplored east side. There were 307 wait_eye turns, 1230 search_hidden turns, 160 rounds of the "Pardon me, Pakka Pakka" pay loop, and dead_end trips up to Dlvl 1 and back. Most of this is covered by today's fixes: Elbereth before wait_eye, rocks against eyes, and Pardon me no longer meaning debt. The game was resumed under each restart, so it ran a mix of old and new code.
