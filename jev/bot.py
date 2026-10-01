@@ -873,7 +873,7 @@ class Bot:
         if len(snap.find('{')) >= 4:  # the Oracle's four fountains: Sokoban's entrance is the second '<' one level down
             self.run['oracle'] = s.get('dlvl')
         soko_hunt = s.get('dlvl') == (self.run.get('oracle') or -9) + 1 and len(snap.find('<')) < 2 and not self.run.get('soko_done') and self.frontiers(dist)
-        if soko_hunt or s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 or s.get('hp', 1) < 0.8 * s.get('hpmax', 1) or s.get('ac', 0) >= 9 and s.get('dlvl', 1) >= 4:  # stripped by nymphs to AC 10, Jev went down to Dlvl 7 and died to a Woodland-elf (T6265)  # rest first; fleeing downward from a fight at this depth is how the pony and giant ant runs ended
+        if soko_hunt or s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 and not (s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts) or s.get('hp', 1) < 0.8 * s.get('hpmax', 1) or s.get('ac', 0) >= 9 and s.get('dlvl', 1) >= 4:  # stripped by nymphs to AC 10, Jev went down to Dlvl 7 and died to a Woodland-elf (T6265)  # Weak with no prayer: a new level has corpses, staying only starves (searched Weak -> Fainting beside '>', T2566)  # rest first; fleeing downward from a fight at this depth is how the pony and giant ant runs ended
             pass
         elif self.standing_on() == '>':
             opts['descend'] = ('Go down the stairs', f"You are on the down staircase to Dlvl {s.get('dlvl', 0) + 1}.", lambda: self.act_keys('>', 'descended'))
@@ -1047,6 +1047,14 @@ class Bot:
             downs = []
         if not opts and downs:  # the pace gate is advice; idle-searching a cleared level only burns food (one run searched 400+ turns in a corridor)
             opts['descend'] = ('Take the downstairs anyway', f"Nothing else is reachable on this level. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
+        rec = self.run.get('recent', [])
+        trap_i = max((i for i, t in enumerate(rec) if re.search(r'bear trap closes on your|caught in a bear trap', t)), default=-1)
+        if trap_i > max((i for i, t in enumerate(rec) if 'wriggle free' in t), default=-1) and not any(m['dist'] <= 1 and not m['passive'] for m in hostiles):
+            # hack.c trapmove: every diagonal move try frees a bear-trapped foot a step (orthogonal 1 in 5); searching never does. Searched 60 turns trapped 2 steps from '>', Weak -> Fainting, dead (T2566)
+            d = next((k for k in 'yubn' if snap.at(me[0] + DIRS[k][0], me[1] + DIRS[k][1]).ch in '.#<>{_' and (me[0] + DIRS[k][0], me[1] + DIRS[k][1]) not in [m['pos'] for m in hostiles]), None)
+            if d:
+                opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'quaff_', 'attack_', 'throw_', 'zap_'))}
+                opts['escape_trap'] = ('Pull free of the bear trap', 'Your foot is caught in a bear trap. Each diagonal move attempt loosens it; searching or waiting never does.', lambda d=d: self.act_escape_trap(d))
         if not opts:
             # nothing to do usually means level memory has walled us in (once for 7800 turns): forget it and look again
             lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
@@ -1204,6 +1212,16 @@ class Bot:
         self.t.send(keys)
         self.after_move(before)
         return what
+
+    def act_escape_trap(self, d):
+        me, hp = self.snap.me, self.snap.status.get('hp')
+        for _ in range(8):  # trap.c: rn1(4, 4) diagonal tries at most
+            self.act_keys(d, '')
+            if any('wriggle free' in t for t in self.run['recent'][-2:]) or self.snap.me != me:
+                return 'pulled free of the bear trap'
+            if self.snap.status.get('hp') != hp:
+                return 'took damage while caught in the bear trap'
+        return 'still caught in the bear trap'
 
     def act_fight(self, d):
         before = self.snap

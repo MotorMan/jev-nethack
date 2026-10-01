@@ -1177,3 +1177,9 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - Engraving in rat form used no time. act_elbereth logged that as "the attack interrupted the engraving" and blamed the adjacent rothe. Back in dwarf form, that blocker held Elbereth off for 5 turns, and the rothe took Jev from 30 to 0.
 - **Fix:** if nothing got written and the turn didn't advance, the result is "could not engrave in this form", with no interruption and no blocker.
 - Still open: nymph theft (garbled Elbereth with the nymph adjacent).
+
+### Run 20261001-021239: werejackal while fainting, T2566 (Dlvl 5)
+- Jev prayed for Weak at T1604 and went Weak again at T2454 with no food. The pace gate (Dlvl 5 with XL 4) blocked the stairs, which were 2 steps away, so it searched for about 60 turns until it was Fainting. Its 909-turn prayer then failed ("Thou art arrogant"), and it lost a level.
+- A bear trap also held it for a few turns. Searching never frees you; per hack.c, each diagonal move attempt loosens the trap.
+- **Fix 1:** when Weak or Fainting with no prayer offered, the pace gate no longer blocks descending, since a new level means fresh corpses.
+- **Fix 2:** when caught in a bear trap with nothing adjacent, Jev is offered 'escape_trap', which repeats diagonal moves up to 8 times.
