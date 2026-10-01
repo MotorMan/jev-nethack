@@ -1853,3 +1853,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** 4 turns after arriving on Dlvl 5, a leprechaun, a wererat in @ form, a centipede, giant rats, a fox, a rothe and others boxed the bot in. The adjacent @ blocked Elbereth (correct, since @ ignores it). The mob rule kept only the attack on the highest-difficulty neighbour, the centipede, and never the wererat. HP went 51 -> 31 -> 24 -> 4; the prayer at T1233 came too late.
 - **Wiki/source:** Wererat page: kill weres fast. mhitu.c (5.0): a were summons help on 1 in 10 of its attacks, in either form, so while it lives the crowd keeps growing.
 - **Fix:** when mobbed, attack a were-creature first, then fall back to highest difficulty. STRATEGY updated.
+
+## 20261001-133253 — wolf while praying, T3894, Mines Dlvl 6 (XL 6)
+- **Cause:** a werewolf's bite infected the bot at T3725 ("You feel feverish"). The prayer at T3742 went to low HP (pray.c fixes TROUBLE_HIT before TROUBLE_LYCANTHROPE), so the lycanthropy stayed. At T3760 it turned into a 26-HP werewolf, Weak and Stressed with no food. In that form, "descend anyway" took it down twice, into the werewolf and its summoned wolves. It was Fainting when it prayed 150 turns after the last prayer; the prayer failed and it died praying.
+- **Wiki (Lycanthropy):** cure it by prayer (major trouble), holy water or wolfsbane; avoid melee with animal-form weres. In animal form you are weak, so don't go deeper.
+- **Fix:** no descend or "anyway" descend while polymorphed (`exp is None`). STRATEGY note on avoiding were bites and staying put in animal form.
