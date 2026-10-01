@@ -1163,3 +1163,11 @@ Still open: repeated theft. The nymph rule can't see an invisible nymph.
 ## Giant spider while polymorphed (T5835, Dlvl 8)
 Jev was polymorphed into a weak form (10 HP) and standing on Elbereth with a giant spider (much stronger) 2 steps off. At full form-HP, 'wait' isn't forced, and kev-4b chose 'approach' toward a giant ant rated stronger. Jev stepped off Elbereth, the spider broke the form, and Jev died at 13/74.
 Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives Jev the first hit anyway.
+
+### Run 20261001-020036: fire ant while fainting, T5305 (Dlvl 7)
+- Jev prayed for low HP at T5169, then went Weak at T5227. With no prayer available, it sat on Elbereth about 60 turns at 25-32/65 HP, Weak and then Fainting, while a weak orc shaman (a fresh corpse) hovered nearby. Its gamble prayer at T5302 came too soon, and Tyr smote it.
+- **Fix:** when Weak or Fainting with no prayer offered and HP above 1/3, drop wait and rest so Jev has to fight or forage. The range-7 food exception on Elbereth now applies only while Weak.
+
+### Run 20261001-020734: iguana while fainting, T1898 (Dlvl 3)
+- A prayer at T1494 cured wererat lycanthropy. A werejackal bit Jev at T1565, it turned into a jackal and dropped its dagger, and it had no packed food. It searched for a hidden downstair while going Weak and then Fainting. The 300-turn Fainting prayer bet at T1799 (305 turns after the last prayer) lost: "Thou must relearn thy lessons".
+- This was mostly the rnz gamble, so no code change. Food supply is still the open problem.
