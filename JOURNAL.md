@@ -2037,3 +2037,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
   - New BAD_EFFECT list is never eaten, even when desperate.
   - Acid blobs are allowed when desperate at any age.
   - Added a check to test_corpse.py.
+
+## Run 20261001-165103 — killed by a jaguar (T3778, Dlvl 5, XL 3, AC 7)
+- **Cause:** the bot descended to Dlvl 5 at XL 3 (pace again). A jaguar (speed 15, three attacks) and a Green-elf shooting arrows took it 31 → 14. It then chose "Run for the upstairs" twice with the jaguar adjacent, taking free hits each step: 14 → 8 → 0. Elbereth was on offer and unused. Prayer was never used, but at 8/31 HP it doesn't count as major trouble (≤5 or under 1/7 HP).
+- **Wiki:** Elbereth stops the jaguar's melee. You can't outrun a faster monster, so walking away from it is worse than standing.
+- **Fix:** with Elbereth available, an Elbereth-respecting hostile faster than 12 adjacent, and '<' not adjacent, flee_up is dropped.

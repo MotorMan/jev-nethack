@@ -1322,6 +1322,9 @@ class Bot:
                     or k.startswith('zap_') and 'gamble' in opts['pray'][0] and re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', v[0])}  # chose an unknown black potion over a ~.7 prayer at 8/43: dead (T3559)
         if 'flee_up' in opts and len(opts) > 1 and all(h['choice'] == 'flee_up' and 'after 1 steps' in h['outcome'] for h in self.history[-2:]):
             opts.pop('flee_up')  # 4 one-step flee_ups between an elf mummy, a Woodland-elf and soldier ants, 55 -> 0, wand of fire and 2 healing potions unused (T8671)
+        if 'flee_up' in opts and 'elbereth' in opts and not any(dist.get(q, 99) <= 1 for q in self.snap.find('<')) \
+                and any(m['dist'] <= 1 and m['ch'] not in '@&' and 'minotaur' not in m['name'] and (MONSTERS.get(self.species(m)) or [0, 0])[1] > 12 for m in hostiles):
+            opts.pop('flee_up')  # walked for '<' with a jaguar (speed 15, 3 attacks) adjacent: 31 -> 14 -> 8 -> 0 in two steps, Elbereth unused (T3778)
         if LOW_HP(s) and 'teleport' in opts and 'pray' not in opts and any(m['dist'] <= 1 and not m['peaceful'] for m in hostiles):
             opts.pop('flee_up', None)  # walking off at 1/74 beside a Green-elf took a hit per step: dead with 13 unread scrolls (T7362)
         if s.get('hunger') in ('Weak', 'Fainting') and 'goto_corpse' in opts and not starving and not LOW_HP(s):  # Weak, a fresh corpse 10 steps off: dropped a helm, prayed 790 turns on (failed), explored, fainted, giant spider (T7451)
