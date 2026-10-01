@@ -1840,7 +1840,7 @@ class Bot:
         return tuple(n for n in NEVER_EAT if not (n == 'kobold' and self.run.get('desperate')))
 
     def unseen_attacker(self):
-        return any(re.search(r"\b(It|ghost) (hits|bites|touches|stings|butts|kicks|misses)|feel an unseen monster", m) for m in self.run['recent'][-2:]) \
+        return any(re.search(r"\b(It|ghost) (hits|bites|touches|stings|butts|kicks|misses)|feel an unseen monster|You hear a nearby zap|The bolt of \w+ hits you", m) for m in self.run['recent'][-2:]) \
             or self.snap.me and not any(cheb(q, self.snap.me) <= 1 for q in self.hostile_glyphs()) and any(re.search(r"\bThe [\w -]+ (hits|bites|stings|butts|kicks|touches|misses)!", m) for m in self.run['recent'][-1:])  # a named fire ant bit from a square the map never showed: 'rest' was the only option, 33 -> 0 (T5586)
 
     # ---------- Jev ----------

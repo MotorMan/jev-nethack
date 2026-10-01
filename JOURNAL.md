@@ -1323,3 +1323,6 @@ A fire ant kept biting Jev while the map showed it 3 squares away or not at all.
 - A named "The X misses!" now also counts as an unseen attack.
 - The corridor option no longer suppresses Elbereth while an unseen attacker is hitting.
 - While an unseen attacker is active, explore, search, rest, door, goto and corridor options are dropped.
+
+## Run 20261001-053341: hill orc, praying on T4145 (Sokoban)
+An unseen hill orc zapped a wand of lightning, and the flash blinded Jev. 'Rest' was the only option offered between hits, because unseen_attacker() didn't count "You hear a nearby zap" or "The bolt of lightning hits you" as an attack. HP went 52 -> 30 -> 13 -> 7, then Jev prayed 300 turns after its last prayer and died. Fix: those two messages now count as an unseen attacker, so rest, explore and search are dropped. AC 5 with no escape items is still the underlying weakness.
