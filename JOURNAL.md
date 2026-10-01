@@ -1466,3 +1466,12 @@ Run 20261001-072918 died to a Green-elf at T3810.
 - Its fights there were with hill orcs, ettin and orc zombies, a soldier ant, and finally two Green-elves (they ignore Elbereth). The prayer at T3801 fully healed it, but the Green-elves took 48 HP in 5 turns.
 
 Bad luck rather than a decision bug. The chance of a fix is low: walking around to find '<' is already what explore does.
+
+## 2026-10-01 — Early gamble prayer: keep Elbereth on offer
+Run 20261001-073230 died to a jaguar at T7122 on Dlvl 6.
+
+- The jaguar took Jev from 51 to 11/69 in three turns, and one Elbereth came out garbled.
+- At 11 HP, LOW_HP cut the options to the gamble prayer alone, only 123 turns after the last prayer. That prayer failed.
+- rnz(350) puts that prayer near a coin flip, while a dust Elbereth lands about 72% of the time (1/25 typo per letter).
+
+Fix: when the prayer is a gamble under 200 turns after the last one, Elbereth stays alongside it. A replay at T7122 now offers ['elbereth', 'pray'] instead of ['pray'].
