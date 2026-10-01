@@ -473,8 +473,9 @@ class Bot:
             if m['dist'] == 1 and m['pos'] not in self.avoid and not (on_e and m['ch'] != '@' and 'minotaur' not in m['name']):
                 if m['name'] == "unknown '@'":
                     continue  # unidentified @ can be a shopkeeper or watchman: Jev hit Sarnen beside a mimic in her shop, wand of striking, dead (T5361)
-                if 'shrieker' in m['name'] and any(o['dist'] == 1 and 'shrieker' not in o['name'] for o in hostiles):
-                    continue  # no attacks: Jev hit a shrieker 3 turns while a werejackal and iguana killed it (T1402)
+                low = re.compile(r'shrieker|brown pudding|black pudding')
+                if low.search(m['name']) and any(o['dist'] == 1 and not low.search(o['name']) for o in hostiles):
+                    continue  # no attacks: Jev hit a shrieker 3 turns while a werejackal and iguana killed it (T1402); hit a brown pudding 4 times (iron splits it, uhitm.c) while an owlbear crushed it 53 -> 8, dead (T5320)
                 d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
                 opts[f'attack_{d}'] = (f"Attack {m['name']} ({DIR_NAME[d]})", f"Melee the adjacent {m['name']} to the {DIR_NAME[d]}.{danger}", lambda d=d: self.act_fight(d))
         nymph_throw = None  # nymphs stole a ration, spear, shield and slime molds in one game: hit them before they arrive
