@@ -1203,3 +1203,11 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 ### Run 20261001-022548: starved, T17559 (Dlvl 7 max)
 - Jev solved soko4. soko3's push counter reached 167 against a 166-push plan, but the level wasn't solved: '<' was unreachable. With st=None and no reachable ups, soko3 offered only the '>', while soko4 always offered soko_up. Jev ping-ponged between the two levels from about T6000 to T17559. It was Fainting the whole time and starved.
 - **Fix:** when a plan is finished on a level other than soko1 and no '<' is reachable, Jev replans from the screen (up to 3 tries) and otherwise sets soko_done. On this screen the replan returns [], so soko_done is set and normal play resumes.
+
+## 20261001-023613: cave spider, fainting, T9027, Dlvl 5
+- A nymph on Dlvl 4 triggered `leave_nymph` down into a weak pack on Dlvl 5, where the pack filter left only `upstairs`. That loop ran 14 times.
+- Then, polymorphed at 3/3 HP, Jev made a gamble prayer 179 turns after the last one and Tyr was displeased. With no prayer left, it later starved.
+- Fixes:
+  - A stair hop guard: 4 or more upstairs/flee_up/leave_nymph in the last 6 decisions disables the pack filter and leave_nymph.
+  - No gamble prayer while polymorphed (exp shows None). At 0 HP Jev only reverts to its normal form.
+- Also seen: the 5.0 hypocrite penalty (attacking from Elbereth, -5 alignment). It happened 4 times this game. Not fixed yet.

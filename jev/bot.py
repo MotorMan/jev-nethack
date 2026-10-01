@@ -604,7 +604,8 @@ class Bot:
                 opts['flee_up'] = ('Run for the upstairs', f"The up staircase is {dist[p]} steps {compass(me, p)}: walk there and climb. Only monsters right next to you follow.", lambda p=p: self.flee_up(lambda: self.act_descend(p, '<')))
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.flee_up(lambda: self.act_keys('<', 'went up')))
-        if (strong or pack) and ({'flee_up', 'upstairs'} & opts.keys()):  # a werewolf's summoned wolves (no M2_STALK: can't follow) took 34 -> 6 in a turn, '<' one step away (T5826)
+        hops = sum(h['choice'] in ('upstairs', 'flee_up', 'leave_nymph') for h in self.history[-6:]) >= 4  # leave_nymph down into a weak pack, flee up, leave again: 14 round trips, then a gamble prayer angered Tyr (T8484)
+        if (strong or pack) and not hops and ({'flee_up', 'upstairs'} & opts.keys()):  # a werewolf's summoned wolves (no M2_STALK: can't follow) took 34 -> 6 in a turn, '<' one step away (T5826)
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'explore'))}
         walled = len(dist) <= 3 and any(m['passive'] and m['dist'] == 1 for m in hostiles)  # boxed in by floating eyes
         # at 56/64 Jev wrote Elbereth instead of closing on a large kobold, which stood off and zapped lightning until it died (T9749)
@@ -653,8 +654,8 @@ class Bot:
         if trouble and not self.run.get('god_angry') and (fatal or starving or (turn - last >= {'Weak': 1000 if not any(m['dist'] <= 1 for m in hostiles) and turn - self.run.get('hit_turn', -99) > 2 else 500, 'Fainting': 300}.get(s.get('hunger'), 500) if last is not None else turn >= 110)):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else 'lycanthropy: you will turn into a jackal' if lyc and s.get('hunger') not in ('Weak', 'Fainting') else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
         # a fresh Elbereth beats a coin-flip prayer: 176 turns after praying, the forced gamble at 10/54 on a new Elbereth angered Tyr, dead to an Uruk-hai (T4295)
-        elif not self.run.get('god_angry') and (LOW_HP(s) or s.get('hunger') == 'Fainting' and any(m['dist'] <= 3 and not m['passive'] for m in hostiles)) and (any(m['dist'] <= 7 for m in hostiles) or self.unseen_attacker()) and last is not None and turn - last >= 100 \
-                and not (self.engraved_here() and s.get('hp', 1) > 5 and not shot and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in hostiles if m['dist'] <= 7)):  # a quasit's wand took 29 -> 0 from range; 3/54 HP 243 turns after a prayer, no gamble offered, dead (T5218). rnz(350)<=200+t is ~50% at t=100; failing angers Tyr, but death was certain
+        elif not self.run.get('god_angry') and s.get('exp') is not None and (LOW_HP(s) or s.get('hunger') == 'Fainting' and any(m['dist'] <= 3 and not m['passive'] for m in hostiles)) and (any(m['dist'] <= 7 for m in hostiles) or self.unseen_attacker()) and last is not None and turn - last >= 100 \
+                and not (self.engraved_here() and s.get('hp', 1) > 5 and not shot and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in hostiles if m['dist'] <= 7)):  # exp None: polymorphed, 0 HP only reverts form; gambled at 3/3 HD2 and angered Tyr (T8484)  # a quasit's wand took 29 -> 0 from range; 3/54 HP 243 turns after a prayer, no gamble offered, dead (T5218). rnz(350)<=200+t is ~50% at t=100; failing angers Tyr, but death was certain
             opts['pray'] = ('Pray to Tyr (gamble)', f"Last prayer was only {turn - last} turns ago: Tyr may well be angry (bad luck, maybe smiting). But {'fainting from hunger' if s.get('hunger') == 'Fainting' else 'at ' + str(s.get('hp')) + ' HP'} with a monster attacking, this may be the last chance.", self.act_pray)
 
         if not self.run.get('god_angry') and (turn - last >= 800 if last is not None else turn >= 300):  # prayer ready: fight on, pray at low HP
@@ -987,7 +988,7 @@ class Bot:
             p = max(ups, key=lambda u: cheb(u, lv.arrival or me))
             opts = {k2: v for k2, v in opts.items() if k2 == 'pray' or k2.startswith('eat_')}
             opts['enter_sokoban'] = ('Go up into Sokoban', f"This level has a second up staircase ({dist[p]} steps {compass(me, p)}): it leads to Sokoban, four puzzle levels with a known solution, safe food, rings, wands and a bag of holding or amulet of reflection at the top.", lambda p=p: self.act_descend(p, '<'))
-        if self.run.get('nymph_lvl') == s.get('dlvl') and downs and s.get('dlvl', 1) <= (s.get('xl') or 1) and not near and not m:
+        if self.run.get('nymph_lvl') == s.get('dlvl') and not hops and downs and s.get('dlvl', 1) <= (s.get('xl') or 1) and not near and not m:
             # a nymph teleports back for more: one wood nymph took shield, spear, bag, ration and egg over 500 turns
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat_')}
             opts['leave_nymph'] = ('Leave this level (a nymph lives here)', f"A nymph on this level keeps coming back to steal your things. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend.", lambda p=downs[0]: self.act_descend(p))
