@@ -767,7 +767,7 @@ class Bot:
         ew = next((it for it in self.inventory if re.search(r'\bwand\b', it['text']) and 'wand of' not in it['text'] and it['text'] not in self.run.setdefault('etested', set())), None)
         if ew and not hostiles and not LOW_HP(s) and s.get('hunger') not in ('Weak', 'Fainting') and 'Blind' not in s.get('conditions', []) and self.standing_on() not in ('<', '>', '_', '{', '#') and not self.soko():
             # wiki (Engrave-identification): digging, fire and lightning auto-identify; 3 unknown wands rode to a lightning death on Dlvl 10 with no '<' known (T5319)
-            opts = {f"engrave_id_{ew['letter']}": (f"Engrave-test {ew['text']}", 'Nothing hostile in view: engrave with the unknown wand to learn what it is (digging is an escape hole).', lambda it=ew: self.act_engrave_id(it))}
+            opts[f"engrave_id_{ew['letter']}"] = ((f"Engrave-test {ew['text']}", 'Nothing hostile in view: engrave with the unknown wand to learn what it is (digging is an escape hole).', lambda it=ew: self.act_engrave_id(it)))
         if 'eat_corpse' in opts and not near:  # taken 15 of 98 offers (explore won), and hunger is the top killer: eat it
             opts = {k: v for k, v in opts.items() if k in ('eat_corpse', 'pray')}
         elif 'goto_corpse' in opts and not near:  # passed up for explore/rest ~60% of the time; one Jev prayed 6 times for food in 7700 turns
@@ -1293,6 +1293,7 @@ class Bot:
         # Weak is only nutrition 1-50 (eat.c): 23 turns camping on Elbereth there fainted Jev into a kitten's jaws (T4709)
         if self.engraved_here() and s.get('hunger') not in ('Weak', 'Fainting') and (pack or s.get('hp', 1) < 0.75 * s.get('hpmax', 1)) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles) \
                 and not shot and not camped and not any('not protecting' in h['outcome'] for h in self.history[-6:]) \
+                and not (s.get('hunger') == 'Hungry' and not pack and sum(h['choice'] == 'wait' for h in self.history[-20:]) >= 15) \
                 and not any((m['ch'] == '@' and ('were' not in m['name'] or m['dist'] <= 1) or 'minotaur' in m['name']) and m['dist'] <= 7 for m in hostiles):  # an adjacent wererat in @ form hit through it while only 'wait' was offered: 12 -> 0 (T8786)  # a were-@ summons rats/jackals that do respect it: left Elbereth at 24/36 for a wererat, summoned rats 25 -> 0 in 2 turns (T1818)  # a bugbear threw daggers at a waiting Jev (Elbereth only stops melee): 13 -> 0 (T2350)  # a Woodland-elf (ignores Elbereth) walked up to a waiting Jev: 36 -> 0 (T7182)
             # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
             opts = {k: v for k, v in opts.items() if k in ('pray', 'flee_up', 'teleport') or k.startswith(('quaff_', 'eat', 'wear_'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}  # flee_up kept: 16 forced waits at 55/55 Hungry 2 steps from '<' while an orc horde gathered; Weak, prayer failed, pony 55 -> 0 (T5858)
@@ -1327,6 +1328,9 @@ class Bot:
             opts = {'pray': opts['pray']}
         if opts.get('pray', ('',))[0] == 'Pray to Tyr':  # a safe prayer fixes hunger with no 1-in-2 tripe vomiting (T3736)
             opts = {k: v for k, v in opts.items() if not (k.startswith('eat_') and 'tripe' in v[0])} or opts
+        eid = next((k for k in opts if k.startswith('engrave_id_')), None)
+        if eid and not hostiles:  # offered 39 times, explore always won: a balsa wand rode unknown to a fainting death (T7765)
+            opts = {eid: opts[eid]}
         return opts, mons
 
     def search_spot(self, dist):

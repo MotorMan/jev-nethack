@@ -1964,3 +1964,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: hallucinating at XL 6, AC 4, 35/60, it meleed a monster that showed as a random name each turn. It was a dwarf king (mattock d12): 35 -> 14 in one turn. Elbereth is never offered while hallucinating and 14/60 is not low-HP by the prayer rule, so it threw a dart and died to the next hit.
 - Wiki (Hallucination): you cannot judge monsters, so judge by damage taken. Elbereth works the same while hallucinating (only @ and minotaurs ignore it). Dwarves with mattocks are the classic early killer.
 - Fix: `big_hit` = the last turn's damage ≥ current HP with something adjacent. Then Elbereth is offered even while hallucinating, and if any escape (elbereth/retreat/flee_up/upstairs) exists, attack/throw/approach/rest/wait are dropped.
+
+## 20261001-154407 — killed by a rothe, fainted from lack of food (T7765, Dlvl 8)
+- Cause: no packed food, lived on corpses and prayer (prayed at 7408, 7552 for HP, then Fainting at 7694, too soon, so it failed). While Hungry at 30–40/63 it camped ~40 turns on Elbereth (forced wait) against a single rothe, which is both weaker and food. It went Weak, then Fainting in Minetown, and a rothe got it while it was out. Also, the engrave-test option was offered 39 times and never chosen.
+- Wiki (Nutrition): Hungry is the time to get food, not to rest. A rothe corpse is 100 nutrition and safe fresh. Elbereth-camping only trades HP regen for nutrition.
+- Fix: the forced Elbereth wait no longer applies while Hungry once 15 of the last 20 choices were waits (no pack). The engrave-test is forced when nothing hostile is in view.
