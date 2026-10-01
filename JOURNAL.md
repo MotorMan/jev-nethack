@@ -1159,3 +1159,7 @@ Fixes: while on Elbereth below half HP, the Weak food filter looks out to 7 squa
 An invisible water nymph took the +3 small shield (AC 10), and later a nymph took the daggers. Jev spent its last ~550 turns with no weapon and no armor, kept descending to Dlvl 7, and lost a bare-handed fight to a Woodland-elf and a dog. Prayer worked once (6 → 45), but the elf ignores Elbereth.
 Fix: no voluntary descent below Dlvl 4 at AC 9 or worse. The 'anyway' fallback is unchanged.
 Still open: repeated theft. The nymph rule can't see an invisible nymph.
+
+## Giant spider while polymorphed (T5835, Dlvl 8)
+Jev was polymorphed into a weak form (10 HP) and standing on Elbereth with a giant spider (much stronger) 2 steps off. At full form-HP, 'wait' isn't forced, and kev-4b chose 'approach' toward a giant ant rated stronger. Jev stepped off Elbereth, the spider broke the form, and Jev died at 13/74.
+Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives Jev the first hit anyway.
