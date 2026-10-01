@@ -642,8 +642,9 @@ class Bot:
                     opts['choke'] = ('Fight from a corridor', f"Walk {dist[choke]} steps {compass(me, choke)} to a corridor or doorway square, so the {len(pack_near)} monsters can only reach you one or two at a time.", lambda q=choke: self.act_go(q, steps=15, stop_new=False))  # the pack is already in view: stopping on each 'new' one left a Mines walk at 1 step, 3 times, between garbled Elbereths (T5005)
             # jabberwock (difficulty 18) at XL 8, '<' 2 steps away: stood and fought, 85 -> 0 (T8069). Non-stalkers never follow upstairs (mondata.c levl_follower)
             strong = any('much stronger' in self.threat(m) for m in near)
-            ups_near = sorted((p for p in snap.find('<') if dist.get(p, 99) <= (60 if strong or outrun else 8)), key=dist.get)  # speed boots beside a speed-8 giant zombie, '<' 12 steps off: Elbereth panic-attacks 91 -> 0 (T5790)  # a bones red dragon (speed 9) 3 steps off at XL 3: only explore was offered, breathed dead (T1893)
-            if (danger or strong or pack or outrun and hp < 0.5 * hpmax) and ups_near and self.standing_on() != '<' and s.get('dlvl', 1) > 1:
+            duo = sum(m['dist'] <= 2 and 'weaker' not in self.threat(m) for m in near) >= 2  # offered, not forced: two Woodland-elves at its level (ignore Elbereth): 55 -> 10 in 4 swings, no flee offered, '<' ~15 steps (T4650)
+            ups_near = sorted((p for p in snap.find('<') if dist.get(p, 99) <= (60 if strong or outrun else 20 if duo else 8)), key=dist.get)  # speed boots beside a speed-8 giant zombie, '<' 12 steps off: Elbereth panic-attacks 91 -> 0 (T5790)  # a bones red dragon (speed 9) 3 steps off at XL 3: only explore was offered, breathed dead (T1893)
+            if (danger or strong or pack or duo or outrun and hp < 0.5 * hpmax) and ups_near and self.standing_on() != '<' and s.get('dlvl', 1) > 1:
                 p = ups_near[0]
                 opts['flee_up'] = ('Run for the upstairs', f"The up staircase is {dist[p]} steps {compass(me, p)}: walk there and climb. Only monsters right next to you follow.", lambda p=p: self.flee_up(lambda: self.act_descend(p, '<')))
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
