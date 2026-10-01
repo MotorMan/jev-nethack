@@ -1377,3 +1377,6 @@ This run had good gear (splint mail, AC -1) and reached T8600. Jev came down to 
 
 ## Run 20261001-063709: orc in Orc Town, T4713 (Dlvl 7, XL 6, AC 8)
 A wood nymph stole the shield at T1696. Hunger went from Hungry to Fainting within 200 turns of a low-HP prayer, so Jev made two gamble prayers (T4476 and T4653). It ended up in Orc Town at AC 8. Stunned by an orc shaman, Jev swung 6 times and got "You attack thin air" (hack.c confdir: while Stunned every move goes in a random direction), then died at 24 -> 8 -> 0. Fix: while Stunned, Jev drops movement and attack options and gets "Wait out the stun" instead. Pray, quaff and upstairs remain. Random swings could also hit peacefuls without the confirm prompt.
+
+## Run 20261001-064301: werewolf (gamble prayer), T5767 (Dlvl 9, XL 6, AC 3)
+Jev reached Dlvl 9 with speed boots. Three of its five prayers went on being Weak (T1859, 3473, 4784): about 85 kills, mostly tiny monsters (newts, lichens, iguanas) that rarely leave corpses or give much nutrition, and 25 corpse meals. After a low-HP prayer at T5640, an orc mummy plus a werewolf in human form (@, which ignores Elbereth) took Jev to 7 HP while it was Weak. The gamble prayer 124 turns after the last one failed. No code change. The open problem is food supply: no rations bought, and gold is too low to buy them.
