@@ -821,3 +821,4 @@ Run 201512 died at T1847 on Mines 5 (XL4). A werejackal kept summoning jackals, 
 Run 201602 was killed by an ogre at T4539 on Dlvl 7 (XL6). Water nymphs stole the +3 small shield (AC 6 → 10) and later the +1 dwarvish spear. The bare-handed wield fallback then took "a cursed orcish dagger" over "an uncursed +0 dagger": both rank as daggers and the cursed one came first. A cursed weapon welds to your hands, and with d3 damage at AC 10 Jev lost to the ogre even after a successful prayer. The wield fallback now skips known-cursed weapons and prefers known uncursed/blessed ones at equal rank.
 
 Still open: Jev wore no armor for 900 turns after losing the shield (nothing to wear was found), and it never used the expensive camera or the two unknown wands in a losing fight.
+Unknown wands can now also be zapped at a monster that isn't weaker than Jev once HP is below half, not only at passive monsters. Same limit as before: 4 zaps per wand per level.

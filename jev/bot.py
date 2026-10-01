@@ -493,7 +493,8 @@ class Bot:
         if wand:  # walled in by floating eyes once for 13000 turns with an unknown wand in the pack
             for m in hostiles:
                 dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
-                if m['passive'] and (2 if 'gas spore' in m['name'] else 1) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
+                # also in a losing melee: two unknown wands stayed in the pack while an ogre took 69 -> 0 (T4539)
+                if (m['passive'] or hp < 0.5 * hpmax and 'weaker' not in self.threat(m)) and (2 if 'gas spore' in m['name'] else 1) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     opts[f'zap_{d}'] = (f"Zap {wand['text']} at {m['name']}", f"Zap wand {wand['letter']} {DIR_NAME[d]} at the {m['name']} {m['where']}. Unknown effect; many wands kill or move monsters, and it identifies the wand.", lambda l=wand['letter'], d=d, t=(wand['text'], s.get('dlvl')): (self.run['zaps'].__setitem__(t, self.run['zaps'].get(t, 0) + 1), self.act_throw(l, d, 'z'))[1])
         pack = len(near) >= 5 or len(near) >= 3 and sum((MONSTERS.get(self.species(m)) or [1])[0] for m in near) > 2 * (s.get('xl') or 1)  # 9 level-1 killer bees summed under 2 XL, '<' a step away: poisoned at 25/72 (T8697)  # stepped off Elbereth into four wargs: 69 -> 0 HP in 4 turns
