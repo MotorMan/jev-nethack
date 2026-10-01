@@ -841,3 +841,6 @@ Death reasons now come from `nethack/lib/xlogfile` (death, plus the `while` fiel
 
 ## 10:45 — Pony, while fainted
 Run 203259 (confirmed by the xlogfile) was killed by a pony at T4381 while fainted. Jev was still XL4 at T4300, so the pace cap kept it waiting on Dlvl 6 (Minetown) for ~900 turns, mostly explore/wait/rest. It bought the store's only affordable food, an 11-zorkmid apple, with 27 gold. The Fainting prayer came 946 turns after a good one and drew "Thou art arrogant" (prayer timeout still above 200, about a 6% chance at that gap). No code change. The pattern to watch is slow levelling plus the pace cap turning into hunger.
+
+## 10:55 — Lycanthropy, the slow way
+Run 203601 (XL7, Dlvl 6) was killed by a killer bee at T8224. A werejackal infected Jev about 400 turns after a prayer, so the cure had to wait for the timer. Jev spent ~550 of the next 700 turns as a 7-HP jackal (T7529-7811, T7844-8214). The T7895 prayer didn't cure it, and the T8019 one was a 124-turn low-HP gamble. The last prayer restored dwarf form at 31/77, and a killer bee finished it from 14 HP. The only cures are prayer, wolfsbane and holy water. Holy water would need the altar/BUC work to go further (bless water at a co-aligned altar). No change for now.
