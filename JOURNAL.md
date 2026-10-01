@@ -1190,3 +1190,7 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - At T4983 the gamble prayer was offered again: that elif branch never checked god_angry. Tyr cursed Jev's items ("black glow"), and a Woodland-elf's arrows finished it.
 - **Fix:** the gamble prayer now requires `not god_angry`.
 - Still open: nymph theft on a level with no known downstairs.
+
+### Run 20261001-022116: werejackal while praying, T2936 (Dlvl 3)
+- At 17/42 a werejackal and its summoned jackals attacked. Jev's attack from Elbereth erased the engraving, and the fight took it to 7/42. It took the gamble prayer 361 turns after a good one (roughly 70% odds by rnz(350)) and lost.
+- This was the dice, so no code change.
