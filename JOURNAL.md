@@ -1903,3 +1903,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** at 58/69 the bot stepped off Elbereth to explore, with its prayer 20 turns old. Two winter wolves (difficulty 9) took 58 -> 0 in 6 turns, about 10 HP a turn. Two unknown potions healed only a little. The tip said "Fight if over half HP", so the bot meleed them.
 - **Wiki:** winter wolves are a mid-game threat (difficulty 9, 2d6 bite). A Valkyrie resists the breath, but the bite alone outdamages an XL 6 at AC 7. They respect Elbereth.
 - **Fix:** winter wolf danger 1 -> 2, and the tip now says fight only at XL 10+ with AC 3 or better, and otherwise use Elbereth or the stairs early.
+
+## Run 20261001-143800: killed by a rope golem on T4257 (Dlvl 7, XL 6, AC 2)
+- **Cause:** a 130-turn bleed-out. The bot camped on Elbereth and rested among zombies, an ape, a giant ant, coyotes and a rope golem. Cornered monsters panic-attack anyway, so it slowly dropped 29 -> 1. The prayer at 12 HP did nothing. 4 unknown scrolls and an unknown wand stayed unused. The forced Elbereth-wait filter would have dropped a teleport option even if one had been offered.
+- **Wiki:** Elbereth is breathing room, not healing, in a busy spot. Once prayer is gone, unknown scrolls are a teleportation lottery worth taking.
+- **Fix:** with the prayer used (or the god angry), LOW_HP and a hostile within 3, offer reading an unknown scroll as 'teleport'. The forced Elbereth-wait filter now keeps 'teleport'.

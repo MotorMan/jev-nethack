@@ -1157,7 +1157,8 @@ class Bot:
                 opts['recover_gear'] = ('Go back for your dropped armor', f"Your armor and weapon fell off when you changed form. They lie {dist[g[1]]} steps {compass(me, g[1])}: walk there, pick them up and put them back on.", lambda p=g[1]: self.act_go(p))
         tp = next((it for it in self.inventory if 'scroll of teleportation' in it['text']), None)
         # a werewolf's summoned pack (7 wolves) took 47 -> 0 twice in 7 turns with 2 unknown scrolls in the pack (T3278): teleportation is the commonest escape scroll
-        if not tp and sum(m['dist'] <= 1 and not m['peaceful'] for m in hostiles) >= 3 and s.get('hp', 1) * 2 < s.get('hpmax', 1) and not self.soko():
+        # bled out 29 -> 0 over 100 turns of Elbereth/rest among zombies, apes and a rope golem, prayer used, 4 unknown scrolls unread (T4257)
+        if not tp and (sum(m['dist'] <= 1 and not m['peaceful'] for m in hostiles) >= 3 and s.get('hp', 1) * 2 < s.get('hpmax', 1) or no_god and LOW_HP(s) and any(m['dist'] <= 3 for m in hostiles)) and not self.soko():
             tp = next((it for it in self.inventory if re.search(r'scrolls? labeled', it['text'])), None)
         if tp and 'pray' not in opts and s.get('hp', 1) * 2 < s.get('hpmax', 1) and (near or self.unseen_attacker()) and not self.soko():
             opts['teleport'] = (f"Read {tp['text']}", 'Teleports you to a random spot on this level, away from whatever is hurting you.', lambda l=tp['letter']: self.act_read(l))
@@ -1286,7 +1287,7 @@ class Bot:
                 and not shot and not camped and not (self.history and 'not protecting' in self.history[-1]['outcome']) \
                 and not any((m['ch'] == '@' and ('were' not in m['name'] or m['dist'] <= 1) or 'minotaur' in m['name']) and m['dist'] <= 7 for m in hostiles):  # an adjacent wererat in @ form hit through it while only 'wait' was offered: 12 -> 0 (T8786)  # a were-@ summons rats/jackals that do respect it: left Elbereth at 24/36 for a wererat, summoned rats 25 -> 0 in 2 turns (T1818)  # a bugbear threw daggers at a waiting Jev (Elbereth only stops melee): 13 -> 0 (T2350)  # a Woodland-elf (ignores Elbereth) walked up to a waiting Jev: 36 -> 0 (T7182)
             # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
-            opts = {k: v for k, v in opts.items() if k in ('pray', 'flee_up') or k.startswith(('quaff_', 'eat', 'wear_'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}  # flee_up kept: 16 forced waits at 55/55 Hungry 2 steps from '<' while an orc horde gathered; Weak, prayer failed, pony 55 -> 0 (T5858)
+            opts = {k: v for k, v in opts.items() if k in ('pray', 'flee_up', 'teleport') or k.startswith(('quaff_', 'eat', 'wear_'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}  # flee_up kept: 16 forced waits at 55/55 Hungry 2 steps from '<' while an orc horde gathered; Weak, prayer failed, pony 55 -> 0 (T5858)
         # yellow light: its explosion is its attack (mhitu.c AT_EXPL); killing it does not explode (mon.c). On Elbereth in a crowd it can't flee, panic-attacks (monmove.c)
         # and blinds anyway: waited at 72/72 beside one, blinded, 3 unseen rothes 72 -> 0 (T5778). Wiki: kill it, or be blind already
         yl = [m for m in hostiles if 'yellow light' in m['name'] and m['dist'] == 1]
