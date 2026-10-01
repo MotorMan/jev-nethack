@@ -1272,3 +1272,6 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 
 ## Run 20261001-041036: magic missile from a gnome king, while praying (T2972, Dlvl 5, XL 4)
 Held a Mines doorway against about 15 monsters (bugbears, hobgoblins and gnomes). A kill left no one adjacent, so `explore_1` was offered and stepped into the room. HP went 22 → 12 → 5, and the prayer failed 600 turns after the last one. Fix: with 3 or more hostiles within 3 squares, drop explore, door, search and goto options. The XL 3 → Dlvl 5 descent came from the 'anyway' fallback after 800+ turns of searching, which works as designed.
+
+## Run 20261001-041408: elven arrow (T5416, Dlvl 7, XL 6)
+A Woodland-elf meleed Jev from 30 to 2 HP. The last prayer was only 90 turns old. "Zap the unknown long wand" was offered on every turn, but kev-4b always chose melee. On Elbereth at 3 HP, the elf (an @, which ignores Elbereth) shot it from out of view. Fix: below 1/3 HP with no prayer available, keep only zap, quaff, flee and Elbereth.
