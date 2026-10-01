@@ -1919,3 +1919,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** at 14/50 on Dlvl 6 (XL 4: descend pace again), Uruk-hai were shooting poisoned arrows from 4 steps. Shots skip the forced Elbereth wait, because Elbereth doesn't stop missiles. The bot explored away instead and stepped on a hidden land mine (rnd(16) damage, trap.c), which was lethal at 14 HP.
 - **Wiki:** a land mine is invisible until found or triggered. Wandering unexplored floor at low HP risks it, and the real fix is to rest before exploring. Breaking line of sight from archers is the right reaction to being shot.
 - **Fix:** none yet. This is about 12% bad luck on top of two open items: the descend pace (awaiting the user) and moving out of a shooter's line (still to do).
+
+## Run 20261001-150449: killed by a soldier ant on T5688 (Dlvl 8, XL 6, AC 5)
+- **Cause:** on Dlvl 8 at XL 6 (pace again), a soldier ant hit through Elbereth (a scuffed engraving or a cornered panic-attack). The bot then spent 6 turns alternating Elbereth (2 garbled), wait and a single attack while the ant took 58 -> 14. A zap and a prayer 331 turns after the last one followed. The prayer failed, a level was drained, and the bot died.
+- **Wiki:** you can't outrun a soldier ant (speed 18). Once Elbereth fails, every turn spent re-engraving is a free round for it, so fight back or use an escape item.
+- **Fix:** for 6 turns after "not protecting", the forced Elbereth wait no longer applies. If an attack is on offer and no escape item is, drop elbereth and wait so the bot commits to the fight.
