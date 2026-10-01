@@ -1619,7 +1619,7 @@ class Bot:
         return f'retreated {DIR_NAME[d]}' if self.snap.me != me else 'tried to retreat but did not move'
 
     def act_elbereth(self):
-        t0 = self.snap.status.get('turn')
+        t0, hp0 = self.snap.status.get('turn'), self.snap.status.get('hp', 0)
         self.t.send('E')
         if 'write with' in self.t.lines()[0]:
             self.t.send('-')
@@ -1647,6 +1647,9 @@ class Bot:
                 self.run['e_blockers'] = self.run.get('adj_names', ())  # a newt's hit blocked Elbereth against the rothe that came next: 19 -> 5, dead praying (T2568)
                 self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0
                 return 'nothing got written: the attack interrupted the engraving'
+            if self.snap.status.get('hp', 0) < hp0:  # hit mid-engraving: 5 'garbled' retries beside a gnome king, 19 -> 10, dead (T4230)
+                self.run['e_blockers'] = self.run.get('adj_names', ())
+                self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0
             return 'engraving came out garbled; not protected'  # engrave.c: each dust letter has a 1/25 typo, so a retry is a fresh ~72% shot; blocking retries after 2 garbles had 3 wolves bite 29 -> 0 (T2624)
         return 'engraved Elbereth'
 
