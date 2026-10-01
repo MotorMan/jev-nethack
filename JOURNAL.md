@@ -876,3 +876,6 @@ Jev died at XL6 on Dlvl 7, T5245, to a sewer rat. A wererat kept summoning sewer
 
 ## 13:10 — Yellow lights count as dread
 Two deaths in a row started with a yellow light. Run 212916 died to a rabid rat at T2307, Dlvl 6: Jev was blinded at T2246 and four unseen rats killed it through a prayer. Run 210625 was the blind-and-weaponless dog death. A yellow light's only attack is AT_EXPL AD_BLND 10d20 (monsters.h), and at speed 15 Jev cannot outrun it. The wiki's answers are a blindfold or killing it at range. Elbereth also holds it off, since the explosion is a melee attack and lights are not @ or minotaurs. Yellow lights within 5 squares now join the `dread` list, so Elbereth is offered, approaches are dropped, and Jev waits on the engraving.
+
+## 13:20 — Run 213120: don't step back from a wand
+Jev died at XL6 on Dlvl 6, T4400: "killed by a wand". A hill orc with a wand of striking took Jev from 24 to 5 HP. Its last prayer had been 86 turns earlier. Jev then retreated three times: a step back doesn't stop a zap, and one retreat landed on an Elbereth square, where melee is suppressed, so "retreat" was the only option left. Two changes: retreat is no longer offered while being shot or zapped (`shot`: within 3 turns of a throws/shoots/zaps message), and while being shot, standing on Elbereth no longer suppresses attacks.
