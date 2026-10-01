@@ -516,6 +516,8 @@ class Bot:
         shot = (s.get('turn') or 0) - self.run.get('shot_turn', -99) <= (20 if any(m['name'] == self.run.get('shooter') and m['dist'] <= 8 for m in hostiles) else 3)  # an Uruk-hai shot between Elbereth waits 4 turns apart: 16 -> 0 (T4338)  # one volley is 3-4 messages: "shoots 2 arrows", "1st hits", "2nd misses" pushed 'shoots' out of a 3-line window; Jev waited on Elbereth at 4 HP under Uruk-hai fire (T7290)
         near = [m for m in hostiles if m['dist'] <= 6 and not m['passive'] and (m['dist'] <= 1 or m['pos'] in dist or shot)]
         opts = {}
+        if shot and any(m['name'] == self.run.get('shooter') and 'weaker' in self.threat(m) for m in hostiles) and any('stronger' in self.threat(m) and m['dist'] <= 3 for m in hostiles):
+            shot = False  # a goblin's thrown dagger pulled Jev off Elbereth into a killer bee hive at 8/29, dead (T2693)
         hp, hpmax = s.get('hp', 1), s.get('hpmax', 1)
         danger = f" You are at {hp}/{hpmax} HP: one or two more hits could kill you." if hp * 3 < hpmax else ''
 

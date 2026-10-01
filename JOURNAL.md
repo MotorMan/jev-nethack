@@ -1116,3 +1116,7 @@ Fix: a garbled result no longer blocks the next Elbereth.
 ## Rothes on Mines 7 (T2767)
 Jev was XL 5 on Dlvl 7, too deep, so the forced 'ascend' rule fired. Two rothes were 2 steps away, and walking toward '<' gave them free hits (46 → 37). Elbereth then garbled, and the old garble block took Elbereth off the menu. Jev meleed down to 10 HP and prayed 349 turns after its last prayer, which was too soon, and died.
 Fix: 'ascend' is only forced when no active hostile is within 3 steps. The garble fix (d5cea06) covers the rest.
+
+## Killer bees: a goblin's dagger pulled Jev off Elbereth (T2693, Dlvl 5)
+Jev waited about 60 turns on Elbereth beside a beehive. It threw once and meleed once, which cost 37 → 8 HP and max HP 37 → 29 from poison, then re-engraved. While it waited, a goblin down the corridor threw an orcish dagger. The shooter memory from 56531d8 marked Jev as "shot" for 20 turns, so 'wait' wasn't offered, and Jev explored off Elbereth into the bees.
+Fix: when the shooter is weaker than Jev and a stronger monster is within 3 squares, Jev stays on Elbereth: the bees are a far bigger risk than a goblin's d3 dagger. A replay of T2691 showed only 'explore' before the change and offers 'wait' after it.
