@@ -100,10 +100,10 @@ class Jev:
         s['calls'] += 1
         s['cost_usd'] += 0 if self.local else tokens * USD_PER_INPUT_TOKEN
         s['latency_total_ms'] += ms
-        s['last_model'] = resp.get('model')
+        s['last_model'] = os.environ.get('JEV_LABEL') or resp.get('model')  # Kev just echoes the requested 'jev-latest'
         os.makedirs(os.path.dirname(self.ledger), exist_ok=True)
         json.dump(s, open(self.ledger, 'w'))
-        return answers, dict(latency_ms=round(ms), model=resp.get('model'), input_tokens=tokens)
+        return answers, dict(latency_ms=round(ms), model=s['last_model'], input_tokens=tokens)
 
     def summary(self):
         s = self.stats

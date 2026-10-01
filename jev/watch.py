@@ -30,7 +30,8 @@ def frame(s):
     w, rows = shutil.get_terminal_size()
     st, d, j, run = s['status'], s['decision'], s['jev'], s['run']
     model = (run.get('models') or [run.get('engine') or j.get('last_model') or 'Jev'])[-1]  # the version the engine reports (jev-1.13.0, a Jeff checkpoint...)
-    lines = [f"{BOLD}{st.get('name') or 'Jev'} plays NetHack{RST} on {BOLD}\x1b[96m{model}{RST}  {DIM}{s['mode']} · run {run['id']} · {s['phase']}{' · PAUSED' if s['paused'] else ''}{RST}",
+    recent = [h['latency_ms'] for h in s['history'] if h.get('latency_ms')][-10:]  # single-option turns skip the engine: 0 ms
+    lines = [f"{BOLD}{st.get('name') or 'Jev'} plays NetHack{RST} on {BOLD}\x1b[96m{model}{RST}{f' {sum(recent) // len(recent)}ms' if recent else ''}  {DIM}{s['mode']} · run {run['id']} · {s['phase']}{' · PAUSED' if s['paused'] else ''}{RST}",
              f"{DIM}{'─' * min(w, 80)}{RST}"]
     lines += screen(s['screen']['rows'])
     lines.append(f"{DIM}{'─' * min(w, 80)}{RST}")

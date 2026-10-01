@@ -961,3 +961,9 @@ User: "i'd buy mithril if you can afford it, also price-ID scrolls and potions a
 - `ONLY=<name> scripts/serve_local_models.sh` starts a single model and downloads only its checkpoint (disk is about 98% full). The research agent fixed a bash 3.2 empty-array bug and the `hf --exclude` syntax.
 - Local engines get a 120 s timeout (cold load; Gemma runs on MPS via PyTorch, since Jeff's MLX path is Qwen-only).
 - The models need Metal and write access to ~/dev, which the nono sandbox lacks, so they must be started from a normal terminal.
+
+## 2026-10-01 17:50 — Kev-0.8B is the main engine; label + header timing
+- Gemma (PyTorch/MPS) took about 3.6 s per decision; Kev-0.8B (MLX) takes about 230 ms. The main game now runs on Kev: `scripts/play.sh Jev 8770 http://127.0.0.1:8785/v1/systemone jev-latest kev-0.8b`.
+- Kev echoes the requested model name (`jev-latest`), so play.sh takes a LABEL (`JEV_LABEL`). The label names the engine in runs.json, the dashboard and watch.
+- watch header: "on kev-0.8b 229ms" is the mean latency of the last 10 engine calls.
+- First Kev death: a yeti on Dlvl 10 during a prayer, T7919, about 60 decisions after the switch.
