@@ -586,7 +586,8 @@ class Bot:
                 # passive only when boxed in: an ID zap at a floating eye 3 steps off was polymorph, it became a red dragon (T4125)
                 # also in a losing melee: two unknown wands stayed in the pack while an ogre took 69 -> 0 (T4539)
                 # 'weaker' foes count when adjacent: two Woodland-elves took 67 -> 0 while the wand of magic missile went at a C 5 steps south (T5738)
-                if (m['passive'] and len(dist) <= 3 or hp < 0.5 * hpmax and ('weaker' not in self.threat(m) or m['dist'] <= 1)) and (2 if 'gas spore' in m['name'] else 1) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
+                if ('wand of' in wand['text'] and not re.search(r'sleep|fire|cold|lightning|magic missile', wand['text']) or self.ray_room(me, (dx, dy)) >= 7) \
+                        and (m['passive'] and len(dist) <= 3 or hp < 0.5 * hpmax and ('weaker' not in self.threat(m) or m['dist'] <= 1)) and (2 if 'gas spore' in m['name'] else 1) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     opts[f'zap_{d}'] = (f"Zap {wand['text']} at {m['name']}", f"Zap wand {wand['letter']} {DIR_NAME[d]} at the {m['name']} {m['where']}. Unknown effect; many wands kill or move monsters, and it identifies the wand.", lambda l=wand['letter'], d=d, t=(wand['text'], s.get('dlvl')): self.act_zap(l, d, t))
         # yellow light: its only attack is a 10d20-turn blinding explosion (monsters.h AT_EXPL), speed 15 so no outrunning it; Elbereth stops it (wiki). Blinded twice, both dead to unseen biters (T4631, T2307)
@@ -1655,6 +1656,15 @@ class Bot:
                 break
             self.act_fight(d)
         return 'killed the blocker' if (g := self.snap.at(*pos)) is None or g.ch != ch else f'fought the blocker {i + 1} times; it still stands'
+
+    def ray_room(self, a, v):
+        """Squares a ray travels from a toward v before a wall: zap.c buzz() range is rn1(7,7) (7..13) and bounces: a wall under 7 away can send it back through us."""
+        sx, sy = (v[0] > 0) - (v[0] < 0), (v[1] > 0) - (v[1] < 0)
+        for k in range(1, 14):
+            g = self.snap.at(a[0] + sx * k, a[1] + sy * k)
+            if g is None or g.ch in '|- ' or g.ch == '#' and g.fg not in ('green', 'cyan'):
+                return k
+        return 14
 
     def clear_line(self, a, b):
         """Nothing solid or alive between a and b (exclusive) on a straight line."""

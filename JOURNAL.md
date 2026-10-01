@@ -1640,3 +1640,6 @@ It was resting on Elbereth at 25/53 when the engraving wore away. The choke rule
 
 ## Hosted 101650 — coyote in a 12-monster swarm, T1499, Dlvl 4
 Elbereth held off a crowd (rothe, jackal, cave spider, giant bat, orc zombie, and more) for many turns. Then a giant bat bit for 3. monmove.c: a scared monster with nowhere to flee panic-attacks (MMOVE_NOMOVES + scared). The bot treated that hit as "Elbereth not protecting", marked the crowd as blockers, and went to melee: 41 -> 3. Fix: a hit under 10% of max HP with Elbereth still readable keeps waiting on it.
+
+## Djev 101801 — giant ant while asleep, T6117, Dlvl 4
+It zapped an unknown wand at an adjacent kobold lady with a wall close behind her. The wand was sleep, the ray bounced back, and a giant ant killed the sleeping Valkyrie. zap.c buzz(): range rn1(7,7) = 7..13, and rays bounce off walls. Fix: unknown wands and known ray wands are only zapped along a line with 7 or more open squares, so a bounce can't reach us.
