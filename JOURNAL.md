@@ -907,3 +907,8 @@ Killed by a pyrolisk on Dlvl 9 at T7302. Jev's last prayer was 80 turns earlier,
 
 ## 14:50 — Run 215901: gamble prayer instead of a fresh Elbereth
 Killed by an Uruk-hai in Minetown at T4295, XL5, AC6. Jev's previous prayer was at T4116. It had just engraved Elbereth at 10/54 HP. Because HP was low, the forced filter left only the "gamble" prayer, 176 turns after the last one. Tyr was displeased, and the next hit killed Jev. With pray.c's rnz(350) timeout, the odds were about even. A fresh Elbereth against an orc is better. The gamble is now skipped while standing on Elbereth when HP > 5, nothing is shooting, and no @ or minotaur is within 7 squares.
+
+## 15:00 — Run 220125: rested while a yellow light approached
+Killed by a ghoul at T3521 in Minetown, while blind and paralysed. Jev was at full HP, so it chose the 20-turn pace rest with a yellow light 9 squares away. A search is only interrupted when a monster *appears*, and this one was already visible. The light (speed 15) arrived and exploded, blinding Jev, and a ghoul's paralysing claw finished it. Changes:
+- A yellow light anywhere in view now counts as dread, which offers Elbereth and drops approach/explore. Before, this only applied within 5 squares.
+- No rest option while a yellow light is in view.
