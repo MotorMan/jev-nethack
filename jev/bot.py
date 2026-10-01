@@ -276,7 +276,7 @@ class Bot:
             x, y = self.snap.me
             lv.near.update((x + dx, y + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1))
             recent = ' '.join(self.run['recent'][-3:]) if self.run else ''
-            fresh = 'You kill' in recent and 'You destroy' not in recent
+            fresh = 'You kill' in recent and 'You destroy' not in recent and not any(re.search(rf'You kill the [\w -]*{n}', recent) for n in self.never_eat())  # walked to giant bat and acid blob corpses only to skip them
             turn = s.get('turn') or 0
             mon_seen, pct_seen = lv.__dict__.setdefault('mon_seen', {}), lv.__dict__.setdefault('pct_seen', {})
             for p in self.snap.find('%'):  # 7 for this turn's kill: thrown-dagger kills left uncounted corpses; ~40 kills, 4 eaten, fainted (T3625)
@@ -1704,6 +1704,9 @@ class Bot:
             return 'going to the corpse: ' + r
         if not any('corpse' in i and not any(n in i for n in self.never_eat()) for i in self.here_items()):
             self.level().corpses.pop(p, None)  # a bat corpse was re-offered 3 times
+            food = next((i for i in self.here_items() if FOOD.search(i) and not re.search(r'corpse|egg|glob|for sale', i)), None)
+            if food:  # the '%' was a slime mold, tripe or fortune cookie: walked off from them 6 times while starving
+                return self.act_pickup(food)
             return 'no edible corpse there'
         return self.act_eat_corpse()
 

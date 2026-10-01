@@ -1583,3 +1583,6 @@ It made 8 prayers in 3400 turns, several of them low-HP gambles 320 turns apart,
 
 ### kev-4b 20261001-090047: cave spider and rat mob in a shop doorway, Dlvl 4 (T7249)
 It stood in Ermenak's shop doorway for about 600 turns. search_hidden walked into the shopkeeper ("Pardon me, Ermenak"), and that message set the debt flag. sell_pay then got "You do not owe Ermenak anything", and the cycle repeated 348 times. Rats, cave spiders, an iguana and floating eyes gathered, and it lost 57 HP to chip damage. A failed gamble prayer followed, then death. "Pardon me" no longer means debt. shk.c's "pay before leaving" and "leave without paying" do.
+
+### kev-4b 20261001-093510: fainted and killed by a garter snake on Dlvl 7 (T4246)
+A low-HP prayer at T3015 worked. A Weak prayer 1013 turns later angered Tyr. pray.c angers the god both for "too soon" and for bad luck or alignment, so the log cannot tell which happened. That makes three runs today where a prayer about 1000 turns on failed. Fix, from goto_corpse outcomes across ~120 recent runs: many "no edible corpse there" trips ended on giant bat, acid blob, kobold or dog corpses that were never edible, or on a slime mold, tripe, fortune cookie or eggs. Kills of never-eat species are no longer recorded as fresh corpses. An empty corpse trip now picks up non-corpse food there; eggs are skipped (cockatrice risk).
