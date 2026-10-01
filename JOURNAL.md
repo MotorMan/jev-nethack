@@ -1604,3 +1604,12 @@ It prayed as a gamble at 12/82, 377 turns after the last prayer, and the elf kil
 
 ## kev-4b 095357 — invisible rope golem, T5475, Dlvl 6
 Zapped an unknown oak wand at a rope golem: "The rope golem vanishes!" (make invisible). It kept zapping it while being choked, then died to the unseen golem at 16/71. Fix: a zap that makes a monster vanish marks that wand text bad for the rest of the run.
+
+## kev-4b 100029 — giant spider, T2036, Dlvl 7 (XL4)
+Fell through a hole from Dlvl 5 to Dlvl 7 at XL4. A giant spider (speed 15, 'stronger') closed in, and only 'attack' was offered at 35 HP. It took three swings, 35 -> 11, then the Elbereth engraving was interrupted. Fix: an adjacent or 2-step fast (speed > 12) 'stronger' monster counts as dread, so Elbereth is offered and approach/explore drop.
+
+## Djev 095139 — gargoyle, T14824, Dlvl 9 (XL8)
+At 39/90 the model chose melee against an 'about your level' gargoyle twice (39 -> 27 -> 8). Elbereth came out garbled and a too-soon prayer failed. Fix: the threat note for gargoyles now flags their 3-attack damage and says Elbereth works.
+
+## Hosted 095517 — bones dwarf zombie, T8414, Dlvl 8
+A bones level: Jev's own dwarf zombie, a wolf and a dog. HP was already low with a prayer 58 turns old, and the bot was hit while on Elbereth. No fix.

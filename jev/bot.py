@@ -447,7 +447,7 @@ class Bot:
             return ''
         d = lv[0] - (self.snap.status.get('xl') or 1)  # the -1 called an owlbear (difficulty 7) 'weaker' than XL 7; it killed Jev from 70 HP
         rel = 'much weaker than you' if d <= -3 else 'weaker than you' if d < 0 else 'about your level' if d <= 1 else 'stronger than you' if d <= 4 else 'much stronger than you'
-        extra = {'floating eye': '; harmless, but never melee it (paralysis)', 'gelatinous cube': '; hitting it paralyzes you, its touch too: shoot it or walk away (it is slow)', 'gas spore': '; explodes for 4d6 (up to 24 damage) when killed: throw things at it from 2+ squares away (the blast hits every square next to it) or walk away, melee only with 30+ HP'}.get(name, '')
+        extra = {'gargoyle': '; AC -4 and three attacks for up to 28 damage a turn: do not trade melee hits when hurt, Elbereth stops it', 'floating eye': '; harmless, but never melee it (paralysis)', 'gelatinous cube': '; hitting it paralyzes you, its touch too: shoot it or walk away (it is slow)', 'gas spore': '; explodes for 4d6 (up to 24 damage) when killed: throw things at it from 2+ squares away (the blast hits every square next to it) or walk away, melee only with 30+ HP'}.get(name, '')
         return f' (difficulty {lv[0]}, speed {lv[1]}, {rel}{extra})'
 
     # ---------- inventory ----------
@@ -591,7 +591,8 @@ class Bot:
                     opts[f'zap_{d}'] = (f"Zap {wand['text']} at {m['name']}", f"Zap wand {wand['letter']} {DIR_NAME[d]} at the {m['name']} {m['where']}. Unknown effect; many wands kill or move monsters, and it identifies the wand.", lambda l=wand['letter'], d=d, t=(wand['text'], s.get('dlvl')): self.act_zap(l, d, t))
         # yellow light: its only attack is a 10d20-turn blinding explosion (monsters.h AT_EXPL), speed 15 so no outrunning it; Elbereth stops it (wiki). Blinded twice, both dead to unseen biters (T4631, T2307)
         # a jabberwock (difficulty 18) 3 squares off at XL6 got "Close in on" and no Elbereth: 67 -> 0 in two turns (T4199). @ and minotaurs ignore Elbereth
-        dread = [m for m in hostiles if (m['dist'] <= 5 and 'much stronger' in self.threat(m) or 'yellow light' in m['name']) and m['ch'] != '@' and 'minotaur' not in m['name']]
+        dread = [m for m in hostiles if (m['dist'] <= 5 and 'much stronger' in self.threat(m) or 'yellow light' in m['name']
+                 or m['dist'] <= 2 and 'stronger' in self.threat(m) and MONSTERS.get(self.species(m), (0, 0))[1] > 12) and m['ch'] != '@' and 'minotaur' not in m['name']]  # a giant spider (speed 15, 'stronger') at XL4: three melee swings 35 -> 11 before Elbereth was offered (T2036)
         swarm = [m for m in hostiles if m['dist'] <= 5 and (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 15 and 'weaker' not in self.threat(m) and m['ch'] != '@']
         dread += swarm if len(swarm) >= 2 else []  # two soldier ants (speed 18, bite+sting) at full HP got only attack/approach: 53 -> 0 in two turns (T5703)
         pack = len(near) >= 5 or len(near) >= 3 and sum((MONSTERS.get(self.species(m)) or [1])[0] for m in near) > 2 * (s.get('xl') or 1)  # 9 level-1 killer bees summed under 2 XL, '<' a step away: poisoned at 25/72 (T8697)  # stepped off Elbereth into four wargs: 69 -> 0 HP in 4 turns
