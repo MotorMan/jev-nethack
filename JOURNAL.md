@@ -734,3 +734,6 @@ Jev starved, fainted and was killed by a gargoyle on Dlvl 3. The gargoyle was Je
 
 ## 2026-10-01 03:35 — run 180910: werewolf pack beside the stairs
 XL6, Dlvl 7, AC2: a werewolf summoned wolves ("A wolf suddenly appears next to you!"), and five attackers took 34 → 6 HP in a turn. The up staircase was one step away. Wiki: stairs are the classic escape from a pack. 5.0 mondata.c levl_follower: only M2_STALK monsters follow, and wolves and werewolves lack it. "Run for the upstairs" was only offered at low HP or against "much stronger" monsters; now a pack (3+ near, whose summed levels exceed 2×XL) also triggers it. When it's available, attack, approach and explore options are dropped.
+
+## 2026-10-01 03:50 — run 181112, werejackal swarm at AC10
+XL6, Dlvl 7. A mountain nymph stole the banded mail, shield and helm at T6486 (AC 0 → 10). 600 turns later a werejackal's summoned jackals finished Jev, 44 turns after a prayer. Nymph theft is already handled where it can be (no approaching nymphs; throw instead), and these woke up mid-fight with an imp. Logged as variance. If AC-10 deaths keep coming, the next idea is to slow the pace (treat a bare AC as lower XL).
