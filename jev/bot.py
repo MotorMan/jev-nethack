@@ -938,12 +938,12 @@ class Bot:
             # inside a vortex (shown as Blind) Jev chose 'wait until you can see' twice: 51 -> 13 HP, dead (T8226). Any hit lands on the engulfer.
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {'attack_k': ('Attack the monster engulfing you', 'You are engulfed: every attack hits the engulfer, and killing it or hurting it enough frees you. Waiting only lets it digest or burn you.', lambda: self.act_fight('k'))}
         elif 'Blind' in s.get('conditions', []):  # a blind step into an unseen watchman angered the whole Minetown watch
-            fight = {k: v for k, v in opts.items() if k in ('pray', 'elbereth') or k.startswith(('quaff_', 'attack_', 'eat'))}  # blind engraving still scares: invisible quasits drained a blind Jev who could only swing
+            fight = {k: v for k, v in opts.items() if k in ('pray', 'elbereth') or k.startswith(('quaff_', 'attack_', 'eat', 'wield_'))}  # weaponless, opts was just 'wield': this dropped it and a blind Jev waited while a dog bit 37 -> 0 (T4631)  # blind engraving still scares: invisible quasits drained a blind Jev who could only swing
             # 'You feel an unseen monster' is just sensing: swung at it blind in Aklavik's store, and she zapped Jev dead (T3012)
             if shop and not any(re.search(r"\bIt (hits|bites|touches|stings|butts|kicks)", m) for m in self.run['recent'][-2:]):  # blind swings at the unseen shopkeeper angered Ms. Tipor, twice-dead to her wand
                 fight = {k: v for k, v in fight.items() if not k.startswith('attack_')}
             # resting while unseen things bit a blind Jev from 54 to 4 HP (twice) is worse than swinging back
-            opts = fight if any(k.startswith('attack_') for k in fight) else fight | {'rest': ('Wait until you can see', 'You are blind: walking bumps into unseen monsters and attacks them, peaceful or not. Wait for your sight to return.', lambda: self.act_keys('5s', 'waited'))}
+            opts = fight if any(k.startswith(('attack_', 'wield_')) for k in fight) else fight | {'rest': ('Wait until you can see', 'You are blind: walking bumps into unseen monsters and attacks them, peaceful or not. Wait for your sight to return.', lambda: self.act_keys('5s', 'waited'))}
         # a pack at any HP: left a working Elbereth at 40/44 to throw at bugbears and a goblin gang, dead 4 turns later
         # Weak is only nutrition 1-50 (eat.c): 23 turns camping on Elbereth there fainted Jev into a kitten's jaws (T4709)
         if self.engraved_here() and s.get('hunger') not in ('Weak', 'Fainting') and (pack or s.get('hp', 1) < 0.75 * s.get('hpmax', 1)) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles) \

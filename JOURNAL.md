@@ -864,3 +864,6 @@ Jev died on Dlvl 8 at XL ~8, T5320. An owlbear grabbed it ("You are being crushe
 
 ## 12:15 — Run 210255: hallucinated threat labels
 Jev was hallucinating from T3188 and died to a pony at T3336, XL6 on Dlvl 7. Every turn the threat labels came from a random name: an "Archon (much stronger)" got Retreat and Go-through-door options, an "acid blob (much weaker)" got hit. Jev spent turns retreating, climbing stairs and walking off, and lost 60 HP to the pony. Elbereth was correctly not offered: while hallucinating, each character is scrambled with a 1-in-2 chance (engrave.c:1249). `species()` now returns a neutral placeholder name while hallucinating, so there is no threat or speed label to mislead the choice.
+
+## 12:40 — Run 210625: blind and weaponless meant waiting to die
+Jev died at XL5 on Dlvl 5, T4631. A yellow light exploded and blinded it, and it had no weapon in hand (the daggers had been thrown; a scimitar sat in the pack). With no wielded weapon, the option list collapses to "Wield a scimitar". The blind filter keeps only pray/elbereth/quaff/attack/eat, so it dropped the wield and put "Wait until you can see" in its place. Jev waited 16 times while an unseen dog bit it from 37 to 0. I reproduced this offline by building the options from the logged screen, and confirmed it. The blind filter now keeps `wield_` options.
