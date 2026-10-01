@@ -1292,3 +1292,6 @@ At T3017 Jev zapped an unknown wand at a monster. It was a wand of wishing, and 
 - The early `{'wish'}`-only filter dropped `wear_w`. Later code re-added rest and explore, and kev-4b skipped 'wish' about 100 times.
 - Fix: the late gear filter now keeps both wish and wear options.
 - The oilskin cloak now counts as a plain cloak, wearable without a known BUC.
+
+## Run 20261001-044321: gnome, fainted from lack of food (T5195, Dlvl 7, XL 6). No fix
+Jev never carried food. Successful prayers at T2598 and T3613 fed it. The Fainting prayer at T4507 came 894 turns after the last one and still found the timeout above 200: "Tyr is displeased". In pray.c that message is angrygods' mildest case after p_type 0 (too soon), so the god is angry and further prayers would fail. `god_angry` is set correctly. The nearby delicatessen asked 80 to 240 zm per item; Jev had 31. Only a grid bug and a giant rat were killed nearby, so there were no corpses to eat. This is rnz variance, and the real fix is a food supply, which needs more thought.
