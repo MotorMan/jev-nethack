@@ -9,6 +9,11 @@ from .nh import (DIRS, DIR_OF, DIR_NAME, MAP_TOP, MAP_BOT, OBJECT_CHARS, Snapsho
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FOOD = re.compile(r'\b(?:food ration|cram|lembas|biscuit|pancake|apple|orange(?! gem)|banana|melon|carrot|egg|tins?|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen)e?s?\b')  # word-bounded: 'dwarvish spear' is not a pear
 MONSTERS = json.load(open(os.path.join(os.path.dirname(__file__), 'monsters.json')))  # name -> [difficulty, speed], from monsters.h
+# objects.h ARMOR(... ac ...) is 10 - bonus; body armor only, best first matches first
+SUIT = {'crystal plate mail': 7, 'bronze plate mail': 6, 'plate mail': 7, 'splint mail': 6, 'banded mail': 6, 'dwarvish mithril-coat': 6, 'elven mithril-coat': 5,
+        'orcish chain mail': 4, 'crude chain mail': 4, 'chain mail': 5, 'scale mail': 4, 'studded leather armor': 3, 'orcish ring mail': 2, 'crude ring mail': 2, 'ring mail': 3,
+        'leather armor': 2, 'leather jacket': 1}
+suit_ac = lambda t: next((v for k, v in SUIT.items() if k in t), None)
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
 WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber', 'short sword', 'spear', 'mace', 'morning star', 'war hammer', 'flail', 'trident', 'dagger', 'knife', 'club']
 WEAPON = re.compile(r'\b(' + '|'.join(WEAPON_RANK) + r')s?\b(?! corpse)')
@@ -614,6 +619,11 @@ class Bot:
                 t = it['text']
                 if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
                     opts[f"wear_{it['letter']}"] = (f"Wear {t}", "Put on this armor (takes a few turns; may be cursed if unidentified).", lambda it=it: self.act_wear(it))
+            worn = next((it for it in self.inventory if 'being worn' in it['text'] and suit_ac(it['text']) is not None), None)
+            better = max((it for it in self.inventory if 'being worn' not in it['text'] and (suit_ac(it['text']) or 0) > (suit_ac(worn['text']) if worn else 99)
+                          and it['text'] not in self.run.setdefault('unwearable', {})), key=lambda it: suit_ac(it['text']), default=None)
+            if better and not any('cloak' in it['text'] and 'being worn' in it['text'] for it in self.inventory):  # 'cannot wear armor over a cloak'
+                opts[f"wear_{better['letter']}"] = (f"Swap {worn['text']} for {better['text']}", f"Body armor: {better['text']} gives {suit_ac(better['text'])} AC, {worn['text']} only {suit_ac(worn['text'])}. Take it off, put the better one on.", lambda w=worn, b=better: self.act_swap(w, b))
             if any(k.startswith('wear_') for k in opts):  # offered, rarely taken: died at AC 6 with an orcish helm in the pack and no helm on (T3559)
                 opts = {k: v for k, v in opts.items() if k.startswith(('wear_', 'eat_')) or k == 'pray'}  # each try wears it or marks it unwearable, so no loop
 
@@ -888,6 +898,18 @@ class Bot:
             else:
                 self.run['here'].pop(key, None)
         return snap
+
+    def act_swap(self, worn, it):  # 5 turns each way for metal suits (objects.h delay)
+        self.act_keys('T' + worn['letter'], '')
+        self.read_inventory()
+        if any(i['letter'] == worn['letter'] and 'being worn' in i['text'] for i in self.inventory):
+            self.run['unwearable'][it['text']] = -99  # cursed suit stays on: never offer this swap again
+            return 'could not take it off: ' + (self.run['recent'][-1] if self.run['recent'] else '')
+        r = self.act_wear(it)
+        if r == 'wore armor':
+            self.act_keys('d' + worn['letter'], '')
+            self.read_inventory()
+        return r
 
     def act_wear(self, it):
         self.act_keys('W' + it['letter'], '')
