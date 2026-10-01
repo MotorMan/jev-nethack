@@ -46,6 +46,8 @@ class Jev:
     def __init__(self, key, budget_usd=5.0, ledger='runs/budget.json'):
         self.key, self.budget, self.ledger = key, budget_usd, ledger
         self.endpoint, self.model, self.local = os.environ.get('JEV_ENDPOINT', HOSTED), os.environ.get('JEV_MODEL', 'jev-latest'), is_local()
+        if 'lunaroute.com' in self.endpoint:  # gateway serving djev etc.; its pricing isn't known, so no budget is tracked
+            self.key = os.environ.get('LUNAROUTE_API_KEY')
         self.stats = dict(calls=0, errors=0, cost_usd=0.0, latency_total_ms=0.0, last_model=None)
         try:
             self.stats.update(json.load(open(ledger)))

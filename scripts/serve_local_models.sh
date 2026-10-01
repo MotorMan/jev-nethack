@@ -13,6 +13,7 @@
 #   8783 jeff-gemma   JEV_MODEL=jeff-latest   (PyTorch on MPS: Jeff's MLX path runs Qwen only)
 #   8784 kev-4b       JEV_MODEL=jev-latest    (MLX; Kev also accepts kev-latest)
 #   8785 kev-0.8b     JEV_MODEL=jev-latest    (MLX)
+#   8080 openjev      JEV_MODEL=jev-latest    (MLX, DiffusionGemma 26B-A4B 4-bit: ~16 GB disk + RAM; port is its fixed default)
 # Must run outside the nono sandbox: MLX/MPS need the Metal GPU, and checkouts live in $MODELS_DIR (default ~/dev).
 set -euo pipefail
 
@@ -70,13 +71,18 @@ jeff() {  # jeff <name> <port> <checkpoint dir> <backend>
         "${uv12[@]}" run --no-default-groups --extra mac jeff-serve
 }
 
+setup_openjev() {  # razorback16/openjev: weights (mlx-community/diffusiongemma-26B-A4B-it-4bit) download on first start
+    [ -d "$models_dir/openjev/.git" ] || git clone -q https://github.com/razorback16/openjev "$models_dir/openjev"
+    (cd "$models_dir/openjev" && { [ -d .venv ] || uv venv -q -p 3.12; } && uv pip install -q -e '.[mlx]')
+}
+
 kev() {  # kev <name> <port> <hub run>
     start "$1" "$2" "$kev_dir" env PYTHONUNBUFFERED=1 uv run --extra serve python -m kev.serve --run "$3" --host 127.0.0.1 --port "$2"
 }
 
 check() {  # POST one NetHack-shaped request (choice + noul + choice) to each port, as the bot does
     local name port model
-    for spec in jeff-0.8b:8781:jeff-latest jeff-2b:8782:jeff-latest jeff-gemma:8783:jeff-latest kev-4b:8784:jev-latest kev-0.8b:8785:jev-latest; do
+    for spec in jeff-0.8b:8781:jeff-latest jeff-2b:8782:jeff-latest jeff-gemma:8783:jeff-latest kev-4b:8784:jev-latest kev-0.8b:8785:jev-latest openjev:8080:jev-latest; do
         IFS=: read -r name port model <<<"$spec"
         want "$name" || continue
         python3 - "$name" "$port" "$model" <<'EOF'
@@ -116,11 +122,13 @@ case "${1:-start}" in
     start)
         case "${ONLY:-jeff}" in jeff*) setup_jeff ;; esac
         case "${ONLY:-kev}" in kev*) setup_kev ;; esac
+        case "${ONLY:-openjev}" in openjev) setup_openjev ;; esac
         jeff jeff-0.8b 8781 jeff-0.8b mlx
         jeff jeff-2b 8782 jeff-2b mlx
         jeff jeff-gemma 8783 jeff-gemma4-e2b pytorch
         kev kev-4b 8784 jaredpalmer/kev-4b
         kev kev-0.8b 8785 jaredpalmer/kev-0.8b
+        start openjev 8080 "$models_dir/openjev" env OPENJEV_BACKEND=mlx PYTHONUNBUFFERED=1 .venv/bin/python -m openjev
         check ;;
     *) echo "usage: $0 [start|check|stop]" >&2; exit 2 ;;
 esac

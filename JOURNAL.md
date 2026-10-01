@@ -967,3 +967,12 @@ User: "i'd buy mithril if you can afford it, also price-ID scrolls and potions a
 - Kev echoes the requested model name (`jev-latest`), so play.sh takes a LABEL (`JEV_LABEL`). The label names the engine in runs.json, the dashboard and watch.
 - watch header: "on kev-0.8b 229ms" is the mean latency of the last 10 engine calls.
 - First Kev death: a yeti on Dlvl 10 during a prayer, T7919, about 60 decisions after the switch.
+
+## 2026-09-30 18:10 — djev via LunaRoute
+djev (the Gemma diffusion Jev) is hosted on LunaRoute: `https://gw.lunaroute.com/v1/systemone`, model `djev`.
+- Jev now sends `LUNAROUTE_API_KEY` from .env for that host.
+- No budget is tracked because the pricing is unknown.
+- Latency is about 250–360 ms per decision, close to Kev-0.8B.
+- Switched with `scripts/play.sh Jev 8770 https://gw.lunaroute.com/v1/systemone djev djev`.
+- Also added a local OpenJev (DiffusionGemma 26B, MLX) entry to serve_local_models.sh. It is unused: it needs about 16 GB of disk, and port 8080 is taken.
+- The Kev run before the switch was killed by a werewolf on T3395.
