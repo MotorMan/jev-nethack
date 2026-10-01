@@ -154,6 +154,8 @@ class Bot:
                 self.run['held'] = self.snap.status.get('turn') or 0
             if re.search(r'nymph stole|nymph steals|She stole', text) and self.snap:
                 self.run['nymph_lvl'] = self.snap.status.get('dlvl')
+            if re.search(r'Your armor falls|You can no longer hold your shield|falls to the ground|You find you must drop|You drop your (gloves|weapon)', text) and self.snap and self.snap.me:  # were form shed chain mail, shield, helm, spear; Jev never went back, AC 10, dead (T4960)
+                self.run['gear_at'] = (self.snap.status.get('dlvl'), self.snap.me)
             if 'You feel purified' in text:
                 self.run['lycanthropy'] = False
             if re.search(r'no gold or credit|you pay for it|Usage fee|You owe|Pardon me, [A-Z]', text):
@@ -1037,6 +1039,13 @@ class Bot:
         losing = prev and prev['hp'] - s.get('hp', 0) >= s.get('hp', 0)  # an ape + pony took 34 -> 14 in two turns, Jev swung on with Elbereth offered: dead next turn (T3767)
         if 'elbereth' in opts and adj and (len(adj) >= 2 and s.get('hp', 1) * 2 < s.get('hpmax', 1) or losing or pack and len(adj) >= 3 or s.get('hp', 1) < 0.6 * s.get('hpmax', 1) and any('stronger' in self.threat(m) for m in adj) or s.get('hp', 1) < 0.4 * s.get('hpmax', 1)) and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in adj):  # swung at a giant ant (speed 18) from 23/62 to 14 with Elbereth on offer, then garbled + interrupted, dead (T5591)  # XL4 swung at a rope golem at 22/43 with Elbereth on offer: 22 -> 10, a snake interrupted the late engraving, dead (T2908)  # traded blows with 3 wolves 70 -> 6 with Elbereth on offer, died praying (T4527)
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray') or k.startswith('quaff_')}
+        g = self.run.get('gear_at')
+        if g and g[0] == s.get('dlvl') and s.get('exp') is not None and not near:
+            if me == g[1]:
+                self.run['gear_at'] = None  # the pickup and wear options take it from here
+            elif g[1] in dist:
+                opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'pickup_', 'wear_', 'wield_'))}
+                opts['recover_gear'] = ('Go back for your dropped armor', f"Your armor and weapon fell off when you changed form. They lie {dist[g[1]]} steps {compass(me, g[1])}: walk there, pick them up and put them back on.", lambda p=g[1]: self.act_go(p))
         if near and 'wait' in opts and self.engraved_here() and s.get('hp', 1) * 2 < s.get('hpmax', 1):  # explored off Elbereth at 12/63 among 8 monsters, 3 times 'took damage after 1 steps' (T7921)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door_', 'sell_', 'approach_', 'fetch'))}
         if not near and ({'eat_corpse', 'goto_corpse'} & opts.keys()):  # the earlier forcing ran before explore/descend were added: 22 corpse offers, 2 taken, 4 hunger prayers, fainted (T3843)

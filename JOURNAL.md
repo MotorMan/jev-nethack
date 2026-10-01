@@ -1250,3 +1250,8 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - Fixes:
   - The @/minotaur exclusion only applies within 2 squares.
   - On Elbereth below half HP with monsters near, the walk options (explore, door, sell, approach, fetch) are dropped.
+
+## 20261001-034458: raven while praying, T4960, Dlvl 7, XL 6, AC 10
+- At T4530, lycanthropy took Jev into were form, which shed its chain mail, shield, helm and spear. A prayer cured it at T4639, but Jev never went back for the gear. It wielded a cursed orcish dagger instead.
+- A raven blinded it in melee at AC 10. A gamble prayer 318 turns after the last one failed.
+- Fix: messages about gear falling off record where it fell. Back in normal form with nothing near, a forced `recover_gear` walks back there; the pickup and wear options then handle the rest.
