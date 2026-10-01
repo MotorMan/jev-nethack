@@ -1643,6 +1643,8 @@ class Bot:
 
     def act_wield(self, letter):
         self.t.send('w' + letter)
+        if re.search(r'Wield .* instead\?', self.t.lines()[0]):  # wield.c ready_weapon on the quivered dagger; 'q' left a disarmed Jev bare-handed, killed by a lynx (T4777)
+            self.t.send('y')
         self.observe()
         self.read_inventory()
         if any('weapon in' in it['text'] for it in self.inventory):

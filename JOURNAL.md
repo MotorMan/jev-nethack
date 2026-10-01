@@ -1060,3 +1060,7 @@ Nymphs and a monkey stripped Jev to AC 10, and an Elvenqueen killed it. Its pack
 ## 2026-10-01 — Uruk-hai archer while waiting on Elbereth (kev-4b, T4338, Dlvl 7)
 An Uruk-hai 5 squares away shot arrows at Jev on and off. The "you're being shot" flag only lasts 3 turns after a volley. Between volleys it lapsed, so Jev waited on Elbereth at 16/58 and then 11/58 until a poisoned arrow killed it.
 - Jev now remembers who shot it. Being shot stays in effect for 20 turns while that monster is within 8 squares, so Jev won't wait on Elbereth in its line of fire.
+
+## 2026-10-01 — lynx, bare-handed at AC 10 (kev-4b, T4777, Dlvl 5)
+A mountain nymph stole Jev's spear at T3216, and later its shield. Jev tried to wield its spare dagger, but the dagger was in the quiver, so NetHack asked "You have that readied. Wield it instead?". Jev didn't answer yes, so the wield failed and the dagger was marked unwieldable. For 1500 turns it fought bare-handed. It closed on a lynx at 43/54 HP and two rounds took it to 7. Its last prayer had been 50 turns earlier.
+- act_wield now answers 'y' to "Wield ... instead?" (wield.c ready_weapon).
