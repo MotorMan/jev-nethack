@@ -51,7 +51,7 @@ STRATEGY = ("You are a dwarven Valkyrie (NetHack 5.0): strong melee, cold resist
             "Prayer fixes low HP (at or below 1/5 of max at XL 1-5, 1/6 at XL 6-13, or 5 HP) and Weak hunger, but only about once per 1000 turns; "
             "the first prayer is safe after roughly turn 300. Elbereth in the dust (fails about 1 time in 4: check it) stops melee from most monsters, "
             "not @ humans or elves (including were-creatures in @ form), minotaurs, shopkeepers or peacefuls, and never wands, arrows or breath: kill a weak monster that zaps or shoots at you instead of waiting it out. A scared monster with nowhere to flee can still hit you, and attacking, throwing or zapping from it erases it. "
-            "Mumakil (speed 9) hit hardest of anything early: never trade blows, throw things or walk away. Kill wererats quickly, before they summon rats. "
+            "Mumakil (speed 9) hit hardest of anything early: never trade blows, throw things or walk away. Kill wererats quickly, before they summon rats. A yellow light blinds you for up to 200 turns when it explodes at you, even on Elbereth if it is cornered: kill it (killing it is safe) rather than wait beside it. "
             "Collect gold: a temple priest sells permanent AC for about 400-500 gold per experience level; keep 2000-4000 after that for shops. "
             "Food is scarce (killed monsters no longer drop food): eat fresh corpses of what you kill (not cockatrices, kobolds or old ones), keep packed food for emergencies, never start eating while Satiated, eat when Hungry. "
             "Open chests and large boxes: early ones often hold potions of healing. Explore each level for useful items, "
@@ -1252,6 +1252,12 @@ class Bot:
                 and not any((m['ch'] == '@' and ('were' not in m['name'] or m['dist'] <= 1) or 'minotaur' in m['name']) and m['dist'] <= 7 for m in hostiles):  # an adjacent wererat in @ form hit through it while only 'wait' was offered: 12 -> 0 (T8786)  # a were-@ summons rats/jackals that do respect it: left Elbereth at 24/36 for a wererat, summoned rats 25 -> 0 in 2 turns (T1818)  # a bugbear threw daggers at a waiting Jev (Elbereth only stops melee): 13 -> 0 (T2350)  # a Woodland-elf (ignores Elbereth) walked up to a waiting Jev: 36 -> 0 (T7182)
             # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'eat', 'wear_'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}
+        # yellow light: its explosion is its attack (mhitu.c AT_EXPL); killing it does not explode (mon.c). On Elbereth in a crowd it can't flee, panic-attacks (monmove.c)
+        # and blinds anyway: waited at 72/72 beside one, blinded, 3 unseen rothes 72 -> 0 (T5778). Wiki: kill it, or be blind already
+        yl = [m for m in hostiles if 'yellow light' in m['name'] and m['dist'] == 1]
+        if yl and 'Blind' not in s.get('conditions', []) and not LOW_HP(s):
+            d = DIR_OF[(yl[0]['pos'][0] - me[0], yl[0]['pos'][1] - me[1])]
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {f'attack_{d}': ('Kill the yellow light', 'It explodes and blinds you for 10-200 turns when it attacks, and cornered on Elbereth it still attacks. Killing it is safe: it only explodes as an attack.', lambda d=d: self.act_fight(d))}
         # a safe prayer fully heals; Jev chose Elbereth over it at 1 HP and died. 500+ turns on, rnz(350) - elapsed < 200 most of the time:
         # Jev threw darts at 8 HP instead of a 700-turn gamble and died (T5087)
         if LOW_HP(s) and 'pray' in opts:  # the gamble (100+ turns) is ~.5-.87: Jev engraved at 1 HP 478 turns after praying and died (T4535)
