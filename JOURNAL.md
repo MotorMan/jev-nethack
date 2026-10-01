@@ -709,3 +709,6 @@ Run 173208 (T8071, max Dlvl 5) lived on prayer: it prayed for Weak at T1894, 274
 
 ## 2026-10-01 01:35 — Woodland-elf group (variance) and plateau note
 Run 173342 (XL 8, Dlvl 5, T9272): a Woodland-elf group took Jev from 54 to 7 HP in four turns (elves ignore Elbereth), and it died to a jaguar while gambling on a prayer. No fix. Plateau check: the last 40 runs died on Dlvl 5–9 (median 7), between T1700 and T9300. Most of tonight's fixes removed specific blunders (theft, position mixup, prayer timing). The next big lever is probably food (several runs barely eat) and faster XL gain.
+
+## 2026-10-01 01:50 — cap the pace rest
+Turn-share analysis of recent runs: run 173208 spent 91% of its 8000 turns on "Rest and search 20 turns". It was XL 2 on a cleared Dlvl 3, and the pace rule (next level too deep) has no limit once Dlvl+1 ≥ XL+2. Wandering monsters arrive about 1 per 50 turns (5.0 makemon rate on ordinary levels), too slow to level a Valkyrie, while food and prayers ran out. The rest is now capped at 1500 searched turns per level, after which "Take the downstairs anyway" opens up. The ascend option on the deeper level is only an option, not forced, so this shouldn't ping-pong.
