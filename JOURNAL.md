@@ -1949,3 +1949,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: it ate almost no corpses and lived on prayer (8 prayers, 6 of them for Weak). At T6974–7077 it bounced between `choke` (walk to a corridor because a bugbear/hobgoblin pack was 4 steps off) and `explore` (walks back, sees the pack, stops) 34 times. The pack never came, and it went from Hungry to Weak. Next, killer bees and a water nymph took its weapon and loot. It was Fainting with the prayer only 184 turns old, and gnomes finished it at AC 10.
 - Wiki (Fighting in corridors / Nutrition): a corridor only helps if the pack follows. Monsters that don't approach should be ignored or walked away from, and the turns go to finding food.
 - Fix: `choke` is no longer offered once it has been chosen 3 times in the last 12 decisions.
+
+## 20261001-153148 — killed by a bolt of fire zapped by a mountain nymph (T9939, Dlvl 6)
+- Cause: a mountain nymph stole one of two identified wands of fire (plus the spear). It came back and the bot waited on Elbereth (39/66) as the nymph tip said; fleeing, she zapped the stolen wand. A 6d6 bolt plus its bounce did 39+. The bot never zapped its own wand of fire at her: zaps were only offered below half HP, and the nymph filter kept just pray/quaff/wait.
+- Wiki (Nymph): kill nymphs at range before they touch you. A nymph that steals a wand uses it (muse.c: monsters zap attack wands). Wand of fire kills any nymph (2d HD 3).
+- Fix: a known wand (with the existing ≥7-square ray-room check for rays) is offered against a nymph in line within 6 at any HP, and the nymph filter keeps that zap.
