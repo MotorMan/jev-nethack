@@ -160,7 +160,7 @@ class Bot:
                 self.run['gear_at'] = (self.snap.status.get('dlvl'), self.snap.me)
             if 'You feel purified' in text:
                 self.run['lycanthropy'] = False
-            if re.search(r'no gold or credit|you pay for it|Usage fee|You owe|Pardon me, [A-Z]', text):
+            if re.search(r'no gold or credit|you pay for it|Usage fee|You owe|pay before leaving|leave without paying', text):  # not 'Pardon me': bumping a shopkeeper in a doorway set debt, pay said 'You do not owe', 348 pay/bump loops while a mob gathered (T7249)
                 self.run['debt'] = self.snap.status.get('dlvl') if self.snap else True
             if re.search(r'You do not owe|You have paid|You paid|Thank you for shopping|pay .* in full', text, re.I):
                 self.run['debt'] = False

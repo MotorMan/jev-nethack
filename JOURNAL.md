@@ -1580,3 +1580,6 @@ A wood nymph that could not teleport in Sokoban stayed near for about 700 turns.
 
 ### Djev 20261001-091604: starved and killed by a coyote on Dlvl 7 (T6480)
 It made 8 prayers in 3400 turns, several of them low-HP gambles 320 turns apart, and they worked. At T6262 a Weak prayer angered Tyr ("You feel foolish! Farvel level 6"). The bot did not notice: in 5.0 the god's voice can "thunder" (pray.c godvoices), and the anger regex knew only booms and rings out. It prayed again 145 turns later and Tyr was displeased. The regex now also matches thunders, "relearn thy lessons" and "Thou hast angered me". This miss probably also hid the anger in Hosted 091022.
+
+### kev-4b 20261001-090047: cave spider and rat mob in a shop doorway, Dlvl 4 (T7249)
+It stood in Ermenak's shop doorway for about 600 turns. search_hidden walked into the shopkeeper ("Pardon me, Ermenak"), and that message set the debt flag. sell_pay then got "You do not owe Ermenak anything", and the cycle repeated 348 times. Rats, cave spiders, an iguana and floating eyes gathered, and it lost 57 HP to chip damage. A failed gamble prayer followed, then death. "Pardon me" no longer means debt. shk.c's "pay before leaving" and "leave without paying" do.
