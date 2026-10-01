@@ -1255,3 +1255,8 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - At T4530, lycanthropy took Jev into were form, which shed its chain mail, shield, helm and spear. A prayer cured it at T4639, but Jev never went back for the gear. It wielded a cursed orcish dagger instead.
 - A raven blinded it in melee at AC 10. A gamble prayer 318 turns after the last one failed.
 - Fix: messages about gear falling off record where it fell. Back in normal form with nothing near, a forced `recover_gear` walks back there; the pickup and wear options then handle the rest.
+
+## 20261001-035030: giant spider while fainting, T5312, Dlvl 7, XL 6
+- Corpse eating now works: 21 of 21 offers were taken. The HP prayer at T5220 worked, but it used up the prayer timeout while Jev was Hungry.
+- The run then lost about 16 turns to "nothing got written: the attack interrupted the engraving" from unseen biters. The interrupt block keys on adjacent monster names, which are empty for unseen attackers. Jev went from Weak to Fainting and died.
+- Fix: no Elbereth offer after 2 interrupted engravings in the last 4 decisions.
