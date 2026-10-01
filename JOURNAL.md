@@ -1726,3 +1726,9 @@ Wiki *Stash*: early on, leave spares **next to** the stairs (not on `>`: items f
 - When Burdened/Stressed with nothing near and a `<` within 40 steps, the drop options become "stash next to the up stairs". The bot walks there, drops the item, and records `run['stashes'][(dlvl,pos)]`.
 - Back on that level, not Burdened, with nothing near: if a stashed armor piece fills a slot it's not wearing (a nymph stole it, or a were-change shed it), `stash_fetch` walks back. The pickup/wear options take over from there. Each item is tried only once (no loops).
 - Ceiling: recall only fires on the stash's own level; there is no cross-level trip to fetch it.
+
+## Corridor over Elbereth (user request)
+User: "still taking on multiple monsters at once. instead of standing on elbereth, attempt to escape to a hallway to fight them one-on-one."
+- `choke` ("Fight from a corridor") was offered only when off Elbereth. It's now offered on Elbereth too, the reach is 15 steps (was 8), and while HP ≥ 50% it replaces the Elbereth engrave/wait options.
+- Once in a corridor/doorway square (≤2 open neighbours) with 2+ monsters near, Elbereth is no longer offered above 50% HP: fight them one at a time there. Below 50% Elbereth comes back.
+- Hosted 112847 (killed by a mumak T8267, Dlvl 8): sat on Elbereth at 82/83 inside a tiny ring shop while 4 soldier ants circled. Then a mumak walked up and hit it to death, 83 -> 67 -> 28 -> dead. There was no reachable corridor (ants adjacent, shopkeeper at the door), so this fix wouldn't have saved it.
