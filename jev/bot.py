@@ -288,8 +288,7 @@ class Bot:
             for y in range(MAP_TOP, MAP_BOT + 1):
                 for x in range(80):
                     if self.snap.is_monster(x, y):
-                        mon_seen[(x, y)] = turn
-                        pct_seen.pop((x, y), None)  # a kill here is a new corpse, judged afresh
+                        mon_seen[(x, y)] = turn  # no pct_seen reset here: a hobbit crossing a 180-turn-old rothe corpse made it 'new', eaten, poisoned (T2090)
             if self.run is not None:
                 self.run['max_dlvl'] = max(self.run['max_dlvl'], s['dlvl'])
                 self.run['turns'] = s.get('turn') or self.run['turns']
@@ -1182,6 +1181,8 @@ class Bot:
             # a gamble prayer is ~.6 at 250 turns (rnz(350) simulated); a known attack wand at the attacker beats it: pray-only at 8/62 with a wand of cold, dead (T5509)
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0]
                     or k.startswith('zap_') and 'gamble' in opts['pray'][0] and re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', v[0])}  # chose an unknown black potion over a ~.7 prayer at 8/43: dead (T3559)
+        if 'pray' in opts and 'fatal within' in opts['pray'][1]:  # FoodPois with prayer ready: Jev rested and walked for corpses until it died (T2090)
+            opts = {'pray': opts['pray']}
         return opts, mons
 
     def search_spot(self, dist):

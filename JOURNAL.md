@@ -1383,3 +1383,6 @@ Jev reached Dlvl 9 with speed boots. Three of its five prayers went on being Wea
 
 ## Run 20261001-064958: shopkeeper's wand, T972 (Dlvl 2, XL 2)
 With no downstairs found, Jev kicked open a locked door. Behind it was a shop closed for inventory, and Kinojevis zapped Jev dead. The check that reads the floor with `:` found nothing, because the dust sign "Closed for inventory" had been wiped. Fix: "You hear the chime of a cash register" now marks the level as town (a shopkeeper lives here), and that blocks door kicking. A locked level now falls back to searching.
+
+## Run 20261001-065037: food poisoning from a rotted rothe corpse, T2090 (Dlvl 5)
+The rothe corpse had been lying there since at least T1902. A hobbit stood on it, and that reset the corpse's "first seen" time. Two turns later Jev killed the hobbit within 7 squares, so the old corpse counted as fresh and Jev ate it at T2083 ("Ulch - that meat was tainted"). Then, with prayer ready and FoodPois flagged as fatal, the model chose goto_corpse and rest. Fixes: (1) a monster crossing a known-old '%' no longer resets its age, and test_corpse.py covers this case. (2) When prayer is offered for a fatal condition, it is the only option.

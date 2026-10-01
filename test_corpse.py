@@ -24,4 +24,8 @@ step({5: ' ' * 10 + '@%'}, 101, 'You kill the jackal!')
 assert b.level().corpses[(11, 5)] == 101, b.level().corpses
 step({5: ' ' * 10 + '@%' + ' ' * 5 + '%'}, 110)  # an old '%' far off stays stale
 assert b.level().corpses[(17, 5)] < 0
+step({5: ' ' * 10 + '@%' + ' ' * 5 + 'h'}, 120)  # a hobbit crosses the old corpse
+step({5: ' ' * 10 + '@%' + ' ' * 4 + 'h%'}, 121)
+step({5: ' ' * 10 + '@%' + ' ' * 4 + '%%'}, 122, 'You kill the hobbit!')
+assert b.level().corpses[(17, 5)] < 0, b.level().corpses  # still old (T2090)
 print('ok')
