@@ -1199,3 +1199,7 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - Jev went Weak at T2429 with no food. Blind, with an unseen jackal and gecko biting, it had only 'pray' and 'rest' to choose from, and it rested 12 times (44 -> 21 HP). The prayer it finally made, 532 turns after the last one, got "Tyr is displeased", so the god was unhelpful but not angry. It then fainted repeatedly and died to a hobgoblin.
 - **Fix 1:** when blind with an unseen attacker and no attack option, Elbereth replaces rest, since engraving works blind.
 - **Fix 2:** when Hungry with nothing near, if any food option exists (eat, a corpse, food to fetch, buy, or shop food), only food options and pray are offered. Food was being passed up for exploring until Jev was Weak; 4 of the last 6 deaths were fainting deaths.
+
+### Run 20261001-022548: starved, T17559 (Dlvl 7 max)
+- Jev solved soko4. soko3's push counter reached 167 against a 166-push plan, but the level wasn't solved: '<' was unreachable. With st=None and no reachable ups, soko3 offered only the '>', while soko4 always offered soko_up. Jev ping-ponged between the two levels from about T6000 to T17559. It was Fainting the whole time and starved.
+- **Fix:** when a plan is finished on a level other than soko1 and no '<' is reachable, Jev replans from the screen (up to 3 tries) and otherwise sets soko_done. On this screen the replan returns [], so soko_done is set and normal play resumes.

@@ -970,6 +970,14 @@ class Bot:
                 if 'soko_push' in opts and not near and not (hostiles and hp < 0.6 * hpmax):  # forced push off Elbereth at 26/64 with fled orcs in view: 14 HP next turn, dead (T5149)
                     opts = {k2: v for k2, v in opts.items() if k2 == 'soko_push' or k2 == 'pray' or k2.startswith('eat_')}
                 opts.pop('descend', None)  # a gnome king nearby lifted the filter and Jev walked out with 8 of 41 pushes left
+            elif not ups and not m[0].startswith('soko1'):  # plan 'done' but '<' unreachable: the step count ran past a 166-push plan, soko_up/descend ping-ponged 11000 turns, starved (T17559)
+                tries = self.run.setdefault('soko_replans', {})
+                tries[m[0]] = tries.get(m[0], 0) + 1
+                new = sokoban.replan(m, me, set(snap.find('0')), set(snap.find('^'))) if tries[m[0]] <= 3 else None
+                if new:
+                    self.run.setdefault('soko_plan', {})[m[0]] = new
+                else:
+                    self.run['soko_done'] = True
             elif m[0].startswith('soko1'):
                 self.run['soko_done'] = True  # top level solved: the zoo and prize are ordinary exploring from here
             elif ups and not near and not self.run.get('soko_done'):  # gave up on the level above: soko_up/descend ping-ponged 1400 times, 13000 turns (T20758)
