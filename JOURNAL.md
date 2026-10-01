@@ -1132,3 +1132,7 @@ Fix: `!timed_delay` in jev/nethackrc makes animations instant. The Hardfought rc
 ## Rothe after a newt's hit blocked Elbereth (T2568, Dlvl 4)
 At AC 10 and 20/50, a cornered newt hit Jev on Elbereth. That started the 5-turn "Elbereth isn't protecting you" block. Jev killed the newt, and then a rothe stepped in. Elbereth was still blocked, so Jev meleed 19 → 5, then prayed too soon (712 turns after the last prayer) and died.
 Fix: the block is keyed to the monsters that were adjacent when it was set (`e_blockers`). A new arrival gets a fresh Elbereth.
+
+## Killer bees while Weak (T3493, Dlvl 6)
+Jev was Weak from hunger with low HP and no food. 'pray' was offered at T3458 onward, 844 turns after the last prayer, so very likely safe. kev-4b kept choosing attack, descend and throw instead. It went down to Dlvl 6 into killer bees and fainted there.
+Fix: when Jev is Weak or Fainting, 'pray' is on offer and no eat option exists, 'pray' is forced.

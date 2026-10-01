@@ -1007,6 +1007,8 @@ class Bot:
             opts = food or {k: v for k, v in opts.items() if k != 'rest' and not (s.get('hunger') == 'Fainting' and k.startswith('approach_'))} or opts  # Fainting closed in on an Uruk-hai, fainted beside it (T3278)  # rested 9 times Weak -> Fainting with food 20 steps off, past fetch's 15-step radius (T2773)
         if s.get('hunger') in ('Weak', 'Fainting') and 'pray' in opts:  # Weak with an unseen thing 1 step off skipped the food filter: rested over a safe prayer, fainted, rothe (T3180)
             opts.pop('rest', None)
+            if not any(k.startswith(('eat_', 'goto_corpse')) for k in opts):
+                opts = {'pray': opts['pray']}  # Weak at low HP 844 turns after a prayer, offered 'pray' 4 times: swung at bees and descended instead, fainted, dead (T3493)
         if (s.get('turn') or 0) - self.run.get('held', -99) <= 1:  # held: moving escapes 1 in 40 (hack.c); a rope golem choked Jev through 3 retreats (T5125). Wiki: Elbereth works while grabbed
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray') or k.startswith(('attack_', 'quaff_'))} or opts
         if any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and any(k.startswith(('attack_', 'flee_up', 'upstairs', 'retreat')) for k in opts):  # flee_up drops attacks, then explore was added back: explored 4 times beside Woodland-elves (T3567)  # explored away from 5 adjacent rats at 21/29: dead (T1354)
