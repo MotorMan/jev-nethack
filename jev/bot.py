@@ -792,6 +792,19 @@ class Bot:
                     opts['kill_blocker'] = (f"Kill the {m['name']} blocking the way", f"The {m['name']} {m['where']} blocks the only way out: you are stuck here until it dies. Walk next to it and fight it. {why}.", lambda m=m: self.act_kill_blocker(m['pos']))
                     if m['ch'] == 'e' and any(k.startswith(('throw_', 'zap_')) for k in opts):
                         del opts['kill_blocker']  # throw at it instead: melee paralyses for up to 127 turns
+        # stagnant: yellow + red molds plugged both corridors, rats behind them; explore/approach/wait looped 4000 turns at XL2, starved (T5244)
+        if s.get('exp') != self.run.get('exp_seen'):
+            self.run['exp_seen'], self.run['exp_turn'] = s.get('exp'), s.get('turn') or 0
+        if (s.get('turn') or 0) - self.run.get('exp_turn', 0) > 500 and 'kill_blocker' not in opts and hp >= 0.6 * hpmax and not any(not m['passive'] and m['dist'] <= 3 for m in hostiles):
+            fs = [m for m in hostiles if m['ch'] == 'F' and m['pos'] in self.avoid and 'lichen' not in m['name']]
+            self.avoid -= {m['pos'] for m in fs}
+            d2, _ = self.dijkstra()
+            self.avoid |= {m['pos'] for m in fs}
+            fs = [m for m in fs if m['pos'] in d2]
+            if fs:
+                m = min(fs, key=lambda m: d2[m['pos']])
+                opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat')}
+                opts['kill_blocker'] = (f"Kill the {m['name']}", f"No experience gained in {(s.get('turn') or 0) - self.run['exp_turn']} turns: the {m['name']} {m['where']} sits in the way. It cannot move or attack; hitting it hurts you a little. The fight stops if HP gets low.", lambda m=m: self.act_kill_blocker(m['pos']))
         if not fr and not downs and not near and sum(lv.searched.values()) >= 300 * (lv.resets + 1):
             # searched a long time for nothing: level memory may be hiding real exits (a starved run had an open doorway in view)
             lv.resets += 1
@@ -1665,7 +1678,7 @@ class Bot:
         self.run['death'] = m[1].strip() if m else ('died' if 'You die' in blob else 'game ended')
         try:  # the screen scrape misreads tombstones and other games' high-score lines; the local xlogfile is exact
             x = dict(f.split('=', 1) for f in open(os.path.join(ROOT, 'nethack', 'lib', 'xlogfile')).read().splitlines()[-1].split('\t') if '=' in f)
-            if self.mode == 'local' and abs(int(x.get('turns', -1)) - (self.run.get('turns') or 0)) <= 5:
+            if self.mode == 'local' and abs(int(x.get('turns', -1)) - (self.run.get('turns') or 0)) <= 200:  # the last screen we read can lag the death by ~50 turns
                 self.run['death'] = x['death'] + (f", {x['while']}" if x.get('while') else '')
         except (OSError, IndexError, KeyError, ValueError):
             pass

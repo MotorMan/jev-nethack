@@ -844,3 +844,8 @@ Run 203259 (confirmed by the xlogfile) was killed by a pony at T4381 while faint
 
 ## 10:55 — Lycanthropy, the slow way
 Run 203601 (XL7, Dlvl 6) was killed by a killer bee at T8224. A werejackal infected Jev about 400 turns after a prayer, so the cure had to wait for the timer. Jev spent ~550 of the next 700 turns as a 7-HP jackal (T7529-7811, T7844-8214). The T7895 prayer didn't cure it, and the T8019 one was a 124-turn low-HP gamble. The last prayer restored dwarf form at 31/77, and a killer bee finished it from 14 HP. The only cures are prayer, wolfsbane and holy water. Holy water would need the altar/BUC work to go further (bless water at a co-aligned altar). No change for now.
+
+## 11:05 — Plugged by molds
+Run 204125 starved at T5244 (xlogfile: "died of starvation, while fainted") on Dlvl 3 at XL2. A yellow mold and a red mold blocked the two corridors out of the start area, with rats behind them. Molds are avoided squares, but unexplored areas still showed as reachable, so the blocker logic (which needs "nothing left to explore") never fired. Jev looped explore → "monster came into view" → wait → approach for ~4,000 turns: 289 waits, 289 explores, 7 attacks. Now, if no experience has been gained in 500 turns and a reachable mold is around (HP ≥ 60%, no mobile hostile within 3), Jev is made to kill it. Molds can't move or attack; the passive damage is small, and act_kill_blocker stops at half HP.
+
+The xlogfile turn match was widened from 5 to 200 turns: this death's last screen read T5200 against the xlogfile's 5244, so the override hadn't applied.
