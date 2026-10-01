@@ -1153,6 +1153,9 @@ class Bot:
                     opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'pickup_', 'wear_', 'wield_'))}
                 opts['recover_gear'] = ('Go back for your dropped armor', f"Your armor and weapon fell off when you changed form. They lie {dist[g[1]]} steps {compass(me, g[1])}: walk there, pick them up and put them back on.", lambda p=g[1]: self.act_go(p))
         tp = next((it for it in self.inventory if 'scroll of teleportation' in it['text']), None)
+        # a werewolf's summoned pack (7 wolves) took 47 -> 0 twice in 7 turns with 2 unknown scrolls in the pack (T3278): teleportation is the commonest escape scroll
+        if not tp and sum(m['dist'] <= 1 and not m['peaceful'] for m in hostiles) >= 3 and s.get('hp', 1) * 2 < s.get('hpmax', 1) and not self.soko():
+            tp = next((it for it in self.inventory if re.search(r'scrolls? labeled', it['text'])), None)
         if tp and 'pray' not in opts and s.get('hp', 1) * 2 < s.get('hpmax', 1) and (near or self.unseen_attacker()) and not self.soko():
             opts['teleport'] = (f"Read {tp['text']}", 'Teleports you to a random spot on this level, away from whatever is hurting you.', lambda l=tp['letter']: self.act_read(l))
         tw = next((it for it in self.inventory if 'wand of teleportation' in it['text'] and not re.search(r':0\)', it['text'])), None)

@@ -1888,3 +1888,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** at 21/28 the bot left its Elbereth to chase a giant bat. The bat (speed 22) bit about twice a turn, 15 -> 4 in one turn. A prayer healed the bot fully, but it kept meleeing, chose attack over Elbereth at 17 and 14 HP, and died. monsters.json rated the giant bat danger 0, so it showed as "about your level" with no tip.
 - **Wiki:** giant bats are fast and erratic and hit hard for the early game. Let them come to you, fight with F, and don't chase them. They respect Elbereth.
 - **Fix:** giant bat danger 1, plus a "Fight if HP above half...; avoid if below half: Elbereth, quaff or pray early" tip.
+
+## Run 20261001-142442: killed by a werewolf on T3278 (Dlvl 6, XL 4, AC -3)
+- **Cause:** the bot took the downstairs anyway at XL 4, reaching Dlvl 6. Fifteen turns later it was surrounded: a werewolf in @ form, 6 or 7 wolves it had summoned, plus an imp. It took 47 -> 24 -> 9, prayed (healed to full), then 47 -> 32 -> 11 -> 0. Two unknown scrolls stayed unread.
+- **Wiki:** a werewolf in @ form ignores Elbereth and summons wolves. When surrounded, use an escape item (teleportation) or the stairs. Scroll of teleportation is the commonest unidentified escape scroll.
+- **Fix:** with 3 or more hostiles adjacent and HP below half, offer reading an unknown scroll through the 'teleport' slot. The deeper cause, descending to Dlvl 6 at XL 4, is the unanswered question about the descend pace.
