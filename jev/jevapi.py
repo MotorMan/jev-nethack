@@ -2,7 +2,10 @@
 import http.client, json, os, socket, ssl, threading, time, urllib.parse
 
 
-ENDPOINT = 'https://api.typesafe.ai/v1/systemone'
+# JEV_ENDPOINT points the bot at any server speaking the same /v1/systemone protocol (a local Jev clone);
+# plain http:// is fine for localhost. JEV_MODEL overrides the model name sent.
+HOSTED = 'https://api.typesafe.ai/v1/systemone'
+is_local = lambda: not os.environ.get('JEV_ENDPOINT', HOSTED).startswith('https://api.typesafe.ai')  # read late: server.py loads .env after imports
 USD_PER_INPUT_TOKEN = 0.042e-6  # published launch price; responses carry no cost field
 
 
@@ -42,6 +45,7 @@ class FastConnect(http.client.HTTPSConnection):
 class Jev:
     def __init__(self, key, budget_usd=5.0, ledger='runs/budget.json'):
         self.key, self.budget, self.ledger = key, budget_usd, ledger
+        self.endpoint, self.model, self.local = os.environ.get('JEV_ENDPOINT', HOSTED), os.environ.get('JEV_MODEL', 'jev-latest'), is_local()
         self.stats = dict(calls=0, errors=0, cost_usd=0.0, latency_total_ms=0.0, last_model=None)
         try:
             self.stats.update(json.load(open(ledger)))
@@ -50,17 +54,18 @@ class Jev:
 
     def ask(self, state, questions, timeout=8):
         """Returns (answers, meta). Raises on transport/validation failure."""
-        if self.stats['cost_usd'] >= self.budget:
+        if self.stats['cost_usd'] >= self.budget and not self.local:
             raise RuntimeError(f'Jev budget ${self.budget} exhausted (see {self.ledger})')
-        body = json.dumps(dict(state=state, model='jev-latest', questions=questions)).encode()
-        url = urllib.parse.urlsplit(ENDPOINT)
+        body = json.dumps(dict(state=state, model=self.model, questions=questions)).encode()
+        url = urllib.parse.urlsplit(self.endpoint)
         t0 = time.time()
         for attempt in range(4):
             try:
                 if not getattr(self, 'conn', None):  # keep-alive: skip the TCP+TLS handshake on every call
-                    self.conn = FastConnect(url.hostname, timeout=timeout, context=ssl.create_default_context())
+                    self.conn = http.client.HTTPConnection(url.hostname, url.port or 80, timeout=timeout) if url.scheme == 'http' else \
+                        FastConnect(url.hostname, url.port or 443, timeout=timeout, context=ssl.create_default_context())
                 try:
-                    self.conn.request('POST', url.path, body, {'Authorization': 'Bearer ' + self.key, 'Content-Type': 'application/json'})
+                    self.conn.request('POST', url.path, body, {'Authorization': 'Bearer ' + (self.key or 'local'), 'Content-Type': 'application/json'})
                     r = self.conn.getresponse()
                     raw = r.read()
                 except BaseException:
@@ -92,7 +97,7 @@ class Jev:
         tokens = (resp.get('usage') or {}).get('input_tokens') or len(body) / 4
         s = self.stats
         s['calls'] += 1
-        s['cost_usd'] += tokens * USD_PER_INPUT_TOKEN
+        s['cost_usd'] += 0 if self.local else tokens * USD_PER_INPUT_TOKEN
         s['latency_total_ms'] += ms
         s['last_model'] = resp.get('model')
         os.makedirs(os.path.dirname(self.ledger), exist_ok=True)

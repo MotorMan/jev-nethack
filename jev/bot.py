@@ -51,6 +51,13 @@ STRATEGY = ("You are a dwarven Valkyrie: strong melee, cold resistant, stealthy,
             "Wear armor you find if it covers an empty slot. The ultimate goal is to retrieve the Amulet and ascend.")
 
 
+QUESTIONS = {'action': dict(type='choice', instructions='Choose the single best action for the Valkyrie right now. Staying alive comes first; after that, '
+                            'make steady progress (explore, gear up, descend). Use the status, monsters, recent outcomes and the standing order.'),
+             'danger': dict(type='noul', instructions='Is the Valkyrie in serious danger of dying within the next few turns?'),
+             # jev-doom's "exposure" rubric: a second pick judged on survival alone; danger ran 0.6-0.87 in the turns before recent deaths
+             'safest': dict(type='choice', instructions='Ignoring progress entirely, which action gives the Valkyrie the best chance of still being alive 20 turns from now? You cannot see your other answers.')}
+questions = lambda criteria: {k: dict(q, criteria=criteria) if q['type'] == 'choice' else q for k, q in QUESTIONS.items()}
+
 def now():
     return datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -1718,8 +1725,7 @@ class Bot:
                 {'search': ('Search 10 turns', 'Nothing else to do here right now.', lambda: self.act_search(10))}
         state = self.state_text(mons)
         t1 = time.time()
-        question = ('Choose the single best action for the Valkyrie right now. Staying alive comes first; after that, '
-                    'make steady progress (explore, gear up, descend). Use the status, monsters, recent outcomes and the standing order.')
+        question = QUESTIONS['action']['instructions']
         criteria = {k: f"{v[0]}. {v[1]}" for k, v in opts.items()}
         s = self.snap.status
         self.decision = dict(id=self.run['decisions'] + 1, at=now(), turn=s.get('turn') or 0, pending=True, question=question,
@@ -1731,10 +1737,7 @@ class Bot:
             key, answers, meta = next(iter(opts)), {}, dict(latency_ms=0, model=None)
             probs, conf = {key: 1.0}, 1.0
         else:
-            qs = {'action': dict(type='choice', instructions=question, criteria=criteria),
-                  'danger': dict(type='noul', instructions='Is the Valkyrie in serious danger of dying within the next few turns?'),
-                  # jev-doom's "exposure" rubric: a second pick judged on survival alone; danger ran 0.6-0.87 in the turns before recent deaths
-                  'safest': dict(type='choice', instructions='Ignoring progress entirely, which action gives the Valkyrie the best chance of still being alive 20 turns from now? You cannot see your other answers.', criteria=criteria)}
+            qs = questions(criteria)
             answers, meta = self.jev.ask(state, qs)
             key = answers['action']['choice']
             if (answers['danger'].get('noul') or 0) >= 0.6 and answers['safest']['choice'] != key:

@@ -934,3 +934,8 @@ User: "i'd buy mithril if you can afford it, also price-ID scrolls and potions a
   - potions priced at base 20 (healing, unique in 5.0 objects.h).
 - **Use**: price-identified items get " (priced as …)" added to their inventory text, so the existing 'healing' quaff logic picks them up. New read_ option for identify, remove curse and enchant armor (EA only while wearing armor), never while blind, confused, stunned, hallucinating or in a shop. act_read picks the first entry in identify's menu.
 - `test_price_id.py` checks the price inversion.
+
+## 2026-10-01 16:10 — Local-Jev adapter
+- `JEV_ENDPOINT` / `JEV_MODEL` (env or .env) point the bot at any server speaking `/v1/systemone`; plain http is fine for localhost. Local endpoints skip the budget check and keep their own ledger (`runs/budget-local.json`).
+- The three question texts now live in `bot.QUESTIONS` so tools can reuse them verbatim.
+- `scripts/compare_jev.py` replays logged multi-option decisions against the endpoint: latency p50/p90 versus hosted, top-1 action agreement, safest agreement, danger delta and 0.6-trigger agreement. Smoke-tested against a stub server.

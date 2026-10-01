@@ -107,7 +107,8 @@ def main():
     ap.add_argument('--paused', action='store_true')
     args = ap.parse_args()
     load_env()
-    jev = Jev(os.environ['JEV_API_KEY'], float(os.environ.get('JEV_BUDGET_USD', 5)), os.path.join(ROOT, 'runs', 'budget.json'))
+    from .jevapi import is_local  # a local endpoint keeps its own ledger so hosted spend stays exact
+    jev = Jev(os.environ.get('JEV_API_KEY', ''), float(os.environ.get('JEV_BUDGET_USD', 5)), os.path.join(ROOT, 'runs', 'budget-local.json' if is_local() else 'budget.json'))
     if args.hardfought:
         from .hardfought import launcher
         bot = Bot(launcher(os.environ['HARDFOUGHT_USERNAME'], os.environ['HARDFOUGHT_PASSWORD']), jev, 'hardfought')
