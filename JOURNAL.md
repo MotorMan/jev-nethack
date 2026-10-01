@@ -1217,3 +1217,8 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - When the nymph finally moved, she stole the +3 shield anyway. Jev went Weak, and its prayer 846 turns after the last one got "displeased" (bad luck in the rnz timeout).
 - A yellow light then blinded Jev, and it fainted and died under zombies.
 - Fix: if the nymph has not moved for 30 turns, treat her as asleep and drop the nymph lock. Valkyries have intrinsic stealth.
+
+## 20261001-025211: rope golem while "taking off clothes", T5445, Dlvl 7, XL 5, AC 0
+- Jev was in Minetown, Hungry, on a 37-step explore. Izchak and a watchman left view just as a rope golem and a wood nymph came into view.
+- The walk's "monster came into view" check compares counts, so it never fired. Jev bumped into the golem and was grabbed. Then it prayed for being Weak while the nymph charmed off its armor, and the golem choked it.
+- Fix: a walk also stops when a monster glyph not seen at the start of the walk appears within 7 squares.

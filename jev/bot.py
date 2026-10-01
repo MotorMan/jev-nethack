@@ -1253,6 +1253,7 @@ class Bot:
         """Walk toward target one step at a time; stop on new threats, damage or arrival."""
         taken = 0
         n_seen = len(self.hostile_glyphs())
+        chs = {self.snap.at(*q).ch for q in self.hostile_glyphs()}
         hp0 = self.snap.status.get('hp', 0)
         for _ in range(steps):
             me = self.snap.me
@@ -1295,7 +1296,8 @@ class Bot:
             if snap.status.get('hp', 0) < hp0:
                 return f'took damage after {taken} steps'
             # monsters move, so compare counts rather than positions
-            if len(self.hostile_glyphs()) > n_seen and any(cheb(p, snap.me) <= 7 for p in self.hostile_glyphs()):
+            near = [q for q in self.hostile_glyphs() if cheb(q, snap.me) <= 7]  # by count alone, Izchak and a watchman leaving view hid a rope golem and a nymph arriving: walked into both, choked (T5445)
+            if near and (len(self.hostile_glyphs()) > n_seen or any(snap.at(*q).ch not in chs for q in near)):
                 return f'stopped after {taken} steps: a monster came into view'
             if any(re.search(r'You (see|feel) here|There are (several|many) objects|trap|You fall|stairs', m) for m in news):
                 return f'stopped after {taken} steps: {news[-1]}'
