@@ -1571,3 +1571,6 @@ It had no missiles: the dagger was gone and it wielded a scimitar. It walked to 
 
 ### Hosted 20261001-091226: hill orc pack in the Mines, Dlvl 5, XL 4 (T3245)
 It had prayed 33 turns earlier, and its Elbereth engravings kept coming out garbled. This is the open Mines-depth question, so no fix.
+
+### Hosted 20261001-091627: starved on Dlvl 6 (T2961) after a failed first prayer
+A yellow light blinded it, and while blind it killed two unseen "it"s (T2622, T2650). Its first prayer of the game, at T2707, got "You feel that Tyr is displeased". The timeout should have been 0 by then (it starts at 300 and drops 1 per turn), so luck or alignment was negative. There was no "distant thunder", so it did not kill its pet. The likeliest cause is a peaceful it fought blind: mon.c gives adjalign -1 per hit and -5 per kill, with no message. It is unconfirmed, so no fix. Its last food was a carrot at T2539.
