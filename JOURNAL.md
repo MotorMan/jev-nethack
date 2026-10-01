@@ -1979,3 +1979,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: at 65/76 a Woodland-elf shot it, then soldier ants and an elf mummy joined. It chose flee_up 4 times in a row; each step was cut short after 1 square and hit (55 -> 17 -> 0). It had a wand of fire and two potions of healing: the danger-quaff loop breaks on the first potion in inventory order, so only an unknown yellow potion was ever offered. An identified uncursed amulet of guarding sat unworn.
 - Wiki (Soldier ant): "the top killer": don't run from speed 18 in the open. Fight from Elbereth (it respects it), quaff healing, zap attack wands. Running for stairs only works if they are a few squares away.
 - Fix: known healing potions are offered first. flee_up is dropped after two one-step flee_up attempts in a row (when other options exist). Known-good uncursed amulets (life saving, reflection, guarding, ESP) are worn.
+
+## Run 20261001-160537 — killed by Ms. Zum Loch, the shopkeeper (T17928, Dlvl 4)
+- **Cause:** a yellow light exploded at the door of Zum Loch's liquor emporium and blinded Jev. When Elbereth was interrupted, the "fight back felt monsters" rule swung at the unseen creature next to the door. It was the shopkeeper ("You miss it. It gets angry!"), and no "Really attack?" prompt appears while blind. Her wand did the rest.
+- **Wiki:** Shopkeeper: never fight blind near a shop. Peaceful checks need sight. Yellow light: kill it at range or let it go; its explosion blinds for a long time.
+- **Fix:** a "Welcome (again) to X's" message records (dlvl, turn). Being blind within 100 turns of it on the same level counts as being in a shop, so the attack and zap options and the felt-monster swing are all withheld.

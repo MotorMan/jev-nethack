@@ -178,6 +178,8 @@ class Bot:
             ev = re.findall(r'(engulfs you|swallows you|The exit\?|laden with moisture|enveloped in a cloud of steam)|get expelled|regurgitates you|expels you|You (?:destroy|kill) (?:it|the)|dissipates|thin air|You get released', text)
             if ev:  # last event wins: "You kill the newt!  The fog cloud engulfs you!" is one message
                 self.run['engulfed'] = bool(ev[-1])
+            if re.search(r"[Ww]elcome (again )?to \w", text) and self.snap:
+                self.run['welcome'] = (self.snap.status.get('dlvl'), self.snap.status.get('turn') or 0)
             self.run['recent'].append(text)
             del self.run['recent'][:-12]
 
@@ -1275,6 +1277,8 @@ class Bot:
         elif 'Blind' in s.get('conditions', []):  # a blind step into an unseen watchman angered the whole Minetown watch
             fight = {k: v for k, v in opts.items() if k in ('pray', 'elbereth') or k.startswith(('quaff_', 'attack_', 'eat', 'wield_', 'zap_'))}  # zaps point at the monster biting you: a blind Jev with a wand of cold only had 'swing', 62 -> 8, died praying (T5509)  # weaponless, opts was just 'wield': this dropped it and a blind Jev waited while a dog bit 37 -> 0 (T4631)  # blind engraving still scares: invisible quasits drained a blind Jev who could only swing
             # 'You feel an unseen monster' is just sensing: swung at it blind in Aklavik's store, and she zapped Jev dead (T3012)
+            w = self.run.get('welcome') or (None, -999)  # blind on Zum Loch's door after a yellow light: swung at the felt shopkeeper, dead to her wand (T17928)
+            shop = shop or (w[0] == s.get('dlvl') and turn - w[1] < 100)
             if (shop or lv.town) and not any(re.search(r"\b(It|The [a-z' -]+?) (hits|bites|touches|stings|butts|kicks|claws)", m) for m in self.run['recent'][-2:]):  # blind on a Mines level, 'The grid bug bites!' didn't count as being attacked: waited 55 -> 6 beside it and a rothe, died praying (T15494)  # blind swings at the unseen shopkeeper angered Ms. Tipor, twice-dead to her wand  # Minetown: swung at a felt 'I', a peaceful watchman: the watch killed Jev (T6313)
                 fight = {k: v for k, v in fight.items() if not k.startswith(('attack_', 'zap_'))}
             # resting while unseen things bit a blind Jev from 54 to 4 HP (twice) is worse than swinging back
@@ -1283,7 +1287,7 @@ class Bot:
                 if not self.engraved_here():
                     fight['elbereth'] = ('Engrave Elbereth', 'You are blind and something unseen is biting you. Engraving works blind and scares most monsters off.', self.act_elbereth)
             felt = [m for m in hostiles if m['dist'] == 1 and 'unseen' in m['name']]
-            if felt and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5:  # blind, 5 Elbereths in a row "interrupted" by unseen fire ants, never swung back: 36 -> 0 (T5164)
+            if felt and not shop and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5:  # blind, 5 Elbereths in a row "interrupted" by unseen fire ants, never swung back: 36 -> 0 (T5164)
                 fight.pop('elbereth', None)
                 for m in felt:
                     d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
