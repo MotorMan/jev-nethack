@@ -1863,3 +1863,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** Weak, at 24/64 with a corroded cursed axe. A hill orc kept throwing a wielded (returning) aklys from 4 steps away. The "it shoots you, kill it" charge became the only option 3 times, at 15-24 HP, but the orc never got closer while an imp (speed 12, AC 2, regenerates) kept hitting. Off Elbereth at last, the bot quaffed unknown potions (hallucination, confusion), swung at thin air and died to the imp.
 - **Wiki (Aklys / Imp):** a wielded aklys is tethered and returns to its thrower, so it acts as a repeatable ranged attack. Imps are fast and hard to hit, but respect Elbereth. Don't chase a ranged attacker you can't catch: break line of sight or leave.
 - **Fix:** the forced charge at the shooter is dropped once 2 of the last 4 decisions were approaches and the shooter is still more than 2 away. STRATEGY: stop chasing a kiting thrower.
+
+## 20261001-134441 — hill orc, T5706, Mines Dlvl 7 (XL 6)
+- **Cause:** after fleeing up from Dlvl 8 and praying for hunger (T5697), the bot stepped on an unknown magic trap at 48/59. trap.c `domagictrap`: blinded (10-14 turns), deafened, and rnd(4) makemon calls beside it, which brought a hill-orc band, a pony and a wolf. With 10+ adjacent, the only option was Elbereth; the attacks interrupted it, and it died the next turn. '<' was 3 steps away; flee_up was filtered out because the bot couldn't outrun them.
+- **Wiki (Magic trap):** the "flash of light / deafening roar" effect summons monsters around you. Prayer was spent and blind engraving gets interrupted, so the stairs were the only real exit.
+- **Fix:** the adjacent-mob Elbereth/pray filter keeps flee_up when '<' is within 3 steps. STRATEGY line on summoned crowds.
