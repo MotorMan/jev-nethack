@@ -1494,3 +1494,12 @@ Run 20261001-074301 died to a rat pack at T3091 on Dlvl 5, praying at 6/48.
 - The wererat (@ form, which ignores Elbereth) plus sewer and giant rats took it from 46 to 6 in three turns.
 
 Change: the gear-recovery filter (recover, pray, eat, pickup, wear, wield only) now also applies at AC 9+ when monsters are in view but none adjacent.
+
+## 2026-10-01 — Stay on Elbereth when the only @ is a were
+Run 20261001-074653 died to a sewer rat at T1818 on Dlvl 4.
+
+- Jev sat on Elbereth at 24/36 HP. A wererat in @ form arrived, which ignores Elbereth.
+- The rule "any @ within 7 means don't force the stay" released Jev, and it stepped off to close in.
+- The wererat summoned sewer and rabid rats around it: 25 → 9 → 0 in two turns.
+
+Summoned rats and jackals respect Elbereth, so leaving it is the worst move. Fix: were-@s no longer count in that rule. A replay at T1815 offers ['wait'] instead of ['approach', 'wait'].
