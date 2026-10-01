@@ -548,6 +548,10 @@ class Bot:
                     continue  # hitting one paralyzes you (passive AD_PLYS, no free action): frozen, an elf mummy and the cube took 67 -> 0 (T9389)
                 d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
                 opts[f'attack_{d}'] = (f"Attack {m['name']} ({DIR_NAME[d]})", f"Melee the adjacent {m['name']} to the {DIR_NAME[d]}.{danger}", lambda d=d: self.act_fight(d))
+        atk = [m for m in hostiles if m['dist'] == 1 and f"attack_{DIR_OF.get((m['pos'][0] - me[0], m['pos'][1] - me[1]))}" in opts]
+        if len(atk) >= 3:  # mobbed: switching between sewer rats and a rothe (3 attacks a turn), 26 -> 6 at XL 4 (T3797); kill the worst one first
+            top = max(atk, key=lambda m: (MONSTERS.get(self.species(m)) or [0])[0])
+            opts = {k: v for k, v in opts.items() if not k.startswith('attack_') or k == f"attack_{DIR_OF[(top['pos'][0] - me[0], top['pos'][1] - me[1])]}"}
         were_throw = None  # an animal-form were's bite gives lycanthropy 1 in 4 hits (uhitm.c mhitm_ad_were): 44 of 509 runs caught it; wiki: kill them before melee range
         nymph_throw = None  # nymphs stole a ration, spear, shield and slime molds in one game: hit them before they arrive
         missiles = [it for it in self.inventory if re.search(r'\b(daggers?|knife|knives|darts?|shuriken|spears?|javelins?)\b', it['text'])

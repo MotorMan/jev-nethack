@@ -1541,3 +1541,7 @@ At full HP (42) Jev meleed a lone Woodland-elf ("about your level") at the Oracl
 ## Run 20261001-083440: giant beetle, fainted, T10905 (XL 8, max Dlvl 4)
 Jev spent T1326–T9259 on Dlvl 3. The downstairs room was reached only through a hidden corridor, and search_hidden took about 6000 turns to find it. Meanwhile 7 prayers went on hunger, and it finally fainted to death on Dlvl 4. It carried 3 unknown scrolls the whole time.
 **Fix:** once a level has 300+ searches and no downstairs, the bot reads unknown scrolls ("labeled") in place of searching. Magic mapping or teleportation can break the deadlock.
+
+## Run 20261001-084546: rothe, T3797, Dlvl 5 (XL 4)
+Mobbed by a rothe, 2 garter snakes and 2 sewer rats. Elbereth stopped working (got hit on it), and Jev switched targets between rats and the rothe while the rothe's 3 attacks a turn took it from 26 to 6. Prayer was 98 turns old.
+**Fix:** with 3+ attackable neighbors, only the highest-difficulty one is offered as an attack target.
