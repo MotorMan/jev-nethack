@@ -2004,3 +2004,9 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Rule (operator):** NEVER read an unknown scroll unless it's price-ID'd as identify. Always read identify when there's a major non-gem unknown.
 - **Wiki:** Price identification: identify is the only base-20 scroll and the most common (18%). Unknown scrolls include fire, amnesia, punishment, create monster, teleportation, destroy armor and aggravate monster.
 - **Fix:** removed all three unknown-scroll reads (stuck searching, trapped/walled in, emergency "teleport" gamble). Known or price-ID'd identify is now forced when nothing hostile is in view and an unknown wand, ring, amulet, potion or scroll is in the pack. The identify menu picks wands, then amulets, rings, armor, potions, scrolls, and gems last.
+
+## Run 20261001-164503 — killed by a wolf (T3260, Dlvl 7 Minetown, XL 5)
+- **Cause:** the bot dove from Dlvl 5 to 7 at XL 5. A wolf pack, a warg (difficulty 8) and a lizard arrived. On a fresh Elbereth at 32/38 with a wolf and a lizard 2 squares off, the only options were explore, because the forced Elbereth-wait needs a 3+ pack or under 75% HP. It stepped off, the warg joined, Elbereth came out garbled, and it went 32 → 19 → 0 in two turns without ever praying.
+- **Wiki:** Wolf/warg: they come in packs, so fight from Elbereth or a corridor. Don't walk into the open while two of them are close.
+- **Fix:** `duo`, two or more non-weaker hostiles within 3 squares, also holds the bot on a working Elbereth.
+- The recurring pace problem (XL 5 on Dlvl 7) is still open with the operator.
