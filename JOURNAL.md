@@ -1128,3 +1128,7 @@ Fix: when Elbereth is on offer, HP is below 60% and an adjacent hostile is stron
 ## Uruk-hai arrows: reading the screen mid-animation (T3349, Dlvl 5)
 After each Uruk-hai volley, every monster in view came back as "unknown", and Jev once attacked thin air where a stale 'G' had been drawn. In 5.0, tty_delay_output sleeps 50 ms per missile frame (termcap.c, flags.nap). The local terminal reader treats 15 ms of silence as "the game is waiting for input", so it parsed the map and sent farlook keys mid-animation. With every name unknown, the shooter-in-view check failed, and Jev was choosing blind under fire. It left Elbereth, threw, then fell 24 → 9 HP, and the last Elbereth was interrupted.
 Fix: `!timed_delay` in jev/nethackrc makes animations instant. The Hardfought rc needs the same line when it is pasted there.
+
+## Rothe after a newt's hit blocked Elbereth (T2568, Dlvl 4)
+At AC 10 and 20/50, a cornered newt hit Jev on Elbereth. That started the 5-turn "Elbereth isn't protecting you" block. Jev killed the newt, and then a rothe stepped in. Elbereth was still blocked, so Jev meleed 19 → 5, then prayed too soon (712 turns after the last prayer) and died.
+Fix: the block is keyed to the monsters that were adjacent when it was set (`e_blockers`). A new arrival gets a fresh Elbereth.

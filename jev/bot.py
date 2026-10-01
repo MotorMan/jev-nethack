@@ -518,6 +518,7 @@ class Bot:
         opts = {}
         if shot and any(m['name'] == self.run.get('shooter') and 'weaker' in self.threat(m) for m in hostiles) and any('stronger' in self.threat(m) and m['dist'] <= 3 for m in hostiles):
             shot = False  # a goblin's thrown dagger pulled Jev off Elbereth into a killer bee hive at 8/29, dead (T2693)
+        self.run['adj_names'] = {m['name'] for m in hostiles if m['dist'] <= 1}
         hp, hpmax = s.get('hp', 1), s.get('hpmax', 1)
         danger = f" You are at {hp}/{hpmax} HP: one or two more hits could kill you." if hp * 3 < hpmax else ''
 
@@ -612,7 +613,7 @@ class Bot:
             opts = {k: v for k, v in opts.items() if not k.startswith(('approach_', 'explore'))}
         if (near and hp < 0.7 * hpmax or dread or pack or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} \
-                and not (any(m['dist'] == 1 for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # @ ignore it (monmove.c onscary: S_HUMAN); 2 Elbereths at 9/49 beside a Woodland-elf, a rock mole also near, dead (T2543); engrave.c scrambles writing
+                and not (any(m['dist'] == 1 and m['name'] in self.run.get('e_blockers', ()) for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # @ ignore it (monmove.c onscary: S_HUMAN); 2 Elbereths at 9/49 beside a Woodland-elf, a rock mole also near, dead (T2543); engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
         if 'choke' in opts and hp >= 0.4 * hpmax:  # wiki: Elbereth is breathing room; a corridor is how to actually fight a group
             opts.pop('elbereth', None)
@@ -1383,6 +1384,7 @@ class Bot:
         self.observe()
         if not self.elbereth_ok():
             if 'written' not in self.last_read:  # 5.0 engraving is an occupation: a fast attacker interrupts it before any letter lands
+                self.run['e_blockers'] = self.run.get('adj_names', ())  # a newt's hit blocked Elbereth against the rothe that came next: 19 -> 5, dead praying (T2568)
                 self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0
                 return 'nothing got written: the attack interrupted the engraving'
             return 'engraving came out garbled; not protected'  # engrave.c: each dust letter has a 1/25 typo, so a retry is a fresh ~72% shot; blocking retries after 2 garbles had 3 wolves bite 29 -> 0 (T2624)
@@ -1399,6 +1401,7 @@ class Bot:
         self.act_keys('ms', '')
         if self.snap.status.get('hp', 0) < hp:
             self.run['elbereth'].discard((self.snap.status.get('dlvl'), self.snap.me))
+            self.run['e_blockers'] = self.run.get('adj_names', ())  # a newt's hit blocked Elbereth against the rothe that came next: 19 -> 5, dead praying (T2568)
             self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0  # cornered monsters can't flee and hit anyway: re-engraving 3 times fed a swarm (T5315)
             return 'got hit while standing on Elbereth: it is not protecting you here'
         return 'waited on Elbereth'
