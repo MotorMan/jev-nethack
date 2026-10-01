@@ -112,6 +112,8 @@ class Bot:
                 self.level().town = True
             if re.search(r'You feel feverish|You turn into a were', text):
                 self.run['lycanthropy'] = True
+            if re.search(r'You turn into a were|You find you must drop', text) and self.snap and self.snap.me:  # armor and weapon fall to the floor here (polyself.c break_armor/drop_weapon)
+                self.run['dropped'] = (self.snap.status.get('dlvl'), self.snap.me)
             if re.search(r'is displeased|Thou durst call upon me|Then die, mortal|voice of \w+ (booms|rings out)', text):  # prayed too soon: god angry, Luck -3 (the quote after 'booms:' can be lost: wrath of Tyr killed T5998), praying again only makes it worse
                 self.run['god_angry'] = True
             if re.search(r'grabs you|You are being choked|cannot escape from|swings itself around you', text) and self.snap:
@@ -716,7 +718,9 @@ class Bot:
             opts[f'door_{door[0]}_{door[1]}'] = (f"Go through the {what} {compass(me, door)}", f"Walk {dist[q]} steps to the {what} {compass(me, door)}, open it (kicking it if locked). What lies behind is unexplored.", lambda q=q, door=door: self.act_kick_door(q, door))
         if (not near or s.get('hunger') in ('Weak', 'Fainting')) and not shop:  # starving beats a hovering monster; only stepped-on items were ever picked up; Jev fainted twice with food lying in view
             objs = [q for c in ')[%?/=!("$' for q in snap.find(c)]
-            loot = [q for q in objs if q in dist and 0 < dist[q] <= 15 and (s.get('dlvl'), q) not in self.run['here'] and lv.corpses.get(q, -1) < 0
+            if self.run.get('dropped') == (s.get('dlvl'), me) or not (s.get('title') or '').startswith('Were') and self.run.get('dropped', (0,))[0] != s.get('dlvl'):
+                self.run.pop('dropped', None)
+            loot = [q for q in objs if q in dist and 0 < dist[q] <= 15 and ((s.get('dlvl'), q) not in self.run['here'] or self.run.get('dropped') == (s.get('dlvl'), q)) and lv.corpses.get(q, -1) < 0
                     and sum(cheb(q, o) <= 3 for o in objs) < 6]  # a dense cluster is a shop
             if loot:
                 starving = s.get('hunger') in ('Weak', 'Fainting')
