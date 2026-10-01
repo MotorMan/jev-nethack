@@ -719,3 +719,6 @@ Turn-share analysis of recent runs: run 173208 spent 91% of its 8000 turns on "R
 
 ## 2026-10-01 02:20 — run 174939, variance
 XL6, Dlvl 6, AC6: a jaguar (3 attacks) and a killer bee together took 36 → 0 HP in 3 turns, 100 turns after a prayer. No stairs were near and the Elbereth came out garbled. No fix; AC6 at XL6 is weak, so armour is a lever to look at if this repeats.
+
+## 2026-10-01 02:30 — run 175322, variance
+XL3 at full 39 HP, walking to a food item on Dlvl 3: it fell asleep mid-walk (most likely an unseen sleeping gas trap, rnd(25) turns) and a hostile kitten bit it to death. No fix.
