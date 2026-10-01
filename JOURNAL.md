@@ -1625,3 +1625,6 @@ It kicked in a locked door in Minetown. The ':' check found no sign, and no peac
 
 ## Djev 100655 — bugbear while hallucinating/asleep, T4056, Dlvl 6
 It had prayed at T4011 and was fighting a Mordor orc pack at 11-19 HP; several Elbereths came out garbled. It quaffed unknown potions as last resorts: the first was hallucination, a later one put it to sleep, and it died asleep. Unknown potions are a fair gamble with no prayer left, so no fix.
+
+## Djev 101115 — jaguar, T3737, Dlvl 6
+At AC 10, 28/53 HP and 50 turns after a prayer, it chose 'approach' toward a fleeing jaguar (speed 15, three attacks, 'about your level'). That stepped it off Elbereth, and the melee took it 28 -> 12 -> 3. Fix: fast (speed > 12) monsters 'about your level' within 2 squares count as dread when HP < 60%, which drops approach/explore.
