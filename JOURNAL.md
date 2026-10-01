@@ -807,3 +807,6 @@ In trap.c, hole_destination sends a hole or trap door 1+ levels down in the same
 
 ## 08:55 — Lost a gamble
 Run 200913 died at T2331 on Mines 5. A giant ant and a giant bat cornered Jev, and an Elbereth engraving came out garbled. Jev made the low-HP gamble prayer (100+ turns since the last one) and was killed mid-prayer. The gamble was the right call there; this one is variance.
+
+## 09:05 — Dead-end cascade
+Run 201020 fainted from hunger on Dlvl 1 at T7223 and was killed by a werejackal. Dlvl 3's '>' was never found, so `dead_end` sent Jev up after 2,000 turns and marked Dlvl 2's '>' as bad. Dlvl 2 had no other '>', so it counted as a dead end too, and Jev climbed to Dlvl 1. A bad '>' is now skipped only when there's another way down; otherwise Jev goes back down to re-explore the level, whose memory was wiped.

@@ -728,7 +728,9 @@ class Bot:
             lv.terrain_turn = s.get('turn', 0)
             lv.stairs |= set(self.terrain_find('>'))
         bad = {q for (dl, q), t0 in self.run.setdefault('bad_down', {}).items() if dl == s.get('dlvl') and s.get('turn', 0) - t0 < 3000}
-        downs = [p for p in snap.find('>') + sorted(lv.stairs) if (p in dist or p == me) and p not in bad]
+        downs = [p for p in snap.find('>') + sorted(lv.stairs) if p in dist or p == me]
+        # a bad '>' is skipped only when another way down exists: otherwise the level above dead-ends too and Jev cascades up to Dlvl 1 (starved, T7223)
+        downs = [p for p in downs if p not in bad] or downs
         too_deep = s.get('dlvl', 1) >= (s.get('xl') or 1) + 2  # pace: Dlvl <= XL+1 (XL+2 still lost most runs on Dlvl 4-5 before T2000)
         ups = [p for p in snap.find('<') if p in dist]
         above = self.run['levels'].get(s.get('dlvl', 1) - 1)
