@@ -1380,3 +1380,6 @@ A wood nymph stole the shield at T1696. Hunger went from Hungry to Fainting with
 
 ## Run 20261001-064301: werewolf (gamble prayer), T5767 (Dlvl 9, XL 6, AC 3)
 Jev reached Dlvl 9 with speed boots. Three of its five prayers went on being Weak (T1859, 3473, 4784): about 85 kills, mostly tiny monsters (newts, lichens, iguanas) that rarely leave corpses or give much nutrition, and 25 corpse meals. After a low-HP prayer at T5640, an orc mummy plus a werewolf in human form (@, which ignores Elbereth) took Jev to 7 HP while it was Weak. The gamble prayer 124 turns after the last one failed. No code change. The open problem is food supply: no rations bought, and gold is too low to buy them.
+
+## Run 20261001-064958: shopkeeper's wand, T972 (Dlvl 2, XL 2)
+With no downstairs found, Jev kicked open a locked door. Behind it was a shop closed for inventory, and Kinojevis zapped Jev dead. The check that reads the floor with `:` found nothing, because the dust sign "Closed for inventory" had been wiped. Fix: "You hear the chime of a cash register" now marks the level as town (a shopkeeper lives here), and that blocks door kicking. A locked level now falls back to searching.

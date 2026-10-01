@@ -92,7 +92,7 @@ class Level:
         self.holes = set()     # the trap doors/holes among them: a way down when boxed in
         self.resets = 0        # times near/dead/blocked were wiped after fruitless searching
         self.corpses = {}      # square -> turn the corpse was first seen
-        self.town = False      # a peaceful @ lives here (Izchak killed a run over a kicked shop door)
+        self.town = False      # a peaceful @ lives here (Izchak killed a run over a kicked shop door; the cash-register chime means a shopkeeper: a wiped "Closed for inventory" sign let Jev kick in Kinojevis' door, zapped dead T972)
         self.arrival = None    # where we first stood here: the other '<' on the Oracle+1 level leads to Sokoban
         self.stairs = set()    # '>' found under objects by #terrain
         self.terrain_turn = -999
@@ -141,7 +141,7 @@ class Bot:
                 del self.messages[:-300]
             self.version += 1
         if self.run is not None:
-            if re.search(r'Closed for inventory|stop damaging that door', text) and self.snap and self.snap.status.get('dlvl'):
+            if re.search(r'Closed for inventory|stop damaging that door|chime of a cash register', text) and self.snap and self.snap.status.get('dlvl'):
                 self.level().town = True
             if re.search(r'You feel feverish|You turn into a were', text):
                 self.run['lycanthropy'] = True
