@@ -1873,7 +1873,7 @@ class Bot:
         return 'going to search: ' + r
 
     def never_eat(self):
-        return tuple(n for n in NEVER_EAT if not (n == 'kobold' and self.run.get('desperate')))
+        return tuple(n for n in NEVER_EAT if not (n in ('kobold', 'bat', 'dog', 'cat', 'kitten', 'pony') and self.run.get('desperate')))  # bat only stuns, pets only aggravate (eat.c): Weak with no prayer, explored off a 50-turn giant bat corpse, fainted, dead (T1956)
 
     def unseen_attacker(self):
         return any(re.search(r"\b(It|ghost) (hits|bites|touches|stings|butts|kicks|misses)|feel an unseen monster|You hear a nearby zap|The bolt of \w+ hits you", m) for m in self.run['recent'][-2:]) \

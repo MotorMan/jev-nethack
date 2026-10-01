@@ -1475,3 +1475,12 @@ Run 20261001-073230 died to a jaguar at T7122 on Dlvl 6.
 - rnz(350) puts that prayer near a coin flip, while a dust Elbereth lands about 72% of the time (1/25 typo per letter).
 
 Fix: when the prayer is a gamble under 200 turns after the last one, Elbereth stays alongside it. A replay at T7122 now offers ['elbereth', 'pray'] instead of ['pray'].
+
+## 2026-10-01 — Desperate hunger: bat and pet corpses are food
+Run 20261001-073919 died at T1956 on Dlvl 4. A homunculus killed Jev while it was fainted from hunger.
+
+- Jev had lycanthropy, and its prayer at T1545 had gone on HP 2.
+- At T1701–1729 it stood on a 26–54-turn-old giant bat corpse, Hungry and then Weak. Eating was never offered, because NEVER_EAT includes 'bat'.
+- It then turned into a jackal (3 HP), fainted, prayed too soon ("Thou art arrogant"), and died fainted.
+
+Per eat.c a bat corpse only stuns, and dog, cat and pony corpses only aggravate. When Jev is "desperate" (Weak or Fainting, no prayer available, HP > 15), these now count as food, like kobolds already did.
