@@ -716,3 +716,6 @@ Turn-share analysis of recent runs: run 173208 spent 91% of its 8000 turns on "R
 ## 2026-10-01 02:05 — two death fixes
 - **Run 174306** (XL6, Dlvl 7): hallucinating at 21/71, a retreat went diagonally between two walls and didn't move ("You are carrying too much to get through", hack.c test_move, weight > 600). A giant beetle took 17 HP, and the gamble prayer came 207 turns after the last one. The pathfinder already skipped such squeezes; `retreat_dir` now does too.
 - **Run 174744** (XL4, Dlvl 5): at 9/49 Jev wrote Elbereth twice beside a Woodland-elf because a rock mole in view made the "all near are @" check false. monmove.c `onscary`: magical scares never work on S_HUMAN. Elbereth is no longer offered while an @ is adjacent.
+
+## 2026-10-01 02:20 — run 174939, variance
+XL6, Dlvl 6, AC6: a jaguar (3 attacks) and a killer bee together took 36 → 0 HP in 3 turns, 100 turns after a prayer. No stairs were near and the Elbereth came out garbled. No fix; AC6 at XL6 is weak, so armour is a lever to look at if this repeats.
