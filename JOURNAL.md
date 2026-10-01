@@ -1715,3 +1715,8 @@ The user wants gold collected until it buys protection, then kept at 2000–4000
 - **`donate`:** shown when a peaceful "priest(ess) of X" is in view, nothing is near, and gold ≥ 500×XL (+4000 once already protected).
   - `act_donate` walks next to the priest, `#chat`s, parses A/B from the prompt, and offers B, or A or all of its gold if it can't afford B.
 - Gold was already autopicked and never in the Burdened drop list. The strategy notes now mention protection.
+
+### Hosted 20261001-112300 — watchman's magic missile, T2570, Dlvl 5 (Minetown)
+It threw darts at an "unidentified 'G' (blue)" 6 squares away. That was a peaceful gnome lord, so the watch captain and watchmen turned hostile, and a wand of magic missile killed it. **Fix:** no throws or zaps at unidentified monsters on town levels.
+
+(The user stopped the local-model bots; only Hosted runs now.)

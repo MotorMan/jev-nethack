@@ -568,7 +568,7 @@ class Bot:
         if (missiles or arrows) and not on_e:
             for m in hostiles:
                 dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
-                if (missiles or m['passive']) and not (last_resort and 'floating eye' not in m['name']) and (1 if m['passive'] and 'gas spore' not in m['name'] else 2) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
+                if (missiles or m['passive']) and not (last_resort and 'floating eye' not in m['name']) and not ('unidentified' in m['name'] and self.level().town) and (1 if m['passive'] and 'gas spore' not in m['name'] else 2) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     it = (missiles or arrows)[0]
                     opts[f'throw_{d}'] = (f"Throw {it['text']} at {m['name']}", f"Throw item {it['letter']} {DIR_NAME[d]} at {m['name']} {m['where']}. Safe way to hit monsters you must not melee (floating eyes, molds); pick it up again afterwards.", lambda l=it['letter'], d=d: self.act_throw(l, d))
@@ -582,6 +582,8 @@ class Bot:
                      and self.run.setdefault('zaps', {}).get((it['text'], s.get('dlvl')), 0) < 4), None)  # a silent unknown wand (polymorph) zapped 379 times at molds turned one into a gargoyle that pinned Jev until it starved (T5526)
         if wand:  # walled in by floating eyes once for 13000 turns with an unknown wand in the pack
             for m in hostiles:
+                if 'unidentified' in m['name'] and self.level().town:
+                    continue  # darts at an unidentified blue 'G' in Minetown hit a peaceful gnome lord: the watch killed Jev (T2570)
                 dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
                 # passive only when boxed in: an ID zap at a floating eye 3 steps off was polymorph, it became a red dragon (T4125)
                 # also in a losing melee: two unknown wands stayed in the pack while an ogre took 69 -> 0 (T4539)
