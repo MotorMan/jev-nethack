@@ -164,7 +164,7 @@ class Bot:
                 self.run['debt'] = self.snap.status.get('dlvl') if self.snap else True
             if re.search(r'You do not owe|You have paid|You paid|Thank you for shopping|pay .* in full', text, re.I):
                 self.run['debt'] = False
-            if re.search(r'\b(throws|shoots|zaps|breathes|spits)\b|gaze!|\b(arrow|dart|dagger|knife|bolt|spear|shuriken|missile|ray)s? (hits|misses|bounces)', text):
+            if re.search(r'\b(throws|shoots|zaps|breathes|spits)\b|gaze!', text) or re.search(r'\b(arrow|dart|dagger|knife|bolt|spear|shuriken|missile|ray)s? (hits|misses|bounces)', text) and (self.snap.status.get('turn') or 0 if self.snap else 0) - self.run.get('fired_turn', -99) > 2:  # our own bounced magic missile read as being shot: Jev left a fresh Elbereth at 7/54 among hill orcs, dead (T4858)
                 self.run['shot_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
                 if m := re.search(r'The ([\w -]+?) (?:throws|shoots|zaps|breathes|spits)\b', text):
                     self.run['shooter'] = m[1]
@@ -1661,6 +1661,7 @@ class Bot:
 
     def act_throw(self, letter, d, key='t'):
         self.run['elbereth'].discard((self.snap.status.get('dlvl'), self.snap.me))  # firing from Elbereth erases it
+        self.run['fired_turn'] = self.snap.status.get('turn') or 0
         self.t.send(key)
         if re.search(r'throw|zap', self.t.lines()[0].lower()):
             self.t.send(letter)

@@ -1545,3 +1545,7 @@ Jev spent T1326–T9259 on Dlvl 3. The downstairs room was reached only through 
 ## Run 20261001-084546: rothe, T3797, Dlvl 5 (XL 4)
 Mobbed by a rothe, 2 garter snakes and 2 sewer rats. Elbereth stopped working (got hit on it), and Jev switched targets between rats and the rothe while the rothe's 3 attacks a turn took it from 26 to 6. Prayer was 98 turns old.
 **Fix:** with 3+ attackable neighbors, only the highest-difficulty one is offered as an attack target.
+
+## Run 20261001-084917: hill orc, T4858, Dlvl 4 (XL 5)
+A hill orc pack. Jev zapped magic missile, and "The magic missile bounces!" matched the being-shot regex. With `shot` set, the stay-on-Elbereth wait is withheld when nothing is adjacent, so Jev left fresh Elbereths at 7/54 to explore and go to a door, and the orcs finished it.
+**Fix:** missile hits/misses/bounces messages within 2 turns of our own throw or zap no longer count as being shot. "throws/shoots/zaps" still do.
