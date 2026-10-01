@@ -1347,3 +1347,6 @@ Jev kicked open a locked door with no visible sign. The "Closed for inventory" d
 
 ## Run 20261001-055639: rothe, fainted from hunger, T3223 (Dlvl 6)
 This was the fourth starvation death in the session. The run had many edible kills (jackals, foxes, rats, ponies, goblins, iguanas) but ate only 4 corpses. Jev even stood on a fresh pony corpse while Hungry and wasn't offered it. Root cause: observe() judged a corpse's freshness once, with lv.corpses.setdefault, the first time its '%' was drawn. Usually that happens before "You kill" is parsed into recent, so fresh kills were filed as stale (-10**6) forever. Fix: remember where monsters stood (mon_seen), re-judge a '%' for 2 turns after it first appears, and re-judge again once a monster has stood on that square. test_corpse.py covers this.
+
+## Run 20261001-055859: wolf, T5914 (Sokoban, XL 5, AC 5)
+The corpse fix is working: 4+ corpses eaten before T5500, and no hunger trouble this run. A werewolf gave Jev lycanthropy, and the prayer 583 turns after the last one cured it. The werewolf's summoned wolves then took Jev from 35 to 5 HP in Sokoban's corridors (a cornered wolf hit through Elbereth), with prayer already spent. No code change. The underlying problem is still AC: at T5900 Jev wore no body armor and no cloak (only a helm and a small shield).
