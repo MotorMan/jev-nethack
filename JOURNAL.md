@@ -757,3 +757,6 @@ XL7, Dlvl 4, AC1: at 25/90 HP beside a Woodland-elf, with the last prayer 14 tur
 
 ## 2026-10-01 05:40 — run 190332: Weak inside a gang
 XL5, Dlvl 5, AC0: Weak, 950 turns after a prayer, fighting a kobold/hobgoblin/bugbear gang with gnome archers behind. Twice Jev chose "Go eat the fresh corpse" with enemies adjacent (blocked, free hits), and the prayer wasn't offered because Weak waits 1000 turns. pray.c: Weak (`uhs >= WEAK`) is TROUBLE_STARVING, major trouble, fixable when the timeout is ≤ 200. Simulated rnz(350) gives ≈ 92% at 950 turns. Changes: with a hostile adjacent the Weak threshold drops to 500 turns (≈ 88%), and `goto_corpse` is never offered with a hostile adjacent.
+
+## 2026-10-01 05:55 — run 191443, variance
+XL6, Dlvl 6: a rope golem grabbed and choked Jev, 46 → 9 HP in 5 turns of trading blows, while "You can't reach the floor" (levitating, so no Elbereth). The gamble prayer at 129 turns after the last one failed ("Thou art arrogant"). No fix.
