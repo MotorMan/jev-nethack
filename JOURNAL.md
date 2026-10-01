@@ -955,3 +955,9 @@ User: "i'd buy mithril if you can afford it, also price-ID scrolls and potions a
 - `scripts/play.sh NAME PORT [ENDPOINT MODEL]` (re)starts one instance. NAME is the NetHack player name, so each engine has its own save. Non-`Jev` names keep runs.json, prayer clock and local ledger under `runs/NAME/`. Hosted spend stays one shared budget. Death lookup in xlogfile now filters by player name.
 - "Use X" means `scripts/play.sh Jev 8770 <endpoint> <model>`, which resumes Jev's saved game on X.
 - Each run records `engine` (`jev` or the local model name) and `models`, the version strings the engine reported. A game continued on another engine lists both. Backfilled all 292 past runs (all `jev-1.13.0`). The dashboard runs table has an engine column.
+
+## 2026-10-01 17:30 — Switching to Jeff Gemma; watch shows the engine
+- `jev.watch` titles with "<name> plays NetHack on <model>" and labels the stats line with the model. Dollar cost shows only for hosted Jev.
+- `ONLY=<name> scripts/serve_local_models.sh` starts a single model and downloads only its checkpoint (disk is about 98% full). The research agent fixed a bash 3.2 empty-array bug and the `hf --exclude` syntax.
+- Local engines get a 120 s timeout (cold load; Gemma runs on MPS via PyTorch, since Jeff's MLX path is Qwen-only).
+- The models need Metal and write access to ~/dev, which the nono sandbox lacks, so they must be started from a normal terminal.

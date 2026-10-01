@@ -52,10 +52,11 @@ class Jev:
         except (OSError, ValueError):
             pass
 
-    def ask(self, state, questions, timeout=8):
+    def ask(self, state, questions, timeout=None):
         """Returns (answers, meta). Raises on transport/validation failure."""
         if self.stats['cost_usd'] >= self.budget and not self.local:
             raise RuntimeError(f'Jev budget ${self.budget} exhausted (see {self.ledger})')
+        timeout = timeout or (120 if self.local else 8)  # a local model's first call loads weights; Gemma on MPS is slow
         body = json.dumps(dict(state=state, model=self.model, questions=questions)).encode()
         url = urllib.parse.urlsplit(self.endpoint)
         t0 = time.time()

@@ -29,7 +29,8 @@ def bar(p, w=20):
 def frame(s):
     w, rows = shutil.get_terminal_size()
     st, d, j, run = s['status'], s['decision'], s['jev'], s['run']
-    lines = [f"{BOLD}Jev plays NetHack{RST}  {DIM}{s['mode']} · run {run['id']} · {s['phase']}{' · PAUSED' if s['paused'] else ''}{RST}",
+    model = (run.get('models') or [run.get('engine') or j.get('last_model') or 'Jev'])[-1]  # the version the engine reports (jev-1.13.0, a Jeff checkpoint...)
+    lines = [f"{BOLD}{st.get('name') or 'Jev'} plays NetHack{RST} on {BOLD}\x1b[96m{model}{RST}  {DIM}{s['mode']} · run {run['id']} · {s['phase']}{' · PAUSED' if s['paused'] else ''}{RST}",
              f"{DIM}{'─' * min(w, 80)}{RST}"]
     lines += screen(s['screen']['rows'])
     lines.append(f"{DIM}{'─' * min(w, 80)}{RST}")
@@ -46,7 +47,7 @@ def frame(s):
     for h in s['history'][-5:][::-1]:
         lines.append(f"  {DIM}T{h['turn']:<6}{RST} {h['label'][:38]:<38} {DIM}→ {h['outcome'][:w - 52]}{RST}")
     deaths = [r for r in s['runs'] if r.get('death')][-3:]
-    lines.append(f"{BOLD}Jev{RST} {j['calls']} calls · ${j['cost_usd']:.2f} · avg {j['avg_latency_ms']} ms   "
+    lines.append(f"{BOLD}{model}{RST} {j['calls']} calls{'' if run.get('engine') not in (None, 'jev') else f' · ${j[chr(99) + "ost_usd"]:.2f}'} · avg {j['avg_latency_ms']} ms   "
                  f"{BOLD}Run{RST} max Dlvl {run['max_dlvl']} · {run['decisions']} decisions")
     for r in deaths[::-1]:
         lines.append(f"  {DIM}✝ T{r['turns']} Dlvl {r['max_dlvl']}: {r['death'][:w - 24]}{RST}")

@@ -3,6 +3,7 @@
 # already answers is left alone; checkouts and downloads that exist are reused. Logs: runs/models/<name>.log.
 #
 #   scripts/serve_local_models.sh            # start everything, then smoke-test each port
+#   ONLY=jeff-gemma scripts/serve_local_models.sh   # just one (downloads only its checkpoint)
 #   scripts/serve_local_models.sh check      # smoke-test only
 #   scripts/serve_local_models.sh stop       # stop everything this script started
 #
@@ -21,10 +22,11 @@ logs=$repo/runs/models
 jeff_dir=$models_dir/jeff
 kev_dir=$models_dir/kev
 JEFF_COMMIT=f06788292874c21a5b5c41549ac220dd9e15da7f   # v1.1 (2026-09-29); the commit local-jev-bench measured
-KEV_COMMIT=90512f1c517d977741f2104470a40635408236c9    # main on 2026-10-01
+KEV_COMMIT=90512f1c517d977741f2104470a40635408236c9    # main on 2026-09-30 (Kev-9B v2 release)
 uv12=(uvx --from 'uv>=0.12.19' uv)                    # Jeff's pyproject requires uv >= 0.12.19 (brew uv may be older)
 mkdir -p "$logs"
 
+want() { [ -z "${ONLY:-}" ] || [ "$ONLY" = "$1" ]; }
 up() { nc -z 127.0.0.1 "$1" 2>/dev/null; }
 
 checkout() {  # checkout <dir> <url> <commit>
@@ -37,6 +39,7 @@ checkout() {  # checkout <dir> <url> <commit>
 
 start() {  # start <name> <port> <dir> <command...>; env for the server comes from the caller
     local name=$1 port=$2 dir=$3; shift 3
+    want "$name" || return 0
     if up "$port"; then echo "$name: port $port already serving, left alone"; return; fi
     (cd "$dir" && nohup "$@" >"$logs/$name.log" 2>&1 & echo $! >"$logs/$name.pid")
     echo "$name: starting on $port (log runs/models/$name.log)"
@@ -48,9 +51,10 @@ setup_jeff() {
     local repo_id dir
     for pair in Jeff-Qwen3.5-0.8B:jeff-0.8b Jeff-Qwen3.5-2B:jeff-2b Jeff-Gemma4-E2B:jeff-gemma4-e2b; do
         repo_id=${pair%%:*} dir=checkpoints/${pair#*:}
+        want "${pair#*:}" || { [ "${pair#*:}" = jeff-gemma4-e2b ] && want jeff-gemma; } || continue
         [ -f "$jeff_dir/$dir/readout.safetensors" ] && continue
         # the 0.8B repo also holds demo videos; only the model files are needed
-        (cd "$jeff_dir" && "${uv12[@]}" run -q --no-default-groups hf download "mstrasser/$repo_id" --local-dir "$dir" --exclude 'videos/*' 'assets/*')
+        (cd "$jeff_dir" && "${uv12[@]}" run -q --no-default-groups hf download "mstrasser/$repo_id" --local-dir "$dir" --exclude 'videos/*' --exclude 'assets/*')
     done
 }
 
@@ -62,7 +66,7 @@ setup_kev() {
 jeff() {  # jeff <name> <port> <checkpoint dir> <backend>
     local dev=()
     [ "$4" = pytorch ] && dev=(JEFF_DEVICE=mps)
-    start "$1" "$2" "$jeff_dir" env JEFF_BACKEND="$4" "${dev[@]}" JEFF_CHECKPOINT="checkpoints/$3" JEFF_HOST=127.0.0.1 PORT="$2" \
+    start "$1" "$2" "$jeff_dir" env JEFF_BACKEND="$4" ${dev[@]+"${dev[@]}"} JEFF_CHECKPOINT="checkpoints/$3" JEFF_HOST=127.0.0.1 PORT="$2" \
         "${uv12[@]}" run --no-default-groups --extra mac jeff-serve
 }
 
@@ -74,6 +78,7 @@ check() {  # POST one NetHack-shaped request (choice + noul + choice) to each po
     local name port model
     for spec in jeff-0.8b:8781:jeff-latest jeff-2b:8782:jeff-latest jeff-gemma:8783:jeff-latest kev-4b:8784:jev-latest kev-0.8b:8785:jev-latest; do
         IFS=: read -r name port model <<<"$spec"
+        want "$name" || continue
         python3 - "$name" "$port" "$model" <<'EOF'
 import json, sys, time, urllib.request
 name, port, model = sys.argv[1:]
@@ -87,7 +92,6 @@ body = dict(model=model, state='NetHack. You are a Valkyrie, HP 9/16, Dlvl 2. A 
 deadline = time.time() + 600  # first start downloads weights and loads the model
 while True:
     try:
-        t = time.time()
         r = json.loads(urllib.request.urlopen(urllib.request.Request(url, json.dumps(body).encode(), {'Content-Type': 'application/json'}), timeout=120).read())
         ms = []
         for _ in range(3):  # warm calls
@@ -110,8 +114,8 @@ case "${1:-start}" in
         echo stopped ;;
     check) check ;;
     start)
-        setup_jeff
-        setup_kev
+        case "${ONLY:-jeff}" in jeff*) setup_jeff ;; esac
+        case "${ONLY:-kev}" in kev*) setup_kev ;; esac
         jeff jeff-0.8b 8781 jeff-0.8b mlx
         jeff jeff-2b 8782 jeff-2b mlx
         jeff jeff-gemma 8783 jeff-gemma4-e2b pytorch
