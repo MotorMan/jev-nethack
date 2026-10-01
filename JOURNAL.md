@@ -1667,3 +1667,6 @@ Two nymphs on Minetown stripped helm, shield, spear, daggers and lamp over ~300 
 
 ### Hosted 20261001-103204 — pony while fainting, T19232, Dlvl 3
 It spent 17k turns walled in on Dlvl 2, choosing search_hidden over dead_end (the hole) and living on prayers every ~900 turns. The earlier dead_end fix applied after the restart: it jumped, but it was Weak with its prayer 70 turns old. It fainted fighting a pony. No new fix.
+
+### Djev 20261001-103511 — werejackal, T2336, Dlvl 4
+It prayed for Weak at T2296, then a human-form werejackal (Elbereth doesn't stop @) hit it 25 -> 14. Then it summoned jackals, and the pack rule removed all attack options. flee_up walked 4 steps with speed-12 attackers adjacent, and it died. **Fix:** skip the pack/strong attack filter when every adjacent monster is weaker and the stairs aren't underfoot.
