@@ -1533,3 +1533,7 @@ Lycanthropy (wererat) shed all of Jev's armor; in dwarf form it was AC 10 and ne
 At T3753 Jev prayed about being Weak from hunger with a wood nymph 3 steps away. During the helpless prayer the nymph stole the elven mithril-coat, the chain mail and every weapon. Jev spent the next 1800 turns at AC 10, bare-handed, mostly waiting on Elbereth while Hungry, and a wolf finished it off while fainting.
 **Fix:** no prayer about non-fatal trouble (Weak hunger, not low HP, not Fainting) with a nymph within 7.
 **Still open:** the long Elbereth waits burn nutrition.
+
+## Run 20261001-083107: Woodland-elf, while praying, T5576, Dlvl 5 (XL 5)
+At full HP (42) Jev meleed a lone Woodland-elf ("about your level") at the Oracle. It missed 6 swings in a row while the elf hit for about 11 a turn: 42 -> 6 in 4 turns. Then came a gamble prayer 161 turns after the last one. The only items left were an unknown potion and scrolls.
+**No fix:** the choice was reasonable and the miss streak was variance. The deeper problem is being underleveled (XL 5 at T5576); elves at the Oracle depth keep killing Jev.
