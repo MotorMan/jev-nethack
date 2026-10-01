@@ -1,4 +1,4 @@
-"""Watch Jev play in a terminal: python -m jev.watch [URL ...]   (default: ports 8770-8772; keys 1-9 or tab switch games, q quits)"""
+"""Watch Jev play in a terminal: python -m jev.watch [URL ...]   (default: ports 8770-8772; keys 1-9, tab or arrows switch games, q quits)"""
 import json, select, shutil, sys, termios, time, tty, urllib.request
 
 URLS = [u.rstrip('/') + '/api/state' for u in sys.argv[1:]] or [f'http://127.0.0.1:{p}/api/state' for p in (8770, 8771, 8772)]
@@ -64,7 +64,8 @@ def label(url):
 
 
 def main():
-    cur, names, seen = 0, {}, 0
+    names, seen = {i: label(u) for i, u in enumerate(URLS)}, time.time()
+    cur = next((i for i, n in names.items() if not n.endswith(' down')), 0)  # start on a live game, not a stopped engine
     tty_ok = sys.stdin.isatty()
     old = termios.tcgetattr(sys.stdin) if tty_ok else None
     if tty_ok:
@@ -76,8 +77,12 @@ def main():
                 k = sys.stdin.read(1)
                 if k == 'q':
                     return
-                if k == '\t':
+                if k == '\x1b' and select.select([sys.stdin], [], [], 0.05)[0]:
+                    k += sys.stdin.read(2)  # arrow keys: ESC [ A-D
+                if k in ('\t', '\x1b[C', '\x1b[B'):
                     cur = (cur + 1) % len(URLS)
+                elif k in ('\x1b[D', '\x1b[A'):
+                    cur = (cur - 1) % len(URLS)
                 elif k.isdigit() and 0 < int(k) <= len(URLS):
                     cur = int(k) - 1
                 sys.stdout.write('\x1b[2J')
