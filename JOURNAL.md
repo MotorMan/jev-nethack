@@ -1652,3 +1652,6 @@ It spent 5000 turns on a Dlvl 3 whose way on was past a boulder stuck at a corri
 
 ## kev-4b 101507 — ettin zombie + snake, T8917, Dlvl 8
 It meleed an ettin zombie and a snake (speed 15) at 56/85. 5.0 knockback ("knocks you backward with a powerful strike") staggered it, and Elbereth garbled once then wore off during a 15-turn rest. It prayed at 12/85, 400 turns after the last prayer: too soon, killed while praying. No fix: the melee from 56 HP was reasonable, and the prayer was a forced gamble.
+
+## Djev 102351 — raven, T5905, Dlvl 7
+This is the second raven death. A raven (speed 20) kept blinding it, and every Elbereth attempt was interrupted (5.0 engraving is an occupation). Blind, it fought "It", 49 -> 5, 36 turns after a prayer. No fix yet. If ravens keep killing: fight them in a corridor, or offer the upstairs when blinded by a fast monster.
