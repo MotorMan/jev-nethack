@@ -1091,3 +1091,7 @@ Two bugs.
 ## 2026-10-01 — rothe while frozen by a floating eye (kev-4b, T5195, Dlvl 3)
 Three floating eyes plugged a corridor. Jev waited 190 turns ('wait_eye') for them to drift off. Then 'kill_blocker' meleed one at 48/48 HP, the eye survived, and its gaze froze Jev. A rothe wandered in and killed it. Jev had no missiles, so no throw option existed and the melee 'last resort' was the only way through.
 - With no missiles or arrows and no active hostile in view, a floating eye within 3 squares can now be hit by throwing the wielded dagger, spear or javelin. A thrown weapon can't trigger the passive freeze. Any throw option already removes kill_blocker for eyes. The existing 'bare-handed: wield' and fetch logic recover the weapon. Replaying T5194 shows throw_j and throw_l.
+
+## 2026-10-01 — hobbit, after a nymph took the armor anyway (kev-4b, T1554, Dlvl 5, XL 4)
+The new nymph rule worked for 18 turns: Jev sat on Elbereth at 48/48 while two nymphs, an ape and a pony fled from it. Then a hobbit threw an elven dagger. That set `shot`, which switched off the nymph rule. kev-4b attacked a nymph from the square, erasing Elbereth, and the nymph took its armor (AC 6 to 10). A dust vortex then engulfed and blinded it, and the crowd killed it through a prayer.
+- The nymph rule now holds while being shot as long as HP is above half. A d5 dagger costs far less than the armor a nymph steals.
