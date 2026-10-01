@@ -36,6 +36,7 @@ def sell_price(base, ch, sur):
 def price_bases(cls, price, ch):
     return {b for b in BASES[cls] for sur in (0, 1) if sell_price(b, ch, sur) == price}
 JUNK = re.compile(r'\b(mail|plate|armor|shield|shoes|boots|cloak|wrapping|helm|helmet|gauntlets|gloves|short sword|long sword|broadsword|scimitar|axe|mace|club|bow|crossbow|pick-axe|morning star|flail|hammer|trident)\b')  # unworn copies: what to drop when Burdened
+SLOTS = {'boots': r'boots|shoes', 'helm': r'helm|hat|cap\b', 'cloak': r'cloak|robe|wrapping', 'shield': r'shield', 'gloves': r'gloves|gauntlets', 'body': r'\bmail|plate|armor|coat'}
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
 WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber', 'short sword', 'spear', 'mace', 'morning star', 'war hammer', 'flail', 'trident', 'dagger', 'knife', 'club']
 WEAPON = re.compile(r'\b(' + '|'.join(WEAPON_RANK) + r')s?\b(?! corpse)')
@@ -789,6 +790,12 @@ class Bot:
             for it in self.inventory:
                 if (HEAVY.search(it['text']) or JUNK.search(it['text'])) and not re.search(r'weapon in|being worn|alternate weapon|mithril|at the ready|quiver|pick-axe|mattock', it['text']):
                     opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", f"You are {'Burdened' if 'Burdened' in s['conditions'] else 'Stressed'}: slower, and you can't fight or flee well. {it['text']} is heavy and of little use.", lambda l=it['letter']: self.act_keys('d' + l, 'dropped it'))
+            spots = [] if near or self.soko() else [q for u in snap.find('<') for dx, dy in DIRS.values() if (q := (u[0] + dx, u[1] + dy)) in dist and dist[q] <= 40 and snap.at(*q).ch in '.' + ''.join(')[%?/=!("$')]
+            if spots:  # wiki Stash: leave spares next to the up stairs (not on '>': they fall down), monsters don't act while you're off-level
+                q = min(spots, key=dist.get)
+                for k in [k for k in opts if k.startswith('drop_')]:
+                    l, txt = k[5:], opts[k][0][5:]
+                    opts[k] = (f"Stash {txt} next to the up stairs", f"{opts[k][1]} Leave it beside the '<' {dist[q]} steps {compass(me, q)}; you can come back for it.", lambda l=l, txt=txt, q=q: self.act_stash(l, txt, q))
             if 'Stressed' in s['conditions'] and not near and any(k.startswith('drop_') for k in opts):  # Stressed 1600 turns with spare banded mail, 2 Uruk-hai shields, 2 iron shoes: half speed, killed by a mob (T7699)
                 opts = {k: v for k, v in opts.items() if k.startswith(('drop_', 'eat_', 'wear_')) or k == 'pray'}
             opts = {k: v for k, v in opts.items() if not (k.startswith('pickup_') and JUNK.search(v[0]) and 'mithril' not in v[0])}
@@ -884,6 +891,15 @@ class Bot:
                 g = snap.at(*q).ch
                 what = {'%': 'food', '$': 'gold', '[': 'armor', ')': 'a weapon', '!': 'a potion', '?': 'a scroll', '/': 'a wand', '=': 'a ring', '"': 'an amulet', '(': 'a tool'}[g]
                 opts['fetch'] = (f"Go look at the item {compass(me, q)} ({what}?)", f"Walk {dist[q]} steps {compass(me, q)} to the '{g}' on the floor and see what it is; food keeps you from fainting, armor lowers AC.", lambda q=q: self.act_go(q))
+        for (dl, q), items in list(self.run.get('stashes', {}).items()):  # armor stolen by a nymph / lost to a were-change: the spare is in the stash
+            if dl != s.get('dlvl') or near or 'Burdened' in s.get('conditions', []) or self.soko():
+                continue
+            if me == q:
+                del self.run['stashes'][(dl, q)]
+                continue
+            need = [t for t in items if t not in self.run.setdefault('stash_tried', set()) and (sl := next((r for r in SLOTS.values() if re.search(r, t)), None)) and not any(re.search(sl, it['text']) and 'being worn' in it['text'] for it in self.inventory)]
+            if need and q in dist:
+                opts['stash_fetch'] = (f"Go back to your stash for {need[0]}", f"You left {', '.join(items)} beside the up stairs {dist[q]} steps {compass(me, q)}. You wear nothing in that slot now: pick it up and put it on.", lambda q=q, need=need: (self.run['stash_tried'].update(need), self.act_go(q))[1])
         d = self.run.get('dropped')  # the shield and helm a were-form shed: fetch's 15-step radius lost them for good (AC 6 -> 10, dead to a rothe T6437)
         if d and d[0] == s.get('dlvl') and dist.get(d[1]) and not near and not (s.get('title') or '').startswith('Were'):
             opts['fetch_gear'] = ('Go back for the gear you dropped', f"Your armor and weapon fell off when you changed form. They lie {dist[d[1]]} steps {compass(me, d[1])}: walk there, pick them up and put them back on.", lambda q=d[1]: self.act_go(q))
@@ -1354,6 +1370,14 @@ class Bot:
         raw = ' | '.join(l.strip() for l in self.t.lines()[:3] if l.strip())
         self.observe()
         return 'paid: ' + raw
+
+    def act_stash(self, letter, text, q):
+        r = self.act_go(q)
+        if self.snap.me != q:
+            return r
+        self.act_keys('d' + letter, 'dropped')
+        self.run.setdefault('stashes', {}).setdefault((self.snap.status.get('dlvl'), q), []).append(text)
+        return f'stashed {text} by the up stairs'
 
     def act_keys(self, keys, what):
         before = self.snap

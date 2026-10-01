@@ -1720,3 +1720,9 @@ The user wants gold collected until it buys protection, then kept at 2000–4000
 It threw darts at an "unidentified 'G' (blue)" 6 squares away. That was a peaceful gnome lord, so the watch captain and watchmen turned hostile, and a wand of magic missile killed it. **Fix:** no throws or zaps at unidentified monsters on town levels.
 
 (The user stopped the local-model bots; only Hosted runs now.)
+
+## Stashes (user request)
+Wiki *Stash*: early on, leave spares **next to** the stairs (not on `>`: items fall down); monsters don't act while you're off-level.
+- When Burdened/Stressed with nothing near and a `<` within 40 steps, the drop options become "stash next to the up stairs". The bot walks there, drops the item, and records `run['stashes'][(dlvl,pos)]`.
+- Back on that level, not Burdened, with nothing near: if a stashed armor piece fills a slot it's not wearing (a nymph stole it, or a were-change shed it), `stash_fetch` walks back. The pickup/wear options take over from there. Each item is tried only once (no loops).
+- Ceiling: recall only fires on the stash's own level; there is no cross-level trip to fetch it.
