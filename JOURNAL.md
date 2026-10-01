@@ -1099,3 +1099,7 @@ The new nymph rule worked for 18 turns: Jev sat on Elbereth at 48/48 while two n
 ## 2026-10-01 — pony + ape on arrival (kev-4b, T3767, Dlvl 5)
 Jev stepped down at 41/41 HP into a giant bat, an ape and a pony. Three trades took it to 14 HP, and kev-4b kept swinging with Elbereth on offer. The pack rule didn't fire because only the pony was adjacent at the end, and 14/41 isn't low enough to pray, so it died next turn.
 - History entries now record HP. If HP lost over the last two decisions is at least the HP left, with any Elbereth-respecting hostile adjacent, options are cut to Elbereth, pray and quaff. Replaying T3767 (34 to 14) leaves only 'elbereth'.
+
+## 2026-10-01 — beehive on arrival (kev-4b, T2700, Dlvl 5, XL 4)
+Jev walked down into a beehive at 37/37 HP: six killer bees adjacent, and it died within one decision. Only attacks were offered. `pack` was true, but the Elbereth offer only looked at HP below 70%, `dread`, `walled`, unseen attackers and blindness.
+- `pack` now offers Elbereth, and a pack with three or more adjacent forces it (Elbereth, pray, quaff). Killer bees respect Elbereth. Replaying the arrival screen leaves only 'elbereth'.

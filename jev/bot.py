@@ -606,7 +606,7 @@ class Bot:
         # blind at 8/76, unseen apes' hits lost in 5-turn rests: rested to death with no Elbereth offered (T6987)
         if dread:
             opts = {k: v for k, v in opts.items() if not k.startswith(('approach_', 'explore'))}
-        if (near and hp < 0.7 * hpmax or dread or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
+        if (near and hp < 0.7 * hpmax or dread or pack or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} \
                 and not (any(m['dist'] == 1 for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # @ ignore it (monmove.c onscary: S_HUMAN); 2 Elbereths at 9/49 beside a Woodland-elf, a rock mole also near, dead (T2543); engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
@@ -1009,7 +1009,7 @@ class Bot:
         adj = [m for m in hostiles if m['dist'] <= 1 and not m['passive']]
         prev = next((h for h in self.history[-2:-1] if h.get('hp') and (s.get('turn') or 0) - h['turn'] <= 3), None)
         losing = prev and prev['hp'] - s.get('hp', 0) >= s.get('hp', 0)  # an ape + pony took 34 -> 14 in two turns, Jev swung on with Elbereth offered: dead next turn (T3767)
-        if 'elbereth' in opts and adj and (len(adj) >= 2 and s.get('hp', 1) * 2 < s.get('hpmax', 1) or losing) and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in adj):  # traded blows with 3 wolves 70 -> 6 with Elbereth on offer, died praying (T4527)
+        if 'elbereth' in opts and adj and (len(adj) >= 2 and s.get('hp', 1) * 2 < s.get('hpmax', 1) or losing or pack and len(adj) >= 3) and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in adj):  # traded blows with 3 wolves 70 -> 6 with Elbereth on offer, died praying (T4527)
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray') or k.startswith('quaff_')}
         if self.history and 'blocked' in self.history[-1]['outcome'] and any(m['dist'] <= 1 for m in hostiles) and len(opts) > 1:
             opts.pop(self.history[-1]['choice'], None)  # hill orcs blocked the stairs path: 5 'ascend' bumps at 80/80 HP without a swing, dead (T6782)
