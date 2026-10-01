@@ -1596,6 +1596,8 @@ class Bot:
         return 'ate'
 
     def act_eat_corpse(self):
+        if not self.engraved_here() and self.snap.status.get('hunger') != 'Fainting':
+            self.act_elbereth()  # eat.c: 1 in 7 corpses is rotten, up to 10 turns out cold; a fresh rothe's packmate killed an unconscious Djev from 46/46 (T3021)
         self.t.send('e')
         top = self.t.lines()[0]
         if ('eat it?' in top or 'eat one?' in top) and not any(n in top for n in self.never_eat()):

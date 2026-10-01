@@ -1589,3 +1589,6 @@ A low-HP prayer at T3015 worked. A Weak prayer 1013 turns later angered Tyr. pra
 
 ### Djev 20261001-093151: Uruk-hai archers on Dlvl 6 (Minetown), T6959
 It had prayed 44 turns earlier. Uruk-hai shot it from 3 squares while it stood on Elbereth, from 21 HP down to 7. It carried two unknown potions, but on Elbereth only known healing is offered (an earlier lesson: sleeping on a working Elbereth). Elbereth does nothing against arrows, so when being shot at LOW_HP the unknown-potion gamble is now offered on Elbereth too.
+
+### Djev 20261001-094012: unconscious from rotten food, killed by a rothe on Dlvl 5 (T3021)
+It killed a rothe and ate the fresh corpse at full HP, 46/46. The corpse rolled rotten (eat.c, 1 in 7) and knocked it out, and the rothe's packmate killed it. act_eat_corpse now engraves Elbereth first unless it is Fainting. That costs one turn per meal, and the packmates respect it while it is out.
