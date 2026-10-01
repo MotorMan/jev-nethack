@@ -737,3 +737,8 @@ XL6, Dlvl 7, AC2: a werewolf summoned wolves ("A wolf suddenly appears next to y
 
 ## 2026-10-01 03:50 — run 181112, werejackal swarm at AC10
 XL6, Dlvl 7. A mountain nymph stole the banded mail, shield and helm at T6486 (AC 0 → 10). 600 turns later a werejackal's summoned jackals finished Jev, 44 turns after a prayer. Nymph theft is already handled where it can be (no approaching nymphs; throw instead), and these woke up mid-fight with an imp. Logged as variance. If AC-10 deaths keep coming, the next idea is to slow the pace (treat a bare AC as lower XL).
+
+## 2026-10-01 04:10 — run 182404: 10,000 turns in a Minetown closet
+Jev died to a wolf at T16506, XL5, Dlvl 7. Two bugs:
+1. **Pace ping-pong**: at XL3, Dlvl 4 ran out its 1500-turn rest cap and took "downstairs anyway". Dlvl 5 (XL+2) offered "Head back upstairs", which Jev took, and it bounced 4 ↔ 5 about 25 times in 100 turns. Now the too-deep ascend isn't offered when the level above has already used up its rest cap.
+2. **Locked in town**: on Minetown (Dlvl 7) Jev ended up in a closet whose door was locked. A town level never offered kicking, so it searched 685 times (~10,000 turns). 5.0 dokick.c only angers the watch if a peaceful watchman `couldsee` you, and the first broken door draws only "Hey, stop damaging that door!". Kicking is now allowed in town when no peaceful @ is in view, and stops for the level after that warning.

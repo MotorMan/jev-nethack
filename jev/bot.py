@@ -628,8 +628,12 @@ class Bot:
             if any(k.startswith('wear_') for k in opts):  # offered, rarely taken: died at AC 6 with an orcish helm in the pack and no helm on (T3559)
                 opts = {k: v for k, v in opts.items() if k.startswith(('wear_', 'eat_')) or k == 'pray'}  # each try wears it or marks it unwearable, so no loop
 
+        if any('stop damaging' in t for t in self.run['recent']):
+            self.run.setdefault('door_warned', set()).add(s.get('dlvl'))
+        # dokick.c: the watch only reacts if it can see you (first a warning); town closets locked Jev in for 10000 turns of searching (T16506)
+        watched = lv.town and (any(m['peaceful'] and m['ch'] == '@' for m in mons) or s.get('dlvl') in self.run.get('door_warned', ()))
         for d, p in [(k, (me[0] + v[0], me[1] + v[1])) for k, v in DIRS.items() if not (v[0] and v[1])]:
-            if p in lv.locked and not lv.town:
+            if p in lv.locked and not watched:
                 opts[f'kick_{d}'] = (f"Kick the locked door {DIR_NAME[d]}", 'Kick the locked door to break it open (may take several tries).', lambda d=d: self.act_kick(d))
 
         # closed doors read off the screen each turn: level memory alone once left three doors unexplored for 10000 turns
@@ -641,7 +645,7 @@ class Bot:
                 q = min(spots, key=dist.get)
                 doors.append((dist[q], door, q))
         for _, door, q in sorted(doors)[:2]:
-            if door in lv.locked and (cheb(door, me) <= 1 or lv.town):
+            if door in lv.locked and (cheb(door, me) <= 1 or watched):
                 continue  # kick_<dir> covers it; in town a locked door stays shut
             what = 'locked door' if door in lv.locked else 'closed door'
             opts[f'door_{door[0]}_{door[1]}'] = (f"Go through the {what} {compass(me, door)}", f"Walk {dist[q]} steps to the {what} {compass(me, door)}, open it (kicking it if locked). What lies behind is unexplored.", lambda q=q, door=door: self.act_kick_door(q, door))
@@ -678,7 +682,8 @@ class Bot:
         downs = [p for p in snap.find('>') + sorted(lv.stairs) if p in dist or p == me]
         too_deep = s.get('dlvl', 1) >= (s.get('xl') or 1) + 2  # pace: Dlvl <= XL+1 (XL+2 still lost most runs on Dlvl 4-5 before T2000)
         ups = [p for p in snap.find('<') if p in dist]
-        if too_deep and ups and self.standing_on() != '<':  # XL5 on Dlvl 7 died to a winter wolf; XL+3 was too late
+        above = self.run['levels'].get(s.get('dlvl', 1) - 1)
+        if too_deep and ups and self.standing_on() != '<' and not (above and sum(above.searched.values()) >= 1500):  # the level above already waited out its pace cap: going back just ping-pongs (4 <-> 5 25 times in 100 turns, T4478)  # XL5 on Dlvl 7 died to a winter wolf; XL+3 was too late
             opts['ascend'] = ('Head back upstairs', f"This level is far too deep for experience level {s.get('xl')}. Walk to the up staircase ({dist[ups[0]]} steps {compass(me, ups[0])}) and climb to Dlvl {s.get('dlvl', 0) - 1}.", lambda p=ups[0]: self.act_descend(p, '<'))
         if len(snap.find('{')) >= 4:  # the Oracle's four fountains: Sokoban's entrance is the second '<' one level down
             self.run['oracle'] = s.get('dlvl')
