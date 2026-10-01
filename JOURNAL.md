@@ -1691,3 +1691,8 @@ leave_nymph took it down into a werewolf pack (wolves and a winter wolf), and it
 
 ### kev-4b 20261001-110454 — wolf, T9557, Dlvl 10 (XL 8, AC 2)
 It stepped off `<` to fight a raven, which blinded it, and a wolf pack arrived unseen. The prayer at T9521 healed it to 88/88, but it fought 3-4 unseen biters down to 1 HP. "Unseen creature" scored difficulty 1 in the pack sum, so `pack` never fired and flee_up was never offered. **Fix:** unseen creatures count as XL in the pack sum.
+
+### Hosted 20261001-110428 — kitten while praying, T5140, Dlvl 5 (Sokoban)
+A mob gathered in Sokoban: an Uruk-hai, a kitten, a jackal, a grid bug and a kobold mummy. Two Elbereths came out garbled and others were scuffed, taking it 31 -> 14. Its prayer at T4856 made the 2-HP gamble prayer fail. No fix.
+
+(LunaRoute engines kev-4b and djev were suspended by the user at this point; Hosted Jev continues alone.)
