@@ -690,6 +690,8 @@ class Bot:
                 and not (self.engraved_here() and s.get('hp', 1) > 5 and not shot and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in hostiles if m['dist'] <= 7)):  # exp None: polymorphed, 0 HP only reverts form; gambled at 3/3 HD2 and angered Tyr (T8484)  # a quasit's wand took 29 -> 0 from range; 3/54 HP 243 turns after a prayer, no gamble offered, dead (T5218). rnz(350)<=200+t is ~50% at t=100; failing angers Tyr, but death was certain
             opts['pray'] = ('Pray to Tyr (gamble)', f"Last prayer was only {turn - last} turns ago: Tyr may well be angry (bad luck, maybe smiting). But {'fainting from hunger' if s.get('hunger') == 'Fainting' else 'at ' + str(s.get('hp')) + ' HP'} with a monster attacking, this may be the last chance.", self.act_pray)
 
+        if 'pray' in opts and not fatal and not starving and not LOW_HP(s) and s.get('hunger') != 'Fainting' and any('nymph' in m['name'] and m['dist'] <= 7 for m in hostiles):
+            del opts['pray']  # helpless 3 turns: prayed Weak with a wood nymph 3 steps off, it took mithril, chain mail and every weapon; AC 10 bare-handed till death (T3753)
         if not self.run.get('god_angry') and (turn - last >= 800 if last is not None else turn >= 300):  # prayer ready: fight on, pray at low HP
             opts = {k: v for k, v in opts.items() if not (k.startswith('quaff_') and 'healing' not in v[0])}  # a swirly potion of sleeping at 15/50, prayer 1460 turns old: frozen, killed by a pony
 

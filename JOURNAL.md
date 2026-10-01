@@ -1528,3 +1528,8 @@ Jev's Elbereth scuffed, so it meleed the adjacent gelatinous cube. The passive p
 ## Run 20261001-081438: homunculus, while praying, T2171, Dlvl 3
 Lycanthropy (wererat) shed all of Jev's armor; in dwarf form it was AC 10 and never got back to the gear. A homunculus's sleep bite then took it from 25 to 6 while Jev swung instead of engraving. A gamble prayer 515 turns after the last one failed.
 **Fix:** after "put to sleep" in recent messages, below 70% HP, with Elbereth available and no adjacent @, attack options are dropped.
+
+## Run 20261001-081629: wolf, fainted, T5571, Dlvl 7
+At T3753 Jev prayed about being Weak from hunger with a wood nymph 3 steps away. During the helpless prayer the nymph stole the elven mithril-coat, the chain mail and every weapon. Jev spent the next 1800 turns at AC 10, bare-handed, mostly waiting on Elbereth while Hungry, and a wolf finished it off while fainting.
+**Fix:** no prayer about non-fatal trouble (Weak hunger, not low HP, not Fainting) with a nymph within 7.
+**Still open:** the long Elbereth waits burn nutrition.
