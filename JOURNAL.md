@@ -1766,3 +1766,6 @@ A hill orc with a wand of striking zapped Jev 32 -> 12 during a choke walk; Jev 
 
 ## Hosted 120033 — wererat, T8786, Dlvl 8
 A wererat in @ form stood adjacent while Jev (12/72, prayed 90 turns earlier) was forced to "Stay on Elbereth" 23 times; @ ignores Elbereth, so it hit 12 -> 3 -> 0 even after the bot logged "not protecting you here". The forced-wait block exempted were-@ entirely (T1818: their summons respect Elbereth). Now a were-@ only gets that exemption when not adjacent, and the forced wait is skipped right after an Elbereth hit.
+
+## Hosted 121507 — mumak, T8074, Dlvl 7
+Fresh off a successful prayer (81/81), Jev fought an invisible thing, then engraved Elbereth beside a mumak at 64/81. Between 70% and 90% HP on Elbereth, attacks are dropped (attacking erases it) but "Stay on Elbereth" was only offered under 70%, so the only options were explore: Jev stepped off past the mumak, 4d12 butt + bite 64 -> 29, then garbled/interrupted engravings, dead. Now an adjacent monster also offers the wait in that band, and explore/goto/fetch are dropped while one is adjacent.
