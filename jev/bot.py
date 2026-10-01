@@ -1738,7 +1738,7 @@ class Bot:
             return 'heading for the altar: ' + r
         key = (self.snap.status.get('dlvl'), q)
         self.run['here'][key] = self.look_here()
-        return f"the altar is {self.run['altars'].setdefault(key, 'unknown')}"  # blind or garbled: don't revisit forever
+        return f"the altar is {self.run.setdefault('altars', {}).setdefault(key, 'unknown')}"  # blind or garbled: don't revisit forever
 
     def act_buc(self, unk):
         nmsg = len(self.messages)
