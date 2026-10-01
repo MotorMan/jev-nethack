@@ -1679,3 +1679,6 @@ A water nymph had already stripped it to bare hands and AC 10. It approached an 
 
 ### kev-4b 20261001-104107 — fire ants, T4266, Dlvl 7
 It was waiting on Elbereth at 27/47 while two fire ants (speed 18) kept fleeing. A hobbit's thrown dagger set `shot`, which removes the Elbereth wait. The weak-shooter override only covered "stronger" monsters within 3, not "about your level". It explored off Elbereth and the ants killed it in one turn. **Fix:** the override now applies when anything not weaker is within 3.
+
+### kev-4b 20261001-104431 — raven, T6860, Dlvl 7
+At AC 10 a mob arrived (manes, dingo, little dog, Mordor orc, gold golem, raven) and a raven blinded it. The wererat bite from T6428 then transformed it mid-fight, dropping its shield, helm and spear. The prayer at T6817 fixed low HP, which outranks lycanthropy in pray.c's trouble order, so the lycanthropy stayed. No fix: it needs wolfsbane or holy water, or a prayer while lycanthropy is the worst trouble.
