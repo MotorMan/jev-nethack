@@ -1359,3 +1359,6 @@ While Weak, Jev picked up 2 food rations and ate one with a pony adjacent. In 5.
 
 ## Run 20261001-061020: elven arrow, T3898 (Dlvl 7, XL 6, AC 10)
 At T3453 a wood nymph stole Jev's worn +3 small shield while it rested. Inventory only refreshed every 25 decisions, and rest decisions take 20 turns each, so the inventory still showed the shield as worn for about 250 turns. Jev then reached Dlvl 7 at AC 10, where Woodland-elves (@, which ignore Elbereth) and giant ants killed it. A successful prayer at T3888 only bought 5 turns. Lycanthropy had already cost the orcish helm at T1743. Fix: theft messages ("She stole", "gladly hand over", ...) now force an inventory refresh.
+
+## Run 20261001-061308: soldier ant, T5703 (Dlvl 8, XL 6, AC 1, full HP)
+This was the best-geared run so far: orcish chain mail, a helm and a +3 shield. Two soldier ants (speed 18, bite plus sting) came into view, and because Jev was at full HP it was offered only "close in" and attack. It went from 53 to 0 in two turns. Fix: two or more fast hostiles (speed ≥ 15) that aren't weaker than Jev now count as dread. That bans approach and explore and offers Elbereth, which ants respect. A replay of T5702 now offers Elbereth.

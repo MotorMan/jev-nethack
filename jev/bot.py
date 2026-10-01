@@ -583,6 +583,8 @@ class Bot:
         # yellow light: its only attack is a 10d20-turn blinding explosion (monsters.h AT_EXPL), speed 15 so no outrunning it; Elbereth stops it (wiki). Blinded twice, both dead to unseen biters (T4631, T2307)
         # a jabberwock (difficulty 18) 3 squares off at XL6 got "Close in on" and no Elbereth: 67 -> 0 in two turns (T4199). @ and minotaurs ignore Elbereth
         dread = [m for m in hostiles if (m['dist'] <= 5 and 'much stronger' in self.threat(m) or 'yellow light' in m['name']) and m['ch'] != '@' and 'minotaur' not in m['name']]
+        swarm = [m for m in hostiles if m['dist'] <= 5 and (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 15 and 'weaker' not in self.threat(m) and m['ch'] != '@']
+        dread += swarm if len(swarm) >= 2 else []  # two soldier ants (speed 18, bite+sting) at full HP got only attack/approach: 53 -> 0 in two turns (T5703)
         pack = len(near) >= 5 or len(near) >= 3 and sum((MONSTERS.get(self.species(m)) or [1])[0] for m in near) > 2 * (s.get('xl') or 1)  # 9 level-1 killer bees summed under 2 XL, '<' a step away: poisoned at 25/72 (T8697)  # stepped off Elbereth into four wargs: 69 -> 0 HP in 4 turns
         hallu = bool(set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl'})  # names are random: closed in on a 'nickelpede' that was a mumak at 39/73, dead (T7654)
         # a pyrolisk's fire gaze reaches across the room and Elbereth does nothing about it (wiki); it is slow (6) with a 1d6 bite: close in.
