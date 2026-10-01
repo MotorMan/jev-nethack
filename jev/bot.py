@@ -50,7 +50,7 @@ STRATEGY = ("You are a dwarven Valkyrie (NetHack 5.0): strong melee, cold resist
             "Fight weak monsters in melee; do not melee floating eyes (blue 'e') or cockatrices ('c' yellow) bare-handed. Against a group, fight from a corridor or doorway so only one or two reach you. Back off to heal at half HP, not at 1 HP. "
             "Prayer fixes low HP (at or below 1/5 of max at XL 1-5, 1/6 at XL 6-13, or 5 HP) and Weak hunger, but only about once per 1000 turns; "
             "the first prayer is safe after roughly turn 300. Elbereth in the dust (fails about 1 time in 4: check it) stops melee from most monsters, "
-            "not @ humans or elves (including were-creatures in @ form), minotaurs, shopkeepers or peacefuls, and never wands, arrows or breath: kill a weak monster that zaps or shoots at you instead of waiting it out. A scared monster with nowhere to flee can still hit you, and attacking, throwing or zapping from it erases it. "
+            "not @ humans or elves (including were-creatures in @ form), minotaurs, shopkeepers or peacefuls, and never wands, arrows or breath: kill a weak monster that zaps or shoots at you instead of waiting it out. A scared monster with nowhere to flee can still hit you, and attacking, throwing or zapping from it erases it. Elbereth is for healing, not for living on: new monsters keep arriving (about one every 70 turns), so once healed, fight the weakest one and re-engrave when hurt. "
             "Mumakil (speed 9) hit hardest of anything early: never trade blows, throw things or walk away. Kill wererats quickly, before they summon rats. A yellow light blinds you for up to 200 turns when it explodes at you, even on Elbereth if it is cornered: kill it (killing it is safe) rather than wait beside it. Soldier ants (speed 18, poison) kill more players than anything: Elbereth works on them, never let them surround you, and zap or read teleportation to escape when hurt. "
             "Collect gold: a temple priest sells permanent AC for about 400-500 gold per experience level; keep 2000-4000 after that for shops. "
             "Food is scarce (killed monsters no longer drop food): eat fresh corpses of what you kill (not cockatrices, kobolds or old ones), keep packed food for emergencies, never start eating while Satiated, eat when Hungry. "
@@ -541,7 +541,10 @@ class Bot:
         danger = f" You are at {hp}/{hpmax} HP: one or two more hits could kill you." if hp * 3 < hpmax else ''
 
         # attacking from Elbereth erases it and costs alignment (5.0: "You feel like a hypocrite"); only @ and minotaurs ignore it
-        on_e = self.engraved_here() and hp < 0.9 * hpmax and not shot  # zapped on Elbereth by an adjacent orc, the only option left was 'retreat' (T4400); healthy: fight from it rather than wait out a speed-1 fog cloud
+        # wiki (Elbereth): rest on it, then scuff it and attack, re-engrave when hurt. allmain.c spawns a monster every ~70 turns: 910 waits on Elbereth
+        # in a closed Dlvl 8 room at 50/58 filled it with apes, fire ants and zombies, dead (T3499)
+        camped = sum(h['choice'] == 'wait' and 'Elbereth' in h['outcome'] for h in self.history[-50:]) >= 40 and hp >= 0.6 * hpmax
+        on_e = self.engraved_here() and hp < 0.9 * hpmax and not shot and not camped  # zapped on Elbereth by an adjacent orc, the only option left was 'retreat' (T4400); healthy: fight from it rather than wait out a speed-1 fog cloud
         for m in hostiles:
             if m['dist'] == 1 and m['pos'] not in self.avoid and not ((on_e or shot and self.engraved_here() and hp < 0.9 * hpmax and m['name'] != self.run.get('shooter')) and m['ch'] != '@' and 'minotaur' not in m['name']):  # shot by a hobgoblin, Jev hit the adjacent rothe off Elbereth instead: 13 -> 0 (T2445)
                 if m['name'] == "unknown '@'" and (lv.town or any(o['peaceful'] and o['ch'] == '@' for o in mons) or (s.get('turn') or 0) - self.run.get('hit_turn', -99) > 1):  # hit in the Mines dark by two farlook-failed Woodland-elves, explored instead of fighting: 67 -> 0 (T3567)
@@ -1251,7 +1254,7 @@ class Bot:
         # a pack at any HP: left a working Elbereth at 40/44 to throw at bugbears and a goblin gang, dead 4 turns later
         # Weak is only nutrition 1-50 (eat.c): 23 turns camping on Elbereth there fainted Jev into a kitten's jaws (T4709)
         if self.engraved_here() and s.get('hunger') not in ('Weak', 'Fainting') and (pack or s.get('hp', 1) < 0.75 * s.get('hpmax', 1)) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles) \
-                and not shot and not (self.history and 'not protecting' in self.history[-1]['outcome']) \
+                and not shot and not camped and not (self.history and 'not protecting' in self.history[-1]['outcome']) \
                 and not any((m['ch'] == '@' and ('were' not in m['name'] or m['dist'] <= 1) or 'minotaur' in m['name']) and m['dist'] <= 7 for m in hostiles):  # an adjacent wererat in @ form hit through it while only 'wait' was offered: 12 -> 0 (T8786)  # a were-@ summons rats/jackals that do respect it: left Elbereth at 24/36 for a wererat, summoned rats 25 -> 0 in 2 turns (T1818)  # a bugbear threw daggers at a waiting Jev (Elbereth only stops melee): 13 -> 0 (T2350)  # a Woodland-elf (ignores Elbereth) walked up to a waiting Jev: 36 -> 0 (T7182)
             # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'eat', 'wear_'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}
