@@ -1848,3 +1848,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** "descend anyway" took the bot to Mines 7 while Hungry and carrying no food (a peaceful gnome blocked the only fetch). It arrived on Elbereth 2 steps from '<'. Because of the pack rule it was forced to wait 16 turns at 55/55 while an orc horde, rothes and a pony gathered. Then it went Weak and prayed (prayed at T5000, now T5850); the prayer failed and cost a level. It walked off the square, the next Elbereth garbled, it was blocked from '<', and the pony and hill orcs took it from 46 to 0.
 - **Wiki (Elbereth / Fleeing):** Elbereth buys time; it doesn't remove monsters, and new ones keep arriving. Stairs are the best escape, because only adjacent monsters follow you. Prayer timeout is random (about 50-1000), so praying again after ~850 turns can fail.
 - **Fix:** the forced "stay on Elbereth" filter now keeps `flee_up`. STRATEGY: leave by nearby up stairs when a crowd keeps growing.
+
+## 20261001-133139 — rothe while praying, T1233, Dlvl 5 (XL 4)
+- **Cause:** 4 turns after arriving on Dlvl 5, a leprechaun, a wererat in @ form, a centipede, giant rats, a fox, a rothe and others boxed the bot in. The adjacent @ blocked Elbereth (correct, since @ ignores it). The mob rule kept only the attack on the highest-difficulty neighbour, the centipede, and never the wererat. HP went 51 -> 31 -> 24 -> 4; the prayer at T1233 came too late.
+- **Wiki/source:** Wererat page: kill weres fast. mhitu.c (5.0): a were summons help on 1 in 10 of its attacks, in either form, so while it lives the crowd keeps growing.
+- **Fix:** when mobbed, attack a were-creature first, then fall back to highest difficulty. STRATEGY updated.
