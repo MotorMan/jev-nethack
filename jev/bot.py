@@ -46,7 +46,7 @@ UNKNOWN_BUC = lambda t: not re.search(r'\b(cursed|uncursed|blessed)\b|being worn
 NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy', 'dwarf', 'were', 'kobold', 'bat', 'ghoul', 'vampire', 'chameleon', 'dog', 'cat', 'kitten', 'acid blob', 'spotted jelly')  # undead corpses are pre-aged: always tainted
 # pray.c critically_low_hp: the major-trouble line prayer fixes
 LOW_HP = lambda s: s.get('hp', 1) <= 5 or s.get('hp', 1) * (5 if s.get('xl', 1) <= 5 else 6 if s.get('xl', 1) <= 13 else 7 if s.get('xl', 1) <= 21 else 8 if s.get('xl', 1) <= 29 else 9) <= min(s.get('hpmax', 1), 15 * s.get('xl', 1))
-STRATEGY = ("You are a dwarven Valkyrie (NetHack 5.0): strong melee, cold resistant, infravision; stealthy from XL 3, fast from XL 7. Gnomes and dwarves (the Mines) are peaceful to you. Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. "
+STRATEGY = ("You are a dwarven Valkyrie (NetHack 5.0): strong melee, cold resistant, infravision; stealthy from XL 3, fast from XL 7. Gnomes and dwarves (the Mines) are peaceful to you. Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. Each monster in view shows its AC, attacks and, for the dangerous ones, a 'Fight if ...; avoid if ...' rule: follow it. "
             "Fight weak monsters in melee; do not melee floating eyes (blue 'e') or cockatrices ('c' yellow) bare-handed. Against a group, fight from a corridor or doorway so only one or two reach you. Back off to heal at half HP, not at 1 HP. "
             "Prayer fixes low HP (at or below 1/5 of max at XL 1-5, 1/6 at XL 6-13, or 5 HP) and Weak hunger, but only about once per 1000 turns; "
             "the first prayer is safe after roughly turn 300. Elbereth in the dust (fails about 1 time in 4: check it) stops melee from most monsters, "
@@ -450,10 +450,9 @@ class Bot:
         lv = MONSTERS.get(name)
         if not lv or m['pet']:
             return ''
-        d = lv[0] - (self.snap.status.get('xl') or 1)  # the -1 called an owlbear (difficulty 7) 'weaker' than XL 7; it killed Jev from 70 HP
+        d = lv[0] + lv[2] - (self.snap.status.get('xl') or 1)  # the -1 called an owlbear (difficulty 7) 'weaker' than XL 7; it killed Jev from 70 HP  # lv[2]: danger factor from monsters.json (fight/avoid tip in lv[3], stats in lv[4])
         rel = 'much weaker than you' if d <= -3 else 'weaker than you' if d < 0 else 'about your level' if d <= 1 else 'stronger than you' if d <= 4 else 'much stronger than you'
-        extra = {'rope golem': '; grabs and chokes (no Elbereth or escape once held): do not step up to it, let it come or throw', 'owlbear': '; grabs and crushes 2d8 a turn (no Elbereth once held): do not step up to it, let it come or throw', 'mumak': '; its butt is the hardest single hit in the early game (4d12): do not trade blows with it, it is slow (speed 9), walk away or use Elbereth', 'gargoyle': '; AC -4 and three attacks for up to 28 damage a turn: do not trade melee hits when hurt, Elbereth stops it', 'floating eye': '; harmless, but never melee it (paralysis)', 'gelatinous cube': '; hitting it paralyzes you, its touch too: shoot it or walk away (it is slow)', 'gas spore': '; explodes for 4d6 (up to 24 damage) when killed: throw things at it from 2+ squares away (the blast hits every square next to it) or walk away, melee only with 30+ HP'}.get(name, '')
-        return f' (difficulty {lv[0]}, speed {lv[1]}, {rel}{extra})'
+        return f" (difficulty {lv[0]}, speed {lv[1]}, {lv[4]}, {rel}{'; ' + lv[3] if lv[3] else ''})"
 
     # ---------- inventory ----------
     def read_inventory(self):
