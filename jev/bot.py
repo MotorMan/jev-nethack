@@ -523,8 +523,8 @@ class Bot:
             opts.pop('elbereth', None)
 
         if danger:
-            for it in self.inventory:  # an unknown potion on a working Elbereth: 11% heal, sleeping killed a Jev the warhorse was fleeing from
-                if re.search(r'\bpotions?\b', it['text']) and (not self.engraved_here() or 'healing' in it['text']) \
+            for it in self.inventory:  # unknown potion beside a Woodland-elf at 25/90: asleep, dead (T9392); an unknown potion on a working Elbereth: 11% heal, sleeping killed a Jev the warhorse was fleeing from
+                if re.search(r'\bpotions?\b', it['text']) and (not self.engraved_here() or 'healing' in it['text']) and ('healing' in it['text'] or LOW_HP(s) or not any(m['dist'] <= 1 for m in hostiles)) \
                         and not re.search(r'sleeping|blindness|hallucination|confusion|booze|sickness|paralysis|water|oil|clear', it['text']):  # clear = water: 4 blind quaffs of it vs a housecat pack (T2801); drank a known potion of sleeping held by an ape (T9512)
                     opts[f"quaff_{it['letter']}"] = (f"Quaff {it['text']}", f"Drink this potion hoping it heals.{danger}", lambda l=it['letter']: (self.act_keys('q' + l, 'quaffed'), self.read_inventory())[0])  # stale inventory re-offered a drunk potion 3-4 times in a fight (T2801, T5616)
                     break

@@ -748,3 +748,6 @@ XL7, Dlvl 7, AC-3: nine killer bees, with the upstairs one step away, poisoned J
 
 ## 2026-10-01 04:45 — run 183512, prayer tail
 XL5, Dlvl 5: Jev lived on hunger prayers (T1444, 2585, 3658, all well-pleased). The 4th, at Weak 1110 turns after the 3rd, got "Thou art arrogant" (p_type 0: timeout still over 200) and a lost level. The god was then angry, there was no food, and Jev fainted to death to a giant rat 400 turns later. 5.0 source: success resets the timeout to rnz(350), counting down 1/turn (allmain.c). Simulating rnz gives P(timeout ≤ 200 after 1110 turns) ≈ 95%, so this was the 5% tail. The real problem is relying on prayer for food: corpse eating is already forced when offered (~60% of offers taken). Variance; no change.
+
+## 2026-10-01 05:00 — run 183739: unknown potion in melee
+XL7, Dlvl 4, AC1: at 25/90 HP beside a Woodland-elf, with the last prayer 14 turns old, Jev quaffed an unknown potion. It was sleeping, and the elf killed the sleeper. Wiki (Potion): of the unidentified potions a few heal and several disable (sleeping, blindness, hallucination, confusion), and disabling next to a melee attacker is fatal. Unknown potions are now offered with an adjacent hostile only at prayer-level low HP (pray.c critically_low_hp), where nothing better is left. Known healing potions are unaffected.
