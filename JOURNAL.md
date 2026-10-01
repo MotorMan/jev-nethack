@@ -1912,4 +1912,5 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 ## Run 20261001-144419: killed by her own bolt of fire on T7065 (Dlvl 7, XL 8)
 - **Cause:** my b984ca7 change. Below 1/3 HP it let the bot zap any wand at an adjacent foe even without room for the ray. Blind in a corridor at 26/92, it zapped a known wand of fire at an unseen attacker. The ray bounced off the nearby wall and hit it back (Valkyries resist cold, not fire). Dead.
 - **Wiki/source:** zap.c buzz() rays travel rn1(7,7) squares and bounce off walls, so a wall close behind the target sends the ray back through you. Only zap known ray wands where there's room.
-- **Fix:** skip the room check only for unknown wands; known ray wands always need 7 squares of room. Also open: AC 10 with a plate mail in the pack (blind, Hungry).
+- **Fix:** skip the room check only for unknown wands; known ray wands always need 7 squares of room.
+- **Second lesson, AC 10 with a plate mail in the pack from T3173:** an 'apron' (alchemy smock) is a cloak, but the cloak regexes missed it. Wearing body armor failed with "You cannot wear armor over a apron", and the armor was marked unwearable. Fix: 'apron' is now in the cloak regexes, so act_wear takes it off first and puts it back on afterwards.

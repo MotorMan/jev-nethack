@@ -36,7 +36,7 @@ def sell_price(base, ch, sur):
 def price_bases(cls, price, ch):
     return {b for b in BASES[cls] for sur in (0, 1) if sell_price(b, ch, sur) == price}
 JUNK = re.compile(r'\b(mail|plate|armor|shield|shoes|boots|cloak|wrapping|helm|helmet|gauntlets|gloves|short sword|long sword|broadsword|scimitar|axe|mace|club|bow|crossbow|pick-axe|morning star|flail|hammer|trident)\b')  # unworn copies: what to drop when Burdened
-SLOTS = {'boots': r'boots|shoes', 'helm': r'helm|hat|cap\b', 'cloak': r'cloak|robe|wrapping', 'shield': r'shield', 'gloves': r'gloves|gauntlets', 'body': r'\bmail|plate|armor|coat'}
+SLOTS = {'boots': r'boots|shoes', 'helm': r'helm|hat|cap\b', 'cloak': r'cloak|robe|wrapping|apron', 'shield': r'shield', 'gloves': r'gloves|gauntlets', 'body': r'\bmail|plate|armor|coat'}
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
 WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber', 'short sword', 'spear', 'mace', 'morning star', 'war hammer', 'flail', 'trident', 'dagger', 'knife', 'club']
 WEAPON = re.compile(r'\b(' + '|'.join(WEAPON_RANK) + r')s?\b(?! corpse)')
@@ -841,7 +841,7 @@ class Bot:
             worn = next((it for it in self.inventory if 'being worn' in it['text'] and suit_ac(it['text']) is not None), None)
             better = max((it for it in self.inventory if 'being worn' not in it['text'] and (suit_ac(it['text']) or 0) > (suit_ac(worn['text']) if worn else 99)
                           and it['text'] not in self.run.setdefault('unwearable', {})), key=lambda it: suit_ac(it['text']), default=None)
-            if better and not any(re.search(r'cloak|wrapping|mantelet|faded pall|cape|robe', it['text']) and 'being worn' in it['text'] for it in self.inventory):  # 'cannot wear armor over a cloak'
+            if better and not any(re.search(r'cloak|wrapping|mantelet|faded pall|cape|robe|apron', it['text']) and 'being worn' in it['text'] for it in self.inventory):  # 'cannot wear armor over a cloak'
                 opts[f"wear_{better['letter']}"] = (f"Swap {worn['text']} for {better['text']}", f"Body armor: {better['text']} gives {suit_ac(better['text'])} AC, {worn['text']} only {suit_ac(worn['text'])}. Take it off, put the better one on.", lambda w=worn, b=better: self.act_swap(w, b))
             sor = next((it for it in self.inventory if re.search(r'polished silver shield|shield of reflection', it['text']) and 'being worn' not in it['text'] and it['text'] not in self.run['unwearable']), None)
             held = next((it for it in self.inventory if re.search(r'\bshield\b', it['text']) and 'being worn' in it['text']), None)
@@ -1402,7 +1402,7 @@ class Bot:
 
     def act_wear(self, it):
         # body armor goes under the cloak: take a worn cloak off first (a cursed one stays, and the wear fails below), put it back after
-        cloak = next((i for i in self.inventory if re.search(r'cloak|wrapping|mantelet|faded pall|cape|robe', i['text']) and 'being worn' in i['text']), None) if suit_ac(it['text']) is not None else None
+        cloak = next((i for i in self.inventory if re.search(r'cloak|wrapping|mantelet|faded pall|cape|robe|apron', i['text']) and 'being worn' in i['text']), None) if suit_ac(it['text']) is not None else None
         if cloak:
             self.act_keys('T' + cloak['letter'], '')
         self.act_keys('W' + it['letter'], '')
