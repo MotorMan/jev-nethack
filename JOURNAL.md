@@ -1275,3 +1275,6 @@ Held a Mines doorway against about 15 monsters (bugbears, hobgoblins and gnomes)
 
 ## Run 20261001-041408: elven arrow (T5416, Dlvl 7, XL 6)
 A Woodland-elf meleed Jev from 30 to 2 HP. The last prayer was only 90 turns old. "Zap the unknown long wand" was offered on every turn, but kev-4b always chose melee. On Elbereth at 3 HP, the elf (an @, which ignores Elbereth) shot it from out of view. Fix: below 1/3 HP with no prayer available, keep only zap, quaff, flee and Elbereth.
+
+## Run 20261001-041957: fire ant (T4491, Dlvl 7, XL 5). No fix
+Jev went from 36 to 32 to 15 to 0 in three turns. A fire ant (speed 18) gets about two rounds of bite (2d4) plus fire (2d4) per turn, so up to about 32 damage. The Elbereth forced by the `losing` check was the right call: per the 5.0 source (engrave.c), dust writes 10 characters in one action. The ant still got its round in before the engraving landed. 15 HP is above the 1/7 prayer threshold, so a prayer would not have healed. The root cause is AC 6 on Dlvl 7: Jev never found body armor, only a small shield.
