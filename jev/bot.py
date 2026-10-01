@@ -507,9 +507,9 @@ class Bot:
         walled = len(dist) <= 3 and any(m['passive'] and m['dist'] == 1 for m in hostiles)  # boxed in by floating eyes
         # at 56/64 Jev wrote Elbereth instead of closing on a large kobold, which stood off and zapped lightning until it died (T9749)
         # blind at 8/76, unseen apes' hits lost in 5-turn rests: rested to death with no Elbereth offered (T6987)
-        if (near and hp < 0.7 * hpmax or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' for m in near)) \
+        if (near and hp < 0.7 * hpmax or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} \
-                and not (any(m['dist'] == 1 for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # @ ignore it; engrave.c scrambles writing
+                and not (any(m['dist'] == 1 for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # @ ignore it (monmove.c onscary: S_HUMAN); 2 Elbereths at 9/49 beside a Woodland-elf, a rock mole also near, dead (T2543); engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
         if 'choke' in opts and hp >= 0.4 * hpmax:  # wiki: Elbereth is breathing room; a corridor is how to actually fight a group
             opts.pop('elbereth', None)
@@ -1040,8 +1040,8 @@ class Bot:
         best = None
         for d, (dx, dy) in DIRS.items():
             q = (me[0] + dx, me[1] + dy)
-            if not snap.walkable(*q) or snap.is_monster(*q) or snap.at(*q).ch in '^0' or (dx and dy and not snap.diag_ok(me, q)):
-                continue
+            if not snap.walkable(*q) or snap.is_monster(*q) or snap.at(*q).ch in '^0' or (dx and dy and not (snap.diag_ok(me, q) and (snap.walkable(me[0] + dx, me[1]) or snap.walkable(me[0], me[1] + dy)))):
+                continue  # hack.c test_move: a squeeze between two walls fails over 600 weight; a retreat that didn't move at 21/71 HP cost the last 17 HP (T4507)
             score = min(cheb(q, m['pos']) for m in hostiles)
             if best is None or score > best[0]:
                 best = (score, d)
