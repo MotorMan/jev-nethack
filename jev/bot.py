@@ -499,6 +499,8 @@ class Bot:
                 if (m['passive'] or hp < 0.5 * hpmax and 'weaker' not in self.threat(m)) and (2 if 'gas spore' in m['name'] else 1) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     opts[f'zap_{d}'] = (f"Zap {wand['text']} at {m['name']}", f"Zap wand {wand['letter']} {DIR_NAME[d]} at the {m['name']} {m['where']}. Unknown effect; many wands kill or move monsters, and it identifies the wand.", lambda l=wand['letter'], d=d, t=(wand['text'], s.get('dlvl')): (self.run['zaps'].__setitem__(t, self.run['zaps'].get(t, 0) + 1), self.act_throw(l, d, 'z'))[1])
+        # a jabberwock (difficulty 18) 3 squares off at XL6 got "Close in on" and no Elbereth: 67 -> 0 in two turns (T4199). @ and minotaurs ignore Elbereth
+        dread = [m for m in hostiles if m['dist'] <= 5 and 'much stronger' in self.threat(m) and m['ch'] != '@' and 'minotaur' not in m['name']]
         pack = len(near) >= 5 or len(near) >= 3 and sum((MONSTERS.get(self.species(m)) or [1])[0] for m in near) > 2 * (s.get('xl') or 1)  # 9 level-1 killer bees summed under 2 XL, '<' a step away: poisoned at 25/72 (T8697)  # stepped off Elbereth into four wargs: 69 -> 0 HP in 4 turns
         hallu = bool(set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl'})  # names are random: closed in on a 'nickelpede' that was a mumak at 39/73, dead (T7654)
         for m in near[:2] if not (danger or pack or hallu and hp < 0.8 * hpmax) else ():  # walking into a fight at a third of max HP killed three giant-bat runs
@@ -507,7 +509,7 @@ class Bot:
         strong = False
         if near:
             if self.engraved_here() and not shot:  # Elbereth only stops melee (wiki); stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
-                if hp < 0.7 * hpmax and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in near):  # @ (elves, humans) and minotaurs ignore it (monmove.c onscary): sat 9 turns on it by a Woodland-elf, dead (T4259); 'stuck on Elbereth': up to 44% of a game's decisions were waits on it (0.9 before); at 77/80 HP Jev sat on Elbereth ~1400 turns watching a fog cloud
+                if (hp < 0.7 * hpmax or dread) and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in near):  # @ (elves, humans) and minotaurs ignore it (monmove.c onscary): sat 9 turns on it by a Woodland-elf, dead (T4259); 'stuck on Elbereth': up to 44% of a game's decisions were waits on it (0.9 before); at 77/80 HP Jev sat on Elbereth ~1400 turns watching a fog cloud
                     opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', self.act_wait_elbereth)
             else:
                 fast = [m['name'] for m in near if (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12]  # our speed is 12
@@ -537,7 +539,9 @@ class Bot:
         walled = len(dist) <= 3 and any(m['passive'] and m['dist'] == 1 for m in hostiles)  # boxed in by floating eyes
         # at 56/64 Jev wrote Elbereth instead of closing on a large kobold, which stood off and zapped lightning until it died (T9749)
         # blind at 8/76, unseen apes' hits lost in 5-turn rests: rested to death with no Elbereth offered (T6987)
-        if (near and hp < 0.7 * hpmax or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
+        if dread:
+            opts = {k: v for k, v in opts.items() if not k.startswith(('approach_', 'explore'))}
+        if (near and hp < 0.7 * hpmax or dread or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} \
                 and not (any(m['dist'] == 1 for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # @ ignore it (monmove.c onscary: S_HUMAN); 2 Elbereths at 9/49 beside a Woodland-elf, a rock mole also near, dead (T2543); engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
@@ -1659,6 +1663,12 @@ class Bot:
         blob = ' '.join(self.run['death_msgs'])
         m = re.search(r'((?<!is )(?<!are )(?<!was )killed by (?:M[rs]s?\. )?[^.!\n]+?|died of [^.\n]+|[Pp]oisoned by [^.\n]+|[Tt]urned to slime[^.\n]*|starved to death|drowned [^.\n]+|choked [^.\n]+|quit|escaped)\s*(?:$|\s{2}|\n|\.)', blob)
         self.run['death'] = m[1].strip() if m else ('died' if 'You die' in blob else 'game ended')
+        try:  # the screen scrape misreads tombstones and other games' high-score lines; the local xlogfile is exact
+            x = dict(f.split('=', 1) for f in open(os.path.join(ROOT, 'nethack', 'lib', 'xlogfile')).read().splitlines()[-1].split('\t') if '=' in f)
+            if self.mode == 'local' and abs(int(x.get('turns', -1)) - (self.run.get('turns') or 0)) <= 5:
+                self.run['death'] = x['death'] + (f", {x['while']}" if x.get('while') else '')
+        except (OSError, IndexError, KeyError, ValueError):
+            pass
         self.run['ended'] = now()
         self.runs[-1] = {k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score')}
         self._save_runs()
