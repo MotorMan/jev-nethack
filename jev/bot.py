@@ -527,7 +527,7 @@ class Bot:
         # a monster we cannot reach (behind walls, across water) is not a reason to stand still
         # unless it is shooting: rested 15 turns on Elbereth while unreachable Uruk-hai shot it 29 -> 5, dead (T5766)
         shot = (s.get('turn') or 0) - self.run.get('shot_turn', -99) <= (20 if any(m['name'] == self.run.get('shooter') and m['dist'] <= 8 for m in hostiles) else 3)  # an Uruk-hai shot between Elbereth waits 4 turns apart: 16 -> 0 (T4338)  # one volley is 3-4 messages: "shoots 2 arrows", "1st hits", "2nd misses" pushed 'shoots' out of a 3-line window; Jev waited on Elbereth at 4 HP under Uruk-hai fire (T7290)
-        near = [m for m in hostiles if m['dist'] <= 6 and not m['passive'] and (m['dist'] <= 1 or m['pos'] in dist or shot)]
+        near = [m for m in hostiles if m['dist'] <= 6 and not m['passive'] and (m['dist'] <= 2 or m['pos'] in dist or shot)]  # <= 1: a jaguar 2 steps off (square not in dist) left only 'explore' while an Uruk-hai's wand of striking took 34 -> 0 (T7138)
         opts = {}
         if shot and any(m['name'] == self.run.get('shooter') and 'weaker' in self.threat(m) for m in hostiles) and any('stronger' in self.threat(m) and m['dist'] <= 3 for m in hostiles):
             shot = False  # a goblin's thrown dagger pulled Jev off Elbereth into a killer bee hive at 8/29, dead (T2693)

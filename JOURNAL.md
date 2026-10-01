@@ -1658,3 +1658,6 @@ This is the second raven death. A raven (speed 20) kept blinding it, and every E
 
 ## kev-4b 102926 — two rothes while stunned, T3736, Dlvl 5
 Weak, 886 turns after its last prayer, with only tripe packed. The Weak prayer wait is 1000 turns, so it ate tripe instead. eat.c makes a non-orc vomit 1 in 2 times: "slightly confused", "can't think straight", "incredibly sick", then stunned. Two rothes arrived during that, 38 -> 6, and the gamble prayer failed. Fix: Weak waits only 500 turns to pray when the pack has no food except tripe, and a safe prayer removes eat-tripe options.
+
+## Hosted 102245 — killed by a wand (Uruk-hai's striking), T7138, Mines Dlvl 7 (Minetown)
+It was on Elbereth at 34/62 when a killer bee, a jaguar 2 steps off and an Uruk-hai with a wand of striking were in view. Then only explore_* was offered, and explore was blocked by a peaceful watch captain. The striking hits took it 34 -> 18 -> 0. The likely gap: `near` needed dist <= 1 or a reachable square, and a monster's own square isn't reachable, so the jaguar 2 steps away didn't count. With nothing near, Elbereth wasn't offered. Fix: near counts any hostile within 2 squares.
