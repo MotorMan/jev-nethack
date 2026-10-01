@@ -1682,3 +1682,6 @@ It was waiting on Elbereth at 27/47 while two fire ants (speed 18) kept fleeing.
 
 ### kev-4b 20261001-104431 — raven, T6860, Dlvl 7
 At AC 10 a mob arrived (manes, dingo, little dog, Mordor orc, gold golem, raven) and a raven blinded it. The wererat bite from T6428 then transformed it mid-fight, dropping its shield, helm and spear. The prayer at T6817 fixed low HP, which outranks lycanthropy in pray.c's trouble order, so the lycanthropy stayed. No fix: it needs wolfsbane or holy water, or a prayer while lycanthropy is the worst trouble.
+
+### Djev 20261001-103858 — explosion (gas spore), T9879, Dlvl 3
+Yellow lights blinded it three times (T8218, T9615, T9817), and fainting from hunger fell in between. While blind at 15/75 and AC 10 it meleed an "unseen creature" that was a gas spore. No fix: a blind bot can't tell a spore from other invisible attackers, and it couldn't wait out the blindness with attackers adjacent.
