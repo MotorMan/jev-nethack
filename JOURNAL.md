@@ -1278,3 +1278,8 @@ A Woodland-elf meleed Jev from 30 to 2 HP. The last prayer was only 90 turns old
 
 ## Run 20261001-041957: fire ant (T4491, Dlvl 7, XL 5). No fix
 Jev went from 36 to 32 to 15 to 0 in three turns. A fire ant (speed 18) gets about two rounds of bite (2d4) plus fire (2d4) per turn, so up to about 32 damage. The Elbereth forced by the `losing` check was the right call: per the 5.0 source (engrave.c), dust writes 10 characters in one action. The ant still got its round in before the engraving landed. 15 HP is above the 1/7 prayer threshold, so a prayer would not have healed. The root cause is AC 6 on Dlvl 7: Jev never found body armor, only a small shield.
+
+## Run 20261001-042321: fire ant (T5586, Dlvl 6, XL 5)
+In the dark Mines, "The fire ant bites!" arrived every turn, but no 'a' ever showed next to Jev. `unseen_attacker` only matched "It bites", so `rest` was the only option. The Elbereth came out garbled, then rest, rest: 33 → 0. A known scroll of teleportation sat unread in the pack. Fixes:
+- `unseen_attacker` now also counts a named attack when no hostile glyph is adjacent.
+- Below 1/2 HP, with no prayer available and a monster near or unseen, offer the scroll of teleportation. Below 1/3 HP it becomes one of the forced-gamble options.
