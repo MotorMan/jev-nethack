@@ -1944,3 +1944,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: XL7 at 47/86 meleed a Green-elf beside a giant spider, and both together took it to 11. It engraved Elbereth, and then the low-HP filter left only `pray`, 113 turns after its last prayer. Tyr: "Thou art arrogant", so it lost a level. At 1/74 it chose flee_up over an unread scroll (13 unknown scrolls in pack) and was hit on the way.
 - Wiki (Prayer): the timeout after a good prayer is rnz(350) (median ~350), and major trouble is only fixed when timeout < 200. At ~100 turns the prayer is a coin flip with smiting on failure. On Elbereth, waiting for HP regen, or reading an unknown scroll (teleport is the most common), beats it.
 - Fix: the low-HP filter keeps `wait` and `teleport` beside `elbereth` when the prayer is a <200-turn gamble. At low HP with no prayer and a hostile adjacent, drop `flee_up` when a teleport scroll is available.
+
+## 20261001-152602 — killed by a gnome lord (T7245, Dlvl 7)
+- Cause: it ate almost no corpses and lived on prayer (8 prayers, 6 of them for Weak). At T6974–7077 it bounced between `choke` (walk to a corridor because a bugbear/hobgoblin pack was 4 steps off) and `explore` (walks back, sees the pack, stops) 34 times. The pack never came, and it went from Hungry to Weak. Next, killer bees and a water nymph took its weapon and loot. It was Fainting with the prayer only 184 turns old, and gnomes finished it at AC 10.
+- Wiki (Fighting in corridors / Nutrition): a corridor only helps if the pack follows. Monsters that don't approach should be ignored or walked away from, and the turns go to finding food.
+- Fix: `choke` is no longer offered once it has been chosen 3 times in the last 12 decisions.

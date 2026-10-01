@@ -634,7 +634,7 @@ class Bot:
                 if not fast and not weak_only and not shot and hp < 0.7 * hpmax and self.retreat_dir(hostiles):  # one step back from a wand-zapping hill orc, 3 times at 5/45: zapped dead (T4400)  # at 50/53 Jev retreated 6 times from hill orcs, eating hits without swinging (T2966); retreating from a giant bat (speed 22) just gives it free hits
                     opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + ' Everything nearby is slower than you, so you can open a gap.', lambda: self.act_retreat(hostiles))
             # wiki (Fighting in corridors): a pack surrounds you on up to 8 sides; in a corridor only one or two can reach you. User: get to a hallway rather than sit on Elbereth
-            if len(pack_near) >= 2 and open_n(me) > 2 and gap >= 2:  # walked off with two apes adjacent at 14/42: free hits, dead (T2116)
+            if len(pack_near) >= 2 and open_n(me) > 2 and gap >= 2 and sum(h['choice'] == 'choke' for h in self.history[-12:]) < 3:  # a pack 4 steps off that never came: choke <-> explore 34 times, Hungry to Weak, dead Fainting (T7245)  # walked off with two apes adjacent at 14/42: free hits, dead (T2116)
                 choke = min((q for q, dq in dist.items() if 0 < dq <= 15 and open_n(q) <= 2 and q not in self.level().traps and not snap.is_monster(*q)
                              and min(cheb(q, m['pos']) for m in pack_near) >= min(gap, 3)), key=dist.get, default=None)
                 if choke:
