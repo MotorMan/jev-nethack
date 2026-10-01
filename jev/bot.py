@@ -701,6 +701,11 @@ class Bot:
         if pick and not near and s.get('dlvl', 1) < (s.get('xl') or 1) + 1 and not soko_hunt and self.standing_on() not in ('<', '>', '_', '{'):
             # same pace as the stairs: 'not too_deep' let XL5 dig 6 -> 7 and XL6 7 -> 8, dead to a giant spider (T4825)
             opts['dig_down'] = ('Dig down with the pick-axe', f"Apply {pick['text']} downward to dig a hole to Dlvl {s.get('dlvl', 0) + 1} (takes several turns; skips the rest of this level).", lambda l=pick['letter']: self.act_dig(l))
+        # wiki "Excalibur" + fountain.c:413: a lawful XL5+ dip of a lone long sword makes Excalibur 1 in 30 times (and clears rust). XL7: water demons (1 in ~41 dips) are deadly earlier; town guards anger on success
+        sword = next((it for it in self.inventory if re.match(r'an? .*\blong sword\b', it['text']) and not re.search(r'named|Excalibur', it['text'])), None)
+        founts = [p for p in snap.find('{') if p in dist] + ([me] if self.standing_on() == '{' else [])
+        if sword and founts and not hostiles and not lv.town and (s.get('xl') or 1) >= 7 and s.get('hp', 0) >= 0.9 * s.get('hpmax', 1) and not self.run.get('excalibur') and self.run.get('dips', 0) < 90:
+            opts['dip'] = ('Dip the long sword into the fountain', f"As a lawful level {s.get('xl')} Valkyrie, each dip of {sword['text']} has a 1 in 30 chance of the Lady of the Lake turning it into Excalibur (+d10 damage, blessed, rustproof). Risks per dip: rust, a 1 in 30 curse, and rarely a water demon, water nymph or snakes. Dipped {self.run.get('dips', 0)} times so far.", lambda l=sword['letter'], p=founts[0]: self.act_dip(l, p))
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
         if not near and not self.unseen_attacker() and s.get('hp', 1) < 0.85 * s.get('hpmax', 1):  # blind, Jev rested beside an orc and died (T3212)
             opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
@@ -1265,6 +1270,24 @@ class Bot:
         self.run['here'][key] = self.look_here()
         self.read_inventory()
         return f'picked up {item}'
+
+    def act_dip(self, letter, p):
+        r = self.act_go(p)
+        if self.snap.me != p:
+            return 'heading for the fountain: ' + r
+        nmsg = len(self.messages)
+        self.t.send('#dip\r')
+        if 'dip' in self.t.lines()[0]:
+            self.t.send(letter)
+        if 'into the fountain?' in self.t.lines()[0]:
+            self.t.send('y')
+        self.observe()
+        self.read_inventory()
+        self.run['dips'] = self.run.get('dips', 0) + 1
+        said = ' '.join(m['text'] for m in self.messages[nmsg:])
+        if 'hand reaches up' in said:
+            self.run['excalibur'] = True
+        return 'dipped: ' + said[:200]
 
     def act_wield(self, letter):
         self.t.send('w' + letter)

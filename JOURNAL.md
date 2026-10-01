@@ -760,3 +760,6 @@ XL5, Dlvl 5, AC0: Weak, 950 turns after a prayer, fighting a kobold/hobgoblin/bu
 
 ## 2026-10-01 05:55 — run 191443, variance
 XL6, Dlvl 6: a rope golem grabbed and choked Jev, 46 → 9 HP in 5 turns of trading blows, while "You can't reach the floor" (levitating, so no Elbereth). The gamble prayer at 129 turns after the last one failed ("Thou art arrogant"). No fix.
+
+## 2026-10-01 06:20 — Excalibur (checklist goal #4)
+statico's checklist ranks an artifact weapon 4th, after MR, reflection and poison resistance, none of which Jev can reliably get yet. A lawful Valkyrie gets Excalibur almost for free. Per the wiki and fountain.c:413 in 5.0, each dip of a lone, unnamed long sword at XL≥5 has a 1/30 chance; success blesses the sword, makes it rustproof and *clears existing rust*. New `dip` option: XL≥7 (water demons appear on roughly 1 in 41 dips), HP≥90%, no hostiles in view, not in Minetown (guards get angry), at most 90 dips per game. Success is detected by "a hand reaches up".
