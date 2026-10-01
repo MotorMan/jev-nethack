@@ -1503,3 +1503,12 @@ Run 20261001-074653 died to a sewer rat at T1818 on Dlvl 4.
 - The wererat summoned sewer and rabid rats around it: 25 → 9 → 0 in two turns.
 
 Summoned rats and jackals respect Elbereth, so leaving it is the worst move. Fix: were-@s no longer count in that rule. A replay at T1815 offers ['wait'] instead of ['approach', 'wait'].
+
+## 2026-10-01 — Two foes within 2 at < 60% HP: Elbereth first
+Run 20261001-075246 died to Uruk-hai at T4643 on Dlvl 6.
+
+- A prayer at T4631 healed Jev to 66/66. It then closed in on an Uruk-hai pack. Each one is labeled "weaker than you", but they come several at a time with d8 weapons.
+- It traded blows from 54 down to 23 with Elbereth on offer and never took it. The engraving then came out garbled, and a "fleeing" Uruk still hit it from 13 to 1.
+- The pack rule never fired: the summed level of the visible Uruk-hai (3 each) was under 2×XL.
+
+Change: Elbereth is forced (with pray, quaff, upstairs and dig) when two or more hostiles are within 2 squares and HP is below 60%. Replay screens only ever showed one Uruk at a time, so this exact death isn't verified. The remaining lesson is that after a full-heal prayer, closing in on a pack is a mistake. Not changed.
