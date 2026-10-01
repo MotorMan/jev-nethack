@@ -706,3 +706,6 @@ Run 172609 (Sokoban, T5149) was resting on Elbereth at 25/64 HP. The hill orc an
 
 ## 2026-10-01 01:25 — Weak waits for the starvation clock
 Run 173208 (T8071, max Dlvl 5) lived on prayer: it prayed for Weak at T1894, 2747 and 3600, and the fourth, at T4451 (851 turns later), drew "Thou art arrogant, mortal" (p_type 0, timeout still > 200 because rnz(350) has a long tail). With the god angry it eventually fainted to death under a hobgoblin. Weak costs nothing by itself, and the new Fainting rule prays about 40 turns before starvation. So the Weak gate goes from 400 to 1000 turns, letting the timeout run as long as possible. The real issue is that this Jev found almost no food in 8000 turns; still open.
+
+## 2026-10-01 01:35 — Woodland-elf group (variance) and plateau note
+Run 173342 (XL 8, Dlvl 5, T9272): a Woodland-elf group took Jev from 54 to 7 HP in four turns (elves ignore Elbereth), and it died to a jaguar while gambling on a prayer. No fix. Plateau check: the last 40 runs died on Dlvl 5–9 (median 7), between T1700 and T9300. Most of tonight's fixes removed specific blunders (theft, position mixup, prayer timing). The next big lever is probably food (several runs barely eat) and faster XL gain.
