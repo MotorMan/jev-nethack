@@ -434,7 +434,7 @@ class Bot:
                 self.level().blocked.add(m['pos'])
             m['hostile'] = not m['pet'] and not m['peaceful'] and not m['statue'] and (m['ch'] != 'I' or m['dist'] <= 1)
             # sessile, only hurt you if you hit them: never a reason to hold still, and never walk into them
-            m['passive'] = bool(re.search(r'floating eye|mold|shrieker|gas spore', m['name'])) or (m['ch'] == 'e' and m['fg'] in ('blue', 'white', 'gray'))
+            m['passive'] = bool(re.search(r'floating eye|mold|shrieker|gas spore|acid blob|jelly', m['name'])) or (m['ch'] == 'e' and m['fg'] in ('blue', 'white', 'gray'))
             m['where'] = f"{m['dist']} step{'s' if m['dist'] != 1 else ''} {compass(me, m['pos'])}"
         return out
 
@@ -560,7 +560,7 @@ class Bot:
             opts = {k: v for k, v in opts.items() if not k.startswith('attack_')} or opts  # engrave, attack (erases it), engrave... 4 times beside two Mordor orcs, 17 -> 6, dead (T4528)
         atk = [m for m in hostiles if m['dist'] == 1 and f"attack_{DIR_OF.get((m['pos'][0] - me[0], m['pos'][1] - me[1]))}" in opts]
         if len(atk) >= 3:  # mobbed: switching between sewer rats and a rothe (3 attacks a turn), 26 -> 6 at XL 4 (T3797); kill the worst one first
-            top = max(atk, key=lambda m: ('were' in m['name'], (MONSTERS.get(self.species(m)) or [0])[0]))  # the summoner first (mhitu.c: weres summon help 1 in 10 attacks, either form): a wererat in @ form kept calling rats, newts and a rothe while Jev hit the centipede, 51 -> 4 (T1233)
+            top = max(atk, key=lambda m: (not m['passive'], 'were' in m['name'], (MONSTERS.get(self.species(m)) or [0])[0]))  # never a passive one (back from rat form, punched an acid blob 3 turns while 3 rats bit 24 -> 0, T1591); the summoner first (mhitu.c: weres summon help 1 in 10 attacks, either form): a wererat in @ form kept calling rats, newts and a rothe while Jev hit the centipede, 51 -> 4 (T1233)
             opts = {k: v for k, v in opts.items() if not k.startswith('attack_') or k == f"attack_{DIR_OF[(top['pos'][0] - me[0], top['pos'][1] - me[1])]}"}
         were_throw = None  # an animal-form were's bite gives lycanthropy 1 in 4 hits (uhitm.c mhitm_ad_were): 44 of 509 runs caught it; wiki: kill them before melee range
         nymph_throw = None  # nymphs stole a ration, spear, shield and slime molds in one game: hit them before they arrive
