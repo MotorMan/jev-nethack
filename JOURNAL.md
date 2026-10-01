@@ -1512,3 +1512,7 @@ Run 20261001-075246 died to Uruk-hai at T4643 on Dlvl 6.
 - The pack rule never fired: the summed level of the visible Uruk-hai (3 each) was under 2×XL.
 
 Change: Elbereth is forced (with pray, quaff, upstairs and dig) when two or more hostiles are within 2 squares and HP is below 60%. Replay screens only ever showed one Uruk at a time, so this exact death isn't verified. The remaining lesson is that after a full-heal prayer, closing in on a pack is a mistake. Not changed.
+
+## Run 20261001-075611: Woodland-elves, T5738, Dlvl 7
+Two Woodland-elves (adjacent N and E; @-shaped, so they ignore Elbereth) took Jev from 67 to 16 HP. The last-resort zap filter offered only a wand of magic missile, aimed at a C 5 steps south. The cause: in a losing melee, zap targets skipped anything marked "weaker than you", and that excluded the elves.
+**Fix:** adjacent foes now count as zap targets once HP is below half.

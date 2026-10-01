@@ -576,7 +576,8 @@ class Bot:
                 dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
                 # passive only when boxed in: an ID zap at a floating eye 3 steps off was polymorph, it became a red dragon (T4125)
                 # also in a losing melee: two unknown wands stayed in the pack while an ogre took 69 -> 0 (T4539)
-                if (m['passive'] and len(dist) <= 3 or hp < 0.5 * hpmax and 'weaker' not in self.threat(m)) and (2 if 'gas spore' in m['name'] else 1) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
+                # 'weaker' foes count when adjacent: two Woodland-elves took 67 -> 0 while the wand of magic missile went at a C 5 steps south (T5738)
+                if (m['passive'] and len(dist) <= 3 or hp < 0.5 * hpmax and ('weaker' not in self.threat(m) or m['dist'] <= 1)) and (2 if 'gas spore' in m['name'] else 1) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     opts[f'zap_{d}'] = (f"Zap {wand['text']} at {m['name']}", f"Zap wand {wand['letter']} {DIR_NAME[d]} at the {m['name']} {m['where']}. Unknown effect; many wands kill or move monsters, and it identifies the wand.", lambda l=wand['letter'], d=d, t=(wand['text'], s.get('dlvl')): (self.run['zaps'].__setitem__(t, self.run['zaps'].get(t, 0) + 1), self.act_throw(l, d, 'z'))[1])
         # yellow light: its only attack is a 10d20-turn blinding explosion (monsters.h AT_EXPL), speed 15 so no outrunning it; Elbereth stops it (wiki). Blinded twice, both dead to unseen biters (T4631, T2307)
