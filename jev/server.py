@@ -6,7 +6,7 @@
 import argparse, json, os, threading, time
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
-from .bot import Bot, ROOT
+from .bot import Bot, ROOT, runs_home
 from .jevapi import Jev
 from .term import Term
 
@@ -108,12 +108,12 @@ def main():
     args = ap.parse_args()
     load_env()
     from .jevapi import is_local  # a local endpoint keeps its own ledger so hosted spend stays exact
-    jev = Jev(os.environ.get('JEV_API_KEY', ''), float(os.environ.get('JEV_BUDGET_USD', 5)), os.path.join(ROOT, 'runs', 'budget-local.json' if is_local() else 'budget.json'))
+    jev = Jev(os.environ.get('JEV_API_KEY', ''), float(os.environ.get('JEV_BUDGET_USD', 5)), os.path.join(runs_home(args.name), 'budget-local.json') if is_local() else os.path.join(ROOT, 'runs', 'budget.json'))  # hosted spend is one budget across instances
     if args.hardfought:
         from .hardfought import launcher
         bot = Bot(launcher(os.environ['HARDFOUGHT_USERNAME'], os.environ['HARDFOUGHT_PASSWORD']), jev, 'hardfought')
     else:
-        bot = Bot(local_launcher(args.name), jev, 'local')
+        bot = Bot(local_launcher(args.name), jev, 'local', args.name)
     bot.paused = args.paused
     threading.Thread(target=bot.play, daemon=True).start()
     srv = ThreadingHTTPServer(('127.0.0.1', args.port), make_handler(bot))

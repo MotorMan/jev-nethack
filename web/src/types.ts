@@ -26,6 +26,7 @@ export interface Status {
 export interface RunSummary {
   id: string; started: string; ended: string | null; character: string; turns: number
   max_dlvl: number; death: string | null; score: number | null
+  engine?: string; models?: string[]
 }
 
 export interface State {
@@ -41,7 +42,7 @@ export interface State {
   messages: { turn: number; text: string }[]
   log: { at: string; level: "info" | "warn" | "error"; text: string }[]
   jev: { calls: number; errors: number; cost_usd: number; avg_latency_ms: number; last_model: string | null; budget_usd: number }
-  run: { id: string; started: string; character: string; max_dlvl: number; decisions: number }
+  run: { id: string; started: string; character: string; max_dlvl: number; decisions: number; engine?: string; models?: string[] }
   runs: RunSummary[]
   inventory: { letter: string; text: string }[]
   level: { dlvl: number; explored: number; downstairs: boolean; upstairs: boolean }

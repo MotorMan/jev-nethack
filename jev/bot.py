@@ -58,6 +58,9 @@ QUESTIONS = {'action': dict(type='choice', instructions='Choose the single best 
              'safest': dict(type='choice', instructions='Ignoring progress entirely, which action gives the Valkyrie the best chance of still being alive 20 turns from now? You cannot see your other answers.')}
 questions = lambda criteria: {k: dict(q, criteria=criteria) if q['type'] == 'choice' else q for k, q in QUESTIONS.items()}
 
+def runs_home(name):  # each player name (one per engine running side by side) keeps its own runs.json, prayer clock and ledger
+    return os.path.join(ROOT, 'runs') if name == 'Jev' else os.path.join(ROOT, 'runs', name)
+
 def now():
     return datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -93,7 +96,8 @@ class Level:
 
 
 class Bot:
-    def __init__(self, launcher, jev, mode='local'):
+    def __init__(self, launcher, jev, mode='local', name='Jev'):
+        self.name, self.home = name, runs_home(name)
         self.fresh = False  # operator asked for a brand-new game
         self.refused_trap = False
         self.jump_hole = False
@@ -166,13 +170,13 @@ class Bot:
 
     def _load_runs(self):
         try:
-            return [r for r in json.load(open(os.path.join(ROOT, 'runs', 'runs.json'))) if r.get('turns')]  # drop records of server restarts
+            return [r for r in json.load(open(os.path.join(self.home, 'runs.json'))) if r.get('turns')]  # drop records of server restarts
         except (OSError, ValueError):
             return []
 
     def _save_runs(self):
-        os.makedirs(os.path.join(ROOT, 'runs'), exist_ok=True)
-        json.dump(self.runs, open(os.path.join(ROOT, 'runs', 'runs.json'), 'w'), indent=1)
+        os.makedirs(self.home, exist_ok=True)
+        json.dump(self.runs, open(os.path.join(self.home, 'runs.json'), 'w'), indent=1)
 
     def touch(self):
         with self.lock:
@@ -1380,7 +1384,7 @@ class Bot:
         self.t.send('#pray\r')
         self.observe()
         self.run['prayed_turn'] = self.snap.status.get('turn')
-        with open(os.path.join(ROOT, 'runs', 'prayer.json'), 'w') as f:
+        with open(os.path.join(self.home, 'prayer.json'), 'w') as f:
             json.dump({'prayed_turn': self.run['prayed_turn']}, f)
         return 'prayed: ' + ' '.join(m['text'] for m in self.messages[nmsg:])[:200]  # log success vs "You feel that Tyr is displeased"
 
@@ -1794,17 +1798,21 @@ class Bot:
             del self.history[:-200]
         with open(os.path.join(self.run_dir, 'decisions.jsonl'), 'a') as f:
             f.write(json.dumps(dict(h, state=state, criteria=criteria, answers=answers, model=meta.get('model'), screen=self.snap.lines)) + '\n')
+        if meta.get('model') and meta['model'] not in self.run['models']:  # the engine's own version string (jev-1.13.0); a game continued on another engine lists both
+            self.run['models'].append(meta['model'])
+            self.runs[-1]['models'] = self.run['models']
+            self._save_runs()
         self.log(f"T{h['turn']} {key} p={h['p']:.2f} -> {outcome}")
 
     # ---------- lifecycle ----------
     def new_run(self):
         rid = datetime.now().strftime('%Y%m%d-%H%M%S')
-        self.run_dir = os.path.join(ROOT, 'runs', rid)
+        self.run_dir = os.path.join(self.home, rid)
         os.makedirs(self.run_dir, exist_ok=True)
         self.run = dict(id=rid, started=now(), ended=None, character='dwarven Valkyrie', turns=0, max_dlvl=1, death=None, score=None,
-                        decisions=0, levels={}, under={}, here={}, elbereth=set(), prayed_turn=None, recent=[], death_msgs=[])
+                        engine='jev' if not self.jev.local else self.jev.model, models=[], decisions=0, levels={}, under={}, here={}, elbereth=set(), prayed_turn=None, recent=[], death_msgs=[])
         self.history.clear()
-        self.runs.append({k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score')})
+        self.runs.append({k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score', 'engine', 'models')})
         self._save_runs()
         self.log(f'new run {rid} ({self.mode})')
 
@@ -1813,13 +1821,13 @@ class Bot:
         m = re.search(r'((?<!is )(?<!are )(?<!was )killed by (?:M[rs]s?\. )?[^.!\n]+?|died of [^.\n]+|[Pp]oisoned by [^.\n]+|[Tt]urned to slime[^.\n]*|starved to death|drowned [^.\n]+|choked [^.\n]+|quit|escaped)\s*(?:$|\s{2}|\n|\.)', blob)
         self.run['death'] = m[1].strip() if m else ('died' if 'You die' in blob else 'game ended')
         try:  # the screen scrape misreads tombstones and other games' high-score lines; the local xlogfile is exact
-            x = dict(f.split('=', 1) for f in open(os.path.join(ROOT, 'nethack', 'lib', 'xlogfile')).read().splitlines()[-1].split('\t') if '=' in f)
+            x = dict(f.split('=', 1) for f in [l for l in open(os.path.join(ROOT, 'nethack', 'lib', 'xlogfile')).read().splitlines() if f'\tname={self.name}\t' in l][-1].split('\t') if '=' in f)
             if self.mode == 'local' and abs(int(x.get('turns', -1)) - (self.run.get('turns') or 0)) <= 200:  # the last screen we read can lag the death by ~50 turns
                 self.run['death'] = x['death'] + (f", {x['while']}" if x.get('while') else '')
         except (OSError, IndexError, KeyError, ValueError):
             pass
         self.run['ended'] = now()
-        self.runs[-1] = {k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score')}
+        self.runs[-1] = {k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score', 'engine', 'models')}
         self._save_runs()
         self.log(f"run {self.run['id']} over: {self.run['death']} on T{self.run['turns']}, max Dlvl {self.run['max_dlvl']}", 'warn')
 
@@ -1833,7 +1841,7 @@ class Bot:
             self.observe()
             if any('welcome back' in l for l in self.snap.lines + [m['text'] for m in self.messages[-5:]]):  # restored save: keep the prayer clock
                 try:
-                    t = json.load(open(os.path.join(ROOT, 'runs', 'prayer.json')))['prayed_turn']
+                    t = json.load(open(os.path.join(self.home, 'prayer.json')))['prayed_turn']
                     # messages outlive games, so an old 'welcome back' can match: a prayer from the future is another game's
                     self.run['prayed_turn'] = t if t is not None and t <= (self.snap.status.get('turn') or 0) else None
                 except (OSError, ValueError, KeyError):
@@ -1885,7 +1893,7 @@ class Bot:
                 decision=self.decision, history=list(self.history), messages=list(self.messages), log=list(self.logs),
                 jev=self.jev.summary(),
                 run=dict(id=self.run['id'], started=self.run['started'], character=self.run['character'],
-                         max_dlvl=self.run['max_dlvl'], decisions=self.run['decisions']) if self.run else None,
+                         max_dlvl=self.run['max_dlvl'], decisions=self.run['decisions'], engine=self.run['engine'], models=self.run['models']) if self.run else None,
                 runs=list(self.runs), inventory=list(self.inventory),
                 level=dict(dlvl=snap.status.get('dlvl', 0), explored=min(1.0, sum(1 for l in snap.lines[MAP_TOP:MAP_BOT + 1] for c in l if c != ' ') / 700),  # ponytail: ~700 drawn cells is a typical fully seen level
                            downstairs=bool(snap.find('>')), upstairs=bool(snap.find('<'))) if snap and self.run else None,

@@ -949,3 +949,9 @@ User: "i'd buy mithril if you can afford it, also price-ID scrolls and potions a
 - Death: a yellow light exploded next to Jev on Elbereth. In 5.0, a scared monster that can't move away still panic-attacks (monmove.c MMOVE_NOMOVES → panicattk). Jev went blind, and a giant beetle took it from 62 to 8 HP while the Blind filter left only "swing". At 8 HP the low-HP filter left only a gamble prayer, 257 turns after the last one: about 62% by an rnz(350) simulation. It failed.
 - Jev had a wand of cold the whole time, but the zap option used the first wand in the pack (an unknown spiked wand).
 - Fix: known attack wands (sleep, cold, fire, striking, magic missile, lightning) come first. Zaps survive the Blind filter (except in shops), and known attack-wand zaps survive the low-HP filter when the prayer is a gamble.
+
+## 2026-10-01 17:10 — Several engines side by side; runs tagged with engine + version
+- At the user's request, the comparison script is gone. Local models play real games instead.
+- `scripts/play.sh NAME PORT [ENDPOINT MODEL]` (re)starts one instance. NAME is the NetHack player name, so each engine has its own save. Non-`Jev` names keep runs.json, prayer clock and local ledger under `runs/NAME/`. Hosted spend stays one shared budget. Death lookup in xlogfile now filters by player name.
+- "Use X" means `scripts/play.sh Jev 8770 <endpoint> <model>`, which resumes Jev's saved game on X.
+- Each run records `engine` (`jev` or the local model name) and `models`, the version strings the engine reported. A game continued on another engine lists both. Backfilled all 292 past runs (all `jev-1.13.0`). The dashboard runs table has an engine column.

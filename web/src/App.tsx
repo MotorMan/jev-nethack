@@ -536,6 +536,7 @@ function Runs({ s }: { s: State }) {
           <TableHeader>
             <TableRow>
               <TableHead>character</TableHead>
+              <TableHead>engine</TableHead>
               <TableHead className="text-right">turns</TableHead>
               <TableHead className="text-right">dlvl</TableHead>
               <TableHead>fate</TableHead>
@@ -545,6 +546,7 @@ function Runs({ s }: { s: State }) {
           <TableBody>
             <TableRow className="bg-[hsl(var(--smui-frost-2)/0.05)]">
               <TableCell className="text-primary">{s.run.character}</TableCell>
+              <TableCell className="text-muted-foreground">{engine(s.run)}</TableCell>
               <TableCell className="text-right tabular-nums">{num(s.status.turn)}</TableCell>
               <TableCell className="text-right tabular-nums">{s.run.max_dlvl}</TableCell>
               <TableCell><Badge variant="outline" className="text-[hsl(var(--smui-green))] border-[hsl(var(--smui-green)/0.3)]">live</Badge></TableCell>
@@ -553,6 +555,7 @@ function Runs({ s }: { s: State }) {
             {[...s.runs].reverse().map((r) => (
               <TableRow key={r.id}>
                 <TableCell>{r.character}</TableCell>
+                <TableCell className="text-muted-foreground">{engine(r)}</TableCell>
                 <TableCell className="text-right tabular-nums">{num(r.turns)}</TableCell>
                 <TableCell className="text-right tabular-nums">{r.max_dlvl}</TableCell>
                 <TableCell className="max-w-[220px] truncate" title={r.death ?? ""}>
@@ -569,6 +572,9 @@ function Runs({ s }: { s: State }) {
 }
 
 // ---------- page ----------
+
+// version strings the engine reported (jev-1.13.0); a game continued on another engine shows both
+const engine = (r: { engine?: string; models?: string[] }) => r.models?.length ? r.models.join(" → ") : r.engine ?? "--"
 
 export default function App() {
   const [s, conn] = useJevState()
