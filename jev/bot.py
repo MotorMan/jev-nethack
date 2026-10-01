@@ -447,7 +447,7 @@ class Bot:
             return ''
         d = lv[0] - (self.snap.status.get('xl') or 1)  # the -1 called an owlbear (difficulty 7) 'weaker' than XL 7; it killed Jev from 70 HP
         rel = 'much weaker than you' if d <= -3 else 'weaker than you' if d < 0 else 'about your level' if d <= 1 else 'stronger than you' if d <= 4 else 'much stronger than you'
-        extra = {'floating eye': '; harmless, but never melee it (paralysis)', 'gas spore': '; explodes for 4d6 (up to 24 damage) when killed: throw things at it from 2+ squares away (the blast hits every square next to it) or walk away, melee only with 30+ HP'}.get(name, '')
+        extra = {'floating eye': '; harmless, but never melee it (paralysis)', 'gelatinous cube': '; hitting it paralyzes you, its touch too: shoot it or walk away (it is slow)', 'gas spore': '; explodes for 4d6 (up to 24 damage) when killed: throw things at it from 2+ squares away (the blast hits every square next to it) or walk away, melee only with 30+ HP'}.get(name, '')
         return f' (difficulty {lv[0]}, speed {lv[1]}, {rel}{extra})'
 
     # ---------- inventory ----------
@@ -544,6 +544,8 @@ class Bot:
                 low = re.compile(r'shrieker|brown pudding|black pudding')
                 if low.search(m['name']) and any(o['dist'] == 1 and not low.search(o['name']) for o in hostiles):
                     continue  # no attacks: Jev hit a shrieker 3 turns while a werejackal and iguana killed it (T1402); hit a brown pudding 4 times (iron splits it, uhitm.c) while an owlbear crushed it 53 -> 8, dead (T5320)
+                if 'gelatinous cube' in m['name'] and any(o['dist'] <= 3 and o is not m and not o['passive'] for o in hostiles):
+                    continue  # hitting one paralyzes you (passive AD_PLYS, no free action): frozen, an elf mummy and the cube took 67 -> 0 (T9389)
                 d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
                 opts[f'attack_{d}'] = (f"Attack {m['name']} ({DIR_NAME[d]})", f"Melee the adjacent {m['name']} to the {DIR_NAME[d]}.{danger}", lambda d=d: self.act_fight(d))
         were_throw = None  # an animal-form were's bite gives lycanthropy 1 in 4 hits (uhitm.c mhitm_ad_were): 44 of 509 runs caught it; wiki: kill them before melee range

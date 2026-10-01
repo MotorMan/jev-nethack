@@ -1520,3 +1520,7 @@ Two Woodland-elves (adjacent N and E; @-shaped, so they ignore Elbereth) took Je
 ## Run 20261001-080017: werejackal, fainted, T6255, max Dlvl 6
 Jev prayed for lycanthropy 516 turns after its last prayer and got "Tyr is displeased", so the god was angry and there were no more prayers. It went Weak, then Fainting, with no food. A rock mole (speed 3, edible) kept biting, but the slow-monster rule walked away from it 6 times instead of killing it for food.
 **Fix:** that retreat no longer fires while Weak or Fainting. The prayer gamble itself (about 87% safe at 500 turns) is unchanged.
+
+## Run 20261001-080500: gelatinous cube, paralyzed, T9389, Dlvl 8 (XL 8, 92 max HP)
+Jev's Elbereth scuffed, so it meleed the adjacent gelatinous cube. The passive paralysis froze it, and the cube plus an elf mummy took it from 67 to 0.
+**Fix:** no melee on a gelatinous cube while any other active hostile is within 3 squares. The threat text now says that hitting it paralyzes.
