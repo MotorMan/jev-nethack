@@ -1025,3 +1025,6 @@ No single bug. A slow game: XL 5 with 179 exp at T4800, four prayers spent on HP
 
 ## 2026-09-30 20:45 — fainted to a snake in the Mines (kev-4b, T3298, Dlvl 8)
 Dwarven Valkyrie in the Gnomish Mines: gnomes, dwarves and hobbits are peaceful, so almost no corpses; 7 gold, no shops for food. Prayed for HP at 2796 while Hungry, Weak by 2820 (a bugbear corpse fixed it), Fainting by 3121 and fainting for 177 turns with no prayer offered (325 turns since the last; the bar was 500, and 'starving' waits 230 turns of fainting). A snake killed it mid-faint. Fainting now offers prayer 300 turns after the last one.
+
+## 2026-09-30 21:10 — jaguar (kev-4b, T3976, Dlvl 7)
+Camped on Elbereth at 23/54 while a jaguar fled; once it was out of view the camp rule (hostile within 7) let go, and the rest-before-exploring rule only fires below 50% — 27/54 is exactly 50%. Explored two steps into the jaguar in the dark: three attacks a turn, 28 -> 0. Rest-before-exploring now holds to 75% when Jev was hit in the last 50 turns. (It also carried an unworn polished silver shield — maybe reflection — next to its +3 small shield.)
