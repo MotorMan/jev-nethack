@@ -656,7 +656,7 @@ class Bot:
                 and (s.get('turn') or 0) - self.run.get('no_engrave', -99) > 5 \
                 and not (any(m['dist'] == 1 and m['name'] in self.run.get('e_blockers', ()) for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # count: unseen biters left adj_names empty, 16 interrupted engravings in a row while Hungry turned Weak, then Fainting (T5312)  # @ ignore it (monmove.c onscary: S_HUMAN); 2 Elbereths at 9/49 beside a Woodland-elf, a rock mole also near, dead (T2543); engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
-        if 'choke' in opts and hp >= 0.4 * hpmax and not self.unseen_attacker():  # wiki: Elbereth is breathing room; a corridor is how to actually fight a group
+        if 'choke' in opts and hp >= 0.6 * hpmax and not self.unseen_attacker():  # 0.4: at 25/53 Elbereth was dropped for a walk to a corridor beside a rothe, 25 -> 8 garbling retries (T3712)  # wiki: Elbereth is breathing room; a corridor is how to actually fight a group
             opts.pop('elbereth', None)
 
         if danger:

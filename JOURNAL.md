@@ -1634,3 +1634,6 @@ At T5888 a wood nymph stole the helm and the +3 shield, and the scale mail went 
 
 ## Hosted 100917 — raven, T6043, Dlvl 6
 A raven (speed 20) blinded it during a monkey/giant-ant fight. Blind, its Elbereth engravings kept getting interrupted. A prayer took it back to 51 HP, but unseen biters took that to 5 in 7 turns. No clear fix: it was fighting blind against faster monsters.
+
+## Djev 101423 — rothe, T3712, Dlvl 5
+It was resting on Elbereth at 25/53 when the engraving wore away. The choke rule (hp >= 40%) removed the Elbereth option, so it walked toward a corridor and the rothe hit it, 25 -> 18 -> 8, while re-engraving garbled. At 8/53, prayer was just above the 1/7 low-HP line. Fix: choke only suppresses Elbereth at 60% HP or more.
