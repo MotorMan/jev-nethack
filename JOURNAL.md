@@ -898,3 +898,9 @@ The user said: in an emergency, wear the armor; think smart. The rule is now abo
 
 ## 14:25 — Run 214717: farlook read a stale message
 Jev died at XL7 on Dlvl 6 (Minetown-like, with peaceful gnomes), T7343, killed by a Woodland-elf. At T7332 the top line still read "The 2nd elven arrow misses it." The farlook wait loop broke as soon as the top line no longer said "Pick a", which also matches a line that hasn't been redrawn yet, so it read the stale message. The adjacent elves became "unknown '@'", which is never attacked (shopkeeper safety). Jev explored into them twice, 19 → 7 HP, then prayed, which worked, but the elves finished it. Farlook now waits until the top line looks like a farlook answer ("<glyph> <desc>"), shows --More--, or has changed to something other than the prompt.
+
+## 14:40 — Run 214905: pyrolisk gaze vs Elbereth
+Killed by a pyrolisk on Dlvl 9 at T7302. Jev's last prayer was 80 turns earlier, and it sat on Elbereth 2–4 squares from the pyrolisk while the fire gaze (2d6, works at any range in line of sight) took it from 16 to 0 HP. Elbereth only stops melee. The wiki says the pyrolisk is slow (speed 6) with weak defenses; 5.0 monsters.h adds a 1d6 bite. Fixes:
+- "gaze!" counts as being shot, so the bot no longer camps on Elbereth.
+- No new Elbereth when the only threats near are pyrolisks.
+- Close in on a pyrolisk even at low HP.
