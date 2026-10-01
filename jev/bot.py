@@ -578,7 +578,7 @@ class Bot:
         strong = False
         if near:
             if self.engraved_here() and not shot:  # Elbereth only stops melee (wiki); stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
-                if (hp < 0.7 * hpmax or dread) and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in near):  # @ (elves, humans) and minotaurs ignore it (monmove.c onscary): sat 9 turns on it by a Woodland-elf, dead (T4259); 'stuck on Elbereth': up to 44% of a game's decisions were waits on it (0.9 before); at 77/80 HP Jev sat on Elbereth ~1400 turns watching a fog cloud
+                if (hp < 0.7 * hpmax or dread) and not any((m['ch'] == '@' or 'minotaur' in m['name']) and m['dist'] <= 2 for m in near):  # dist: an unfarlooked '@' 5 squares off (Minetown) removed the wait at 12/63 among 8 monsters; Jev explored into a pony, dead (T7921)  # @ (elves, humans) and minotaurs ignore it (monmove.c onscary): sat 9 turns on it by a Woodland-elf, dead (T4259); 'stuck on Elbereth': up to 44% of a game's decisions were waits on it (0.9 before); at 77/80 HP Jev sat on Elbereth ~1400 turns watching a fog cloud
                     opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', self.act_wait_elbereth)
             else:
                 fast = [m['name'] for m in near if (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12]  # our speed is 12
@@ -1037,6 +1037,8 @@ class Bot:
         losing = prev and prev['hp'] - s.get('hp', 0) >= s.get('hp', 0)  # an ape + pony took 34 -> 14 in two turns, Jev swung on with Elbereth offered: dead next turn (T3767)
         if 'elbereth' in opts and adj and (len(adj) >= 2 and s.get('hp', 1) * 2 < s.get('hpmax', 1) or losing or pack and len(adj) >= 3 or s.get('hp', 1) < 0.6 * s.get('hpmax', 1) and any('stronger' in self.threat(m) for m in adj) or s.get('hp', 1) < 0.4 * s.get('hpmax', 1)) and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in adj):  # swung at a giant ant (speed 18) from 23/62 to 14 with Elbereth on offer, then garbled + interrupted, dead (T5591)  # XL4 swung at a rope golem at 22/43 with Elbereth on offer: 22 -> 10, a snake interrupted the late engraving, dead (T2908)  # traded blows with 3 wolves 70 -> 6 with Elbereth on offer, died praying (T4527)
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray') or k.startswith('quaff_')}
+        if near and 'wait' in opts and self.engraved_here() and s.get('hp', 1) * 2 < s.get('hpmax', 1):  # explored off Elbereth at 12/63 among 8 monsters, 3 times 'took damage after 1 steps' (T7921)
+            opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door_', 'sell_', 'approach_', 'fetch'))}
         if not near and ({'eat_corpse', 'goto_corpse'} & opts.keys()):  # the earlier forcing ran before explore/descend were added: 22 corpse offers, 2 taken, 4 hunger prayers, fainted (T3843)
             opts = {k: v for k, v in opts.items() if k in ('eat_corpse', 'goto_corpse', 'pray')}
         if self.history and 'blocked' in self.history[-1]['outcome'] and any(m['dist'] <= 1 for m in hostiles) and len(opts) > 1:

@@ -1243,3 +1243,10 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - A nymph had stripped Jev down to a spear and a poleaxe.
 - At 6/51 HP with nothing in view, the nymph-level filter (downstairs unknown) allowed only explore, door, search and eat, so "rest" was dropped. Jev walked to locked doors, was hit, wrote Elbereth, walked again, and died to a fire ant.
 - Fix: the nymph-level filter keeps "rest" below half HP.
+
+## 20261001-032742: pony, T7921, Dlvl 7 (Mines), XL 5, AC 10
+- A nymph stripped Jev to AC 10. At 12/63 HP on Elbereth, with 8 monsters near, "wait" wasn't offered.
+- The cause: an '@' 5 squares away, too far to be farlooked (probably a peaceful watchman), triggered the rule that "@ ignores Elbereth". With no wait, Jev's only options were walks, and three of them took damage.
+- Fixes:
+  - The @/minotaur exclusion only applies within 2 squares.
+  - On Elbereth below half HP with monsters near, the walk options (explore, door, sell, approach, fetch) are dropped.
