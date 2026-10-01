@@ -1286,3 +1286,9 @@ In the dark Mines, "The fire ant bites!" arrived every turn, but no 'a' ever sho
 
 ## Run 20261001-042954: ettin zombie, taking off clothes (T5019, Dlvl 7, XL 5, AC -3)
 The nymph rule kept Jev on Elbereth for 116 turns at 51/53 HP, because a mountain nymph hovered within 3 squares. Meanwhile zombies, orcs, a dwarf king and a jaguar gathered and fought each other. Jev then got hit and attacked off Elbereth, and the nymph charmed it into removing its banded mail. Mid-mob, it died from 48 HP. Source check: any attack from Elbereth erases it (mon.c setmangry), throwing included. Fix: after 30 waits in the last 40 decisions, the nymph rule also offers a throw at the nymph (when she is 2+ squares away).
+
+## Run 20261001-043659: fire ant, while praying (T4663, Dlvl 7, XL 6, AC 5)
+At T3017 Jev zapped an unknown wand at a monster. It was a wand of wishing, and the wish produced a greased gray dragon scale mail. Jev carried it unworn for 1600 turns, along with the wand (more charges) and an oilskin cloak. Bugs:
+- The early `{'wish'}`-only filter dropped `wear_w`. Later code re-added rest and explore, and kev-4b skipped 'wish' about 100 times.
+- Fix: the late gear filter now keeps both wish and wear options.
+- The oilskin cloak now counts as a plain cloak, wearable without a known BUC.

@@ -759,7 +759,7 @@ class Bot:
         if not near:
             for it in self.inventory:
                 t = it['text']
-                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|mantelet|wrapping|mithril-coat|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and not (re.search(r'cloak|mantelet|mithril', t) and not re.search(r'\b(uncursed|blessed)\b', t) and not (re.search(r'\b(dwarvish|hooded|orcish|leather|elven) cloak|mantelet|faded pall|mummy wrapping', t) and not better_body) and not ('mithril' in t and not worn_ac)) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
+                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|mantelet|wrapping|mithril-coat|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and not (re.search(r'cloak|mantelet|mithril', t) and not re.search(r'\b(uncursed|blessed)\b', t) and not (re.search(r'\b(dwarvish|hooded|orcish|leather|elven|oilskin) cloak|mantelet|faded pall|mummy wrapping', t) and not better_body) and not ('mithril' in t and not worn_ac)) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
                     opts[f"wear_{it['letter']}"] = (f"Wear {t}", "Put on this armor (takes a few turns; may be cursed if unidentified).", lambda it=it: self.act_wear(it))
             worn = next((it for it in self.inventory if 'being worn' in it['text'] and suit_ac(it['text']) is not None), None)
             better = max((it for it in self.inventory if 'being worn' not in it['text'] and (suit_ac(it['text']) or 0) > (suit_ac(worn['text']) if worn else 99)
@@ -776,10 +776,6 @@ class Bot:
             ls = next((it for it in self.inventory if 'amulet of life saving' in it['text'] and 'being worn' not in it['text']), None)
             if ls and not any('amulet' in it['text'] and 'being worn' in it['text'] for it in self.inventory):
                 opts['wear_amulet'] = (f"Put on {ls['text']}", 'Life saving brings you back once when you would die.', lambda l=ls['letter']: self.act_keys('P' + l, 'put on the amulet'))
-            if 'wish' in opts:
-                opts = {'wish': opts['wish']}
-            if any(k.startswith('wear_') for k in opts):  # offered, rarely taken: died at AC 6 with an orcish helm in the pack and no helm on (T3559)
-                opts = {k: v for k, v in opts.items() if k.startswith(('wear_', 'eat_')) or k == 'pray'}  # each try wears it or marks it unwearable, so no loop
 
         # altars (wiki "Altar", "Sacrifice"; 5.0 pray.c): dropping identifies BUC on any altar; a fresh (<50 turns) corpse offered on a lawful one
         # cuts prayer timeout, adds luck, and at timeout 0 gives a 1 in 6 first-gift chance (bestow_artifact)
@@ -1109,8 +1105,8 @@ class Bot:
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You are fighting bare-handed.', lambda l=weapon['letter']: self.act_wield(l))}
         elif not near and (art := next((it for it in self.inventory if 'named' in it['text'] and WEAPON.search(it['text']) and 'weapon in' not in it['text'] and it['text'] not in self.run['unwieldable']), None)):
             opts = {f"wield_{art['letter']}": (f"Wield {art['text']}", 'An artifact weapon beats anything else you carry.', lambda l=art['letter']: self.act_wield(l))}
-        elif not near and any(k.startswith('wear_') for k in opts):
-            opts = {k: v for k, v in opts.items() if k.startswith('wear_')}
+        elif not near and any(k == 'wish' or k.startswith('wear_') for k in opts):  # an early {'wish'}-only filter dropped wear and later rest/explore came back: a wished-for GDSM sat unworn, 'wish' untaken 100 times, AC 5, fire ant (T4663)
+            opts = {k: v for k, v in opts.items() if k == 'wish' or k.startswith('wear_')}
         elif not near and 'fetch_gear' in opts:
             opts = {k: v for k, v in opts.items() if k in ('fetch_gear', 'pray') or k.startswith('eat_')}
         if not near and 'rest' in opts and s.get('hp', 1) < (0.75 if (s.get('turn') or 0) - self.run.get('hit_turn', -99) <= 50 else 0.5) * s.get('hpmax', 1):  # explored on at 11/65 HP into a giant beetle  # a jaguar fled off Elbereth out of view, Jev explored at 27/54 into it: 28 -> 0 (T3976)
