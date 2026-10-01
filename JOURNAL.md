@@ -813,3 +813,6 @@ Run 201020 fainted from hunger on Dlvl 1 at T7223 and was killed by a werejackal
 
 ## 09:15 — Shrieker distraction
 Run 201420 died at T1402 (XL3, Dlvl 4). A werejackal, an iguana and a jackal were all adjacent, and Jev spent 3 turns hitting a shrieker, which has no attacks. Shrieker attack options are now hidden while anything else hostile is adjacent.
+
+## 09:25 — Werejackal pack again
+Run 201512 died at T1847 on Mines 5 (XL4). A werejackal kept summoning jackals, and Jev attacked the werejackal, which was the right target. HP went 45 → 30 → 23 → 22 → dead. '<' was about 9 steps away, outside the 8-step flee range, and jackals are as fast as Jev, so running offered little. No code change; it was variance plus a Str 14 roll.
