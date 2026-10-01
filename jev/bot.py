@@ -873,7 +873,7 @@ class Bot:
         if len(snap.find('{')) >= 4:  # the Oracle's four fountains: Sokoban's entrance is the second '<' one level down
             self.run['oracle'] = s.get('dlvl')
         soko_hunt = s.get('dlvl') == (self.run.get('oracle') or -9) + 1 and len(snap.find('<')) < 2 and not self.run.get('soko_done') and self.frontiers(dist)
-        if soko_hunt or s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 or s.get('hp', 1) < 0.8 * s.get('hpmax', 1):  # rest first; fleeing downward from a fight at this depth is how the pony and giant ant runs ended
+        if soko_hunt or s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 or s.get('hp', 1) < 0.8 * s.get('hpmax', 1) or s.get('ac', 0) >= 9 and s.get('dlvl', 1) >= 4:  # stripped by nymphs to AC 10, Jev went down to Dlvl 7 and died to a Woodland-elf (T6265)  # rest first; fleeing downward from a fight at this depth is how the pony and giant ant runs ended
             pass
         elif self.standing_on() == '>':
             opts['descend'] = ('Go down the stairs', f"You are on the down staircase to Dlvl {s.get('dlvl', 0) + 1}.", lambda: self.act_keys('>', 'descended'))
