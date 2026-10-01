@@ -1637,3 +1637,6 @@ A raven (speed 20) blinded it during a monkey/giant-ant fight. Blind, its Elbere
 
 ## Djev 101423 — rothe, T3712, Dlvl 5
 It was resting on Elbereth at 25/53 when the engraving wore away. The choke rule (hp >= 40%) removed the Elbereth option, so it walked toward a corridor and the rothe hit it, 25 -> 18 -> 8, while re-engraving garbled. At 8/53, prayer was just above the 1/7 low-HP line. Fix: choke only suppresses Elbereth at 60% HP or more.
+
+## Hosted 101650 — coyote in a 12-monster swarm, T1499, Dlvl 4
+Elbereth held off a crowd (rothe, jackal, cave spider, giant bat, orc zombie, and more) for many turns. Then a giant bat bit for 3. monmove.c: a scared monster with nowhere to flee panic-attacks (MMOVE_NOMOVES + scared). The bot treated that hit as "Elbereth not protecting", marked the crowd as blockers, and went to melee: 41 -> 3. Fix: a hit under 10% of max HP with Elbereth still readable keeps waiting on it.
