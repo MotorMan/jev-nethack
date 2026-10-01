@@ -1183,3 +1183,10 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - A bear trap also held it for a few turns. Searching never frees you; per hack.c, each diagonal move attempt loosens the trap.
 - **Fix 1:** when Weak or Fainting with no prayer offered, the pace gate no longer blocks descending, since a new level means fresh corpses.
 - **Fix 2:** when caught in a bear trap with nothing adjacent, Jev is offered 'escape_trap', which repeats diagonal moves up to 8 times.
+
+### Run 20261001-021550: elven arrow, T5006 (Dlvl 7)
+- A water nymph on Dlvl 7 made five thefts over about 1000 turns: shield, wrapping, spear, shield, scroll. The downstairs was never found, so leave_nymph never fired, and Jev ended at AC 10.
+- A werewolf gave Jev lycanthropy. The gamble prayer at T4859 came 192 turns after a good one and was too soon. Per pray.c p_type 0, that means +rnz(250) timeout, Luck -3 and ugangr++, so god_angry was set correctly.
+- At T4983 the gamble prayer was offered again: that elif branch never checked god_angry. Tyr cursed Jev's items ("black glow"), and a Woodland-elf's arrows finished it.
+- **Fix:** the gamble prayer now requires `not god_angry`.
+- Still open: nymph theft on a level with no known downstairs.
