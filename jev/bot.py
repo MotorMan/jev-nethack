@@ -536,13 +536,15 @@ class Bot:
                     and 'weapon in' not in it['text'] and 'wielded' not in it['text'].replace('not wielded', '')]
         # hand-thrown arrows do rnd(2) (uhitm.c): only for passives. Boxed by a floating eye with 7 arrows, meleed it, paralysed, starved (T2426)
         arrows = [it for it in self.inventory if re.search(r'\b(arrows?|bolts?)\b', it['text'])]
-        if not missiles and not arrows and not any(not m['passive'] for m in hostiles) and any('floating eye' in m['name'] and m['dist'] <= 3 for m in hostiles):
+        last_resort = not missiles and not arrows and not any(not m['passive'] for m in hostiles) and any('floating eye' in m['name'] and m['dist'] <= 3 for m in hostiles) \
+            and sum(h['choice'] == 'wait_eye' for h in self.history[-20:]) >= 5  # only once waiting failed: a missed spear flew past an eye out of reach, bare-handed 170 turns (T7302)
+        if last_resort:
             # nothing else to throw: the wielded spear beats melee (an eye that survives a hit freezes you up to 127 turns): meleed a blocking eye, frozen, rothe (T5195)
             arrows = [it for it in self.inventory if 'weapon in' in it['text'] and re.search(r'\b(daggers?|knife|spear|javelin)\b', it['text'])]
         if (missiles or arrows) and not on_e:
             for m in hostiles:
                 dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
-                if (missiles or m['passive']) and (1 if m['passive'] and 'gas spore' not in m['name'] else 2) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
+                if (missiles or m['passive']) and not (last_resort and 'floating eye' not in m['name']) and (1 if m['passive'] and 'gas spore' not in m['name'] else 2) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     it = (missiles or arrows)[0]
                     opts[f'throw_{d}'] = (f"Throw {it['text']} at {m['name']}", f"Throw item {it['letter']} {DIR_NAME[d]} at {m['name']} {m['where']}. Safe way to hit monsters you must not melee (floating eyes, molds); pick it up again afterwards.", lambda l=it['letter'], d=d: self.act_throw(l, d))
