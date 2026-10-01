@@ -1362,3 +1362,6 @@ At T3453 a wood nymph stole Jev's worn +3 small shield while it rested. Inventor
 
 ## Run 20261001-061308: soldier ant, T5703 (Dlvl 8, XL 6, AC 1, full HP)
 This was the best-geared run so far: orcish chain mail, a helm and a +3 shield. Two soldier ants (speed 18, bite plus sting) came into view, and because Jev was at full HP it was offered only "close in" and attack. It went from 53 to 0 in two turns. Fix: two or more fast hostiles (speed ≥ 15) that aren't weaker than Jev now count as dread. That bans approach and explore and offers Elbereth, which ants respect. A replay of T5702 now offers Elbereth.
+
+## Run 20261001-062152: red dragon's fire, T1845 (Dlvl 4, XL 2, 11/25 HP)
+A red dragon (difficulty 20, probably from a bones file or a polymorph trap) turned up on Dlvl 4 while Jev, at XL 2, was resting on Elbereth at 9 HP. Elbereth made the dragon flee, but breath works at range, and Jev was walking to the upstairs when it got breathed on. It had no wand, no escape item and no prayer. That's unwinnable at this point, so no code change.
