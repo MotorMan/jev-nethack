@@ -1484,3 +1484,13 @@ Run 20261001-073919 died at T1956 on Dlvl 4. A homunculus killed Jev while it wa
 - It then turned into a jackal (3 HP), fainted, prayed too soon ("Thou art arrogant"), and died fainted.
 
 Per eat.c a bat corpse only stuns, and dog, cat and pony corpses only aggravate. When Jev is "desperate" (Weak or Fainting, no prayer available, HP > 15), these now count as food, like kobolds already did.
+
+## 2026-10-01 — Lycanthropy again: recover gear first at AC 10
+Run 20261001-074301 died to a rat pack at T3091 on Dlvl 5, praying at 6/48.
+
+- Jev prayed for hunger at T2935. At T2973 a wererat infected it, and with prayer on cooldown there was no cure.
+- At T3046 Jev turned into a rat, its gear fell off, and it dropped the rest because it was overloaded.
+- Back in dwarf form at T3087 it had 48 HP and AC 10, with a wererat 2 steps away. "Go back for your dropped armor" was offered, but Jev closed in instead.
+- The wererat (@ form, which ignores Elbereth) plus sewer and giant rats took it from 46 to 6 in three turns.
+
+Change: the gear-recovery filter (recover, pray, eat, pickup, wear, wield only) now also applies at AC 9+ when monsters are in view but none adjacent.

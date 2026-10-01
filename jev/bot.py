@@ -1076,7 +1076,7 @@ class Bot:
             if me == g[1]:
                 self.run['gear_at'] = None  # the pickup and wear options take it from here
             elif g[1] in dist:
-                if not near:
+                if not near or (s.get('ac') or 0) >= 9:  # back from rat form at AC 10, a wererat 2 steps off: closed in instead, a rat pack took 48 -> 6, dead (T3091)
                     opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'pickup_', 'wear_', 'wield_'))}
                 opts['recover_gear'] = ('Go back for your dropped armor', f"Your armor and weapon fell off when you changed form. They lie {dist[g[1]]} steps {compass(me, g[1])}: walk there, pick them up and put them back on.", lambda p=g[1]: self.act_go(p))
         tp = next((it for it in self.inventory if 'scroll of teleportation' in it['text']), None)
