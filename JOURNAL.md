@@ -976,3 +976,12 @@ djev (the Gemma diffusion Jev) is hosted on LunaRoute: `https://gw.lunaroute.com
 - Switched with `scripts/play.sh Jev 8770 https://gw.lunaroute.com/v1/systemone djev djev`.
 - Also added a local OpenJev (DiffusionGemma 26B, MLX) entry to serve_local_models.sh. It is unused: it needs about 16 GB of disk, and port 8080 is taken.
 - The Kev run before the switch was killed by a werewolf on T3395.
+
+## 2026-09-30 18:40 — one run record per game across engine switches
+- **Bug:** switching engines restarts the server, and the restart opened a new run record. The previous record was still at 0 turns, so it was dropped when runs.json was loaded. djev's game (T1–5547) vanished and its death was credited to kev-4b.
+- **Fix:** an unended last record is now kept. When the save is restored, the new record merges into it: same id and run dir, decision counter continued, models list = every engine that played the game.
+- **Death, kev-4b (T5557, Dlvl 7):**
+  - A bugbear zapped a wand of striking four turns running while Jev meleed it and missed.
+  - In 5.0 (muse.c) striking hits if `rnd(20) < 10 + u.uac`, so at AC 9 each zap had a 90% chance.
+  - Jev had prayed 7 turns earlier, so prayer wasn't available.
+  - Root cause: still AC 9 at T5557.

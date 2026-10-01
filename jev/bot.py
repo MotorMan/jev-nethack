@@ -170,7 +170,8 @@ class Bot:
 
     def _load_runs(self):
         try:
-            return [r for r in json.load(open(os.path.join(self.home, 'runs.json'))) if r.get('turns')]  # drop records of server restarts
+            rs = json.load(open(os.path.join(self.home, 'runs.json')))  # drop records of server restarts, but keep a game in progress
+            return [r for i, r in enumerate(rs) if r.get('turns') or (i == len(rs) - 1 and not r.get('ended'))]
         except (OSError, ValueError):
             return []
 
@@ -1846,6 +1847,17 @@ class Bot:
                     self.run['prayed_turn'] = t if t is not None and t <= (self.snap.status.get('turn') or 0) else None
                 except (OSError, ValueError, KeyError):
                     pass
+                if len(self.runs) > 1 and not self.runs[-2]['ended']:  # same game, new server: one record, listing every engine that played it
+                    prev = self.runs.pop(-2)
+                    self.run.update(id=prev['id'], started=prev['started'], models=prev['models'] + [m for m in self.run['models'] if m not in prev['models']])
+                    try:
+                        os.rmdir(self.run_dir)  # nothing written there yet
+                    except OSError:
+                        pass
+                    self.run_dir = os.path.join(self.home, prev['id'])
+                    self.run['decisions'] = sum(1 for _ in open(os.path.join(self.run_dir, 'decisions.jsonl'))) if os.path.exists(os.path.join(self.run_dir, 'decisions.jsonl')) else 0
+                    self.runs[-1] = {k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score', 'engine', 'models')}
+                    self._save_runs()
             self.read_inventory()
             while self.t.alive and not self.stop:
                 if self.paused and not self.step_once:
