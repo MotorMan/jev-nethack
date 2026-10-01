@@ -1350,3 +1350,6 @@ This was the fourth starvation death in the session. The run had many edible kil
 
 ## Run 20261001-055859: wolf, T5914 (Sokoban, XL 5, AC 5)
 The corpse fix is working: 4+ corpses eaten before T5500, and no hunger trouble this run. A werewolf gave Jev lycanthropy, and the prayer 583 turns after the last one cured it. The werewolf's summoned wolves then took Jev from 35 to 5 HP in Sokoban's corridors (a cornered wolf hit through Elbereth), with prayer already spent. No code change. The underlying problem is still AC: at T5900 Jev wore no body armor and no cloak (only a helm and a small shield).
+
+## Run 20261001-060459: wolf while praying, T4477 (Dlvl 7, XL 5, AC 6, hallucinating)
+Jev fell through a trap door into a crowd of monsters and dropped from 58 to 11 HP in about 10 turns. Elbereth came out garbled (Jev was hallucinating). At 11/63, which counts as major trouble under the 5.0 XL-scaled rule, Jev prayed 251 turns after its last prayer and lost the gamble. That gamble was reasonable. No code change. AC is the root problem again: this run and the last one never saw body armor on the floor, so the next lever is buying or looting armor.
