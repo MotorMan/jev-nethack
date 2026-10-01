@@ -1676,3 +1676,6 @@ It approached a rope golem at 45/64 and got grabbed: it can't engrave or step aw
 
 ### kev-4b 20261001-103839 — owlbear, T7718, Dlvl 7
 A water nymph had already stripped it to bare hands and AC 10. It approached an owlbear, got grabbed, and died 81 -> 0 in five turns. **Fix (both):** rope golems and owlbears join the no-approach list (let them come or throw), with threat text warning about grabs.
+
+### kev-4b 20261001-104107 — fire ants, T4266, Dlvl 7
+It was waiting on Elbereth at 27/47 while two fire ants (speed 18) kept fleeing. A hobbit's thrown dagger set `shot`, which removes the Elbereth wait. The weak-shooter override only covered "stronger" monsters within 3, not "about your level". It explored off Elbereth and the ants killed it in one turn. **Fix:** the override now applies when anything not weaker is within 3.
