@@ -922,3 +922,15 @@ Died of starvation on Dlvl 1 at T12215, XL6. The downstairs showed on the map in
 Killed by a gold golem on Dlvl 7 at T7127. Jev had prayed at T7069 because it was Weak with hunger. It then traded blows with the golem (two 2d3 claws) at AC 7, re-engaging after an Elbereth. At 11 HP, an unknown potion turned out to be hallucination. The pack held two mummy wrappings that were never worn: the armor regex had no "wrapping". In 5.0 objects.h, a mummy wrapping is a cloak with AC 0 and MC1. Changes:
 - Mummy wrappings are wearable and count as plain cloaks.
 - Putting on body armor now takes a worn cloak off first and puts it back on afterwards. Before, a worn cloak permanently blocked body armor.
+
+## 15:50 — Shops: buy armor, price-identify scrolls and potions
+User: "i'd buy mithril if you can afford it, also price-ID scrolls and potions and rings"; "a big goal for 5.0.0 is to get the AC as low as possible". Before this, shops sold Jev food only. Changes:
+- **shop_look**: with 20+ gold, walk onto unseen '[', '?' and '!' items in a shop to read their price.
+- **Price-ID**: shk.c get_cost is base × (4/3 if `o_id % 4 == 0` and unidentified) × the charisma factor, rounded. `price_bases()` inverts that. Each quote narrows `run['prices'][appearance]`. Rings are recorded but not used yet, since Jev has no ring logic.
+- **Buying** (when affordable and with no debt):
+  - mithril, or any body armor at least 2 AC better than what's worn;
+  - a helmet or boots of a fixed appearance for an empty slot. Random-appearance helmets and boots can be opposite alignment or levitation, so they're skipped;
+  - scrolls priced at base 20 (identify, unique) or 80 (enchant armor or remove curse);
+  - potions priced at base 20 (healing, unique in 5.0 objects.h).
+- **Use**: price-identified items get " (priced as …)" added to their inventory text, so the existing 'healing' quaff logic picks them up. New read_ option for identify, remove curse and enchant armor (EA only while wearing armor), never while blind, confused, stunned, hallucinating or in a shop. act_read picks the first entry in identify's menu.
+- `test_price_id.py` checks the price inversion.

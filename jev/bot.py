@@ -14,6 +14,25 @@ SUIT = {'crystal plate mail': 7, 'bronze plate mail': 6, 'plate mail': 7, 'splin
         'orcish chain mail': 4, 'crude chain mail': 4, 'chain mail': 5, 'scale mail': 4, 'studded leather armor': 3, 'orcish ring mail': 2, 'crude ring mail': 2, 'ring mail': 3,
         'leather armor': 2, 'leather jacket': 1}
 suit_ac = lambda t: next((v for k, v in SUIT.items() if k in t), None)
+# price identification (wiki "Price identification"; 5.0 shk.c get_cost, objects.h): base prices per class
+BASES = {'scroll': (20, 50, 60, 80, 100, 200, 300), 'potion': (20, 50, 100, 150, 200, 250, 300), 'ring': (100, 150, 200, 300)}
+APPEAR = re.compile(r'scrolls? labeled ([A-Z][A-Z ]*[A-Z])|\b(dark green|sky blue|brilliant blue|[\w-]+) potions?\b(?! of| called)|\b(tiger eye|black onyx|[\w-]+) rings?\b(?! of| called)')
+
+
+def appearance(t):
+    m = APPEAR.search(t)
+    return m and (('scroll', m[1]) if m[1] else ('potion', m[2]) if m[2] else ('ring', m[3]))
+
+
+def sell_price(base, ch, sur):
+    """shk.c get_cost: unidentified items get 4/3 when o_id % 4 == 0, then a charisma factor, rounded."""
+    m, d = (4, 3) if sur else (1, 1)
+    m, d = (m, d * 2) if ch > 18 else (m * 2, d * 3) if ch == 18 else (m * 3, d * 4) if ch >= 16 else (m * 2, d) if ch <= 5 else (m * 3, d * 2) if ch <= 7 else (m * 4, d * 3) if ch <= 10 else (m, d)
+    return (base * m * 10 // d + 5) // 10 if d > 1 else base * m
+
+
+def price_bases(cls, price, ch):
+    return {b for b in BASES[cls] for sur in (0, 1) if sell_price(b, ch, sur) == price}
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
 WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber', 'short sword', 'spear', 'mace', 'morning star', 'war hammer', 'flail', 'trident', 'dagger', 'knife', 'club']
 WEAPON = re.compile(r'\b(' + '|'.join(WEAPON_RANK) + r')s?\b(?! corpse)')
@@ -420,6 +439,11 @@ class Bot:
         for it in items:
             if it['letter'] not in seen:
                 seen.add(it['letter']); uniq.append(it)
+        for it in uniq:  # price-ID'd types read like named ones to the rest of the bot ('healing' in text is already trusted)
+            look = appearance(it['text'])
+            tag = {('potion', 20): 'healing', ('scroll', 20): 'identify', ('scroll', 80): 'enchant armor or remove curse'}.get((look[0], min(self.run.get('prices', {}).get(look) or {0})) if look and len(self.run.get('prices', {}).get(look) or ()) == 1 else None)
+            if tag:
+                it['text'] += f' (priced as {tag})'
         self.inventory = uniq
         return uniq
 
@@ -651,10 +675,27 @@ class Bot:
                 opts['sell_pay'] = ('Pay the shopkeeper', 'You owe the shopkeeper and now have gold; pay so they let you out.', self.act_pay)
             for it in [it for it in self.inventory if not re.search(r'weapon in|being worn|gold piece', it['text'])][:3]:
                 opts[f"sell_{it['letter']}"] = (f"Sell {it['text']} to pay your debt", "You owe the shopkeeper and have no gold, so they will not let you leave. Drop this to sell it for credit, then pay.", lambda l=it['letter']: (self.act_keys('d' + l, 'sold'), self.act_keys('p', 'paid'))[1])
+        worn = ' '.join(it['text'] for it in self.inventory if 'being worn' in it['text'])
         for i, item in enumerate(self.here_items()[:4]):
             price = re.search(r'for sale, (\d+) zorkmid', item)
-            if price and FOOD.search(item) and 'corpse' not in item and int(price[1]) <= s.get('gold', 0) and not self.run.get('debt'):
-                opts[f'buy_{i}'] = (f"Buy {item}", f"Pick up {item} and pay {price[1]} of your {s.get('gold')} gold. Packed food prevents fainting from hunger.", lambda item=item: (self.act_pickup(item), self.act_pay())[1])
+            look = appearance(item)
+            if price and look:  # price-ID: every quote narrows what this appearance can be
+                n = re.match(r'(\d+) ', item)
+                cands = price_bases(look[0], int(price[1]) // (int(n[1]) if n else 1), s.get('ch') or 11)
+                old = self.run.setdefault('prices', {}).get(look)
+                self.run['prices'][look] = cands & old if old and cands & old else cands
+            known = self.run.get('prices', {}).get(look) if look else None
+            # what is worth gold: AC first (user: mithril; 5.0 is about low AC), then scrolls of identify (20) / enchant armor or remove curse (80) and healing potions (20)
+            why = ('Mithril: AC 5-6 body armor that never rusts.' if 'mithril' in item and (suit_ac(item) or 0) > max((suit_ac(it['text']) or 0 for it in self.inventory if 'being worn' in it['text']), default=0)
+                   else 'Better body armor than you wear: lower AC.' if (suit_ac(item) or 0) > max((suit_ac(it['text']) or 0 for it in self.inventory if 'being worn' in it['text']), default=0) + 1
+                   else 'A helmet for your bare head: lower AC.' if re.search(r'orcish helm|dwarvish iron helm|hard hat|elven leather helm|leather hat', item) and not re.search(r'helm|hat|cap', worn)
+                   else 'Boots for bare feet: lower AC.' if re.search(r'low boots|walking shoes|high boots|jackboots|iron shoes|hard shoes', item) and not re.search(r'boots|shoes', worn)
+                   else 'Priced like a scroll of identify (base 20).' if look and look[0] == 'scroll' and known == {20}
+                   else 'Priced like enchant armor or remove curse (base 80): both worth reading.' if look and look[0] == 'scroll' and known == {80}
+                   else 'Priced like a potion of healing (base 20).' if look and look[0] == 'potion' and known == {20}
+                   else None)
+            if price and (FOOD.search(item) and 'corpse' not in item or why) and int(price[1]) <= s.get('gold', 0) and not self.run.get('debt'):
+                opts[f'buy_{i}'] = (f"Buy {item}", f"Pick up {item} and pay {price[1]} of your {s.get('gold')} gold. " + (why or 'Packed food prevents fainting from hunger.'), lambda item=item: (self.act_pickup(item), self.act_pay())[1])
                 continue
             if shop or 'for sale' in item or 'corpse' in item or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
@@ -671,6 +712,10 @@ class Bot:
         # Unknown-look cloaks (tattered cape, opera cloak...) can be invisibility: still need a known BUC.
         worn_ac = max((suit_ac(it['text']) or 0 for it in self.inventory if 'being worn' in it['text']), default=0)
         better_body = any((suit_ac(it['text']) or 0) > worn_ac and 'being worn' not in it['text'] and it['text'] not in self.run.get('unwearable', {}) for it in self.inventory)
+        if not near and not set(s.get('conditions', [])) & {'Blind', 'Conf', 'Cnf', 'Hallu', 'Hal', 'Hl', 'Stun', 'Stn'} and not shop:
+            for it in self.inventory:  # identify, enchant armor (worn armor only: else the scroll is wasted) and remove curse are always safe to read
+                if re.search(r'scrolls? of (identify|remove curse|enchant armor)|priced as (identify|enchant armor)', it['text']) and ('identify' in it['text'] or 'remove curse' in it['text'] or worn):
+                    opts[f"read_{it['letter']}"] = (f"Read {it['text']}", 'Identify shows what an unknown item is; enchant armor lowers AC by 1 (or more); remove curse frees cursed gear.', lambda l=it['letter']: self.act_read(l))
         if not near:
             for it in self.inventory:
                 t = it['text']
@@ -750,6 +795,12 @@ class Bot:
             if food:
                 q = min(food, key=dist.get)
                 opts['shop_food'] = (f"Go look at the food for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the '%' item and its price. You have {s.get('gold')} gold and {packed} food items packed.", lambda q=q: self.act_go(q))
+        if not near and s.get('gold', 0) >= 20 and 'shop_food' not in opts:  # armor (AC), scrolls, potions: stepping on each shows its price, which identifies some by type
+            wares = [q for c in '[?!' for q in snap.find(c) if q in dist and 0 < dist[q] <= 20 and (s.get('dlvl'), q) not in self.run['here']
+                     and sum(cheb(q, o) <= 3 for c2 in ')[%?/=!("' for o in snap.find(c2)) >= 6]
+            if wares:
+                q = min(wares, key=dist.get)
+                opts['shop_look'] = (f"Go look at the {snap.at(*q).ch} for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the item and its price (you have {s.get('gold')} gold). Armor lowers AC; a price can identify a scroll or potion.", lambda q=q: self.act_go(q))
         fr = self.frontiers(dist)
         picked = []
         for d, p in fr:
@@ -1035,6 +1086,24 @@ class Bot:
             self.act_keys('d' + worn['letter'], '')
             self.read_inventory()
         return r
+
+    def act_read(self, letter):
+        self.t.send('r' + letter)
+        for _ in range(5):  # scroll of identify: pick the first thing in its menu
+            lines = self.t.lines()
+            kind, _ = top_prompt(lines)
+            if kind == 'menu':
+                pick = next((m[1] for l in lines for m in [re.search(r'(?:^|\s)([a-zA-Z]) - ', l)] if m), None)  # the menu lists only unidentified things
+                self.t.send((pick or '') + '\r')
+            elif kind == 'more':
+                self.add_msg(messages_from('\n'.join(lines)))
+                self.t.send('\r')
+            else:
+                break
+        self.settle()
+        self.observe()
+        self.read_inventory()
+        return 'read it: ' + (self.run['recent'][-1] if self.run['recent'] else '')
 
     def act_wear(self, it):
         # body armor goes under the cloak: take a worn cloak off first (a cursed one stays, and the wear fails below), put it back after
