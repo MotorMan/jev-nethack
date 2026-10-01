@@ -828,3 +828,8 @@ Run 202106 was killed by a werejackal at T2711. A bite at T2642 left Jev "feveri
 
 ## 10:05 — Arrows for floating eyes
 Run 202259 was boxed in by a floating eye on Dlvl 4. Its only ranged items were 7 orcish arrows, which the missile list ignored, so "kill the blocker" was the only option. Jev meleed the eye, was paralysed, and starved by T2426. uhitm.c: hand-thrown ammo does rnd(2) damage, which is poor but safe against a passive monster, and pickup_thrown brings the arrows back. Arrows and bolts are now thrown at passive monsters when nothing better is carried, and the melee option is hidden for a floating eye while any throw or zap option exists.
+
+## 10:20 — Reverted the mid-fight lycanthropy cure
+Run 202612 was killed by a hobgoblin at T1231. Under the 09:55 rule Jev prayed away its lycanthropy at 24/32 HP with the wererat adjacent. The wererat kept hitting, a hobgoblin joined, and with the prayer spent Jev died at 7/32 HP. That's the same failure the original "not mid-fight" rule came from (T3790), so I reverted it. Turning into a were mid-fight and losing your gear is the lesser risk.
+
+Run 202445 (raven at T4464, while fainted) was a hunger death. Few corpses were available, and the Weak prayer came 848 turns after the last one and failed ("Tyr is displeased"). Hunger is still the top killer: 5 of the last ~12 runs.
