@@ -945,7 +945,7 @@ class Bot:
             # boxed in by Minetown's peaceful gnomes, meleed the eye at once: frozen, killed by an imp (T7290). Wait them out first.
             long_walled = walled and (s.get('turn') or 0) - self.run.setdefault('walled', s.get('turn') or 0) > 200
             if walled and not long_walled:
-                opts['wait_eye'] = ('Search 10 turns and let it drift off', 'A monster you must not melee boxes you in. Floating eyes drift and peacefuls wander off; waiting is safe, hitting it risks long paralysis.', lambda: self.act_search(10))
+                opts['wait_eye'] = ('Search 10 turns and let it drift off', 'A monster you must not melee boxes you in. Floating eyes drift and peacefuls wander off; waiting is safe, hitting it risks long paralysis.', lambda: self.act_search(10) if self.engraved_here() else self.act_elbereth())  # hostile eyes keep approaching: 3 sat in a corridor 4000 turns, starved (T12136); Elbereth makes them flee (monmove.c onscary)
             molds = [m for m in hostiles if m['pos'] in self.avoid and (long_walled or self.blindfold() or ('floating eye' not in m['name'] and not (m['ch'] == 'e' and m['fg'] == 'blue')))
                      and ('gas spore' not in m['name'] or s.get('hp', 0) >= 30)]  # its 4d6 blast is survivable at 30+ HP
             if any(not m['passive'] for m in hostiles) or s.get('hp', 0) < 0.9 * s.get('hpmax', 1):  # frozen by an eye with a giant ant in view: dead at T8374

@@ -1565,3 +1565,9 @@ Nymphs in Minetown had stripped Jev down to a knife (AC 10). Beside two Mordor o
 
 ### Hosted 20261001-091022: starved on Dlvl 5 (T5819)
 Hunger prayers at T2809 and T3923 worked, but the one at T5085, 1162 turns later, angered Tyr ("Thou must relearn thy lessons"). The prayer timeout was reset to rnz(350), which has about a 4% tail above 1360. After that it fainted with no food and died to a rothe. NEVER_EAT still listed 'pony', so it skipped two 250-nutrition pony corpses. eat.c only penalizes dogs and cats, so ponies are now edible.
+
+### Djev 20261001-091023: starved behind floating eyes on Dlvl 3 (T12136)
+It had no missiles: the dagger was gone and it wielded a scimitar. It walked to a corridor end, and three hostile floating eyes lined up behind it. Hostile eyes keep approaching, so wait_eye ("let it drift off") searched for about 4000 turns. The 200-turn last resort meleed them, and it was frozen and starved. wait_eye now engraves Elbereth first. monmove.c onscary exempts only humans, uniques, minions, shopkeepers and blind or peaceful monsters, so the eyes flee.
+
+### Hosted 20261001-091226: hill orc pack in the Mines, Dlvl 5, XL 4 (T3245)
+It had prayed 33 turns earlier, and its Elbereth engravings kept coming out garbled. This is the open Mines-depth question, so no fix.
