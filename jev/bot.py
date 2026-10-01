@@ -438,7 +438,9 @@ class Bot:
         hostiles = [m for m in hostiles if not ('gas spore' in m['name'] and any(o['peaceful'] and cheb(o['pos'], m['pos']) <= 2 for o in mons))]
         dist, prev = self.dijkstra()
         # a monster we cannot reach (behind walls, across water) is not a reason to stand still
-        near = [m for m in hostiles if m['dist'] <= 6 and not m['passive'] and (m['dist'] <= 1 or m['pos'] in dist)]
+        # unless it is shooting: rested 15 turns on Elbereth while unreachable Uruk-hai shot it 29 -> 5, dead (T5766)
+        shot = any(re.search(r'\b(throws|shoots|zaps|breathes|spits)\b', t) for t in self.run['recent'][-3:])
+        near = [m for m in hostiles if m['dist'] <= 6 and not m['passive'] and (m['dist'] <= 1 or m['pos'] in dist or shot)]
         opts = {}
         hp, hpmax = s.get('hp', 1), s.get('hpmax', 1)
         danger = f" You are at {hp}/{hpmax} HP: one or two more hits could kill you." if hp * 3 < hpmax else ''
@@ -476,12 +478,12 @@ class Bot:
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
         strong = False
         if near:
-            if self.engraved_here():  # stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
+            if self.engraved_here() and not shot:  # Elbereth only stops melee (wiki); stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
                 if hp < 0.7 * hpmax and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in near):  # @ (elves, humans) and minotaurs ignore it (monmove.c onscary): sat 9 turns on it by a Woodland-elf, dead (T4259); 'stuck on Elbereth': up to 44% of a game's decisions were waits on it (0.9 before); at 77/80 HP Jev sat on Elbereth ~1400 turns watching a fog cloud
                     opts['wait'] = ('Stay on Elbereth one turn', 'You stand on Elbereth: most monsters will not melee you here, so waiting heals you safely. Stepping off or attacking loses the protection.', self.act_wait_elbereth)
             else:
                 fast = [m['name'] for m in near if (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12]  # our speed is 12
-                if not any(m['dist'] <= 1 for m in near):  # "let them come" while six jackals and a werejackal already bit: 42 -> 0 HP in 3 waits
+                if not shot and not any(m['dist'] <= 1 for m in near):  # "let them come" while six jackals and a werejackal already bit: 42 -> 0 HP in 3 waits
                     opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('ms', 'waited'))
                 # wiki (Fighting in corridors): a pack surrounds you on up to 8 sides; in a corridor only one or two can reach you
                 open_n = lambda q: sum(snap.walkable(q[0] + dx, q[1] + dy) for dx, dy in DIRS.values())

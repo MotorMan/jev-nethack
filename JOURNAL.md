@@ -722,3 +722,6 @@ XL6, Dlvl 6, AC6: a jaguar (3 attacks) and a killer bee together took 36 → 0 H
 
 ## 2026-10-01 02:30 — run 175322, variance
 XL3 at full 39 HP, walking to a food item on Dlvl 3: it fell asleep mid-walk (most likely an unseen sleeping gas trap, rnd(25) turns) and a hostile kitten bit it to death. No fix.
+
+## 2026-10-01 02:45 — run 175441: shot to death on Elbereth
+XL5, Dlvl 6, AC12: Uruk-hai behind an obstacle (no path, so not "near") shot poisoned arrows at Jev for 10 turns while it waited on Elbereth and then rested 15 turns. HP went 33 → 5, and the prayer was 140 turns too early. Wiki and monmove.c agree that Elbereth only stops melee. Now a "throws/shoots/zaps/breathes/spits" message in the last 3 makes every visible hostile within 6 count as near: no rest, no Elbereth wait and no "hold position"; the retreat and choke options take their place. This is the user's corridor point: under fire, move rather than camp.
