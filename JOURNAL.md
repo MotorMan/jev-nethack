@@ -1893,3 +1893,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** the bot took the downstairs anyway at XL 4, reaching Dlvl 6. Fifteen turns later it was surrounded: a werewolf in @ form, 6 or 7 wolves it had summoned, plus an imp. It took 47 -> 24 -> 9, prayed (healed to full), then 47 -> 32 -> 11 -> 0. Two unknown scrolls stayed unread.
 - **Wiki:** a werewolf in @ form ignores Elbereth and summons wolves. When surrounded, use an escape item (teleportation) or the stairs. Scroll of teleportation is the commonest unidentified escape scroll.
 - **Fix:** with 3 or more hostiles adjacent and HP below half, offer reading an unknown scroll through the 'teleport' slot. The deeper cause, descending to Dlvl 6 at XL 4, is the unanswered question about the descend pace.
+
+## Run 20261001-142718: killed by a wolf on T2110 (Dlvl 7, XL 5)
+- **Cause:** the bot meleed an animal-form werewolf for 17 turns from 63/63 (the tip said avoid only "when hurt") and prayed at 12. The next bite gave lycanthropy (T2054). 34 turns later it turned into a wolf and burst out of its splint mail, shield and helm. It came back to dwarven form at AC 10 with no weapon, and wolves killed it. (The new unknown-scroll escape did fire on T2077, but it was enchant armor.)
+- **Wiki:** never melee a were in animal form; each bite risks lycanthropy. Kill it with ranged attacks or from Elbereth, which scares the animal form. Cures are prayer, holy water or wolfsbane.
+- **Fix:** with an animal-form were adjacent and no lycanthropy yet, drop the attack options whenever Elbereth is offered or already engraved. The tips for all three weres now say to avoid melee in animal form at any HP.

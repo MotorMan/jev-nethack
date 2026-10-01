@@ -1102,6 +1102,9 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'explore', 'door_', 'search')) or k == 'rest' and s.get('hp', 1) * 2 < s.get('hpmax', 1)} or opts  # rest: at 6/51 this sent Jev exploring into a fire ant (T3848)
         if were_throw in opts and not any(m['dist'] <= 1 for m in hostiles):
             opts = {k: v for k, v in opts.items() if k.startswith(('throw_', 'zap_')) or k in ('elbereth', 'pray') or k.startswith('quaff_')}
+        # meleed an animal-form werewolf from 63/63: bitten, feverish, became a wolf 34 turns later, burst out of the splint mail, dead at AC 10 (T2110). wiki: never melee one; Elbereth scares the animal form
+        if not self.run.get('lycanthropy') and any(m['dist'] <= 1 and 'were' in m['name'] and m['ch'] != '@' for m in hostiles) and ('elbereth' in opts or self.engraved_here()):
+            opts = {k: v for k, v in opts.items() if not k.startswith('attack_')} or opts
         if nymph_throw in opts and not any(m['dist'] <= 1 for m in hostiles):  # forced to throw at a nymph, a fire ant ate Jev at 10 HP
             opts = {k: v for k, v in opts.items() if k in (nymph_throw, 'pray') or k.startswith('eat_')}
         nym = [m['pos'] for m in hostiles if 'nymph' in m['name']]
