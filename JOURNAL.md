@@ -1407,3 +1407,12 @@ Run 20261001-065614 died to a quasit at T9072 on Dlvl 8.
 - Jev waited about 50 turns on Elbereth at AC 11. The quasit got through anyway, taking it from 22 to 1 HP, and the next prayer came too soon ("Thou art arrogant").
 
 Fix: wearing armor is also offered while Jev stands on Elbereth with no hostile adjacent, and the stay-on-Elbereth filter keeps wear_. A replay of T9017–T9031 now offers ['wait', 'wear_k'].
+
+## 2026-10-01 — Weak with a fresh corpse nearby: go eat it
+Run 20261001-070143 died at T7451 on Dlvl 9. A giant spider killed Jev while it had fainted from hunger.
+
+- Jev turned Weak at T7426 with goto_corpse on offer, a fresh corpse 10 steps away.
+- Instead it dropped a helm, then prayed 790 turns after its last prayer. Prayer was offered because a vampire bat was adjacent, which lowers the bar to 500 turns. The prayer failed.
+- Afterwards it explored and headed for the upstairs past the same corpse option, then fainted.
+
+Fix: when Jev is Weak or Fainting and goto_corpse is offered, the options shrink to goto_corpse plus fight, eat, Elbereth, zap and quaff. Prayer stays only when HP is low or starvation is imminent.
