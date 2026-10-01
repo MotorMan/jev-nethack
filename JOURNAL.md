@@ -1984,3 +1984,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** a yellow light exploded at the door of Zum Loch's liquor emporium and blinded Jev. When Elbereth was interrupted, the "fight back felt monsters" rule swung at the unseen creature next to the door. It was the shopkeeper ("You miss it. It gets angry!"), and no "Really attack?" prompt appears while blind. Her wand did the rest.
 - **Wiki:** Shopkeeper: never fight blind near a shop. Peaceful checks need sight. Yellow light: kill it at range or let it go; its explosion blinds for a long time.
 - **Fix:** a "Welcome (again) to X's" message records (dlvl, turn). Being blind within 100 turns of it on the same level counts as being in a shop, so the attack and zap options and the felt-monster swing are all withheld.
+
+## Run 20261001-162838 — killed by a jaguar (T9280, Dlvl 7)
+- **Cause:** the bot prayed at T9226, then descended into killer bees, a jaguar and a pony. It got to 4/68 HP on a working Elbereth (the jaguar "turns to flee"), but the forced Elbereth-wait still offered flee_up. Twice it stepped off toward '<' 3 squares away. The jaguar (speed 15, 3 attacks) is faster than the bot and finished it.
+- **Wiki:** Elbereth: when it's working, stay on it. A faster monster gets free hits while you walk away, and fleeing only works if you can outpace it or the stairs are adjacent.
+- **Fix:** the forced Elbereth-wait keeps flee_up only at or above 1/3 max HP. Below that it's wait/quaff/pray/teleport.
