@@ -1574,3 +1574,6 @@ It had prayed 33 turns earlier, and its Elbereth engravings kept coming out garb
 
 ### Hosted 20261001-091627: starved on Dlvl 6 (T2961) after a failed first prayer
 A yellow light blinded it, and while blind it killed two unseen "it"s (T2622, T2650). Its first prayer of the game, at T2707, got "You feel that Tyr is displeased". The timeout should have been 0 by then (it starts at 300 and drops 1 per turn), so luck or alignment was negative. There was no "distant thunder", so it did not kill its pet. The likeliest cause is a peaceful it fought blind: mon.c gives adjalign -1 per hit and -5 per kill, with no message. It is unconfirmed, so no fix. Its last food was a carrot at T2539.
+
+### Hosted 20261001-091842: jaguar in Sokoban, AC 10 (T5123)
+A wood nymph that could not teleport in Sokoban stayed near for about 700 turns. At T4820 she charmed it out of its studded leather and +3 shield. Both stayed in the pack, but the bot did not know. The charm message did not mark the inventory stale, so it still showed them "(being worn)". The nymph-nearby rule also allowed only wait or Elbereth, so a wear option could never come up. It spent 300 turns at AC 10, and a jaguar killed it. Fix: "gladly start removing" now marks the inventory stale. On Elbereth with nothing adjacent, wear options survive the nymph filter.
