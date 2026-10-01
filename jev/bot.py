@@ -733,7 +733,7 @@ class Bot:
         if not near:
             for it in self.inventory:
                 t = it['text']
-                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|mantelet|wrapping|mithril-coat|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and not (re.search(r'cloak|mantelet|mithril', t) and not re.search(r'\b(uncursed|blessed)\b', t) and not (re.search(r'\b(dwarvish|hooded|orcish|leather|elven) cloak|mantelet|faded pall|mummy wrapping', t) and not better_body) and not ('mithril' in t and (s.get('ac') or 0) >= 7)) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
+                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|mantelet|wrapping|mithril-coat|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and not (re.search(r'cloak|mantelet|mithril', t) and not re.search(r'\b(uncursed|blessed)\b', t) and not (re.search(r'\b(dwarvish|hooded|orcish|leather|elven) cloak|mantelet|faded pall|mummy wrapping', t) and not better_body) and not ('mithril' in t and not worn_ac)) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
                     opts[f"wear_{it['letter']}"] = (f"Wear {t}", "Put on this armor (takes a few turns; may be cursed if unidentified).", lambda it=it: self.act_wear(it))
             worn = next((it for it in self.inventory if 'being worn' in it['text'] and suit_ac(it['text']) is not None), None)
             better = max((it for it in self.inventory if 'being worn' not in it['text'] and (suit_ac(it['text']) or 0) > (suit_ac(worn['text']) if worn else 99)
@@ -802,6 +802,9 @@ class Bot:
                 g = snap.at(*q).ch
                 what = {'%': 'food', '$': 'gold', '[': 'armor', ')': 'a weapon', '!': 'a potion', '?': 'a scroll', '/': 'a wand', '=': 'a ring', '"': 'an amulet', '(': 'a tool'}[g]
                 opts['fetch'] = (f"Go look at the item {compass(me, q)} ({what}?)", f"Walk {dist[q]} steps {compass(me, q)} to the '{g}' on the floor and see what it is; food keeps you from fainting, armor lowers AC.", lambda q=q: self.act_go(q))
+        d = self.run.get('dropped')  # the shield and helm a were-form shed: fetch's 15-step radius lost them for good (AC 6 -> 10, dead to a rothe T6437)
+        if d and d[0] == s.get('dlvl') and dist.get(d[1]) and not near and not (s.get('title') or '').startswith('Were'):
+            opts['fetch_gear'] = ('Go back for the gear you dropped', f"Your armor and weapon fell off when you changed form. They lie {dist[d[1]]} steps {compass(me, d[1])}: walk there, pick them up and put them back on.", lambda q=d[1]: self.act_go(q))
         packed = sum(bool(FOOD.search(it['text'])) for it in self.inventory)
         if not near and s.get('gold', 0) >= 5 and packed < 3:  # a Jev with 236 gold starved to death: shops sell food
             food = [q for q in snap.find('%') if q in dist and 0 < dist[q] <= 15 and (s.get('dlvl'), q) not in self.run['here'] and lv.corpses.get(q, -1) < 0
@@ -1012,6 +1015,8 @@ class Bot:
             opts = {f"wield_{art['letter']}": (f"Wield {art['text']}", 'An artifact weapon beats anything else you carry.', lambda l=art['letter']: self.act_wield(l))}
         elif not near and any(k.startswith('wear_') for k in opts):
             opts = {k: v for k, v in opts.items() if k.startswith('wear_')}
+        elif not near and 'fetch_gear' in opts:
+            opts = {k: v for k, v in opts.items() if k in ('fetch_gear', 'pray') or k.startswith('eat_')}
         if not near and 'rest' in opts and s.get('hp', 1) < 0.5 * s.get('hpmax', 1):  # explored on at 11/65 HP into a giant beetle
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door', 'descend', 'approach', 'kick', 'goto', 'search'))}
         if (s.get('title') or '').startswith('Were'):  # animal form: armor falls off, paws can't wear or carry much

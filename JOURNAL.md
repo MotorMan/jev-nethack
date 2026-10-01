@@ -985,3 +985,28 @@ djev (the Gemma diffusion Jev) is hosted on LunaRoute: `https://gw.lunaroute.com
   - In 5.0 (muse.c) striking hits if `rnd(20) < 10 + u.uac`, so at AC 9 each zap had a 90% chance.
   - Jev had prayed 7 turns earlier, so prayer wasn't available.
   - Root cause: still AC 9 at T5557.
+
+## 2026-09-30 19:10 — model report; AC 10 deaths: shed gear and unworn mithril
+**Report:** "Jev-protocol models for the NetHack bot" (Claude Docs).
+- I replayed 200 logged Jev decisions to each engine and compared the chosen action with Jev's:
+
+  | Engine | Same action as Jev |
+  |---|---|
+  | Jev itself | 95% |
+  | kev-4b | 54% |
+  | djev | 50% |
+  | Jeff-Gemma | 48% |
+  | kev-0.8b | 37% |
+  | Random pick | 26% |
+
+- kev-4b ranks danger like Jev (r 0.89) but scores it low: at the 0.6 cutoff it raises 13 alarms where Jev raises 42.
+
+**kev-4b deaths:**
+- **Rothe, T6437, at AC 10:**
+  - At T5650 Jev turned into a wererat and dropped its +3 small shield, helm and spear. Prayer cured it at T5946.
+  - The `dropped` marker only fed `fetch`, which looks 15 steps out, so the gear was never picked up again.
+  - **Fix:** a `fetch_gear` option with no distance limit, forced when no monster is near.
+- **Orc zombie, T5871, at AC 6:**
+  - An elven mithril-coat sat in the pack. Mithril with unknown BUC was only worn at AC ≥ 7.
+  - **Fix:** wear it whenever no body armor is on. Even a cursed one is AC 5, and it rarely blocks anything better.
+- **Sewer rat, T304:** a forced gamble prayer 172 turns after the last one (about 50% odds); the alternatives weren't better.
