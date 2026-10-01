@@ -1549,3 +1549,7 @@ Mobbed by a rothe, 2 garter snakes and 2 sewer rats. Elbereth stopped working (g
 ## Run 20261001-084917: hill orc, T4858, Dlvl 4 (XL 5)
 A hill orc pack. Jev zapped magic missile, and "The magic missile bounces!" matched the being-shot regex. With `shot` set, the stay-on-Elbereth wait is withheld when nothing is adjacent, so Jev left fresh Elbereths at 7/54 to explore and go to a door, and the orcs finished it.
 **Fix:** missile hits/misses/bounces messages within 2 turns of our own throw or zap no longer count as being shot. "throws/shoots/zaps" still do.
+
+## Run 20261001-085317: Mordor orc, T4528, Dlvl 6 (XL 5)
+Nymphs in Minetown had stripped Jev down to a knife (AC 10). Beside two Mordor orcs it alternated "engrave Elbereth" and "attack" 4 times (each attack erases it): 17 -> 6. Attacks were offered on Elbereth because `shot` was set by "The knife misses it. You are hit."
+**Fix:** right after a successful engrave, attack options are dropped unless an @ or minotaur is adjacent.
