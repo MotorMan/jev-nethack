@@ -1833,3 +1833,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** at 36/48 a gnome king (speed 10, also throws an aklys) attacked. The bot cycled through choke walks and Elbereth: 6 engravings in 11 turns, 5 of them "garbled". 5.0 engraving is an occupation, and each hit cut it off partway. It ignored its unknown wand (zap offered 4 times) and the attack options, falling 36 → 10 → dead. AC 7 at XL 5 also hurt.
 - **Wiki (Elbereth):** engraving takes your turn and isn't protection until finished. Against one about-your-level melee monster, fighting (or zapping an unknown wand at it) beats re-engraving under its hits.
 - **Fix:** a "garbled" engraving during which HP dropped now counts as interrupted (sets `engrave_interrupted` and `e_blockers`). The existing rule then drops Elbereth for 5 turns while that monster is adjacent, leaving attack, zap and flee.
+
+## 20261001-131618 — hill orc, T2512, Mines Dlvl 5 (XL 4)
+- **Cause:** two hill orcs and a wood nymph attacked. One orc threw a single dart at T2495, which marked "hill orc" as the shooter. Because a hill orc was within 8 squares, `shot` stayed true for 20 turns, so the adjacent orcs counted as shooters too. Elbereth waits were suppressed and attacks allowed, giving an engrave → attack (erases it) → engrave loop from 50 → 0, with a lucky healing quaff in the middle. It had a towel, 4 rations and an unread scroll.
+- **Wiki (Elbereth):** Elbereth stops melee only; ranged attackers at a distance ignore it. Adjacent orcs respect it, and attacking from it erases it, so don't alternate.
+- **Fix:** the 20-turn shot window applies only when the shooter is 2–8 squares away. An adjacent orc is a melee threat that Elbereth handles.
