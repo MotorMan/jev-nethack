@@ -867,3 +867,6 @@ Jev was hallucinating from T3188 and died to a pony at T3336, XL6 on Dlvl 7. Eve
 
 ## 12:40 — Run 210625: blind and weaponless meant waiting to die
 Jev died at XL5 on Dlvl 5, T4631. A yellow light exploded and blinded it, and it had no weapon in hand (the daggers had been thrown; a scimitar sat in the pack). With no wielded weapon, the option list collapses to "Wield a scimitar". The blind filter keeps only pray/elbereth/quaff/attack/eat, so it dropped the wield and put "Wait until you can see" in its place. Jev waited 16 times while an unseen dog bit it from 37 to 0. I reproduced this offline by building the options from the logged screen, and confirmed it. The blind filter now keeps `wield_` options.
+
+## 12:45 — Run 210857: no 50-step stair walk while surrounded
+Jev died at XL5 on Dlvl 8, T3746: killed by a Mordor orc while praying. The '<' was 50 steps away, and with two Mordor orcs and a snake adjacent, Jev chose "Head back upstairs" seven times. Each try stopped after one or two steps ("took damage"), and every step gave free hits: 44 HP to 9, then a gamble prayer 146 turns after the previous one. "Head back upstairs" is now only offered with nothing adjacent, or when '<' is within 2 steps. Its "level above already waited out its pace cap" check now uses the new 800-turn cap instead of 1500.
