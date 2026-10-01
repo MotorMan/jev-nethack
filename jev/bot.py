@@ -1219,6 +1219,14 @@ class Bot:
             lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
             lv.resets += 1
             opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('ms', 'waited'))
+            # a trap door dropped Jev into a shop closed for inventory: 10000 turns waiting at a locked door (T399-T10300). wiki: unlock it, teleport out, or kick it and pay 400zm
+            scroll = next((it for it in self.inventory if re.search(r'scrolls? labeled', it['text'])), None)
+            if lv.resets > 100 and scroll:
+                opts = {f"read_{scroll['letter']}": (f"Read {scroll['text']}", 'Trapped: an unknown scroll may be teleportation.', lambda l=scroll['letter']: self.act_read(l))}
+            elif lv.resets > 300:
+                d = next((k for k, v in DIRS.items() if not (v[0] and v[1]) and (me[0] + v[0], me[1] + v[1]) in lv.locked), None)
+                if d:
+                    opts = {f'kick_{d}': ('Kick the locked door', 'Trapped for hundreds of turns with no other way out.', lambda d=d: self.act_kick(d, force=True))}
         # Jev never picked "Wear" over exploring (194 offers after a monkey stole the shield) and has no wield option at all
         # never a known-cursed one (welded: a cursed orcish dagger over an uncursed dagger, killed by an ogre T4539); known-safe first at equal rank
         weapon = min((it for it in self.inventory if WEAPON.search(it['text']) and not re.search(r'(?<!un)cursed', it['text']) and it['text'] not in self.run.setdefault('unwieldable', set())),
@@ -2038,14 +2046,14 @@ class Bot:
                 break
         return 'kicked the door open' if door not in self.level().locked else 'kicked the door; still shut'
 
-    def act_kick(self, d):
+    def act_kick(self, d, force=False):
         # a locked shop has "Closed for inventory" in the dust outside; kicking it in got Jev zapped by the shopkeeper
         nmsg = len(self.messages)
         self.t.send(':')
         raw = ' '.join(l.rstrip() for l in self.t.lines()[:3])
         self.observe()
         # the sign is dust and gets scuffed, so any writing outside a locked door counts
-        if self.level().town or re.search(r'written here|for inv', raw + ' '.join(m['text'] for m in self.messages[nmsg:])):
+        if not force and self.level().town or not force and re.search(r'written here|for inv', raw + ' '.join(m['text'] for m in self.messages[nmsg:])):
             self.level().town = True
             self.level().dead.add((self.snap.me[0] + DIRS[d][0], self.snap.me[1] + DIRS[d][1]))
             return 'did not kick: a shop is closed behind this door'
