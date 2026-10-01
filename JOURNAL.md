@@ -1619,3 +1619,6 @@ It had no food left by T1542, and the slime mold it ate was rotten. Its first pr
 
 ## Djev 100244 — hill orc while fainted, T3978, Dlvl 4
 Not hungry at 16 HP, it ate a hill orc corpse in a room an orc pack was using (corpse-forcing). It was hit mid-meal, 16 -> 9, and made a gamble prayer 146 turns after the last one: "Thou art arrogant", level drained, Tyr angry. With no food left and prayer unusable, it fainted at T3940. Fix: optional corpse meals (Not hungry) are skipped below half HP.
+
+## Hosted 100344 — Izchak, T6005, Dlvl 8 (Minetown)
+It kicked in a locked door in Minetown. The ':' check found no sign, and no peaceful @ had been seen, so the level was never marked as a town. "How dare you break my door?" Izchak's wand of striking and a plains centaur took it from 58 to 0. Fix: a peaceful G or h seen while a fountain is on screen marks the level as a town, which means no door kicks. That cue was true on 25 earlier decisions on this level.

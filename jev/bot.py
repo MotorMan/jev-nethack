@@ -419,8 +419,8 @@ class Bot:
                 m['name'] = re.sub(r',.*$', '', desc) or f"unknown '{m['ch']}'"
                 m['pet'] = m['pet'] or 'tame' in desc
                 m['peaceful'] = 'peaceful' in desc
-                if m['peaceful'] and m['ch'] == '@':  # shopkeeper, watchman or priest: breaking doors here gets us killed
-                    self.level().town = True
+                if m['peaceful'] and (m['ch'] == '@' or m['ch'] in 'Gh' and snap.find('{')):  # shopkeeper, watchman or priest: breaking doors here gets us killed
+                    self.level().town = True  # peaceful gnomes + a fountain is Minetown: no sign, no @ seen, kicked Izchak's door, struck dead (T6005)
         out = [m for m in out if not (m['name'] or '').startswith(('statue', 'a statue'))]
         for m in out:
             m['name'] = m['name'] or f"unidentified '{m['ch']}' ({m['fg']})"
