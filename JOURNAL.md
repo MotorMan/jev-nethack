@@ -1238,3 +1238,8 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - Corpse freshness was only recorded within 2 squares of Jev, so kills with thrown daggers never counted.
 - Prayers: T2146 (for HP), T2475, T3460 (for HP), then a gamble at T3582 while Fainting. HP prayers keep using up the safety net that hunger needs.
 - Fix: corpses from a kill this turn are dated as fresh up to 7 squares away, as long as the monster stood on that square.
+
+## 20261001-031936: fire ant, T3848, Dlvl 5, XL 5, AC 10
+- A nymph had stripped Jev down to a spear and a poleaxe.
+- At 6/51 HP with nothing in view, the nymph-level filter (downstairs unknown) allowed only explore, door, search and eat, so "rest" was dropped. Jev walked to locked doors, was hit, wrote Elbereth, walked again, and died to a fire ant.
+- Fix: the nymph-level filter keeps "rest" below half HP.
