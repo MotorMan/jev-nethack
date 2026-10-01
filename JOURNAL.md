@@ -1613,3 +1613,6 @@ At 39/90 the model chose melee against an 'about your level' gargoyle twice (39 
 
 ## Hosted 095517 — bones dwarf zombie, T8414, Dlvl 8
 A bones level: Jev's own dwarf zombie, a wolf and a dog. HP was already low with a prayer 58 turns old, and the bot was hit while on Elbereth. No fix.
+
+## Hosted 100249 — wererat while fainted, T2273, Dlvl 4
+It had no food left by T1542, and the slime mold it ate was rotten. Its first prayer, Weak at T1727, got "Tyr is displeased". Prayer timeout was 0 by then (u_init 300, minus 1 per turn), so Luck or alignment had to be below 0. No peaceful kill, mirror, or "Really attack" shows in the logged messages; multi-step explores can hide messages. Cause unknown, no fix.
