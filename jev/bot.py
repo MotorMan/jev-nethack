@@ -124,6 +124,8 @@ class Bot:
                 self.run['debt'] = False
             if re.search(r'\b(throws|shoots|zaps|breathes|spits)\b|\b(arrow|dart|dagger|knife|bolt|spear|shuriken|missile|ray)s? (hits|misses|bounces)', text):
                 self.run['shot_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
+            if re.search(r'\b(hits|bites|stings|kicks|butts|claws|touches)!', text):
+                self.run['hit_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
             self.run['recent'].append(text)
             del self.run['recent'][:-12]
 
@@ -602,6 +604,10 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k in ('goto_corpse', 'pray')}
         if any(m['dist'] <= 1 for m in near):  # Weak, walked for a corpse through a bugbear + hobgoblin gang: free hits, dead (T4496)
             opts.pop('goto_corpse', None)
+        # eat.c:1953: any corpse has a 1/7 rotten roll, ~1 in 37 meals knocks you out up to 10 turns; an elf takes ~15 turns to eat.
+        # Elves out of sight in a dark room beat an unconscious Jev 46 -> 1 HP (T8218)
+        if s.get('hunger') not in ('Weak', 'Fainting') and (any(m['dist'] <= 6 for m in hostiles) or (s.get('turn') or 0) - self.run.get('hit_turn', -99) <= 5):
+            opts = {k: v for k, v in opts.items() if k not in ('eat_corpse', 'goto_corpse')}
         if s.get('hunger') not in ('Weak', 'Fainting') and any(m['dist'] <= 2 for m in near):  # eating twice mid-swarm took 25 HP to 1 (giant rat, T2344)
             opts = {k: v for k, v in opts.items() if not k.startswith(('eat_', 'goto_corpse'))}
 

@@ -779,3 +779,6 @@ Run 20260930-191717 died at T7290 on Mines 6, "killed by an orcish arrow". It ha
 - **BUC testing:** standing on any altar, Jev drops every item with unknown BUC and picks it back up. `!implicit_uncursed` makes "uncursed" always visible.
 - **Cloaks and mithril** (including `mantelet`, which the wear regex was missing) are only worn once known uncursed or blessed (user tip).
 - **Darts and daggers:** `AUTOPICKUP_EXCEPTION="<(^| )(dart|dagger)( |$)"`. In pickup.c an exception overrides pickup_types, and pickup_thrown brings thrown ones back. Existing throw logic already targets floating eyes and spheres (user tip).
+
+## 2026-10-01 07:25 — Don't start a corpse meal mid-fight
+Run 20260930-193441 (T8225, Dlvl 5): Jev killed one Woodland-elf and went to eat a corpse while the rest of the group was hidden in a dark room. The meal rolled "Rotten food! The world spins and goes dark." The elves took Jev from 46 HP to 1, and the gamble prayer failed. In 5.0 eat.c:1953 every corpse has a 1/7 rotten roll and about 1/37 meals cause unconsciousness for up to 10 turns; an elf corpse also takes ~15 turns to eat. Corpse meals (eat_corpse/goto_corpse) are now blocked unless Weak or worse, whenever a hostile is within 6 squares or something hit Jev in the last 5 turns. That may cost fresh corpses after fights, but hunger is still covered by prayer and packed food.
