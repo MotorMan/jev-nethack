@@ -669,6 +669,8 @@ class Bot:
         shop = any(d == s.get('dlvl') and cheb(p, me) <= 7 and any(re.search(r'for sale|no charge', i) for i in v) for (d, p), v in self.run.get('here', {}).items()) or self.run.get('debt') == s.get('dlvl')
         if shop:  # an unknown wand zapped at a brown mold in Sipaliwini's store angered her: dead to her wand (T1314)
             opts = {k: v for k, v in opts.items() if not k.startswith(('zap_', 'throw_'))}
+        # eat.c: a poisonous corpse costs rnd(15) HP and maybe Str without poison resistance; fainting with no prayer, kobolds beat starving (killed 10, ate none, fainted to a kitten T3459)
+        self.run['desperate'] = s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts and s.get('hp', 1) > 15
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):
             for it in self.inventory:
                 if re.search(FOOD, it['text']) and not any(n in it['text'] for n in NEVER_EAT) and it['text'] not in self.run.get('inedible', ()) \
@@ -676,14 +678,14 @@ class Bot:
                         and (s.get('hunger') != 'Hungry' or 'tripe' not in it['text'] and not any(m['dist'] <= 1 for m in hostiles)):
                     # tripe: rn2(2) vomiting for non-orc non-cavemen (eat.c); ate it Hungry beside a black unicorn, confused+stunned, dead (T4650)
                     opts[f"eat_{it['letter']}"] = (f"Eat {it['text']}", f"You are {s.get('hunger')}: eat item {it['letter']} from your pack now, before you weaken and faint (fainting next to a monster is how most of your games have ended).", lambda l=it['letter']: self.act_eat(l))
-            here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in NEVER_EAT)]
+            here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in self.never_eat())]
             age = s.get('turn', 0) - lv.corpses.get(me, s.get('turn', 0))
             fresh = [p for p, t0 in lv.corpses.items() if p != me and p in dist and s.get('turn', 0) - t0 < 35 and dist[p] < 15]
             if fresh and not here and not shop:
                 p = min(fresh, key=dist.get)
                 opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.", lambda p=p: self.act_goto_corpse(p))
         if s.get('hunger') != 'Satiated' and not shop:
-            here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in NEVER_EAT)]
+            here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in self.never_eat())]
             age = s.get('turn', 0) - lv.corpses.get(me, -10**6)  # a corpse we did not see appear is of unknown age: treat as rotten
             why = ' Packed food is rare and most deaths so far were fainting from hunger: eating fresh kills now, even when not hungry, is what keeps you alive later.'
             # eat.c: rotted = age / (10 + rn2(20)), +2 if cursed; > 5 tainted (never before age 60 uncursed), > 3 only rnd(8) HP: so < 50 is safe, and arrival from 15 steps at < 35 stays under it (one Jev ate nothing for 1650 turns of kills, fainted, T4698)
@@ -1520,7 +1522,7 @@ class Bot:
                 break
             self.t.send('\r')
         if 'Eat it?' in top:  # an opened tin names its contents: "It smells like cockatrice. Eat it?"
-            self.t.send('n' if any(n in top for n in NEVER_EAT) else 'y')
+            self.t.send('n' if any(n in top for n in self.never_eat()) else 'y')
         self.observe()
         self.read_inventory()
         if any("don't have anything to eat" in m['text'] or 'cannot eat' in m['text'] for m in self.messages[nmsg:]):
@@ -1531,7 +1533,7 @@ class Bot:
     def act_eat_corpse(self):
         self.t.send('e')
         top = self.t.lines()[0]
-        if ('eat it?' in top or 'eat one?' in top) and not any(n in top for n in NEVER_EAT):
+        if ('eat it?' in top or 'eat one?' in top) and not any(n in top for n in self.never_eat()):
             self.t.send('y')
         else:
             self.t.send('\x1b')
@@ -1634,7 +1636,7 @@ class Bot:
         r = self.act_go(p)
         if self.snap.me != p:
             return 'going to the corpse: ' + r
-        if not any('corpse' in i and not any(n in i for n in NEVER_EAT) for i in self.here_items()):
+        if not any('corpse' in i and not any(n in i for n in self.never_eat()) for i in self.here_items()):
             self.level().corpses.pop(p, None)  # a bat corpse was re-offered 3 times
             return 'no edible corpse there'
         return self.act_eat_corpse()
@@ -1821,6 +1823,9 @@ class Bot:
         if self.snap.me == spot:
             return self.act_search(15)
         return 'going to search: ' + r
+
+    def never_eat(self):
+        return tuple(n for n in NEVER_EAT if not (n == 'kobold' and self.run.get('desperate')))
 
     def unseen_attacker(self):
         return any(re.search(r"\b(It|ghost) (hits|bites|touches|stings|butts|kicks|misses)|feel an unseen monster", m) for m in self.run['recent'][-2:]) \

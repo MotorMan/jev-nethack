@@ -1295,3 +1295,6 @@ At T3017 Jev zapped an unknown wand at a monster. It was a wand of wishing, and 
 
 ## Run 20261001-044321: gnome, fainted from lack of food (T5195, Dlvl 7, XL 6). No fix
 Jev never carried food. Successful prayers at T2598 and T3613 fed it. The Fainting prayer at T4507 came 894 turns after the last one and still found the timeout above 200: "Tyr is displeased". In pray.c that message is angrygods' mildest case after p_type 0 (too soon), so the god is angry and further prayers would fail. `god_angry` is set correctly. The nearby delicatessen asked 80 to 240 zm per item; Jev had 31. Only a grid bug and a giant rat were killed nearby, so there were no corpses to eat. This is rnz variance, and the real fix is a food supply, which needs more thought.
+
+## Run 20261001-044801: kitten, fainted from lack of food (T3459, Dlvl 5)
+The prayer at T2343, 581 turns after the last, came back "Thou art arrogant": angry god, and Jev fainted for 1100 turns. In that time it killed about 5 kobolds, all skipped as NEVER_EAT (poisonous). Second starvation in a row. Source check (eat.c): a poisonous corpse without resistance costs rnd(15) HP and maybe Str. Fix: when Weak or Fainting, with no prayer on offer and HP above 15, kobold corpses become edible (`never_eat()`). The food-supply problem stays open.
