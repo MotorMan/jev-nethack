@@ -1685,3 +1685,6 @@ At AC 10 a mob arrived (manes, dingo, little dog, Mordor orc, gold golem, raven)
 
 ### Djev 20261001-103858 — explosion (gas spore), T9879, Dlvl 3
 Yellow lights blinded it three times (T8218, T9615, T9817), and fainting from hunger fell in between. While blind at 15/75 and AC 10 it meleed an "unseen creature" that was a gas spore. No fix: a blind bot can't tell a spore from other invisible attackers, and it couldn't wait out the blindness with attackers adjacent.
+
+### Hosted 20261001-104100 — wolf, T13328, Dlvl 7/8 (XL 8, AC -1)
+leave_nymph took it down into a werewolf pack (wolves and a winter wolf), and it fled up. Twenty turns of rest later, leave_nymph sent it back down. It did this three times, 62 -> 28, and died. The 50-turn "fled up, don't go back down" guard filtered only descend/dig_down. **Fix:** it now filters leave_nymph too.

@@ -1144,7 +1144,7 @@ class Bot:
         if any('yellow light' in m['name'] for m in hostiles):  # a 20-turn search with one 9 squares off (speed 15) never got interrupted: blinded, then a ghoul paralysed and killed Jev (T3521)
             opts.pop('rest', None)
         if (s.get('turn') or 0) - self.run.get('fled_up', -99) < 50:  # fled a warg pack upstairs, walked straight back down into it (T5161)
-            opts = {k: v for k, v in opts.items() if k not in ('descend', 'dig_down')}
+            opts = {k: v for k, v in opts.items() if k not in ('descend', 'dig_down', 'leave_nymph')}
             downs = []
         if self.soko() and not self.run.get('soko_done'):  # a fresh replan offers no push that decision: 'anyway' walked out 3 times and burned every replan (T6359)
             downs = []
