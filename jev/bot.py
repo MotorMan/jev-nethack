@@ -1517,7 +1517,7 @@ class Bot:
 
     def end_run(self):
         blob = ' '.join(self.run['death_msgs'])
-        m = re.search(r'(killed by (?:M[rs]s?\. )?[^.\n]+?|died of [^.\n]+|[Pp]oisoned by [^.\n]+|[Tt]urned to slime[^.\n]*|starved to death|drowned [^.\n]+|choked [^.\n]+|quit|escaped)\s*(?:$|\s{2}|\n|\.)', blob)
+        m = re.search(r'((?<!is )(?<!are )(?<!was )killed by (?:M[rs]s?\. )?[^.!\n]+?|died of [^.\n]+|[Pp]oisoned by [^.\n]+|[Tt]urned to slime[^.\n]*|starved to death|drowned [^.\n]+|choked [^.\n]+|quit|escaped)\s*(?:$|\s{2}|\n|\.)', blob)
         self.run['death'] = m[1].strip() if m else ('died' if 'You die' in blob else 'game ended')
         self.run['ended'] = now()
         self.runs[-1] = {k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score')}
