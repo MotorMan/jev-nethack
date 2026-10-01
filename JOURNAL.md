@@ -1649,3 +1649,6 @@ Lycanthropy: the first shift (T4627) dropped the splint mail, shield and spear. 
 
 ## Djev 102146 — starvation, T6672, Dlvl 3
 It spent 5000 turns on a Dlvl 3 whose way on was past a boulder stuck at a corridor bend, living on prayers until one was too soon. 'dead_end' (go up) was offered 125 times, but search_hidden was offered beside it and won 123 times. The dead_end filter also dropped pickups, so it stood on a copper wand and a scroll without taking either. Fix: search_hidden isn't offered alongside dead_end, and the dead_end filter keeps pickup_ options.
+
+## kev-4b 101507 — ettin zombie + snake, T8917, Dlvl 8
+It meleed an ettin zombie and a snake (speed 15) at 56/85. 5.0 knockback ("knocks you backward with a powerful strike") staggered it, and Elbereth garbled once then wore off during a 15-turn rest. It prayed at 12/85, 400 turns after the last prayer: too soon, killed while praying. No fix: the melee from 56 HP was reasonable, and the prayer was a forced gamble.
