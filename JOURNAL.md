@@ -1112,3 +1112,7 @@ Jev was hallucinating while resting at 57/77 HP. An invisible chameleon took min
 A nymph took Jev's armor (AC 6 → 10) while a wolf was biting. Jev prayed at 8 HP, and the wolves hesitated while it prayed. After that, two dust Elbereths came out garbled, and the bot then stopped offering Elbereth for 5 turns. Jev meleed three wolves, 29 → 0.
 The 5.0 source shows that monster hits don't scuff the hero's square. Only a monster's movement wipes dust, and only on the square it stands on (monmove.c:734). The garbling is engrave.c's 1/25 per-letter typo for dust, so each retry has about a 72% chance of working.
 Fix: a garbled result no longer blocks the next Elbereth.
+
+## Rothes on Mines 7 (T2767)
+Jev was XL 5 on Dlvl 7, too deep, so the forced 'ascend' rule fired. Two rothes were 2 steps away, and walking toward '<' gave them free hits (46 → 37). Elbereth then garbled, and the old garble block took Elbereth off the menu. Jev meleed down to 10 HP and prayed 349 turns after its last prayer, which was too soon, and died.
+Fix: 'ascend' is only forced when no active hostile is within 3 steps. The garble fix (d5cea06) covers the rest.
