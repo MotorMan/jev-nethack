@@ -1763,3 +1763,6 @@ Choke walk and Elbereth alternated: the walk stopped after 1 step each time on "
 
 ## Hosted 115737 — killed by a wand (hill orc), T4612, Dlvl 7
 A hill orc with a wand of striking zapped Jev 32 -> 12 during a choke walk; Jev engraved Elbereth, the orc "turned to flee" but kept zapping from 2-3 squares off-line, Jev waited and then explored: dead. Elbereth doesn't stop ranged attacks. Fix: like the pyrolisk rule, a *weaker* shooter gets "Close in" even when hurt, and that charge survives the on-Elbereth filter and displaces explore/wait/search.
+
+## Hosted 120033 — wererat, T8786, Dlvl 8
+A wererat in @ form stood adjacent while Jev (12/72, prayed 90 turns earlier) was forced to "Stay on Elbereth" 23 times; @ ignores Elbereth, so it hit 12 -> 3 -> 0 even after the bot logged "not protecting you here". The forced-wait block exempted were-@ entirely (T1818: their summons respect Elbereth). Now a were-@ only gets that exemption when not adjacent, and the forced wait is skipped right after an Elbereth hit.

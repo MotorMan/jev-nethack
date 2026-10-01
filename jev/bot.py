@@ -1247,8 +1247,8 @@ class Bot:
         # a pack at any HP: left a working Elbereth at 40/44 to throw at bugbears and a goblin gang, dead 4 turns later
         # Weak is only nutrition 1-50 (eat.c): 23 turns camping on Elbereth there fainted Jev into a kitten's jaws (T4709)
         if self.engraved_here() and s.get('hunger') not in ('Weak', 'Fainting') and (pack or s.get('hp', 1) < 0.75 * s.get('hpmax', 1)) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles) \
-                and not shot \
-                and not any((m['ch'] == '@' and 'were' not in m['name'] or 'minotaur' in m['name']) and m['dist'] <= 7 for m in hostiles):  # a were-@ summons rats/jackals that do respect it: left Elbereth at 24/36 for a wererat, summoned rats 25 -> 0 in 2 turns (T1818)  # a bugbear threw daggers at a waiting Jev (Elbereth only stops melee): 13 -> 0 (T2350)  # a Woodland-elf (ignores Elbereth) walked up to a waiting Jev: 36 -> 0 (T7182)
+                and not shot and not (self.history and 'not protecting' in self.history[-1]['outcome']) \
+                and not any((m['ch'] == '@' and ('were' not in m['name'] or m['dist'] <= 1) or 'minotaur' in m['name']) and m['dist'] <= 7 for m in hostiles):  # an adjacent wererat in @ form hit through it while only 'wait' was offered: 12 -> 0 (T8786)  # a were-@ summons rats/jackals that do respect it: left Elbereth at 24/36 for a wererat, summoned rats 25 -> 0 in 2 turns (T1818)  # a bugbear threw daggers at a waiting Jev (Elbereth only stops melee): 13 -> 0 (T2350)  # a Woodland-elf (ignores Elbereth) walked up to a waiting Jev: 36 -> 0 (T7182)
             # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('quaff_', 'eat', 'wear_'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}
         # a safe prayer fully heals; Jev chose Elbereth over it at 1 HP and died. 500+ turns on, rnz(350) - elapsed < 200 most of the time:
