@@ -1269,3 +1269,6 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
   - While Burdened, unworn armor and spare non-dagger weapons are offered as drops. Mithril and pick-axes are kept.
   - While Stressed with nothing near, Jev may only drop, eat, wear or pray.
   - No junk pickups while Burdened.
+
+## Run 20261001-041036: magic missile from a gnome king, while praying (T2972, Dlvl 5, XL 4)
+Held a Mines doorway against about 15 monsters (bugbears, hobgoblins and gnomes). A kill left no one adjacent, so `explore_1` was offered and stepped into the room. HP went 22 → 12 → 5, and the prayer failed 600 turns after the last one. Fix: with 3 or more hostiles within 3 squares, drop explore, door, search and goto options. The XL 3 → Dlvl 5 descent came from the 'anyway' fallback after 800+ turns of searching, which works as designed.

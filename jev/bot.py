@@ -1051,6 +1051,8 @@ class Bot:
             elif g[1] in dist:
                 opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'pickup_', 'wear_', 'wield_'))}
                 opts['recover_gear'] = ('Go back for your dropped armor', f"Your armor and weapon fell off when you changed form. They lie {dist[g[1]]} steps {compass(me, g[1])}: walk there, pick them up and put them back on.", lambda p=g[1]: self.act_go(p))
+        if sum(m['dist'] <= 3 for m in near) >= 3:  # held a doorway against 15 Mines monsters, a kill left no one adjacent and explore stepped into the room: 22 -> 5 HP in 2 turns (T2970)
+            opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door_', 'search', 'goto_'))} or opts
         if near and 'wait' in opts and self.engraved_here() and s.get('hp', 1) * 2 < s.get('hpmax', 1):  # explored off Elbereth at 12/63 among 8 monsters, 3 times 'took damage after 1 steps' (T7921)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door_', 'sell_', 'approach_', 'fetch'))}
         if not near and ({'eat_corpse', 'goto_corpse'} & opts.keys()):  # the earlier forcing ran before explore/descend were added: 22 corpse offers, 2 taken, 4 hunger prayers, fainted (T3843)
