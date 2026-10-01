@@ -1041,3 +1041,6 @@ Dlvl 5 kept making nymphs (wood, water, mountain): five thefts in 1000 turns —
 
 ## 2026-09-30 22:40 — giant ant + werejackal, praying (kev-4b, T4446, Dlvl 6)
 Elbereth wore off at 18/47; kev-4b chose 'Close in' on a speed-18 giant ant with a werejackal beside it: 18 -> 6 in three turns, and the prayer 538 turns after the last failed. Approach options now need half HP, not a third (the ant comes to you anyway). XL at T4000 is 4-6 for both kev-4b and hosted Jev (checked runs.json), so kev-4b is not levelling slower; the slow pace is the bot's.
+
+## 2026-10-01 00:00 — ravens, blind (kev-4b, T4164, Dlvl 6)
+No fix. Ravens (speed 20, blinding claw) blinded it at 32/79; it swung back at the unseen attackers (the blind rule allows that when hit), two Elbereth tries were interrupted by attacks, 32 -> 7 over 12 turns, and the gamble prayer 300 turns after the last failed.
