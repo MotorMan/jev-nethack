@@ -697,3 +697,6 @@ Run 171315 (Dlvl 6, T2527) prayed successfully for low HP at T2209, became Weak 
 
 ## 2026-10-01 00:50 — no swinging while stunned next to a peaceful
 Run 171700 (Dlvl 5, T2680) was stunned in Izchak's lighting store, with a small mimic on one side and Izchak on the other. The stun/confusion lockout applied only when no hostile was near, so Jev kept attacking the mimic. In hack.c, a Stunned move or attack always goes through confdir() (Confusion does 1 time in 5), and one swing hit Izchak. He and the watch killed it with a wand of striking. The lockout (wait, pray or quaff only) now also applies whenever a peaceful is adjacent.
+
+## 2026-10-01 01:00 — chameleon as yeti (variance)
+Run 171932 (Dlvl 6, T5752): a chameleon turned into a yeti and took Jev from 41 to 14 HP in three turns. Its Elbereth came out garbled. Not yet low enough to pray (14·7 > 65), Jev drank an unknown black potion. It was sleeping, so the chameleon (now a hell hound pup) killed it while frozen. No fix: the unknown-quaff gamble at ~20% HP is still positive on average.
