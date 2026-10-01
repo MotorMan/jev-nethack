@@ -912,3 +912,8 @@ Killed by an Uruk-hai in Minetown at T4295, XL5, AC6. Jev's previous prayer was 
 Killed by a ghoul at T3521 in Minetown, while blind and paralysed. Jev was at full HP, so it chose the 20-turn pace rest with a yellow light 9 squares away. A search is only interrupted when a monster *appears*, and this one was already visible. The light (speed 15) arrived and exploded, blinding Jev, and a ghoul's paralysing claw finished it. Changes:
 - A yellow light anywhere in view now counts as dread, which offers Elbereth and drops approach/explore. Before, this only applied within 5 squares.
 - No rest option while a yellow light is in view.
+
+## 15:15 — Run 220406: starved on Dlvl 1 with '>' in view
+Died of starvation on Dlvl 1 at T12215, XL6. The downstairs showed on the map inside a room whose only door was closed. The door option needed a blank, unexplored square behind the door, but this room was already explored. So no option ever led to '>', and Jev spent about 760 decisions on search_hidden and dead_end. On Dlvl 1, dead_end meant climbing '<' to "Dlvl 0", which would leave the dungeon. Changes:
+- If a '>' is on screen but unreachable, any closed door with an unreachable side qualifies. Doors are ranked by distance to the stairs.
+- No dead_end option on Dlvl 1.

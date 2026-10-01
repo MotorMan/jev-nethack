@@ -721,9 +721,11 @@ class Bot:
         for door in snap.find('+'):
             orth = [(door[0] + dx, door[1] + dy) for dx, dy in DIRS.values() if not (dx and dy)]
             spots = [q for q in orth if q in dist]
-            if snap.is_door(*door) and spots and any(snap.at(*q) is not None and snap.at(*q).ch == ' ' for q in orth):
+            # '>' in view behind a closed door into an explored room: no door had a blank side, 12000 turns of searching on Dlvl 1, starved (T12215)
+            lost = [p for p in snap.find('>') if p not in dist]
+            if snap.is_door(*door) and spots and (any(snap.at(*q) is not None and snap.at(*q).ch == ' ' for q in orth) or lost and any(q not in dist for q in orth)):
                 q = min(spots, key=dist.get)
-                doors.append((dist[q], door, q))
+                doors.append((min((cheb(door, p) for p in lost), default=0) if lost else dist[q], door, q))
         for _, door, q in sorted(doors)[:2]:
             if door in lv.locked and (cheb(door, me) <= 1 or watched):
                 continue  # kick_<dir> covers it; in town a locked door stays shut
@@ -786,7 +788,7 @@ class Bot:
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
         if not near and not self.unseen_attacker() and s.get('hp', 1) < 0.85 * s.get('hpmax', 1):  # blind, Jev rested beside an orc and died (T3212)
             opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
-        if not fr and not downs and ups and sum(lv.searched.values()) >= 1000 and not self.soko():
+        if not fr and not downs and ups and sum(lv.searched.values()) >= 1000 and not self.soko() and s.get('dlvl', 1) > 1:  # Dlvl 1's '<' leaves the dungeon
             # a Mines level whose '>' was never found: 6000 turns of searching, living on prayer, fainted (T11246). Go up, try another way down
             opts['dead_end'] = ('Give up on this level and go back up', f"You have searched this level for {sum(lv.searched.values())} turns without finding a way down. Climb to Dlvl {s.get('dlvl', 0) - 1} and look for another down staircase.", lambda p=ups[0]: self.act_dead_end(p))
         hole = min(((h, q) for h in sorted(lv.holes) for q in dist if max(abs(q[0] - h[0]), abs(q[1] - h[1])) == 1), key=lambda t: t[0][0] != t[1][0] and t[0][1] != t[1][1], default=None)  # orthogonal first: no diagonal steps into doorways
