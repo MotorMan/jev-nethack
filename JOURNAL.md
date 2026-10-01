@@ -1929,3 +1929,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** a pack of human zombies on Dlvl 6 at XL 5 (pace again). The bot retreated, explored back into them, then fled for the upstairs and got clawed on the way, 30 -> 10. A prayer 252 turns after the last one failed, and the zombies surrounded it. The flee_up after the prayer crashed in act_go: @ wasn't on screen, so snap.me was None and cheb(None) raised.
 - **Wiki:** zombies are slow (speed 6). Outwalk them or fight them one at a time in a corridor. Don't step back toward a pack.
 - **Fix:** act_go returns when @ isn't on screen instead of crashing. The tactics are left to the pace question.
+
+## Run 20261001-151100: killed by a hill orc on T4962 (Mines level 6, XL 5, AC 10, naked)
+- **Cause:** ~1000 turns on Mines level 6 without finding the downstairs, mostly camped on Elbereth. A water nymph stole the shield (T3749, right after an attack from Elbereth), then the dagger and helm (T4641), then the bronze plate mail (T4701). With only gold left, AC 10 and bare hands, a hill orc pack finished it. leave_nymph needs known downstairs, so it never fired.
+- **Wiki:** nymphs respect Elbereth, so don't attack from it (that erases it). Kill them with missiles, and leave the level once one has started stealing.
+- **Fix:** the nymph tips now say never melee, wait on Elbereth when she's adjacent, and leave the level once she has stolen. Still open: leaving by the upstairs when the downstairs is unknown, which risks ping-ponging, plus the Mines/pace question.
