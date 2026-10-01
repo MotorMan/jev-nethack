@@ -632,8 +632,12 @@ class Bot:
         if dread:
             opts = {k: v for k, v in opts.items() if not k.startswith(('approach_', 'explore'))}
         # uhitm.c: no "Really attack?" while Hallu/Conf/Stun; hallucinating, Jev hit peacefuls, alignment went negative ("You had sinned"), the first prayer failed, fainted, dead (T2759)
-        if set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Conf', 'Cnf', 'Stun', 'Stn'} and (s.get('turn') or 0) - self.run.get('hit_turn', -99) > 2:
-            opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'throw_', 'zap_'))} or opts
+        # hack.c: Stunned, every move goes a random direction: six "You attack thin air" swings in Orc Town, 24 -> 0 (T4713)
+        stun = bool(set(s.get('conditions', [])) & {'Stun', 'Stn'})
+        if stun or set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Conf', 'Cnf'} and (s.get('turn') or 0) - self.run.get('hit_turn', -99) > 2:
+            opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'throw_', 'zap_', 'explore', 'retreat', 'choke', 'goto_'))} or opts
+            if stun:
+                opts.setdefault('wait', ('Wait out the stun', 'You are stunned: any move or attack goes in a random direction. Search in place one turn until it wears off.', lambda: self.act_keys('s', 'waited')))
         if (near and hp < 0.7 * hpmax or dread or pack or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} \
                 and sum(h['choice'] == 'elbereth' and 'interrupted' in h['outcome'] for h in self.history[-4:]) < 2 \
