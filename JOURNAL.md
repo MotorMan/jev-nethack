@@ -1924,3 +1924,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** on Dlvl 8 at XL 6 (pace again), a soldier ant hit through Elbereth (a scuffed engraving or a cornered panic-attack). The bot then spent 6 turns alternating Elbereth (2 garbled), wait and a single attack while the ant took 58 -> 14. A zap and a prayer 331 turns after the last one followed. The prayer failed, a level was drained, and the bot died.
 - **Wiki:** you can't outrun a soldier ant (speed 18). Once Elbereth fails, every turn spent re-engraving is a free round for it, so fight back or use an escape item.
 - **Fix:** for 6 turns after "not protecting", the forced Elbereth wait no longer applies. If an attack is on offer and no escape item is, drop elbereth and wait so the bot commits to the fight.
+
+## Run 20261001-150815: killed by a human zombie, praying on T4041 (Dlvl 6, XL 5)
+- **Cause:** a pack of human zombies on Dlvl 6 at XL 5 (pace again). The bot retreated, explored back into them, then fled for the upstairs and got clawed on the way, 30 -> 10. A prayer 252 turns after the last one failed, and the zombies surrounded it. The flee_up after the prayer crashed in act_go: @ wasn't on screen, so snap.me was None and cheb(None) raised.
+- **Wiki:** zombies are slow (speed 6). Outwalk them or fight them one at a time in a corridor. Don't step back toward a pack.
+- **Fix:** act_go returns when @ isn't on screen instead of crashing. The tactics are left to the pace question.

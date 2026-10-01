@@ -1526,6 +1526,8 @@ class Bot:
                 return f'blocked after {taken} steps' + (f": {news[-1]}" if news else '')
             if snap.status.get('hp', 0) < hp0:
                 return f'took damage after {taken} steps'
+            if snap.me is None:  # @ not on screen (prayer, --More--): crashed flee_up mid-fight (T4041)
+                return f'lost sight of yourself after {taken} steps'
             # monsters move, so compare counts rather than positions
             near = [q for q in self.hostile_glyphs() if cheb(q, snap.me) <= 7]  # by count alone, Izchak and a watchman leaving view hid a rope golem and a nymph arriving: walked into both, choked (T5445)
             if stop_new and near and (len(self.hostile_glyphs()) > n_seen or any(snap.at(*q).ch not in chs for q in near)):
