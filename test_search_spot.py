@@ -20,6 +20,7 @@ b = object.__new__(Bot)
 b.snap = Snapshot(term)
 lv = NS(searched={})
 b.level = lambda: lv
+b.run = {"here": {}}
 dist = {(x, y): abs(x - 30) + abs(y - 5) for y in range(3, 9) for x in range(28, 35)} | {(9 + x, 5): 21 - x for x in range(9)}
 p = b.search_spot(dist)
 assert p[0] >= 33, p  # east wall of the right room, not the explored west room

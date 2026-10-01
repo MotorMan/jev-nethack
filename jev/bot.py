@@ -1295,7 +1295,10 @@ class Bot:
             for x in range(W):
                 acc[y + 1][x + 1] = acc[y][x + 1] + acc[y + 1][x] - acc[y][x] + (MAP_TOP <= y and (x >= len(row) or row[x] == ' '))
         blank = lambda x, y: (lambda x0, x1, y0, y1: acc[y1][x1] - acc[y0][x1] - acc[y1][x0] + acc[y0][x0])(max(0, x - 10), min(W, x + 11), max(0, y - 5), min(H, y + 6))
+        sale = [q for (dl, q), v in self.run.get('here', {}).items() if dl == snap.status.get('dlvl') and any('for sale' in i for i in v)]
         for p, d in dist.items():
+            if any(cheb(p, q) <= 2 for q in sale):
+                continue  # mkroom.c: a shop has exactly one door, so its walls hide nothing; 317 searches mostly inside one, starved (T6390)
             walls = sum(1 for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy) and (g := snap.at(p[0] + dx, p[1] + dy)) is not None and g.ch in ' |-')
             exits = sum(1 for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy) and snap.walkable(p[0] + dx, p[1] + dy))
             if walls < 3:
