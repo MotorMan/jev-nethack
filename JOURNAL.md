@@ -1317,3 +1317,9 @@ Took the downstairs at 23/31 HP and arrived next to 3 wolves, a Woodland-elf and
 
 ## Run 20261001-051940: garter snake, T4328 (Dlvl 5, Jev's own bones level)
 Jev found a small and a large mimic on its own bones level. It spent about 100 turns beside them, re-engraving Elbereth and waiting. Mimics respect Elbereth, but they barely move, so a cornered, scared mimic attacks anyway (monmove.c panicattk). The bones-level crowd (iguana, kobold lord, manes, rothe, giant ant, ghost) gathered. Jev prayed at 9 HP and died 60 turns later. Fix: if every adjacent hostile has speed 3 or less (not a lichen), HP is below 70% and prayer isn't available, the only option is to retreat.
+
+## Run 20261001-052603: fire ant, praying on T3879 (Dlvl 7)
+A fire ant kept biting Jev while the map showed it 3 squares away or not at all. Jev searched for 15 turns three times, explored, and walked toward a corridor (the 'choke' option), dropping from 47 to 8 HP. It then prayed 227 turns after its last prayer and died. Fixes:
+- A named "The X misses!" now also counts as an unseen attack.
+- The corridor option no longer suppresses Elbereth while an unseen attacker is hitting.
+- While an unseen attacker is active, explore, search, rest, door, goto and corridor options are dropped.

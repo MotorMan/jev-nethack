@@ -623,7 +623,7 @@ class Bot:
                 and (s.get('turn') or 0) - self.run.get('no_engrave', -99) > 5 \
                 and not (any(m['dist'] == 1 and m['name'] in self.run.get('e_blockers', ()) for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # count: unseen biters left adj_names empty, 16 interrupted engravings in a row while Hungry turned Weak, then Fainting (T5312)  # @ ignore it (monmove.c onscary: S_HUMAN); 2 Elbereths at 9/49 beside a Woodland-elf, a rock mole also near, dead (T2543); engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
-        if 'choke' in opts and hp >= 0.4 * hpmax:  # wiki: Elbereth is breathing room; a corridor is how to actually fight a group
+        if 'choke' in opts and hp >= 0.4 * hpmax and not self.unseen_attacker():  # wiki: Elbereth is breathing room; a corridor is how to actually fight a group
             opts.pop('elbereth', None)
 
         if danger:
@@ -1058,6 +1058,8 @@ class Bot:
             opts['teleport'] = (f"Read {tp['text']}", 'Teleports you to a random spot on this level, away from whatever is hurting you.', lambda l=tp['letter']: self.act_read(l))
         if 'pray' not in opts and s.get('hp', 1) * 3 < s.get('hpmax', 1) and any(k.startswith(('zap_', 'teleport')) for k in opts):  # an unknown wand sat unzapped while a Woodland-elf meleed 30 -> 2, prayer 90 turns old (T5409)
             opts = {k: v for k, v in opts.items() if k.startswith(('zap_', 'quaff_', 'flee')) or k in ('elbereth', 'upstairs', 'ascend', 'teleport')}
+        if self.unseen_attacker():  # a fire ant bit from a square the map showed empty; 3 x 15-turn searches and explores, 47 -> 8, prayed too soon (T3879)
+            opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'search', 'rest', 'door_', 'goto_', 'choke'))} or opts
         adj = [m for m in hostiles if m['dist'] <= 1]
         if adj and all((MONSTERS.get(self.species(m)) or [0, 99])[1] <= 3 and 'lichen' not in m['name'] for m in adj) and hp < 0.7 * hpmax and 'pray' not in opts and self.retreat_dir(hostiles):  # mimics (speed 3) hit through Elbereth (cornered: monmove.c panicattk); 100 turns re-engraving beside two drew a bones-level horde, dead (T4328)
             opts = {'retreat': ('Walk away from the slow monster', 'Step away: everything next to you moves at speed 3 or less, so two steps leave it behind for good.', lambda: self.act_retreat(hostiles))}
@@ -1839,7 +1841,7 @@ class Bot:
 
     def unseen_attacker(self):
         return any(re.search(r"\b(It|ghost) (hits|bites|touches|stings|butts|kicks|misses)|feel an unseen monster", m) for m in self.run['recent'][-2:]) \
-            or self.snap.me and not any(cheb(q, self.snap.me) <= 1 for q in self.hostile_glyphs()) and any(re.search(r"\bThe [\w -]+ (hits|bites|stings|butts|kicks|touches)!", m) for m in self.run['recent'][-1:])  # a named fire ant bit from a square the map never showed: 'rest' was the only option, 33 -> 0 (T5586)
+            or self.snap.me and not any(cheb(q, self.snap.me) <= 1 for q in self.hostile_glyphs()) and any(re.search(r"\bThe [\w -]+ (hits|bites|stings|butts|kicks|touches|misses)!", m) for m in self.run['recent'][-1:])  # a named fire ant bit from a square the map never showed: 'rest' was the only option, 33 -> 0 (T5586)
 
     # ---------- Jev ----------
     def state_text(self, mons):
