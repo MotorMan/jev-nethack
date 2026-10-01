@@ -1303,3 +1303,8 @@ The prayer at T2343, 581 turns after the last, came back "Thou art arrogant": an
 On a bones level, a hobgoblin threw darts and a spear, so `shot` was set. While shot, `on_e` is off, so attacks from Elbereth came back and the Elbereth wait went away. At 13/51 on a fresh Elbereth, with a rothe adjacent, the only option was "attack the rothe". That erased Elbereth: the rothe hit 13 → 8, and the prayer 626 turns after the last one failed. Fixes:
 - On Elbereth while shot, attacks are offered only against the shooter.
 - The Elbereth wait stays available whenever a non-shooter is adjacent.
+
+## Run 20261001-045201: rope golem (T5699, Dlvl 7, XL 6)
+Jev was in a spiked pit, choked by two rope golems. A successful prayer at T5692 restored it to 70 HP, then 70 → 0 in 5 turns. An uncursed wand of fire (rope golems burn) went unused, because the held filter keeps only Elbereth, pray, attack and quaff. Elbereth was refused three times a turn: "You can't reach the floor" from the pit. Fixes:
+- The held filter now keeps `zap_` options.
+- After "could not engrave", Elbereth isn't offered for 5 turns.
