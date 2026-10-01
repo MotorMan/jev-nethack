@@ -153,8 +153,9 @@ class Bot:
                 self.run['god_angry'] = True
             if re.search(r'grabs you|You are being choked|cannot escape from|swings itself around you', text) and self.snap:
                 self.run['held'] = self.snap.status.get('turn') or 0
-            if re.search(r'nymph stole|nymph steals|She stole', text) and self.snap:
+            if re.search(r'nymph stole|nymph steals|She stole|He stole|stole .* from you|gladly hand over', text) and self.snap:
                 self.run['nymph_lvl'] = self.snap.status.get('dlvl')
+                self.run['inv_stale'] = True  # a nymph took the worn shield while resting; the 25-decision refresh showed it worn for 250 turns at AC 10 (T3453)
             if re.search(r'Your armor falls|You can no longer hold your shield|falls to the ground|You find you must drop|You drop your (gloves|weapon)', text) and self.snap and self.snap.me:  # were form shed chain mail, shield, helm, spear; Jev never went back, AC 10, dead (T4960)
                 self.run['gear_at'] = (self.snap.status.get('dlvl'), self.snap.me)
             if 'You feel purified' in text:
@@ -2054,7 +2055,7 @@ class Bot:
                 except RuntimeError as e:
                     self.log(str(e), 'error')
                     self.paused = True
-                if self.run['decisions'] % 25 == 0:
+                if self.run['decisions'] % 25 == 0 or self.run.pop('inv_stale', False):
                     self.read_inventory()
                 time.sleep(self.delay_ms / 1000)
             self.phase = 'dead'

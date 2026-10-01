@@ -1356,3 +1356,6 @@ Jev fell through a trap door into a crowd of monsters and dropped from 58 to 11 
 
 ## Run 20261001-060705: pony, unconscious from rotten food, T4291 (Dlvl 5)
 While Weak, Jev picked up 2 food rations and ate one with a pony adjacent. In 5.0's eat.c, any non-cursed food older than 30 turns rots 1 time in 7, and that includes rations, so they aren't safe. The rotten one knocked Jev out and the pony killed it. Fix: eating from the pack is now blocked while a hostile that isn't passive is adjacent, unless Jev is Fainting. Weak alone doesn't kill, so the fight comes first.
+
+## Run 20261001-061020: elven arrow, T3898 (Dlvl 7, XL 6, AC 10)
+At T3453 a wood nymph stole Jev's worn +3 small shield while it rested. Inventory only refreshed every 25 decisions, and rest decisions take 20 turns each, so the inventory still showed the shield as worn for about 250 turns. Jev then reached Dlvl 7 at AC 10, where Woodland-elves (@, which ignore Elbereth) and giant ants killed it. A successful prayer at T3888 only bought 5 turns. Lycanthropy had already cost the orcish helm at T1743. Fix: theft messages ("She stole", "gladly hand over", ...) now force an inventory refresh.
