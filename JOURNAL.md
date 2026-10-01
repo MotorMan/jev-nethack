@@ -816,3 +816,8 @@ Run 201420 died at T1402 (XL3, Dlvl 4). A werejackal, an iguana and a jackal wer
 
 ## 09:25 — Werejackal pack again
 Run 201512 died at T1847 on Mines 5 (XL4). A werejackal kept summoning jackals, and Jev attacked the werejackal, which was the right target. HP went 45 → 30 → 23 → 22 → dead. '<' was about 9 steps away, outside the 8-step flee range, and jackals are as fast as Jev, so running offered little. No code change; it was variance plus a Str 14 roll.
+
+## 09:40 — Welded to a cursed dagger
+Run 201602 was killed by an ogre at T4539 on Dlvl 7 (XL6). Water nymphs stole the +3 small shield (AC 6 → 10) and later the +1 dwarvish spear. The bare-handed wield fallback then took "a cursed orcish dagger" over "an uncursed +0 dagger": both rank as daggers and the cursed one came first. A cursed weapon welds to your hands, and with d3 damage at AC 10 Jev lost to the ogre even after a successful prayer. The wield fallback now skips known-cursed weapons and prefers known uncursed/blessed ones at equal rank.
+
+Still open: Jev wore no armor for 900 turns after losing the shield (nothing to wear was found), and it never used the expensive camera or the two unknown wands in a losing fight.

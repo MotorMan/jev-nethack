@@ -884,7 +884,9 @@ class Bot:
             lv.resets += 1
             opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('ms', 'waited'))
         # Jev never picked "Wear" over exploring (194 offers after a monkey stole the shield) and has no wield option at all
-        weapon = min((it for it in self.inventory if WEAPON.search(it['text']) and it['text'] not in self.run.setdefault('unwieldable', set())), key=lambda it: WEAPON_RANK.index(WEAPON.search(it['text'])[1]), default=None)
+        # never a known-cursed one (welded: a cursed orcish dagger over an uncursed dagger, killed by an ogre T4539); known-safe first at equal rank
+        weapon = min((it for it in self.inventory if WEAPON.search(it['text']) and not re.search(r'(?<!un)cursed', it['text']) and it['text'] not in self.run.setdefault('unwieldable', set())),
+                     key=lambda it: (WEAPON_RANK.index(WEAPON.search(it['text'])[1]), not re.search(r'uncursed|blessed', it['text'])), default=None)
         if weapon and self.inventory and not any('weapon in' in it['text'] for it in self.inventory):
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You are fighting bare-handed.', lambda l=weapon['letter']: self.act_wield(l))}
         elif not near and (art := next((it for it in self.inventory if 'named' in it['text'] and WEAPON.search(it['text']) and 'weapon in' not in it['text'] and it['text'] not in self.run['unwieldable']), None)):
