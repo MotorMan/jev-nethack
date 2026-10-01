@@ -723,7 +723,8 @@ class Bot:
             # Minetown hid its '>' under a rock pile: 260 turns of explore/search with "no unexplored edges left"
             lv.terrain_turn = s.get('turn', 0)
             lv.stairs |= set(self.terrain_find('>'))
-        downs = [p for p in snap.find('>') + sorted(lv.stairs) if p in dist or p == me]
+        bad = {q for (dl, q), t0 in self.run.setdefault('bad_down', {}).items() if dl == s.get('dlvl') and s.get('turn', 0) - t0 < 3000}
+        downs = [p for p in snap.find('>') + sorted(lv.stairs) if (p in dist or p == me) and p not in bad]
         too_deep = s.get('dlvl', 1) >= (s.get('xl') or 1) + 2  # pace: Dlvl <= XL+1 (XL+2 still lost most runs on Dlvl 4-5 before T2000)
         ups = [p for p in snap.find('<') if p in dist]
         above = self.run['levels'].get(s.get('dlvl', 1) - 1)
@@ -745,6 +746,11 @@ class Bot:
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
         if not near and not self.unseen_attacker() and s.get('hp', 1) < 0.85 * s.get('hpmax', 1):  # blind, Jev rested beside an orc and died (T3212)
             opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
+        if not fr and not downs and ups and sum(lv.searched.values()) >= 1000 and not self.soko():
+            # a Mines level whose '>' was never found: 6000 turns of searching, living on prayer, fainted (T11246). Go up, try another way down
+            opts['dead_end'] = ('Give up on this level and go back up', f"You have searched this level for {sum(lv.searched.values())} turns without finding a way down. Climb to Dlvl {s.get('dlvl', 0) - 1} and look for another down staircase.", lambda p=ups[0]: self.act_dead_end(p))
+        if 'dead_end' in opts and not near:
+            opts = {k: v for k, v in opts.items() if k in ('dead_end', 'pray') or k.startswith('eat_')}
         if not fr and not downs:
             if not walled: self.run['walled'] = s.get('turn') or 0
             # boxed in by Minetown's peaceful gnomes, meleed the eye at once: frozen, killed by an imp (T7290). Wait them out first.
@@ -1082,6 +1088,14 @@ class Bot:
         self.observe()
         self.log(f'#terrain {ch}: {found}')
         return found
+
+    def act_dead_end(self, p):
+        dl = self.snap.status.get('dlvl')
+        r = self.act_descend(p, '<')
+        if self.snap.status.get('dlvl') != dl:
+            self.run['levels'].pop(dl, None)  # forget it: another branch at this depth must start fresh
+            self.run['bad_down'][(self.snap.status.get('dlvl'), self.snap.me)] = self.snap.status.get('turn') or 0
+        return r
 
     def act_descend(self, p, key='>'):
         r = self.act_go(p)

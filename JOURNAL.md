@@ -791,3 +791,8 @@ Run 20260930-194011 (T5756, Dlvl 6, "killed by a bugbear, while sleeping off a m
 
 ## 2026-10-01 07:55 — Never eat a destroyed zombie's corpse
 Run 20260930-194550 (T2797, Mines 5) was "Poisoned by a rotted elf corpse". Jev was Weak, and its last prayer was 920 turns ago, under the 1000-turn threshold. That allowed the starving fallback ("eat an unknown-age corpse"), and the corpse was the one left by an elf zombie Jev had just destroyed. Zombie and mummy corpses are created pre-aged and are always tainted. The prayer for FoodPois then failed. Fix: a corpse that appears next to Jev right after "You destroy" is recorded as undead (-10**9), and the Weak fallback never eats it.
+
+## 2026-10-01 08:10 — Leave dead-end levels
+Run 20260930-194723 ("killed by a werejackal, while fainted", T11246) never got below Dlvl 4. From T5000 on, Jev sat on one Mines level whose '>' it never found: about 1,300 decisions, mostly "Search for hidden passages". It lived on 7 prayers and finally fainted. The east part of the map was never reached; boulders in narrow passages are the likely blocker.
+- **Fix:** when there's no frontier, no usable '>', and searches on the level total 1,000+ turns, Jev is forced to "give up on this level". It climbs '<', forgets the level's memory, and blacklists the '>' it lands on for 3,000 turns, so it explores the level above for another way down.
+- **Latent issue noticed:** level memory is keyed by Dlvl only, so Mines N and Dungeons N share memory. 5.0 `#overview` marks "<- You are here" under the branch header (dungeon.c:3586, `interest_mapseen` always includes the current level), so it could key levels by branch. Not done yet; forgetting the dead-end level covers the case that actually happened.
