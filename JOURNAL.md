@@ -1661,3 +1661,9 @@ Weak, 886 turns after its last prayer, with only tripe packed. The Weak prayer w
 
 ## Hosted 102245 — killed by a wand (Uruk-hai's striking), T7138, Mines Dlvl 7 (Minetown)
 It was on Elbereth at 34/62 when a killer bee, a jaguar 2 steps off and an Uruk-hai with a wand of striking were in view. Then only explore_* was offered, and explore was blocked by a peaceful watch captain. The striking hits took it 34 -> 18 -> 0. The likely gap: `near` needed dist <= 1 or a reachable square, and a monster's own square isn't reachable, so the jaguar 2 steps away didn't count. With nothing near, Elbereth wasn't offered. Fix: near counts any hostile within 2 squares.
+
+### Djev 20261001-102943 — giant ant + snake, T3303, Dlvl 6 (Minetown)
+Two nymphs on Minetown stripped helm, shield, spear, daggers and lamp over ~300 turns; it ate its last ration and starved at AC 10. `leave_nymph` was gated on `dlvl <= xl`, and it was XL 5 on Dlvl 6, so it never left. **Fix:** allow `dlvl <= xl + 1`, the same pace rule used elsewhere.
+
+### Hosted 20261001-103204 — pony while fainting, T19232, Dlvl 3
+It spent 17k turns walled in on Dlvl 2, choosing search_hidden over dead_end (the hole) and living on prayers every ~900 turns. The earlier dead_end fix applied after the restart: it jumped, but it was Weak with its prayer 70 turns old. It fainted fighting a pony. No new fix.
