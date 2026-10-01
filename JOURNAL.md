@@ -1878,3 +1878,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** a trap door on T399 dropped Jev into a shop that was "Closed for inventory", whose door is locked. With 0 gold, the town guard refused every kick. Explore bumped the door and waited, about 10000 turns, living on prayers.
 - **Wiki:** a closed shop's door is locked. You can leave with an unlocking tool, a wand of opening, knock or teleportation. Breaking the door angers the shopkeeper unless you pay 400zm on the spot (shk.c pay_for_damage: money plus credit below the cost means angry).
 - **Fix:** after 100 resets with nothing to do, read an unknown scroll, since it might be teleportation. After 300, kick the adjacent locked door anyway. A dangerous exit beats an endless wait.
+
+## Run 20261001-141935: killed by an ape, praying on T4683 (Dlvl 6, XL 6)
+- **Cause:** Elbereth wore off, and the bot closed in on an ape (3 attacks, up to 12 a turn). The engraving garbled, and melee went 38 -> 12 with `attack` as the only option. The bot had prayed 103 turns earlier, so the final gamble at 3 HP failed. Two unknown potions and an unknown iron wand stayed in the pack. Unknown potions were gated on LOW_HP (≤9 at XL 6). The wand was gated on 7 squares of ray room, which a wall rules out when the foe is adjacent.
+- **Wiki:** when prayer is on timeout, unknown potions and wands are the escape items. Use them before HP is critical, since a bad one is rarely worse than dying in melee.
+- **Fix:** if the last prayer was under 500 turns ago (or the god is angry) and HP is below a third, offer the unknown potions with a monster adjacent. Also zap the unknown wand at an adjacent foe even if a ray might bounce.

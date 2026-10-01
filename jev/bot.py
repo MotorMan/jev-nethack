@@ -595,7 +595,7 @@ class Bot:
                 # passive only when boxed in: an ID zap at a floating eye 3 steps off was polymorph, it became a red dragon (T4125)
                 # also in a losing melee: two unknown wands stayed in the pack while an ogre took 69 -> 0 (T4539)
                 # 'weaker' foes count when adjacent: two Woodland-elves took 67 -> 0 while the wand of magic missile went at a C 5 steps south (T5738)
-                if ('wand of' in wand['text'] and not re.search(r'sleep|fire|cold|lightning|magic missile', wand['text']) or self.ray_room(me, (dx, dy)) >= 7) \
+                if ('wand of' in wand['text'] and not re.search(r'sleep|fire|cold|lightning|magic missile', wand['text']) or self.ray_room(me, (dx, dy)) >= 7 or hp * 3 < hpmax and m['dist'] <= 1) \
                         and (m['passive'] and len(dist) <= 3 or hp < 0.5 * hpmax and ('weaker' not in self.threat(m) or m['dist'] <= 1)) and (2 if 'gas spore' in m['name'] else 1) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     opts[f'zap_{d}'] = (f"Zap {wand['text']} at {m['name']}", f"Zap wand {wand['letter']} {DIR_NAME[d]} at the {m['name']} {m['where']}. Unknown effect; many wands kill or move monsters, and it identifies the wand.", lambda l=wand['letter'], d=d, t=(wand['text'], s.get('dlvl')): self.act_zap(l, d, t))
@@ -680,9 +680,11 @@ class Bot:
                 del opts['wait']  # 0.4: at 25/53 Elbereth was dropped for a walk to a corridor beside a rothe, 25 -> 8 garbling retries (T3712)  # wiki: Elbereth is breathing room; a corridor is how to actually fight a group
             opts.pop('elbereth', None)
 
+        # an ape took 38 -> 3 with only 'attack' on offer, prayer 100 turns old, two unknown potions and an unknown wand unused (T4683)
+        no_god = self.run.get('prayed_turn') is not None and (s.get('turn') or 0) - self.run['prayed_turn'] < 500 or self.run.get('god_angry')
         if danger:
             for it in self.inventory:  # unknown potion beside a Woodland-elf at 25/90: asleep, dead (T9392); an unknown potion on a working Elbereth: 11% heal, sleeping killed a Jev the warhorse was fleeing from
-                if re.search(r'\bpotions?\b', it['text']) and (not self.engraved_here() or shot and LOW_HP(s) or 'healing' in it['text']) and ('healing' in it['text'] or LOW_HP(s) or not any(m['dist'] <= 1 for m in hostiles)) \
+                if re.search(r'\bpotions?\b', it['text']) and (not self.engraved_here() or shot and LOW_HP(s) or 'healing' in it['text']) and ('healing' in it['text'] or LOW_HP(s) or no_god or not any(m['dist'] <= 1 for m in hostiles)) \
                         and not re.search(r'sleeping|blindness|hallucination|confusion|booze|sickness|paralysis|water|oil|clear', it['text']):  # clear = water: 4 blind quaffs of it vs a housecat pack (T2801); drank a known potion of sleeping held by an ape (T9512)
                     opts[f"quaff_{it['letter']}"] = (f"Quaff {it['text']}", f"Drink this potion hoping it heals.{danger}", lambda l=it['letter']: (self.act_keys('q' + l, 'quaffed'), self.read_inventory())[0])  # stale inventory re-offered a drunk potion 3-4 times in a fight (T2801, T5616)
                     break
