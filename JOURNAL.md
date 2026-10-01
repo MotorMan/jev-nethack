@@ -1553,3 +1553,12 @@ A hill orc pack. Jev zapped magic missile, and "The magic missile bounces!" matc
 ## Run 20261001-085317: Mordor orc, T4528, Dlvl 6 (XL 5)
 Nymphs in Minetown had stripped Jev down to a knife (AC 10). Beside two Mordor orcs it alternated "engrave Elbereth" and "attack" 4 times (each attack erases it): 17 -> 6. Attacks were offered on Elbereth because `shot` was set by "The knife misses it. You are hit."
 **Fix:** right after a successful engrave, attack options are dropped unless an @ or minotaur is adjacent.
+
+## 2026-10-01: three engines in parallel
+- LunaRoute serves two Jev-protocol (systemone) models, kev-4b and djev; everything else there is a chat model. Running:
+  - `Jev` on 8770: kev-4b (`scripts/play.sh Jev 8770 https://gw.lunaroute.com/v1/systemone kev-4b kev-4b`)
+  - `Hosted` on 8771: hosted Jev (`scripts/play.sh Hosted 8771`), spending the shared $25 budget
+  - `Djev` on 8772: djev (`scripts/play.sh Djev 8772 https://gw.lunaroute.com/v1/systemone djev djev`)
+- Each instance keeps its own save and `runs/NAME/runs.json` (Jev's is `runs/`). Stats come from the `engine` field across those files.
+- `python -m jev.watch` now watches all three: keys 1-3 or Tab switch games, q quits, and the top bar shows each game's turn.
+- A code fix now means restarting all three.

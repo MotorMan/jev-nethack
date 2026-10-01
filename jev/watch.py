@@ -1,7 +1,7 @@
-"""Watch Jev play in a terminal: python -m jev.watch [http://127.0.0.1:8770]"""
-import json, shutil, sys, time, urllib.request
+"""Watch Jev play in a terminal: python -m jev.watch [URL ...]   (default: ports 8770-8772; keys 1-9 or tab switch games, q quits)"""
+import json, select, shutil, sys, termios, time, tty, urllib.request
 
-URL = (sys.argv[1] if len(sys.argv) > 1 else 'http://127.0.0.1:8770') + '/api/state'
+URLS = [u.rstrip('/') + '/api/state' for u in sys.argv[1:]] or [f'http://127.0.0.1:{p}/api/state' for p in (8770, 8771, 8772)]
 FG = {'black': 30, 'red': 31, 'green': 32, 'brown': 33, 'yellow': 93, 'blue': 34, 'magenta': 35, 'cyan': 36, 'white': 37,
       'brightblack': 90, 'brightred': 91, 'brightgreen': 92, 'brightyellow': 93, 'brightblue': 94, 'brightmagenta': 95,
       'brightcyan': 96, 'brightwhite': 97}
@@ -26,13 +26,13 @@ def bar(p, w=20):
     return '█' * n + '·' * (w - n)
 
 
-def frame(s):
+def frame(s, tabs=''):
     w, rows = shutil.get_terminal_size()
     st, d, j, run = s['status'], s['decision'], s['jev'], s['run']
     model = (run.get('models') or [run.get('engine') or j.get('last_model') or 'Jev'])[-1]  # the version the engine reports (jev-1.13.0, a Jeff checkpoint...)
     recent = [h['latency_ms'] for h in s['history'] if h.get('latency_ms')][-10:]  # single-option turns skip the engine: 0 ms
     lines = [f"{BOLD}{st.get('name') or 'Jev'} plays NetHack{RST} on {BOLD}\x1b[96m{model}{RST}{f' {sum(recent) // len(recent)}ms' if recent else ''}  {DIM}{s['mode']} · run {run['id']} · {s['phase']}{' · PAUSED' if s['paused'] else ''}{RST}",
-             f"{DIM}{'─' * min(w, 80)}{RST}"]
+             tabs or f"{DIM}{'─' * min(w, 80)}{RST}"]
     lines += screen(s['screen']['rows'])
     lines.append(f"{DIM}{'─' * min(w, 80)}{RST}")
     opts = sorted(d.get('options') or [], key=lambda o: -(o.get('p') or 0))[:6]
@@ -55,20 +55,47 @@ def frame(s):
     return '\x1b[H' + '\n'.join(l + RST + '\x1b[K' for l in lines[:rows]) + '\x1b[J'  # never taller than the terminal: scrolling pushed the title off
 
 
+def label(url):
+    try:
+        s = json.load(urllib.request.urlopen(url, timeout=1))
+        return f"{s['status'].get('name') or '?'}·{(s['run'].get('models') or [s['run'].get('engine') or 'jev'])[-1]} T{s['status'].get('turn') or 0}"
+    except (OSError, ValueError, KeyError):
+        return url.split(':')[-1].split('/')[0] + ' down'
+
+
 def main():
+    cur, names, seen = 0, {}, 0
+    tty_ok = sys.stdin.isatty()
+    old = termios.tcgetattr(sys.stdin) if tty_ok else None
+    if tty_ok:
+        tty.setcbreak(sys.stdin)
     sys.stdout.write('\x1b[?25l\x1b[?7l\x1b[2J')  # no auto-wrap: a long line wrapping also scrolled
     try:
         while True:
+            while tty_ok and select.select([sys.stdin], [], [], 0)[0]:
+                k = sys.stdin.read(1)
+                if k == 'q':
+                    return
+                if k == '\t':
+                    cur = (cur + 1) % len(URLS)
+                elif k.isdigit() and 0 < int(k) <= len(URLS):
+                    cur = int(k) - 1
+                sys.stdout.write('\x1b[2J')
+            if time.time() - seen > 5:  # the other games' turn counters
+                names, seen = {i: label(u) for i, u in enumerate(URLS)}, time.time()
+            tabs = '  '.join((f'{BOLD}\x1b[7m {i + 1} {n} {RST}' if i == cur else f'{DIM}{i + 1} {n}{RST}') for i, n in names.items()) if len(URLS) > 1 else ''
             try:
-                s = json.load(urllib.request.urlopen(URL, timeout=5))
-                sys.stdout.write(frame(s))
+                s = json.load(urllib.request.urlopen(URLS[cur], timeout=5))
+                sys.stdout.write(frame(s, tabs))
             except OSError as e:
-                sys.stdout.write(f'\x1b[H\x1b[2Jwaiting for server at {URL}: {e}')
+                sys.stdout.write(f'\x1b[H\x1b[2J{tabs}\nwaiting for server at {URLS[cur]}: {e}')
             sys.stdout.flush()
             time.sleep(0.25)
     except KeyboardInterrupt:
         pass
     finally:
+        if tty_ok:
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old)
         sys.stdout.write('\x1b[?25h\x1b[?7h' + RST + '\n')
 
 
