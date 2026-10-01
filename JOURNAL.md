@@ -2010,3 +2010,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Wiki:** Wolf/warg: they come in packs, so fight from Elbereth or a corridor. Don't walk into the open while two of them are close.
 - **Fix:** `duo`, two or more non-weaker hostiles within 3 squares, also holds the bot on a working Elbereth.
 - The recurring pace problem (XL 5 on Dlvl 7) is still open with the operator.
+
+## Run 20261001-164712 — killed by a hill orc (T6093, Dlvl 7, XL 6, AC -3)
+- **Cause:** about 13 hill orcs arrived one or two at a time in Minetown, and one zapped a wand of striking. Elbereth is no help against wands, and its engraving was wiped or garbled while fighting. It went 35 → 16 in one turn, then down to 11/63 with three orcs adjacent. Prayer wasn't offered because 11 is above the 1/7 low-HP threshold, and none of its six unknown potions was offered while orcs were adjacent. Dead next turn.
+- **Wiki:** Potion: when death is otherwise certain, an unknown potion is a fair gamble. Healing-family potions are about 12% of potions, and few outcomes are worse than dying. A wand-zapping orc is a priority kill.
+- **Fix:** below 1/4 HP with two or more hostiles adjacent, unknown potions are offered even in melee.
