@@ -943,7 +943,7 @@ class Bot:
             # a kobold dug a hole in the only doorway: refusing it boxed Jev in a stub for 5000 turns, starved (T9952). trap.c: holes drop 1+ levels in this dungeon
             opts['dead_end'] = ('Jump into the hole', f"The only way out is a hole/trap door at {hole[0]}. Step into it and fall to a lower level.", lambda h=hole: self.act_hole(*h))
         if 'dead_end' in opts and not near:
-            opts = {k: v for k, v in opts.items() if k in ('dead_end', 'pray') or k.startswith('eat_')}
+            opts = {k: v for k, v in opts.items() if k in ('dead_end', 'pray') or k.startswith(('eat_', 'pickup_'))}  # pickups: stood on a wand and a scroll, both dropped by this filter, starved (T6672)
         if not fr and not downs:
             if not walled: self.run['walled'] = s.get('turn') or 0
             # boxed in by Minetown's peaceful gnomes, meleed the eye at once: frozen, killed by an imp (T7290). Wait them out first.
@@ -990,7 +990,7 @@ class Bot:
             fr = self.frontiers(dist)
             if fr:
                 opts['explore_again'] = ('Re-explore this level', f"Searching found nothing, but there are unexplored edges again ({len(fr)} of them, nearest {fr[0][0]} steps {compass(me, fr[0][1])}).", lambda p=fr[0][1]: self.act_explore(p))
-        if not fr and not downs and not near and 'kill_blocker' not in opts:  # walled in: searching finds nothing
+        if not fr and not downs and not near and 'kill_blocker' not in opts and 'dead_end' not in opts:  # walled in: searching finds nothing  # search_hidden won 123 of 125 dead_end offers: 5000 turns on one Dlvl 3, starved (T6672)
             spot = self.search_spot(dist)
             if spot:
                 opts['search_hidden'] = ('Search for hidden passages', f"No unexplored edges or downstairs are known. Walk {dist[spot]} steps {compass(me, spot)} to a likely spot (dead end or wall) and search there.", lambda: self.act_search_at(spot))

@@ -1646,3 +1646,6 @@ It zapped an unknown wand at an adjacent kobold lady with a wall close behind he
 
 ## Hosted 101910 — giant bat while fainted, T5749, Dlvl 3
 Lycanthropy: the first shift (T4627) dropped the splint mail, shield and spear. A second shift (T4694) dropped nothing, but its "You turn into a were" message overwrote the drop spot, so fetch_gear never went back for the pile. The bot, unarmed and at AC 10, starved for 900 turns near a floating eye on a level with no '>' found. Fix: the drop spot is set only by the real drop messages ("Your armor falls", "You find you must drop", "can no longer hold your").
+
+## Djev 102146 — starvation, T6672, Dlvl 3
+It spent 5000 turns on a Dlvl 3 whose way on was past a boulder stuck at a corridor bend, living on prayers until one was too soon. 'dead_end' (go up) was offered 125 times, but search_hidden was offered beside it and won 123 times. The dead_end filter also dropped pickups, so it stood on a copper wand and a scroll without taking either. Fix: search_hidden isn't offered alongside dead_end, and the dead_end filter keeps pickup_ options.
