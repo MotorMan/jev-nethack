@@ -1368,3 +1368,6 @@ A red dragon (difficulty 20, probably from a bones file or a polymorph trap) tur
 
 ## Run 20261001-062248: hill orc, T3665 (Dlvl 5, XL 5, AC 10)
 Lycanthropy struck twice. The first time (T3167), Jev went back for the gear it shed. The second time (T3397), the prayer at T3432 cured it, but "recover_gear" required no monster in view at all, and a speed-3 rock mole stayed nearby for over 200 turns. Jev fought on at AC 10 with an orcish dagger until hill orcs killed it. Fix: recover_gear is now offered whenever no hostile is adjacent. Other options are only filtered out when nothing is in view.
+
+## Run 20261001-062622: giant spider while Fainting, T2759 (Dlvl 7, XL 5)
+Jev's first prayer (T2728, Weak) got "Tyr is displeased", and the dumplog says "You had sinned", so its alignment was negative. The cause: 5.0 uhitm.c skips the "Really attack?" prompt while hallucinating, confused or stunned. Hallucinating around T2305, Jev hit peaceful monsters ("gets angry!"), and 10 gnomes plus a dwarf died this game. Each peaceful attacked costs -1 alignment and each one killed -5. With hunger unfixed, Jev fainted and a giant spider killed it. Fix: while Hallu, Conf or Stun, attack, approach, throw and zap options are dropped unless Jev was hit in the last 2 turns.
