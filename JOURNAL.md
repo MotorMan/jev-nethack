@@ -1389,3 +1389,12 @@ The rothe corpse had been lying there since at least T1902. A hobbit stood on it
 
 ## Run 20261001-065205: hill orc pack (gamble prayer), T2926 (Dlvl 6, XL 5, AC 5)
 A hill orc pack took Jev from 59 to 10 HP. Elbereth went back and forth with attacks, and one engraving came out garbled. Jev then made a gamble prayer 380 turns after the last one, and it failed. Jev was carrying an identified wand of digging the whole time, but the bot had no use for it. Fix: below half HP with a hostile adjacent, a 'dig_down' option zaps the wand at '>' and drops Jev a level. It isn't offered in Sokoban or on stairs, altars, thrones or fountains. It survives the low-HP filters, and when the prayer is a gamble it sits beside it. A replay of T2925 offers dig_down and pray.
+
+## 2026-10-01 — Stay on Elbereth while a yellow light is near
+Run 20261001-065349 died at T4702 on Dlvl 6. A hill orc killed Jev while it was praying.
+
+- At T4658 Jev engraved Elbereth with a yellow light 4 squares north.
+- Next turn the options were wait or explore. Jev explored, "moved right into the yellow light", and the explosion blinded it.
+- Blind, Jev fought unseen hill orcs and went from 56 to 4 HP. Four Elbereth attempts were interrupted by attacks, and the final prayer failed.
+
+Fix: when Jev stands on Elbereth and a yellow light is one of the threats, the explore, goto, fetch and pickup options are removed. That leaves waiting on Elbereth (which yellow lights respect), throwing, or attacking.
