@@ -1120,3 +1120,7 @@ Fix: 'ascend' is only forced when no active hostile is within 3 steps. The garbl
 ## Killer bees: a goblin's dagger pulled Jev off Elbereth (T2693, Dlvl 5)
 Jev waited about 60 turns on Elbereth beside a beehive. It threw once and meleed once, which cost 37 → 8 HP and max HP 37 → 29 from poison, then re-engraved. While it waited, a goblin down the corridor threw an orcish dagger. The shooter memory from 56531d8 marked Jev as "shot" for 20 turns, so 'wait' wasn't offered, and Jev explored off Elbereth into the bees.
 Fix: when the shooter is weaker than Jev and a stronger monster is within 3 squares, Jev stays on Elbereth: the bees are a far bigger risk than a goblin's d3 dagger. A replay of T2691 showed only 'explore' before the change and offers 'wait' after it.
+
+## Rope golem + snake on Dlvl 8 at XL 4 (T2908)
+A hole dropped Jev from Dlvl 5 to Dlvl 8, and it was still exploring there to find '<'. A rope golem (stronger) and a snake reached it. At 22/43, with Elbereth on offer, kev-4b chose to swing: 22 → 10. The late Elbereth was then interrupted by the fast snake, and that blocks re-engraving for 5 turns. Jev went back to swinging and died.
+Fix: when Elbereth is on offer, HP is below 60% and an adjacent hostile is stronger than Jev, Elbereth (or pray/quaff) is forced. A replay of T2907 offered attack or Elbereth before the change and forces Elbereth after it.
