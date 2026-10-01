@@ -1136,3 +1136,8 @@ Fix: the block is keyed to the monsters that were adjacent when it was set (`e_b
 ## Killer bees while Weak (T3493, Dlvl 6)
 Jev was Weak from hunger with low HP and no food. 'pray' was offered at T3458 onward, 844 turns after the last prayer, so very likely safe. kev-4b kept choosing attack, descend and throw instead. It went down to Dlvl 6 into killer bees and fainted there.
 Fix: when Jev is Weak or Fainting, 'pray' is on offer and no eat option exists, 'pray' is forced.
+
+## Giant ant on Dlvl 8 (T5591)
+Jev was XL 6, Weak, and had prayed 50 turns earlier, so it couldn't pray again. With Elbereth on offer, kev-4b meleed a speed-18 giant ant from 28 down to 14. The late Elbereth then came out garbled, the retry was interrupted, and Jev died.
+Fix: below 40% HP with a non-@ hostile adjacent, Elbereth (or pray/quaff) is forced.
+Still open: food. This run reached Weak twice with nothing to eat.
