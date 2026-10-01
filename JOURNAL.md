@@ -1311,3 +1311,6 @@ Jev was in a spiked pit, choked by two rope golems. A successful prayer at T5692
 
 ## Run 20261001-045805: rope golem (T3597, Dlvl 7, XL 5)
 A rope golem grabbed Jev at 23/59, and "You can't reach the ground" refused each Elbereth. An old garbled engraving still lay on the square, so every refusal was logged as "garbled", 3 times per turn, and the new `no_engrave` never fired. 23 → 5 → 0. Fix: act_elbereth checks for "can't reach the floor/ground" directly. The prayer at T3125 most likely angered Tyr, so none was available.
+
+## Run 20261001-050355: Woodland-elf, praying on T9414 (Dlvl 4)
+Took the downstairs at 23/31 HP and arrived next to 3 wolves, a Woodland-elf and a rothe. Jev stood on '<' and zapped the wand of striking three times (23 -> 6 HP), then prayed only 630 turns after the last prayer and died. Fix: when standing on '<' with 3 or more hostiles adjacent and a pack or a much stronger monster present, offer only 'upstairs' or 'pray'. Wolves can't follow, because they lack M2_STALK.
