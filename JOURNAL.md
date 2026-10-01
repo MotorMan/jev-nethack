@@ -1010,3 +1010,6 @@ djev (the Gemma diffusion Jev) is hosted on LunaRoute: `https://gw.lunaroute.com
   - An elven mithril-coat sat in the pack. Mithril with unknown BUC was only worn at AC ≥ 7.
   - **Fix:** wear it whenever no body armor is on. Even a cursed one is AC 5, and it rarely blocks anything better.
 - **Sewer rat, T304:** a forced gamble prayer 172 turns after the last one (about 50% odds); the alternatives weren't better.
+
+## 2026-09-30 19:40 — fainted to a giant ant (kev-4b, T2773)
+The T2530 prayer at 9/49 HP was real trouble after all: pray.c's critically_low_hp uses divisor 5 at XL 1-5, so 45 ≤ 49 and it healed fully. LOW_HP now carries pray.c's full divisor table (8 at XL 22-29, 9 at 30). The actual death: Weak with no food in the pack, prayer on timeout, and a food item 20 steps away, past fetch's 15-step radius. 'rest' was the only reasonable option, kev-4b took it 9 times until it fainted. Now, while Weak/Fainting, fetch looks for food across the whole visible map, and 'rest' is dropped when there is no food option.
