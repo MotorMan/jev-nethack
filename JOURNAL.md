@@ -1022,3 +1022,6 @@ Blind in Minetown, "You feel an unseen monster!" put an 'I' next to Jev and the 
 
 ## 2026-09-30 20:30 — giant bat, praying (kev-4b, T4860, Dlvl 4, XL 5)
 No single bug. A slow game: XL 5 with 179 exp at T4800, four prayers spent on HP (1756/2677/3710/4607), ~100 turns camped on Elbereth healing beside a sleeping leprechaun. A swarm of weak spawns (fox, manes, giant rat, newt, giant bat) took 31 -> 8 in three turns once it fought off the square; the re-engrave garbled and the 250-turn gamble prayer failed. Left as is; watching whether kev-4b games are generally this slow compared with hosted Jev's.
+
+## 2026-09-30 20:45 — fainted to a snake in the Mines (kev-4b, T3298, Dlvl 8)
+Dwarven Valkyrie in the Gnomish Mines: gnomes, dwarves and hobbits are peaceful, so almost no corpses; 7 gold, no shops for food. Prayed for HP at 2796 while Hungry, Weak by 2820 (a bugbear corpse fixed it), Fainting by 3121 and fainting for 177 turns with no prayer offered (325 turns since the last; the bar was 500, and 'starving' waits 230 turns of fainting). A snake killed it mid-faint. Fainting now offers prayer 300 turns after the last one.

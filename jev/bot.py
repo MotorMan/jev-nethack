@@ -631,8 +631,9 @@ class Bot:
         # 5.0 source: timeout starts at 300, drops 1/turn, and major trouble (all of these) is fixed at <= 200
         # rnz(350) is heavy-tailed, so waiting buys little: P(rnz - elapsed < 200) is .66 at 300, .87 at 500, .94 at 1000 turns (simulated;
         # nethack-tools' prayer timer uses the same model). 1000 left low-HP Jevs dying unprayed; the gamble below covers dying with a monster adjacent;
+        # Fainting bets at 300 (P ~.66): 177 turns fainting 325 after a prayer, a snake killed it mid-faint long before starvation (T3298)
         # starving is certain death, so hunger bets earlier (1000 let a Weak Jev faint to death 640 turns after praying; 600 did it again at 524, T5771)
-        if trouble and not self.run.get('god_angry') and (fatal or starving or (turn - last >= {'Weak': 1000 if not any(m['dist'] <= 1 for m in hostiles) else 500}.get(s.get('hunger'), 500) if last is not None else turn >= 110)):
+        if trouble and not self.run.get('god_angry') and (fatal or starving or (turn - last >= {'Weak': 1000 if not any(m['dist'] <= 1 for m in hostiles) else 500, 'Fainting': 300}.get(s.get('hunger'), 500) if last is not None else turn >= 110)):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else 'lycanthropy: you will turn into a jackal' if lyc and s.get('hunger') not in ('Weak', 'Fainting') else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
         # a fresh Elbereth beats a coin-flip prayer: 176 turns after praying, the forced gamble at 10/54 on a new Elbereth angered Tyr, dead to an Uruk-hai (T4295)
         elif (LOW_HP(s) or s.get('hunger') == 'Fainting' and any(m['dist'] <= 3 and not m['passive'] for m in hostiles)) and (any(m['dist'] <= 7 for m in hostiles) or self.unseen_attacker()) and last is not None and turn - last >= 100 \
