@@ -1222,3 +1222,8 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - Jev was in Minetown, Hungry, on a 37-step explore. Izchak and a watchman left view just as a rope golem and a wood nymph came into view.
 - The walk's "monster came into view" check compares counts, so it never fired. Jev bumped into the golem and was grabbed. Then it prayed for being Weak while the nymph charmed off its armor, and the golem choked it.
 - Fix: a walk also stops when a monster glyph not seen at the start of the walk appears within 7 squares.
+
+## 20261001-025953: giant ant while praying, T6466, Dlvl 7, XL 5
+- Elbereth wore off with a yellow light adjacent. Jev's melee swing missed, the light exploded and blinded Jev, and an unseen giant ant bit it from 23 HP down to 10.
+- The low-HP prayer came 707 turns after the last one and failed: the rnz(350) timeout has a long tail.
+- No code change. The yellow-light handling was right (killing it in melee stops the explosion), and the failure was dice.
