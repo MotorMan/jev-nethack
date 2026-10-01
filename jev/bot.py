@@ -556,7 +556,7 @@ class Bot:
         hallu = bool(set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl'})  # names are random: closed in on a 'nickelpede' that was a mumak at 39/73, dead (T7654)
         # a pyrolisk's fire gaze reaches across the room and Elbereth does nothing about it (wiki); it is slow (6) with a 1d6 bite: close in.
         # Waited on Elbereth 2 squares from one at 16/75 while it gazed, dead (T7302)
-        for m in near[:2] if not (danger or pack or hallu and hp < 0.8 * hpmax) else [m for m in near if 'pyrolisk' in m['name']]:  # walking into a fight at a third of max HP killed three giant-bat runs
+        for m in near[:2] if not (danger or hp * 2 < hpmax or pack or hallu and hp < 0.8 * hpmax) else [m for m in near if 'pyrolisk' in m['name']]:  # walking into a fight at a third of max HP killed three giant-bat runs; at 18/47 closed in on a giant ant + werejackal, 18 -> 6, failed prayer (T4446)
             if m['dist'] > 1 and m['pos'] in dist and not re.search(r'unicorn|yellow light|nymph', m['name']):  # nymph: stepping up to one cost a shield and a helm in one game, AC 10, dead (T6402); throw or let her come  # yellow light: its explosion blinds 10d20 turns, 5 of 6 blind deaths; throw instead (wiki). unicorn: speed 24, keeps its distance, butt+kick took 24 HP in one turn
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
         strong = False
