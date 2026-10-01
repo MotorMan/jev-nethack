@@ -1448,3 +1448,12 @@ Run 20261001-071653 died to a yeti at T5954 on Dlvl 9.
 Fixes:
 - "desecrate my altar" no longer sets god_angry.
 - Elbereth is never offered while standing on an altar.
+
+## 2026-10-01 — One-turn waits must use the m prefix (safe_wait)
+Run 20261001-072204 died to a gecko at T3299 on Dlvl 6.
+
+- The new "Wait one turn" option sent a plain `s`. With 5.0's safe_wait (do.c cmd_safety_prevention), `s` beside a monster only prints "You already found a monster. Use 'm' prefix…" and takes no time.
+- Jev re-chose that no-op wait dozens of times between 15-turn searches while something bit it from 14 HP down to 1.
+- The other wait options already used `ms`. The stun wait and the "let it move off" wait had the same bug.
+
+Fix: every one-turn wait now sends `ms`.

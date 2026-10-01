@@ -638,7 +638,7 @@ class Bot:
         if stun or set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Conf', 'Cnf'} and (s.get('turn') or 0) - self.run.get('hit_turn', -99) > 2:
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'throw_', 'zap_', 'explore', 'retreat', 'choke', 'goto_'))} or opts
             if stun:
-                opts.setdefault('wait', ('Wait out the stun', 'You are stunned: any move or attack goes in a random direction. Search in place one turn until it wears off.', lambda: self.act_keys('s', 'waited')))
+                opts.setdefault('wait', ('Wait out the stun', 'You are stunned: any move or attack goes in a random direction. Search in place one turn until it wears off.', lambda: self.act_keys('ms', 'waited')))
         if (near and hp < 0.7 * hpmax or dread or pack or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} \
                 and sum(h['choice'] == 'elbereth' and 'interrupted' in h['outcome'] for h in self.history[-4:]) < 2 \
@@ -919,7 +919,7 @@ class Bot:
         if not near and not any(m['dist'] <= 4 and not m['passive'] for m in hostiles) and not self.unseen_attacker() and s.get('hp', 1) < 0.85 * s.get('hpmax', 1):  # a pony 3-4 squares off but outside 'dist' (unreachable square): rested 15 turns at 16/41, 18 -> 7, dead praying (T2658)  # blind, Jev rested beside an orc and died (T3212)
             opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
         elif not near and s.get('hp', 1) < 0.5 * s.get('hpmax', 1) and any(m['dist'] <= 4 and not m['passive'] for m in hostiles):
-            opts['wait'] = ('Wait one turn', 'Hurt, with a monster close by: let it come to you and get the first hit rather than walking around.', lambda: self.act_keys('s', 'waited'))
+            opts['wait'] = ('Wait one turn', 'Hurt, with a monster close by: let it come to you and get the first hit rather than walking around.', lambda: self.act_keys('ms', 'waited'))
         if not fr and not downs and ups and sum(lv.searched.values()) >= 1000 and not self.soko() and s.get('dlvl', 1) > 1:  # Dlvl 1's '<' leaves the dungeon
             # a Mines level whose '>' was never found: 6000 turns of searching, living on prayer, fainted (T11246). Go up, try another way down
             opts['dead_end'] = ('Give up on this level and go back up', f"You have searched this level for {sum(lv.searched.values())} turns without finding a way down. Climb to Dlvl {s.get('dlvl', 0) - 1} and look for another down staircase.", lambda p=ups[0]: self.act_dead_end(p))
@@ -1452,7 +1452,7 @@ class Bot:
                 self.run['soko_plan'][m[0]].pop(0)
             return f"pushed the boulder {DIR_NAME[k]}" + (f": {news[:100]}" if news else '')
         if 'monster behind' in news or 'perhaps that' in news:
-            self.act_keys('s', '')  # let it move off: retrying in the same turn just tripped the stall guard
+            self.act_keys('ms', '')  # let it move off: retrying in the same turn just tripped the stall guard
         elif 'in vain' in news:  # something unseen behind it: pushed 'in vain' 200+ turns (soko3-1 T3610); force a replan now
             self.run.setdefault('soko_stuck', {})[(m[0], self.run['soko_step'].get(m[0], 0))] = -99
         return 'push failed' + (f": {news[:120]}" if news else '')
