@@ -1908,3 +1908,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** a 130-turn bleed-out. The bot camped on Elbereth and rested among zombies, an ape, a giant ant, coyotes and a rope golem. Cornered monsters panic-attack anyway, so it slowly dropped 29 -> 1. The prayer at 12 HP did nothing. 4 unknown scrolls and an unknown wand stayed unused. The forced Elbereth-wait filter would have dropped a teleport option even if one had been offered.
 - **Wiki:** Elbereth is breathing room, not healing, in a busy spot. Once prayer is gone, unknown scrolls are a teleportation lottery worth taking.
 - **Fix:** with the prayer used (or the god angry), LOW_HP and a hostile within 3, offer reading an unknown scroll as 'teleport'. The forced Elbereth-wait filter now keeps 'teleport'.
+
+## Run 20261001-144419: killed by her own bolt of fire on T7065 (Dlvl 7, XL 8)
+- **Cause:** my b984ca7 change. Below 1/3 HP it let the bot zap any wand at an adjacent foe even without room for the ray. Blind in a corridor at 26/92, it zapped a known wand of fire at an unseen attacker. The ray bounced off the nearby wall and hit it back (Valkyries resist cold, not fire). Dead.
+- **Wiki/source:** zap.c buzz() rays travel rn1(7,7) squares and bounce off walls, so a wall close behind the target sends the ray back through you. Only zap known ray wands where there's room.
+- **Fix:** skip the room check only for unknown wands; known ray wands always need 7 squares of room. Also open: AC 10 with a plate mail in the pack (blind, Hungry).
