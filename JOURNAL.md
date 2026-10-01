@@ -1032,3 +1032,6 @@ Also: a polished silver shield (always the shield of reflection, objects.h) next
 
 ## 2026-09-30 21:35 — housecat, blind and Weak (kev-4b, T5933, Dlvl 7)
 Weak with no food, a swarm appearing ("suddenly appears close by"), then a yellow light exploded: blind at 22/60 with a housecat biting. Weak prays at 500 turns since the last prayer with a monster adjacent, 1000 otherwise; blind, the housecat was no longer "adjacent", so at 962 turns the prayer was withdrawn and the only option was to wait. Being hit in the last 2 turns now counts as adjacent. (It also wore a cursed -1 helm of opposite alignment; 5.0 attrib.c wipes the alignment record to 0, so prayer still works.)
+
+## 2026-09-30 21:50 — panther in Sokoban (kev-4b, T4119)
+No fix. Pushing boulders at 65/65, AC 2, XL 6: a panther (two d6 claws and a d10 bite) took it 65 -> 43 -> 19 -> 9 in three turns. The prayer at 9/65, 764 turns after a good one (both earlier prayers "well-pleased", no luck penalties seen), was the right bet (~90%) and lost to rnz's tail.
