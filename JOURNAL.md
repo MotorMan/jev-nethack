@@ -825,3 +825,6 @@ Unknown wands can now also be zapped at a monster that isn't weaker than Jev onc
 
 ## 09:55 — Lycanthropy mid-fight
 Run 202106 was killed by a werejackal at T2711. A bite at T2642 left Jev "feverish", meaning lycanthropy. Prayer had never been used, but the lycanthropy cure was held back whenever a hostile was within 2 squares (a wererat death at 18/46 HP once followed curing it mid-fight). Jev waited on Elbereth at 26-31/41 HP beside the werejackal, which ignores Elbereth, and turned into a jackal at T2676. That dropped the +3 shield and the +1 spear, and the werejackal picked them up and killed Jev with them. The cure (pray.c: TROUBLE_LYCANTHROPE is major trouble) is now also allowed mid-fight at 60% HP or more.
+
+## 10:05 — Arrows for floating eyes
+Run 202259 was boxed in by a floating eye on Dlvl 4. Its only ranged items were 7 orcish arrows, which the missile list ignored, so "kill the blocker" was the only option. Jev meleed the eye, was paralysed, and starved by T2426. uhitm.c: hand-thrown ammo does rnd(2) damage, which is poor but safe against a passive monster, and pickup_thrown brings the arrows back. Arrows and bolts are now thrown at passive monsters when nothing better is carried, and the melee option is hidden for a floating eye while any throw or zap option exists.

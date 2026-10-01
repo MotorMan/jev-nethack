@@ -478,12 +478,14 @@ class Bot:
         nymph_throw = None  # nymphs stole a ration, spear, shield and slime molds in one game: hit them before they arrive
         missiles = [it for it in self.inventory if re.search(r'\b(daggers?|knife|knives|darts?|shuriken|spears?|javelins?)\b', it['text'])
                     and 'weapon in' not in it['text'] and 'wielded' not in it['text'].replace('not wielded', '')]
-        if missiles and not on_e:
+        # hand-thrown arrows do rnd(2) (uhitm.c): only for passives. Boxed by a floating eye with 7 arrows, meleed it, paralysed, starved (T2426)
+        arrows = [it for it in self.inventory if re.search(r'\b(arrows?|bolts?)\b', it['text'])]
+        if (missiles or arrows) and not on_e:
             for m in hostiles:
                 dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
-                if (1 if m['passive'] and 'gas spore' not in m['name'] else 2) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
+                if (missiles or m['passive']) and (1 if m['passive'] and 'gas spore' not in m['name'] else 2) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
-                    it = missiles[0]
+                    it = (missiles or arrows)[0]
                     opts[f'throw_{d}'] = (f"Throw {it['text']} at {m['name']}", f"Throw item {it['letter']} {DIR_NAME[d]} at {m['name']} {m['where']}. Safe way to hit monsters you must not melee (floating eyes, molds); pick it up again afterwards.", lambda l=it['letter'], d=d: self.act_throw(l, d))
                     if 'nymph' in m['name'] and m['dist'] >= 2:
                         nymph_throw = f'throw_{d}'
@@ -785,6 +787,8 @@ class Bot:
                            else "Last resort: if it survives a hit it may paralyze you for a long time while other monsters attack; killing it in one blow is safe" if m['ch'] == 'e'
                            else "It hurts you passively when you hit it; the fight stops if HP gets low")
                     opts['kill_blocker'] = (f"Kill the {m['name']} blocking the way", f"The {m['name']} {m['where']} blocks the only way out: you are stuck here until it dies. Walk next to it and fight it. {why}.", lambda m=m: self.act_kill_blocker(m['pos']))
+                    if m['ch'] == 'e' and any(k.startswith(('throw_', 'zap_')) for k in opts):
+                        del opts['kill_blocker']  # throw at it instead: melee paralyses for up to 127 turns
         if not fr and not downs and not near and sum(lv.searched.values()) >= 300 * (lv.resets + 1):
             # searched a long time for nothing: level memory may be hiding real exits (a starved run had an open doorway in view)
             lv.resets += 1
