@@ -470,7 +470,8 @@ class Bot:
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     opts[f'zap_{d}'] = (f"Zap {wand['text']} at {m['name']}", f"Zap wand {wand['letter']} {DIR_NAME[d]} at the {m['name']} {m['where']}. Unknown effect; many wands kill or move monsters, and it identifies the wand.", lambda l=wand['letter'], d=d: self.act_throw(l, d, 'z'))
         pack = len(near) >= 3 and sum((MONSTERS.get(self.species(m)) or [1])[0] for m in near) > 2 * (s.get('xl') or 1)  # stepped off Elbereth into four wargs: 69 -> 0 HP in 4 turns
-        for m in near[:2] if not (danger or pack) else ():  # walking into a fight at a third of max HP killed three giant-bat runs
+        hallu = bool(set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl'})  # names are random: closed in on a 'nickelpede' that was a mumak at 39/73, dead (T7654)
+        for m in near[:2] if not (danger or pack or hallu and hp < 0.8 * hpmax) else ():  # walking into a fight at a third of max HP killed three giant-bat runs
             if m['dist'] > 1 and m['pos'] in dist and not re.search(r'unicorn|yellow light', m['name']):  # yellow light: its explosion blinds 10d20 turns, 5 of 6 blind deaths; throw instead (wiki). unicorn: speed 24, keeps its distance, butt+kick took 24 HP in one turn
                 opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}.", lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
         strong = False

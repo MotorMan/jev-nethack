@@ -685,3 +685,6 @@ Run 165106 (XL 6, Dlvl 7, T3840) had its armor stolen by a water nymph at T3195,
 
 ## 2026-09-30 23:50 — trapdoor to Dlvl 6 at XL 2 (variance)
 Run 165317 fell from Dlvl 3 to Dlvl 6 at T1832 (a trapdoor/hole) while still XL 2. It climbed back up to Dlvl 5 as the pace rule intends. There a crowd (hill orc with a wand of fire, giant rat, jackal, gecko, rock mole) caught it at 23 max HP, and the fire bolt finished it. No fix: the ascend-when-too-deep rule did its job, just not fast enough.
+
+## 2026-10-01 00:00 — don't close in while hallucinating and hurt
+Run 165457 (XL 7, Dlvl 8, T7654) was hallucinating at 39/73 HP and chose "Close in on nickelpede". The monster was really a mumak (4d12 butt), which took it to 10 HP. It then died praying. While hallucinating, every name and threat estimate shown to Jev is random (wiki: Hallucination), so approach options are now dropped when hallucinating below 80% HP. Monsters can still come to Jev, and adjacent ones can still be fought.
