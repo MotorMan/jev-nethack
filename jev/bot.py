@@ -274,8 +274,8 @@ class Bot:
             lv.near.update((x + dx, y + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1))
             recent = ' '.join(self.run['recent'][-3:]) if self.run else ''
             fresh = 'You kill' in recent and 'You destroy' not in recent
-            for p in self.snap.find('%'):
-                lv.corpses.setdefault(p, (s.get('turn') or 0) if fresh and cheb(p, self.snap.me) <= 2 and prev and prev.is_monster(*p) else -10**9 if 'You destroy' in recent and cheb(p, self.snap.me) <= 2 else -10**6)  # only where the kill stood: an old ape corpse next to a new kill was eaten tainted (T4763)
+            for p in self.snap.find('%'):  # 7 for this turn's kill: thrown-dagger kills left uncounted corpses; ~40 kills, 4 eaten, fainted (T3625)
+                lv.corpses.setdefault(p, (s.get('turn') or 0) if fresh and cheb(p, self.snap.me) <= (7 if self.run and any('You kill' in r for r in self.run['recent'][-1:]) else 2) and prev and prev.is_monster(*p) else -10**9 if 'You destroy' in recent and cheb(p, self.snap.me) <= 2 else -10**6)  # only where the kill stood: an old ape corpse next to a new kill was eaten tainted (T4763)
             if self.run is not None:
                 self.run['max_dlvl'] = max(self.run['max_dlvl'], s['dlvl'])
                 self.run['turns'] = s.get('turn') or self.run['turns']

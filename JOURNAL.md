@@ -1232,3 +1232,9 @@ Fix: no 'approach' option toward monsters rated stronger than Jev. Waiting gives
 - Hunger forced 4 prayers in 3800 turns. The last two were gambles that angered Tyr and drained levels: XL 5 to 3, max HP 53 to 33.
 - Fresh corpses were offered 22 times and eaten only twice. The "always eat corpses" filter ran before the explore and descend options were added, so it never had any effect.
 - Fix: run the corpse forcing again after all options are built, whenever no hostile monster is near.
+
+## 20261001-031312: giant ants while fainting, T3625, Dlvl 5 (Mines), XL 5
+- The corpse fix helped: 6 of 12 corpse offers were taken. But Jev ate only about 4 corpses from roughly 40 kills.
+- Corpse freshness was only recorded within 2 squares of Jev, so kills with thrown daggers never counted.
+- Prayers: T2146 (for HP), T2475, T3460 (for HP), then a gamble at T3582 while Fainting. HP prayers keep using up the safety net that hunger needs.
+- Fix: corpses from a kill this turn are dated as fresh up to 7 squares away, as long as the monster stood on that square.
