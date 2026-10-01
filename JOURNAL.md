@@ -1803,3 +1803,8 @@ Rule from the operator: every death is a lesson: cause, wiki prevention, record,
 **Fix:** on a town-flagged level, a door is still refused if no for-sale squares are known, if it's within 3 squares of a for-sale item (the shop door), or if there's a fountain (likely Minetown); other doors get kicked. Still open: sell junk to buy food when starving beside a shop.
 
 Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a shop has one door; its walls hide nothing).
+
+## 20261001-125203 — soldier ant, T6021, Dlvl 8 (XL 6)
+- **Cause:** a trapdoor on Dlvl 7 dropped the bot to Dlvl 8 with no '<' known. It spent 450 turns resting and camping on Elbereth while a soldier ant (speed 18) kept coming back. It was stung on Elbereth at 23 → 7 HP. In 5.0, a scared monster that has no square to flee to still attacks: `panicattk`, monmove.c ~919. The gamble prayer (171 turns since the last one) was suppressed because the bot stood on Elbereth with HP above 5. It died with 4 unknown potions and 5 unknown scrolls.
+- **Wiki (Soldier ant):** Elbereth works, but avoid being surrounded, know where the stairs are, and use escape items (teleportation) when a group threatens. Once you escape, steer clear.
+- **Fix:** being hit within the last 3 turns now cancels the "on Elbereth, don't gamble" exemption and also counts as an attacker for the gamble prayer. STRATEGY now says that being hit on Elbereth means it isn't protecting you (pray, quaff or leave), and not to rest long beside a fast returning monster but to find '<'.
