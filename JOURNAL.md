@@ -688,3 +688,6 @@ Run 165317 fell from Dlvl 3 to Dlvl 6 at T1832 (a trapdoor/hole) while still XL 
 
 ## 2026-10-01 00:00 — don't close in while hallucinating and hurt
 Run 165457 (XL 7, Dlvl 8, T7654) was hallucinating at 39/73 HP and chose "Close in on nickelpede". The monster was really a mumak (4d12 butt), which took it to 10 HP. It then died praying. While hallucinating, every name and threat estimate shown to Jev is random (wiki: Hallucination), so approach options are now dropped when hallucinating below 80% HP. Monsters can still come to Jev, and adjacent ones can still be fought.
+
+## 2026-10-01 00:15 — never close in on nymphs
+Run 170105 (XL 7, Dlvl 6, T6402) was the third nymph-stripped death tonight. Both thefts in it (a +3 small shield at T4335 and an orcish helm at T6326) came right after Jev picked "Close in on mountain nymph". At AC 10 an Elvenqueen and a hill orc killed it. Nymphs steal on contact and teleport away (wiki: deal with them at range or not at all). Nymphs now join unicorns and yellow lights in the "no approach" list: Jev throws at them or lets them come, and still fights one that is adjacent.
