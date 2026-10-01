@@ -1883,3 +1883,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** Elbereth wore off, and the bot closed in on an ape (3 attacks, up to 12 a turn). The engraving garbled, and melee went 38 -> 12 with `attack` as the only option. The bot had prayed 103 turns earlier, so the final gamble at 3 HP failed. Two unknown potions and an unknown iron wand stayed in the pack. Unknown potions were gated on LOW_HP (≤9 at XL 6). The wand was gated on 7 squares of ray room, which a wall rules out when the foe is adjacent.
 - **Wiki:** when prayer is on timeout, unknown potions and wands are the escape items. Use them before HP is critical, since a bad one is rarely worse than dying in melee.
 - **Fix:** if the last prayer was under 500 turns ago (or the god is angry) and HP is below a third, offer the unknown potions with a monster adjacent. Also zap the unknown wand at an adjacent foe even if a ray might bounce.
+
+## Run 20261001-142245: killed by a giant bat on T2942 (Dlvl 4, XL 3, AC 6)
+- **Cause:** at 21/28 the bot left its Elbereth to chase a giant bat. The bat (speed 22) bit about twice a turn, 15 -> 4 in one turn. A prayer healed the bot fully, but it kept meleeing, chose attack over Elbereth at 17 and 14 HP, and died. monsters.json rated the giant bat danger 0, so it showed as "about your level" with no tip.
+- **Wiki:** giant bats are fast and erratic and hit hard for the early game. Let them come to you, fight with F, and don't chase them. They respect Elbereth.
+- **Fix:** giant bat danger 1, plus a "Fight if HP above half...; avoid if below half: Elbereth, quaff or pray early" tip.

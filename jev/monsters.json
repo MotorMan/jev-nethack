@@ -175,7 +175,7 @@
 "ghoul": [5, 6, 0, "", "AC 10, MR 0, claw 1d2 paralysis, claw 1d3"],
 "giant": [8, 6, 0, "", "AC 0, MR 0, weapon 2d10"],
 "giant ant": [4, 18, 0, "", "AC 3, MR 0, bite 1d4; small groups"],
-"giant bat": [3, 22, 0, "", "AC 7, MR 0, bite 1d6"],
+"giant bat": [3, 22, 1, "Fight if HP above half: hit it with F when it lands beside you, never chase it; avoid if HP below half: it bites twice a turn for up to 12, so engrave Elbereth (bats respect it) or quaff/pray early", "AC 7, MR 0, bite 1d6"],
 "giant beetle": [6, 6, 0, "Fight if over half HP; avoid if hurt: 3d6 bite and AC 4, but slow (6), so you can walk away", "AC 4, MR 0, bite 3d6"],
 "giant eel": [7, 9, 0, "", "AC -1, MR 0, bite 3d6, touch wraps"],
 "giant mimic": [11, 3, 0, "", "AC 7, MR 20, claw 3d6 sticks, claw 3d6 sticks"],
