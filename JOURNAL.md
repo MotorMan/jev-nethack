@@ -1800,4 +1800,6 @@ Rule from the operator: every death is a lesson: cause, wiki prevention, record,
 ## Hosted 124912 — coyote while fainted, T6390, Dlvl 2 (never got past it)
 **Cause:** the only way on from Dlvl 2 was a locked door at (57,6). A shop on the level set `town`, and the kick rule refused *every* door on a town level, 13 times ("shopkeepers and the watch punish broken doors"). Jev searched 317 x 15 turns (mostly inside the shop, which can't have secret doors) for 4400 turns, prayed for hunger 5 times, then fainted out of prayer timeout beside shop food it couldn't afford.
 **Wiki (Kick / Shopkeeper):** breaking a shop's door angers the shopkeeper; in Minetown the watch objects. **Source (dokick.c):** penalties only for `shopdoor` (add_damage SHOP_DOOR_COST) and `in_town(x, y)`; any other locked door may be kicked.
-**Fix:** on a town-flagged level, a door is still refused if no for-sale squares are known, if it's within 3 squares of a for-sale item (the shop door), or if there's a fountain (likely Minetown); other doors get kicked. Still open: never search inside a shop; sell junk to buy food when starving beside a shop.
+**Fix:** on a town-flagged level, a door is still refused if no for-sale squares are known, if it's within 3 squares of a for-sale item (the shop door), or if there's a fountain (likely Minetown); other doors get kicked. Still open: sell junk to buy food when starving beside a shop.
+
+Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a shop has one door; its walls hide nothing).
