@@ -917,3 +917,8 @@ Killed by a ghoul at T3521 in Minetown, while blind and paralysed. Jev was at fu
 Died of starvation on Dlvl 1 at T12215, XL6. The downstairs showed on the map inside a room whose only door was closed. The door option needed a blank, unexplored square behind the door, but this room was already explored. So no option ever led to '>', and Jev spent about 760 decisions on search_hidden and dead_end. On Dlvl 1, dead_end meant climbing '<' to "Dlvl 0", which would leave the dungeon. Changes:
 - If a '>' is on screen but unreachable, any closed door with an unreachable side qualifies. Doors are ranked by distance to the stairs.
 - No dead_end option on Dlvl 1.
+
+## 15:30 — Run 221211: gold golem at AC 7, two mummy wrappings unworn
+Killed by a gold golem on Dlvl 7 at T7127. Jev had prayed at T7069 because it was Weak with hunger. It then traded blows with the golem (two 2d3 claws) at AC 7, re-engaging after an Elbereth. At 11 HP, an unknown potion turned out to be hallucination. The pack held two mummy wrappings that were never worn: the armor regex had no "wrapping". In 5.0 objects.h, a mummy wrapping is a cloak with AC 0 and MC1. Changes:
+- Mummy wrappings are wearable and count as plain cloaks.
+- Putting on body armor now takes a worn cloak off first and puts it back on afterwards. Before, a worn cloak permanently blocked body armor.

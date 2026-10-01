@@ -674,12 +674,12 @@ class Bot:
         if not near:
             for it in self.inventory:
                 t = it['text']
-                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|mantelet|mithril-coat|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and not (re.search(r'cloak|mantelet|mithril', t) and not re.search(r'\b(uncursed|blessed)\b', t) and not (re.search(r'\b(dwarvish|hooded|orcish|leather|elven) cloak|mantelet|faded pall', t) and not better_body) and not ('mithril' in t and (s.get('ac') or 0) >= 7)) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
+                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|mantelet|wrapping|mithril-coat|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and not (re.search(r'cloak|mantelet|mithril', t) and not re.search(r'\b(uncursed|blessed)\b', t) and not (re.search(r'\b(dwarvish|hooded|orcish|leather|elven) cloak|mantelet|faded pall|mummy wrapping', t) and not better_body) and not ('mithril' in t and (s.get('ac') or 0) >= 7)) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
                     opts[f"wear_{it['letter']}"] = (f"Wear {t}", "Put on this armor (takes a few turns; may be cursed if unidentified).", lambda it=it: self.act_wear(it))
             worn = next((it for it in self.inventory if 'being worn' in it['text'] and suit_ac(it['text']) is not None), None)
             better = max((it for it in self.inventory if 'being worn' not in it['text'] and (suit_ac(it['text']) or 0) > (suit_ac(worn['text']) if worn else 99)
                           and it['text'] not in self.run.setdefault('unwearable', {})), key=lambda it: suit_ac(it['text']), default=None)
-            if better and not any('cloak' in it['text'] and 'being worn' in it['text'] for it in self.inventory):  # 'cannot wear armor over a cloak'
+            if better and not any(re.search(r'cloak|wrapping|mantelet|faded pall|cape|robe', it['text']) and 'being worn' in it['text'] for it in self.inventory):  # 'cannot wear armor over a cloak'
                 opts[f"wear_{better['letter']}"] = (f"Swap {worn['text']} for {better['text']}", f"Body armor: {better['text']} gives {suit_ac(better['text'])} AC, {worn['text']} only {suit_ac(worn['text'])}. Take it off, put the better one on.", lambda w=worn, b=better: self.act_swap(w, b))
             if any(k.startswith('wear_') for k in opts):  # offered, rarely taken: died at AC 6 with an orcish helm in the pack and no helm on (T3559)
                 opts = {k: v for k, v in opts.items() if k.startswith(('wear_', 'eat_')) or k == 'pray'}  # each try wears it or marks it unwearable, so no loop
@@ -1037,7 +1037,13 @@ class Bot:
         return r
 
     def act_wear(self, it):
+        # body armor goes under the cloak: take a worn cloak off first (a cursed one stays, and the wear fails below), put it back after
+        cloak = next((i for i in self.inventory if re.search(r'cloak|wrapping|mantelet|faded pall|cape|robe', i['text']) and 'being worn' in i['text']), None) if suit_ac(it['text']) is not None else None
+        if cloak:
+            self.act_keys('T' + cloak['letter'], '')
         self.act_keys('W' + it['letter'], '')
+        if cloak:
+            self.act_keys('W' + cloak['letter'], '')
         self.read_inventory()
         now = next((i['text'] for i in self.inventory if i['letter'] == it['letter']), '')
         if 'being worn' in now:
