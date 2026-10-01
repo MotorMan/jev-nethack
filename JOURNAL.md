@@ -1537,3 +1537,7 @@ At T3753 Jev prayed about being Weak from hunger with a wood nymph 3 steps away.
 ## Run 20261001-083107: Woodland-elf, while praying, T5576, Dlvl 5 (XL 5)
 At full HP (42) Jev meleed a lone Woodland-elf ("about your level") at the Oracle. It missed 6 swings in a row while the elf hit for about 11 a turn: 42 -> 6 in 4 turns. Then came a gamble prayer 161 turns after the last one. The only items left were an unknown potion and scrolls.
 **No fix:** the choice was reasonable and the miss streak was variance. The deeper problem is being underleveled (XL 5 at T5576); elves at the Oracle depth keep killing Jev.
+
+## Run 20261001-083440: giant beetle, fainted, T10905 (XL 8, max Dlvl 4)
+Jev spent T1326–T9259 on Dlvl 3. The downstairs room was reached only through a hidden corridor, and search_hidden took about 6000 turns to find it. Meanwhile 7 prayers went on hunger, and it finally fainted to death on Dlvl 4. It carried 3 unknown scrolls the whole time.
+**Fix:** once a level has 300+ searches and no downstairs, the bot reads unknown scrolls ("labeled") in place of searching. Magic mapping or teleportation can break the deadlock.

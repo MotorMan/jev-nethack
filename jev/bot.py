@@ -981,6 +981,10 @@ class Bot:
             spot = self.search_spot(dist)
             if spot:
                 opts['search_hidden'] = ('Search for hidden passages', f"No unexplored edges or downstairs are known. Walk {dist[spot]} steps {compass(me, spot)} to a likely spot (dead end or wall) and search there.", lambda: self.act_search_at(spot))
+            scroll = next((it for it in self.inventory if re.search(r'scrolls? labeled', it['text'])), None)
+            if scroll and sum(lv.searched.values()) >= 300 and not set(s.get('conditions', [])) & {'Blind', 'Conf', 'Cnf'}:  # 6000 turns searching Dlvl 3 for a hidden corridor with 3 unknown scrolls in the pack, starved at XL 8 (T10905)
+                opts.pop('search_hidden', None)
+                opts[f"read_{scroll['letter']}"] = (f"Read {scroll['text']}", 'Searching has found nothing for a long time. An unknown scroll may be magic mapping (shows the stairs) or teleportation (moves you elsewhere on the level).', lambda l=scroll['letter']: self.act_read(l))
         m = self.soko()
         if m and not self.run.get('soko_done'):
             i = self.run.setdefault('soko_step', {}).get(m[0], 0)
