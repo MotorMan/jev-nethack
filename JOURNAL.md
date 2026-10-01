@@ -1595,3 +1595,6 @@ It killed a rothe and ate the fresh corpse at full HP, 46/46. The corpse rolled 
 
 ### Djev 20261001-094239: frozen by a floating eye in Minetown, killed by an iguana (T6695)
 Two floating eyes boxed it into a corridor. It stood on 8 rocks with no other missiles. After the 200-turn wait, kill_blocker meleed one eye and was frozen. Rocks now count as missiles against passive monsters (d3 by hand). When an eye is the blocker and rocks lie here, kill_blocker picks them up instead of meleeing.
+
+### kev-4b 20261001-093854: Aleax on Dlvl 9, XL 8 (T10337), the best kev-4b run of the session
+A chameleon (seen as a "peaceful displacer beast", then as an arch-lich) cast summon monsters next to it, bringing an Aleax, an owlbear and a tengu. The Aleax is a lawful minion, which onscary exempts from Elbereth. A prayer at 4 HP worked, but the Aleax took 77 HP to 19 in three turns, with the upstairs 47 steps away. Bad luck, no fix.
