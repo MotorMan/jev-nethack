@@ -751,3 +751,6 @@ XL5, Dlvl 5: Jev lived on hunger prayers (T1444, 2585, 3658, all well-pleased). 
 
 ## 2026-10-01 05:00 — run 183739: unknown potion in melee
 XL7, Dlvl 4, AC1: at 25/90 HP beside a Woodland-elf, with the last prayer 14 turns old, Jev quaffed an unknown potion. It was sleeping, and the elf killed the sleeper. Wiki (Potion): of the unidentified potions a few heal and several disable (sleeping, blindness, hallucination, confusion), and disabling next to a melee attacker is fatal. Unknown potions are now offered with an adjacent hostile only at prayer-level low HP (pray.c critically_low_hp), where nothing better is left. Known healing potions are unaffected.
+
+## 2026-10-01 05:25 — run 184521: Sokoban stair ping-pong
+20,758 turns, slimed on Sokoban's first level. A centaur fight wrecked soko3-1 (boulders off-plan, 3 replans, then "no solution, leaving", which sets `soko_done`). The solved first level still offered "Sokoban: climb to the next puzzle level", and that option didn't check `soko_done`. On top, Jev took "Head for the downstairs", and it bounced 1427 + 1283 times across ~13,000 turns. Fix: no `soko_up` once Sokoban is abandoned. The death message "Turned to slime" is now parsed too (it was logged as "game ended").
