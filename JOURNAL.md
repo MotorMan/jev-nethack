@@ -1344,3 +1344,6 @@ This was the bones level of the earlier wand-of-polymorph death, and its red dra
 
 ## Run 20261001-055607: shopkeeper Asidonhopo's wand of striking, T596 (Dlvl 2, XL 1)
 Jev kicked open a locked door with no visible sign. The "Closed for inventory" dust had been wiped away. It was a shop, and the shopkeeper attacked. A search_hidden option was also on offer. Fix: locked-door kicks are dropped while search_hidden is offered and fewer than 200 turns have been searched on the level, as well as when downstairs are known (the existing rule).
+
+## Run 20261001-055639: rothe, fainted from hunger, T3223 (Dlvl 6)
+This was the fourth starvation death in the session. The run had many edible kills (jackals, foxes, rats, ponies, goblins, iguanas) but ate only 4 corpses. Jev even stood on a fresh pony corpse while Hungry and wasn't offered it. Root cause: observe() judged a corpse's freshness once, with lv.corpses.setdefault, the first time its '%' was drawn. Usually that happens before "You kill" is parsed into recent, so fresh kills were filed as stale (-10**6) forever. Fix: remember where monsters stood (mon_seen), re-judge a '%' for 2 turns after it first appears, and re-judge again once a monster has stood on that square. test_corpse.py covers this.

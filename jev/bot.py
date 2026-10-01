@@ -254,7 +254,6 @@ class Bot:
 
     def observe(self):
         self.settle()
-        prev = self.snap
         self.snap = Snapshot(self.t, self.snap.me if self.snap else None)
         x, y = self.snap.cursor
         if len(self.snap.find('@')) > 1 and self.snap.lines[y][x] != '@' and top_prompt(self.snap.lines)[0] is None:
@@ -277,8 +276,19 @@ class Bot:
             lv.near.update((x + dx, y + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1))
             recent = ' '.join(self.run['recent'][-3:]) if self.run else ''
             fresh = 'You kill' in recent and 'You destroy' not in recent
+            turn = s.get('turn') or 0
+            mon_seen, pct_seen = lv.__dict__.setdefault('mon_seen', {}), lv.__dict__.setdefault('pct_seen', {})
             for p in self.snap.find('%'):  # 7 for this turn's kill: thrown-dagger kills left uncounted corpses; ~40 kills, 4 eaten, fainted (T3625)
-                lv.corpses.setdefault(p, (s.get('turn') or 0) if fresh and cheb(p, self.snap.me) <= (7 if self.run and any('You kill' in r for r in self.run['recent'][-1:]) else 2) and prev and prev.is_monster(*p) else -10**9 if 'You destroy' in recent and cheb(p, self.snap.me) <= 2 else -10**6)  # only where the kill stood: an old ape corpse next to a new kill was eaten tainted (T4763)
+                first = pct_seen.setdefault(p, turn)
+                if p in lv.corpses and (lv.corpses[p] >= 0 or turn - first > 2):
+                    continue  # re-judged for 2 turns: the '%' often shows before 'You kill' is parsed, which filed fresh kills as stale (158 kills, 4 eaten, fainted T3223)
+                lv.corpses[p] = turn if fresh and cheb(p, self.snap.me) <= (7 if self.run and any('You kill' in r for r in self.run['recent'][-1:]) else 2) and turn - mon_seen.get(p, -99) <= 2 \
+                    else -10**9 if 'You destroy' in recent and cheb(p, self.snap.me) <= 2 else -10**6  # only where the kill stood: an old ape corpse next to a new kill was eaten tainted (T4763)
+            for y in range(MAP_TOP, MAP_BOT + 1):
+                for x in range(80):
+                    if self.snap.is_monster(x, y):
+                        mon_seen[(x, y)] = turn
+                        pct_seen.pop((x, y), None)  # a kill here is a new corpse, judged afresh
             if self.run is not None:
                 self.run['max_dlvl'] = max(self.run['max_dlvl'], s['dlvl'])
                 self.run['turns'] = s.get('turn') or self.run['turns']
