@@ -819,7 +819,7 @@ class Bot:
                     opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", 'You are Overloaded and cannot move at all. Drop heavy things (armor, weapons, rations, tools) first.', lambda l=it['letter']: self.act_keys('d' + l, 'dropped it'))
         if not near and any(k.startswith('sell_') for k in opts):  # Jev chose "explore" into Chicoutimi 3000 times instead
             opts = {k: v for k, v in opts.items() if k.startswith('sell_')}
-        if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and not near:  # a confused bump into a shopkeeper attacks him
+        if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and (not near or any(m['peaceful'] and m['dist'] <= 1 for m in mons)):  # hack.c: Stunned always, Confusion 1 in 5 confdir()s the move or attack: a stunned swing at a mimic hit Izchak, dead (T2680)  # a confused bump into a shopkeeper attacks him
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {'rest': ('Wait until you are steady', 'You are confused or stunned: moves go in random directions and can attack peacefuls. Nothing hostile is near, so wait it out.', lambda: self.act_keys('5s', 'waited'))}
         if (re.findall(r'engulfs you|get expelled|regurgitates you|You destroy it|You kill it', ' '.join(self.run['recent'][-3:])) or [''])[-1] == 'engulfs you':
             # inside a vortex (shown as Blind) Jev chose 'wait until you can see' twice: 51 -> 13 HP, dead (T8226). Any hit lands on the engulfer.
