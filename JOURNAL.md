@@ -1078,3 +1078,7 @@ A magic trap's flash and roar blinded and deafened Jev at 38/38 HP. Two unseen d
 
 ## 2026-10-01 — rolling boulder (kev-4b, T692, Dlvl 2) — journal only
 Jev had prayed at T606 and was resting at 8/18 HP. Its kitten triggered a rolling boulder trap, and the boulder hit Jev. Bad luck.
+
+## 2026-10-01 — fainted from hunger at Mines 9 (kev-4b, T5348) — journal only
+In 2700 turns Jev found one food ration and two edible fresh corpses. Two prayers fixed its hunger (T2636 and T4333), and the third prayer, at T5181, was spent on other trouble. At Mines 9 its pack had no food and only zombies were around, whose corpses are never safe to eat. It went Weak at T5239 and Fainting at T5314, and was too close to its last prayer to pray. A gnome zombie killed it while it fainted.
+No code change. The lever would be a branch policy: stop at Minetown until a higher XL, then do the main dungeon and Sokoban, which have more food. Mines deaths so far: wolf at 7, Woodland-elves at 8, this one at 9, and a yeti at 10. But as a dwarf, Jev finds most of the Mines peaceful, so this is a strategy bet, not a fix. Implementation note: `#overview` (5.0 dungeon.c:3586) marks the current level with "<- You are here." under its branch heading, so branch detection is one menu read per new level.
