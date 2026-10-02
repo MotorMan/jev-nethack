@@ -2663,3 +2663,10 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A wererat in rat form fought Jev at 41/45 HP. The bot offered Elbereth only below 45% HP. The rule "do not melee an animal-form were" removes attacks only when Elbereth is an option, so the bot offered only "attack". The wererat bit Jev, and Jev got lycanthropy on T1978. Jev prayed for the cure 509 turns after the last prayer. That was too soon: "Tyr is displeased" (pray.c `p_type 0`: Luck -3, longer timeout, angry god). Without prayer and without food, Jev fainted and a kitten killed it.
 - Prevention: Do not melee a were-creature in animal form. Elbereth scares it.
 - Fix: The bot offers Elbereth when a were-creature in animal form is adjacent, at any HP.
+
+## T6724 sewer rat while asleep, Dlvl 5
+
+- Cause: The bot offered "close in" on a wererat in rat form two times (T6652). Later a yellow light blinded Jev. While blind, Jev fought unseen monsters, and the unseen wererat bit it ("You feel feverish"). Jev became a wererat, and its armor fell off. At 14/58 HP with two adjacent attackers, Jev drank an unknown potion. The potion was sleeping, and a sewer rat killed Jev.
+- Prevention: Do not move toward a were-creature in animal form. Let it come to you, and stand on Elbereth.
+- Fix: The approach option excludes a were-creature in animal form.
+- Not changed: The unknown potion was allowed by the rule "below 1/4 HP with two adjacent attackers". Earlier deaths in melee caused that rule, so one result is not sufficient to change it.
