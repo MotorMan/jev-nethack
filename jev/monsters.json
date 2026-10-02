@@ -223,7 +223,7 @@
 "hill orc": [4, 9, 0, "Fight if one or two at a time, from a corridor or doorway; avoid if a band of 4+ reaches you in the open or one is shooting while you are hurt", "AC 10, MR 0, weapon 1d6; large groups"],
 "hobbit": [2, 9, 0, "", "AC 10, MR 0, weapon 1d6"],
 "hobgoblin": [3, 9, 0, "", "AC 10, MR 0, weapon 1d6"],
-"homunculus": [3, 12, 0, "Fight if over half HP; avoid if hurt: its bite can put you to sleep; Elbereth works", "AC 6, MR 10, bite 1d3 sleep"],
+"homunculus": [3, 12, 0, "Never melee it: 1 bite in 5 puts you to sleep for up to 10 turns of free bites. Engrave Elbereth (it respects it) and throw daggers, or take the stairs", "AC 6, MR 10, bite 1d3 sleep"],
 "horned devil": [9, 9, 0, "", "AC -5, MR 50, weapon 1d4, claw 1d4, bite 2d3, sting 1d3"],
 "horse": [7, 20, 0, "", "AC 5, MR 0, kick 1d8, bite 1d3"],
 "housecat": [5, 16, 0, "", "AC 5, MR 0, bite 1d6"],

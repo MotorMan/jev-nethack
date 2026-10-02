@@ -2767,3 +2767,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** Jev was blind and fought an unseen troll. The troll came back to life after each kill. Jev engraved Elbereth 4 times, and the message "You write in the dust with your fingertip" came each time. A blind hero cannot sense a dust engraving (engrave.c read_engr_at), so the read-back was empty. The bot logged each engraving as "interrupted" and then blocked Elbereth. Jev attacked from the engraved square, which erased it. HP went from 44 to 0.
 - **Prevention:** When blind, trust the "write in the dust" message. Do not attack from Elbereth.
 - **Fix:** When blind and the message is seen, the result is "engraved". The bot counts the square as Elbereth for 5 turns.
+
+## Sleep biters are dangerous (user request)
+
+- **Cause:** The user saw a homunculus put Jev to sleep. The T1953 fix offered Elbereth only below 75% HP, and melee stayed open.
+- **Prevention:** Treat a monster with a sleep attack (homunculus, beholder, orange dragon, Nazgul) like a were or a floating eye. Do not melee it.
+- **Fix:** Elbereth is offered at any HP when a sleep biter is 2 steps away or nearer. Melee is removed when Elbereth is offered or engraved. "You feel wide awake" (sleep resistance) turns the rule off. The homunculus tip now says "Never melee it".

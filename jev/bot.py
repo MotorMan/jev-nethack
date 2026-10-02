@@ -170,6 +170,8 @@ class Bot:
                 self.level().town = True
             if re.search(r'You feel feverish|You turn into a were', text):
                 self.run['lycanthropy'] = True
+            if 'You feel wide awake' in text:  # eat.c: sleep resistance from a corpse; sleep biters are safe to melee after this
+                self.run['sleep_res'] = True
             if 'strange mental acuity' in text:  # telepathy (uhitm.c passive uses canseemon, which needs sight, so a blindfold still stops the floating eye)
                 self.run['telepathic'] = True
             if re.search(r'Your armor falls|You find you must drop|can no longer hold your', text) and self.snap and self.snap.me:  # armor and weapon fall to the floor here (polyself.c break_armor/drop_weapon); a bare 'You turn into' re-shift moved the spot off the real pile, gear lost, starved (T5749)
@@ -805,8 +807,8 @@ class Bot:
         fastbig = hp < 0.8 * hpmax and any(m['dist'] <= 2 and 'stronger' in self.threat(m) and (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 15 for m in hostiles)
         # Elbereth was offered only below 45% HP, so the no-melee-beside-a-were rule below had nothing else: bit at 41/45, feverish, a too-soon prayer, fainted (T2761)
         were = not self.run.get('lycanthropy') and any(m['dist'] <= 1 and 'were' in m['name'] and m['ch'] != '@' for m in hostiles)
-        # mhitu.c AD_SLEE: 1 hit in 5 sleeps you for up to 10 turns of free bites: a homunculus took 34 -> 19 in one sleep, Elbereth came only below 45%, slept again at 14, dead (T1953)
-        sleeper = hp < 0.75 * hpmax and any(m['dist'] <= 2 and 'sleep' in (MONSTERS.get(self.species(m)) or [0, 0, 0, '', ''])[4] for m in hostiles)
+        # user: treat sleep biters as dangerous at any HP, like weres and floating eyes. mhitu.c AD_SLEE: 1 hit in 5 sleeps you for up to 10 turns of free bites: a homunculus took 34 -> 19 in one sleep, Elbereth came only below 45%, slept again at 14, dead (T1953)
+        sleeper = not self.run.get('sleep_res') and any(m['dist'] <= 2 and 'sleep' in (MONSTERS.get(self.species(m)) or [0, 0, 0, '', ''])[4] for m in hostiles)
         if (near and hp < 0.45 * hpmax or were or fastbig or hugger or sleeper or dread or pack and open_n(me) > 2 and 'choke' not in opts and hp < 0.6 * hpmax or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (boxed and not walled and len(near) <= len(boxed)) and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & ({'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} | (set() if big_hit else {'Hallu', 'Hal', 'Hl'})) \
                 and sum(h['choice'] == 'elbereth' and 'interrupted' in h['outcome'] for h in self.history[-4:]) < 2 \
@@ -1338,7 +1340,7 @@ class Bot:
         if were_throw in opts and not any(m['dist'] <= 1 for m in hostiles):
             opts = {k: v for k, v in opts.items() if k.startswith(('throw_', 'zap_')) or k in ('elbereth', 'pray') or k.startswith('quaff_')}
         # meleed an animal-form werewolf from 63/63: bitten, feverish, became a wolf 34 turns later, burst out of the splint mail, dead at AC 10 (T2110). wiki: never melee one; Elbereth scares the animal form
-        if not self.run.get('lycanthropy') and any(m['dist'] <= 1 and 'were' in m['name'] and m['ch'] != '@' for m in hostiles) and ('elbereth' in opts or self.engraved_here()):
+        if (sleeper or not self.run.get('lycanthropy') and any(m['dist'] <= 1 and 'were' in m['name'] and m['ch'] != '@' for m in hostiles)) and ('elbereth' in opts or self.engraved_here()):  # sleeper: no melee with a homunculus either, it bit a sleeping Jev 34 -> 0 (T1953)
             opts = {k: v for k, v in opts.items() if not k.startswith('attack_')} or opts
         if nymph_throw in opts and not any(m['dist'] <= 1 for m in hostiles):  # forced to throw at a nymph, a fire ant ate Jev at 10 HP
             opts = {k: v for k, v in opts.items() if k in (nymph_throw, 'pray') or k.startswith('eat_')}
