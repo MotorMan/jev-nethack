@@ -2954,3 +2954,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: a sleeping water nymph stood on the only path out of a Sokoban pocket. The bot marks a sleeping nymph as not hostile, so it walked into her square ("You move right into the water nymph") and every walk was blocked.
 - Prevention: a sleeping thief is not a threat, but it must not block the path.
 - Fix: when 5 of the last 8 walks fail and a sleeping nymph or leprechaun is adjacent, the only option is to kill it.
+
+## Floating eye, starved T8634 (Dlvl 7)
+
+- Cause: a floating eye stood in the only doorway of a closed room. The bot had no missiles. It had a wand of cold, but the eye was not on one of the 8 lines, so no zap was offered. The bot meleed the eye while Hungry, was frozen, and starved.
+- Prevention: kill a blocking eye from range. An attack wand works from any square in line with the eye.
+- Fix: if an attack wand is in the pack, the eye option walks to the nearest square in line (1 to 6 steps away, clear line), then zaps the wand at the eye.

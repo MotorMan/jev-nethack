@@ -1420,6 +1420,12 @@ class Bot:
                         q = min(line, key=lambda q: dist[q])
                         opts['kill_blocker'] = (f"Line up a throw at the {m['name']}", f"Walk {dist[q]} steps to a square in line with the {m['name']}, then throw at it. Melee risks long paralysis.",
                                                 lambda q=q: self.act_go(q) if self.snap.me != q else 'lined up')
+                    elif m['ch'] == 'e' and (aw := next((it for it in self.inventory if re.search(r'wand of (death/sleep|sleep|cold|fire|striking|magic missile|lightning)', it['text']) and not re.search(r':0\)', it['text'])), None)) \
+                            and (zl := [q for q in dist if 1 <= cheb(q, m['pos']) <= 6 and (q[0] == m['pos'][0] or q[1] == m['pos'][1] or abs(q[0] - m['pos'][0]) == abs(q[1] - m['pos'][1])) and self.clear_line(q, m['pos'])]) and not self.blindfold():
+                        # an eye in the only doorway, 3 steps off the 8 lines, no missiles, a wand of cold in the pack: meleed it Hungry, frozen, starved (T8171-T8634)
+                        q = min(zl, key=lambda q: dist[q])
+                        opts['kill_blocker'] = (f"Zap the {aw['text']} at the {m['name']}", f"Walk {dist[q]} steps to a square in line with the {m['name']}, then zap the wand at it. Melee risks long paralysis.",
+                                                lambda q=q, aw=aw, m=m: self.act_go(q) if self.snap.me != q else self.act_zap(aw['letter'], DIR_OF[((m['pos'][0] > q[0]) - (m['pos'][0] < q[0]), (m['pos'][1] > q[1]) - (m['pos'][1] < q[1]))], (aw['text'], s.get('dlvl'))))
                     elif m['ch'] == 'e' and rk and not self.blindfold():
                         opts['kill_blocker'] = ('Pick up the rocks here to throw at the eye', 'Rocks thrown at the floating eye hurt it without touching it; melee risks paralysis.', lambda rk=rk: self.act_pickup(rk))
         stuck = sum(re.search(r'came into view|no path|blocked after', h['outcome']) is not None for h in self.history[-8:]) >= 5
