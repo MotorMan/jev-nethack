@@ -1442,6 +1442,14 @@ class Bot:
             opts.pop('elbereth', None)
         if 'pray' in opts and 'fatal within' in opts['pray'][1]:  # FoodPois with prayer ready: Jev rested and walked for corpses until it died (T2090)
             opts = {'pray': opts['pray']}
+        zapper = next((m for m in hostiles if shot and m['name'] == self.run.get('shooter') and m['dist'] >= 2 and any(re.search(rf"The {re.escape(m['name'])} zaps", x) for x in self.run['recent'][-6:])), None)
+        inline = lambda p, q: p[0] == q[0] or p[1] == q[1] or abs(p[0] - q[0]) == abs(p[1] - q[1])
+        if zapper and inline(me, zapper['pos']):  # a werewolf's wand of fire hit 3 times 49 -> 18 while Jev explored down its line, then wolves finished it (T6060); rays only travel in the 8 directions
+            safe = [d for d, (dx, dy) in DIRS.items() if snap.walkable(me[0] + dx, me[1] + dy) and not snap.is_monster(me[0] + dx, me[1] + dy) and not inline((me[0] + dx, me[1] + dy), zapper['pos'])]
+            if safe:
+                d = max(safe, key=lambda d: cheb((me[0] + DIRS[d][0], me[1] + DIRS[d][1]), zapper['pos']))
+                o = ('Step out of the line of fire', f"The {zapper['name']} {zapper['where']} is zapping a wand along this line; rays only go straight or diagonal. Step where it has no line to you.", lambda d=d: self.act_keys(d, 'dodged'))
+                opts = {'dodge': o} if hp < 0.5 * hpmax and not any(m['dist'] <= 1 and not m['passive'] for m in hostiles) else {**opts, 'dodge': o}
         if (s.get('turn') or 0) - self.run.get('msg_turn', 0) <= 2 and any(re.search(r'whizzes by you|You hear a nearby zap', m) for m in self.run['recent'][-2:]):
             # a monster drank invisibility ("chugging sound"), zapped death from out of view; find_unseen stood in the line, the second ray killed (T8536)
             st = [(p, k) for k, ps in (('<', ups), ('>', downs)) for p in ps if p == me or dist.get(p, 99) <= 8]

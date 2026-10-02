@@ -2274,3 +2274,7 @@ Each change below was checked against the 5.0 source:
 - **Lycanthropy:** quaff holy water before praying. Lawful heroes get "You feel full of awe" and you_unwere (potion.c peffect_water).
 - **Spheres:** monster tips added. Explosions destroy wands and rings (shock) and scrolls and potions (fire) via explode.c destroy_items.
 - **Not done:** Excalibur (operator rule), and priest protection, which is already 5.0-correct.
+
+## 2026-10-01 — warg while asleep, Dlvl 7 T6060 (run 20261001-203449)
+- **Cause:** a werewolf in @ form with a wand of fire zapped Jev 3 times (49 → 36 → 18). Only the first bolt, a miss, triggered 'dodge', which is limited to "whizzes by" from an unseen zapper. On the next turns, below half HP, the only option was exploring 1 step, which kept Jev in the ray's line. The werewolf then summoned wolves and a warg. A prayer at 6/77 restored HP, but the pack plus another fire bolt took it to 7. An unknown potion turned out to be sleeping, and Jev died.
+- **Fix:** when a visible monster that is zapping is in line (row, column or diagonal), offer a step to a square off every line to it. Rays only travel in the 8 directions (zap.c buzz). Below half HP this step is forced when nothing is adjacent.
