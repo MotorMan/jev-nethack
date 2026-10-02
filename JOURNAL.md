@@ -2506,3 +2506,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev stood in the doorway of a delicatessen, and the shopkeeper stood next to it. Explore was blocked, so Jev chose "dig down" with its pick-axe. Digging in a shop doorway damages the door. The shopkeeper got angry ("How dare you ruin my door?"). She took Jev from 87 HP to 0 with a wand of striking and her hits.
 - Prevention: Never dig in a shop, in a shop door, or near a shopkeeper.
 - Fix: `jev/bot.py` does not offer the pick-axe dig on a door, in or near a known shop, or with a peaceful `@` within 8 squares. The wand of digging escape is also not offered in or near a shop.
+
+## T4931 coyote, Dlvl 3
+
+- Cause: Dlvl 3 had two locked doors and no known down staircase. Jev had engraved Elbereth in front of both doors during fights. Before a kick, the bot reads the dust, and any writing stopped the kick as a possible "Closed for inventory" sign. So Jev never kicked either door. It searched and waited for 2400 turns, fainted, and a coyote killed it.
+- Prevention: A shop sign is 20 letters long and keeps its length when scuffed. Elbereth is 8 letters. Short writing is not a shop sign.
+- Fix: `jev/bot.py` treats dust writing as a shop sign only if it has "for inv", or if the text it read is 12 letters or longer, or if no text was read.

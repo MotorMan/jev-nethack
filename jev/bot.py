@@ -2607,7 +2607,11 @@ class Bot:
         raw = ' '.join(l.rstrip() for l in self.t.lines()[:3])
         self.observe()
         # the sign is dust and gets scuffed, so any writing outside a locked door counts
-        if not force and self.level().town and (self.in_mines() or self.level().__dict__.get('vetoes', 0) < 5) or not force and re.search(r'written here|for inv', raw + ' '.join(m['text'] for m in self.messages[nmsg:])):
+        seen = raw + ' ' + ' '.join(m['text'] for m in self.messages[nmsg:])
+        said = re.findall(r'You read: "([^"]*)"', seen)
+        # the sign keeps its 20-letter length when scuffed; Jev's own Elbereths (8) beside both locked doors vetoed every kick: 2400 turns Fainting on Dlvl 3, dead to a coyote (T4931)
+        sign = re.search(r'for inv', seen) or re.search(r'written here', seen) and not (said and all(len(t) < 12 for t in said))
+        if not force and self.level().town and (self.in_mines() or self.level().__dict__.get('vetoes', 0) < 5) or not force and sign:
             self.level().town = True
             self.level().dead.add((self.snap.me[0] + DIRS[d][0], self.snap.me[1] + DIRS[d][1]))
             return 'did not kick: a shop is closed behind this door'
