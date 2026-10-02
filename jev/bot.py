@@ -796,6 +796,8 @@ class Bot:
         pack_near = [m for m in near if m['dist'] <= 5]
         gap = min((m['dist'] for m in pack_near), default=0)
         spd = 20 if any(re.search(r'speed boots.*being worn', it['text']) for it in self.inventory) else 12  # 'very fast' boots: 12 * 5/3
+        if any((MONSTERS.get(self.species(m)) or [0, 0])[1] > spd and 'weaker' not in self.threat(m) for m in hostiles):
+            self.run['fast_turn'] = s.get('turn') or 0
         outrun = near and all((MONSTERS.get(self.species(m)) or [0, 99])[1] * 1.5 <= spd for m in near)
         if near:
             if self.engraved_here() and (not shot or any(m['dist'] <= 1 and m['name'] != self.run.get('shooter') for m in near)):  # shot, but a rothe adjacent: Elbereth still stops its 3 bites (T2445)  # Elbereth only stops melee (wiki); stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
@@ -1549,6 +1551,10 @@ class Bot:
                     opts.pop(c, None)
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting') and not any(FOOD.search(it['text']) for it in self.inventory) and any(k == 'dig_down' or k.startswith(('door_', 'kick_', 'explore')) for k in opts):  # no food: searching walls only starves (picked search over a locked door 2 steps away while Fainting, T6106)
             opts = {k: v for k, v in opts.items() if k not in ('search_hidden', 'rest')}
+        if self.engraved_here() and hp < 0.5 * hpmax and (s.get('turn') or 0) - self.run.get('fast_turn', -99) <= 30 and s.get('hunger') != 'Fainting' and not any(m['dist'] <= 1 for m in hostiles):
+            # a giant spider (speed 15) fled Elbereth out of view at 15/62: Jev stepped off to look at an item, then walked 5 steps to '<', bitten 15 -> 0 (T6845-T6852). A faster monster catches you: heal on Elbereth first
+            opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'goto', 'fetch', 'pickup', 'door_', 'search', 'ascend', 'flee_up', 'descend', 'approach_', 'choke'))}
+            opts['wait'] = ('Stay on Elbereth one turn', 'A monster faster than you was here and you are below half HP: it would catch you off Elbereth. Heal here first.', self.act_wait_elbereth)
         if downs or 'search_hidden' in opts and sum(lv.searched.values()) < 200:  # no stairs yet: search first; Asidonhopo's scuffed-sign shop door kicked at XL1 with search_hidden on offer, wand of striking (T596)  # a locked door can be a shop closed for inventory whose sign got scuffed: kicked one in, Mr. Kipawa killed Jev (runs before the empty guards: filtering after them left no options, 1100 turns searched)
             opts = {k: v for k, v in opts.items() if not (k.startswith('kick_') or 'locked door' in v[0])}
         if not opts and downs and s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 and s.get('hunger') not in ('Hungry', 'Weak', 'Fainting') \
