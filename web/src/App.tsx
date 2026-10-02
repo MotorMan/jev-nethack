@@ -631,10 +631,10 @@ export default function App() {
           <Feeds s={s} />
         </Split>
         {/* fixed ratios so the decision panel doesn't resize with its option count */}
-        <Split id="mid" init={[38, 44, 18]}>
+        <Split id="mid2" init={[18, 38, 44]}>
+          <Orders s={s} />
           <DecisionPanel s={s} />
           <Timeline s={s} />
-          <Orders s={s} />
         </Split>
         <Split id="right">
           <Vitals s={s} />
