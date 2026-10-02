@@ -2749,3 +2749,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** Many deaths came from a walk away from monsters (flee_up, ascend, leave_nymph). Each fix covered one monster or one distance. The next death found a gap between the fixes.
 - **Prevention:** The 5.0 source (monmove.c, mon.c mcalcmove) shows that a monster which moves cannot also attack in that move. Only a faster monster gets extra moves, and each extra move beside you is an attack round.
 - **Fix:** One rule now applies to flee_up, ascend, leave_nymph, descend and choke. It estimates the damage from the chasers on an n-step walk: rounds = n*(v-12)/12 - (gap-1), times the average damage of the attacks. If the damage is half the HP or more, the option is removed. Otherwise the description gives the damage. The rule replaces the jaguar rule (T3778, T6730, T9456) and the Grey-elf rule (T13186).
+
+## T6823: werewolf, Dlvl 7 (kev-4b)
+
+- **Cause:** Jev was Weak, with 60 HP. A werewolf was 2 steps away. Jev prayed. The prayer failed ("Thou art arrogant"), and Jev lost a level. During the prayer the werewolf summoned two wolves and a winter wolf. HP went from 60 to 0. Before this, Jev did about 25 explore walks of 1 step each. A blue jelly and peaceful monsters went in and out of view and stopped each walk.
+- **Prevention:** The 3 prayer turns are safe only if the prayer works (pray.c). Weak is not urgent. Kill the monster first, then pray.
+- **Fix:** The bot does not offer a hunger prayer when a hostile is 3 steps away or nearer, unless HP is low or Jev is starving. After 3 walks in a row that a new monster stopped, the next walk stops only for damage.
