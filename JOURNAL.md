@@ -2602,3 +2602,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Dlvl 3 had an open shop and a room with the up stairs. The only other exit was a locked door 15 squares from the shop. The level was marked as a "town" because of the shop sounds. The kick code allows 5 refusals ("vetoes") before it kicks, but `act_kick` refused without counting. Jev did not kick the door for 15,000 turns. It searched 919 times, prayed for food many times, fainted, and a hill orc killed it.
 - Prevention: Every refusal to kick must count, so the limit of 5 can end the loop.
 - Fix: `act_kick` now adds 1 to the veto count each time that it refuses a door on a "town" level.
+
+## T16477 Elvenking, Dlvl 7, fainted
+
+- Cause: Dlvl 7 had a throne room full of sleeping monsters (an Elvenking, dwarves, hobbits, orcs, gnome lords). The down stairs were not found. Jev stood near the door for about 7000 turns. It chose "wait", "choke" and one-step "approach" moves, and the monsters did not come. It lived on a prayer for food every 850 turns. Then it fainted, and the Elvenking killed it.
+- Prevention: Sleeping monsters do not come to you. If nothing happens for a long time, go to them and fight at the door.
+- Fix: If 180 of the last 200 decisions were wait, choke, approach, search or rest, and HP is 80% or more, the bot removes wait, choke, rest and search when it can offer "approach".

@@ -1698,6 +1698,9 @@ class Bot:
         if sum(h['choice'] == 'elbereth' for h in recent) >= 4 and len(recent) == 12 and s.get('hp', 0) <= recent[0].get('hp', 0):  # user: 'stop using elbereth so much': 100+ turns of re-engraving in a room corner while HP fell 61 -> 21 (T11430)
             rest = {k: v for k, v in opts.items() if k != 'elbereth' and not v[0].startswith('Stay on Elbereth')}
             opts = rest if any(k.startswith(('attack_', 'choke', 'upstairs', 'flee', 'retreat', 'zap_', 'throw_', 'quaff_', 'pray')) for k in rest) else opts  # it isn't working: fight, move or use an item instead
+        stall = len(self.history) >= 200 and sum(h['choice'].startswith(('wait', 'choke', 'approach', 'search', 'rest')) for h in self.history[-200:]) >= 180 and s.get('hp', 0) >= 0.8 * s.get('hpmax', 1)
+        if stall and any(k.startswith('approach_') for k in opts):  # a sleeping throne room 3 steps off: wait/choke/1-step approach for 7000 turns, fed by prayers, fainted, Elvenking (T16477)
+            opts = {k: v for k, v in opts.items() if k not in ('wait', 'choke', 'rest') and not k.startswith('search')}
         return opts, mons
 
     def search_spot(self, dist):
