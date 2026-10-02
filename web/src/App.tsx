@@ -354,12 +354,18 @@ function DecisionPanel({ s }: { s: State }) {
       className="min-h-0" bodyClass="min-h-0 overflow-auto"
       title={<><Cpu className="size-3.5" /> jev // decision #{d.id}</>}
       right={
-        d.pending
-          ? <span className="flex items-center gap-1.5 text-[hsl(var(--smui-frost-2))]"><Dot t="frost-2" pulse /> thinking</span>
-          : <>
-              <Tip tip="confidence: how decisively Jev preferred its choice over the alternatives"><span>conf <span className="text-foreground">{pct(d.confidence)}</span></span></Tip>
-              <Tip tip="latency: time Jev took to answer"><span>lat <span className="text-foreground">{ms(d.latency_ms)}</span></span></Tip>
-            </>
+        // fixed-width fields so the header doesn't jump between thinking and acting
+        <span className="font-mono whitespace-pre tabular-nums">
+          <span className={d.pending ? "text-[hsl(var(--smui-frost-2))]" : undefined}>{(d.pending ? "thinking" : "acting").padStart(8)}</span>
+          {" · "}
+          <Tip tip="confidence: how decisively Jev preferred its choice over the alternatives">
+            <span>conf <span className="text-foreground">{(d.pending ? "----" : pct(d.confidence)).padStart(4)}</span></span>
+          </Tip>
+          {" "}
+          <Tip tip="latency: time Jev took to answer">
+            <span>lat <span className="text-foreground">{(d.pending ? "-----" : ms(d.latency_ms)).padStart(5)}</span></span>
+          </Tip>
+        </span>
       }
     >
       <Tabs defaultValue="options">
