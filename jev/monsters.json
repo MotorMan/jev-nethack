@@ -63,7 +63,7 @@
 "Woodland-elf": [6, 12, 1, "Fight if it is alone and you are at or above its level, from a corridor; avoid if two or more come or you are under half HP: it ignores Elbereth, so go upstairs", "AC 10, MR 10, weapon 2d4; small groups"],
 "Yeenoghu": [31, 18, 0, "", "AC -5, MR 80, weapon 3d6, weapon 2d8 confuses, claw 1d6 paralysis, spell 2d6 magic missile"],
 "abbot": [8, 12, 0, "", "AC 10, MR 20, claw 8d2, kick 3d2 stuns, spell cleric spells"],
-"acid blob": [2, 3, 0, "Fight only when nothing else is attacking you; avoid hitting it otherwise: it only hurts you (acid) when you hit it", "AC 8, MR 0, passive 1d8 acid"],
+"acid blob": [2, 3, 0, "Kill it: it never attacks, and its passive acid does 1d8 at most", "AC 8, MR 0, passive 1d8 acid"],
 "acolyte": [8, 12, 0, "", "AC 10, MR 20, weapon 1d6, spell cleric spells"],
 "air elemental": [10, 36, 0, "", "AC 2, MR 30, engulf 1d10"],
 "aligned cleric": [15, 12, 0, "", "AC 10, MR 2, weapon 1d6, spell cleric spells"],

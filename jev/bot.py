@@ -563,7 +563,7 @@ class Bot:
                 self.level().blocked.add(m['pos'])
             m['hostile'] = not m['pet'] and not m['peaceful'] and not m['statue'] and (m['ch'] != 'I' or m['dist'] <= 1)
             # sessile, only hurt you if you hit them: never a reason to hold still, and never walk into them
-            m['passive'] = bool(re.search(r'floating eye|mold|shrieker|gas spore|acid blob|jelly', m['name'])) or (m['ch'] == 'e' and m['fg'] in ('blue', 'white', 'gray'))
+            m['passive'] = bool(re.search(r'floating eye|mold|shrieker|gas spore|jelly', m['name'])) or (m['ch'] == 'e' and m['fg'] in ('blue', 'white', 'gray'))  # user: just kill acid blobs (passive acid is 1d8 at most; avoiding them blocked corridors)
             m['where'] = f"{m['dist']} step{'s' if m['dist'] != 1 else ''} {compass(me, m['pos'])}"
         return out
 
@@ -813,7 +813,7 @@ class Bot:
                 if not shot and not any(m['dist'] <= 1 for m in near) and sum(h['choice'] == 'wait' and h['outcome'] == 'waited' for h in self.history[-5:]) < 5:  # held 74 turns Hungry for a mountain nymph 4 steps off that never came, starved (T4008)  # "let them come" while six jackals and a werejackal already bit: 42 -> 0 HP in 3 waits
                     opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('ms', 'waited'))
                 weak_only = all('weaker' in self.threat(m) for m in near if m['dist'] <= 1) and any(m['dist'] <= 1 for m in near) and hp >= 0.25 * hpmax  # XL8 at 20/74 retreated twice from a rothe (speed 9: adjacent again each turn, 3 attacks), engraving garbled, dead (T13611)
-                if not fast and not weak_only and not shot and hp < 0.7 * hpmax and self.retreat_dir(hostiles):  # one step back from a wand-zapping hill orc, 3 times at 5/45: zapped dead (T4400)  # at 50/53 Jev retreated 6 times from hill orcs, eating hits without swinging (T2966); retreating from a giant bat (speed 22) just gives it free hits
+                if not fast and not weak_only and not shot and (hp < 0.4 * hpmax or hp < 0.7 * hpmax and any('stronger' in self.threat(m) for m in near)) and self.retreat_dir(hostiles):  # user: kill slow monsters, don't run, you need the XP  # one step back from a wand-zapping hill orc, 3 times at 5/45: zapped dead (T4400)  # at 50/53 Jev retreated 6 times from hill orcs, eating hits without swinging (T2966); retreating from a giant bat (speed 22) just gives it free hits
                     opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + ' Everything nearby is slower than you, so you can open a gap.', lambda: self.act_retreat(hostiles))
             # wiki (Fighting in corridors): a pack surrounds you on up to 8 sides; in a corridor only one or two can reach you. User: get to a hallway rather than sit on Elbereth
             close = gap < 2 and not outrun  # user: with a crowd already adjacent in a room corner, back into the doorway/hallway 1-2 steps off instead of 100+ turns on Elbereth (T11330-11430)
