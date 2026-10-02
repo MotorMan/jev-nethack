@@ -589,7 +589,10 @@ class Bot:
         # wiki (Elbereth): rest on it, then scuff it and attack, re-engrave when hurt. allmain.c spawns a monster every ~70 turns: 910 waits on Elbereth
         # in a closed Dlvl 8 room at 50/58 filled it with apes, fire ants and zombies, dead (T3499)
         camped = sum(h['choice'] == 'wait' and 'Elbereth' in h['outcome'] for h in self.history[-50:]) >= 40 and hp >= (0.85 if any(m['dist'] <= 5 and 'weaker' not in self.threat(m) and not m['passive'] for m in hostiles) else 0.6) * hpmax  # camped at 36/59: hit a giant rat off Elbereth with a plains centaur and fire ant near, 37 -> 0 in 2 turns (T5097)
-        on_e = self.engraved_here() and hp < 0.9 * hpmax and not shot and not camped  # zapped on Elbereth by an adjacent orc, the only option left was 'retreat' (T4400); healthy: fight from it rather than wait out a speed-1 fog cloud
+        # monmove.c: a scared monster with no square to flee to panic-attacks every turn; a plains centaur boxed in by hill orcs took 28 -> 9 on Elbereth (T5761)
+        boxed = [m for m in hostiles if m['dist'] == 1 and not m['passive'] and not any(snap.walkable(x, y) and not snap.is_monster(x, y) and cheb((x, y), me) > 1
+                 for x in range(m['pos'][0] - 1, m['pos'][0] + 2) for y in range(m['pos'][1] - 1, m['pos'][1] + 2))]
+        on_e = self.engraved_here() and hp < 0.9 * hpmax and not shot and not camped and not boxed  # zapped on Elbereth by an adjacent orc, the only option left was 'retreat' (T4400); healthy: fight from it rather than wait out a speed-1 fog cloud
         for m in hostiles:
             if m['dist'] == 1 and m['pos'] not in self.avoid and not ((on_e or shot and self.engraved_here() and hp < 0.9 * hpmax and m['name'] != self.run.get('shooter')) and m['ch'] != '@' and 'minotaur' not in m['name']):  # shot by a hobgoblin, Jev hit the adjacent rothe off Elbereth instead: 13 -> 0 (T2445)
                 if m['name'] == "unknown '@'" and (lv.town or any(o['peaceful'] and o['ch'] == '@' for o in mons) or (s.get('turn') or 0) - self.run.get('hit_turn', -99) > 1):  # hit in the Mines dark by two farlook-failed Woodland-elves, explored instead of fighting: 67 -> 0 (T3567)
@@ -1367,7 +1370,7 @@ class Bot:
             self.run['scary_turn'] = s.get('turn') or 0
         scary = (s.get('turn') or 0) - self.run.get('scary_turn', -99) <= 20  # XL4 on Elbereth, a soldier ant stepped out of view: fetched an item at 36/36, it came back, 12-step run for '<', dead (T2653)
         if self.engraved_here() and s.get('hunger') not in ('Weak', 'Fainting') and (pack or duo or scary or s.get('hp', 1) < 0.75 * s.get('hpmax', 1)) and (scary or any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles)) \
-                and not shot and not camped and not any('not protecting' in h['outcome'] for h in self.history[-6:]) \
+                and not shot and not camped and not boxed and not any('not protecting' in h['outcome'] for h in self.history[-6:]) \
                 and not (s.get('hunger') == 'Hungry' and not pack and sum(h['choice'] == 'wait' for h in self.history[-20:]) >= 15) \
                 and not any((m['ch'] == '@' and ('were' not in m['name'] or m['dist'] <= 1) or 'minotaur' in m['name']) and m['dist'] <= 7 for m in hostiles):  # an adjacent wererat in @ form hit through it while only 'wait' was offered: 12 -> 0 (T8786)  # a were-@ summons rats/jackals that do respect it: left Elbereth at 24/36 for a wererat, summoned rats 25 -> 0 in 2 turns (T1818)  # a bugbear threw daggers at a waiting Jev (Elbereth only stops melee): 13 -> 0 (T2350)  # a Woodland-elf (ignores Elbereth) walked up to a waiting Jev: 36 -> 0 (T7182)
             # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour

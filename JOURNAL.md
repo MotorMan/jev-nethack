@@ -2239,3 +2239,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** a mountain nymph stole the +3 shield, taking AC from 5 to 9. An unknown wand zapped at it turned out to be polymorph (it became a violet fungus). The fungus panic-attacked the bot on Elbereth, so it stepped off. At 14/41, with a hill-orc band 2-4 squares away and Elbereth on offer, Jev threw darts instead. The next Elbereth, with orcs adjacent, was interrupted and the bot died.
 - **Wiki:** engrave Elbereth before a pack reaches you. In 5.0, engraving is an occupation and an adjacent attacker interrupts it.
 - **Fix:** below 40% HP, with 2+ non-passive hostiles within 4 squares and none adjacent yet, the options are narrowed to Elbereth, prayer, stairs and potions.
+
+## 2026-10-01 — plains centaur, Dlvl 7 T5761 (run 20261001-195705)
+- **Cause:** the bot was waiting on an intact Elbereth in a crowded room at 28/74. A plains centaur was adjacent, boxed in by hill orcs, and hit and kicked it from 28 to 9 in one turn. Its prayer had been used 33 turns earlier, and it died the next turn.
+- **Source:** in monmove.c, when Elbereth scares a monster and m_move returns MMOVE_NOMOVES, the monster panic-attacks. A cornered monster attacks every turn, Elbereth or not.
+- **Fix:** a "boxed" monster is now detected: an adjacent hostile whose free neighbour squares are all next to the bot. While one is present, the forced wait on Elbereth is off, and attacks from Elbereth stay offered so the bot can kill it or move.
