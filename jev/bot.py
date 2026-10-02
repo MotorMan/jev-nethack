@@ -1530,6 +1530,8 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0] or k == 'dig_down' and 'gamble' in opts['pray'][0]
                     or k in ('elbereth', 'wait', 'teleport') and 'gamble' in opts['pray'][0] and turn - (self.run.get('prayed_turn') or 0) < 200  # pray-only on Elbereth 113 turns on: "Thou art arrogant", lost a level, dead (T7362) # rnz(350) is ~.5 at 100-200 turns vs ~.72 for a dust Elbereth: pray-only 123 turns on at 11/69 by a jaguar, dead (T7122)
                     or k.startswith('zap_') and 'gamble' in opts['pray'][0] and re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', v[0])}  # chose an unknown black potion over a ~.7 prayer at 8/43: dead (T3559)
+            if 'gamble' in opts.get('pray', ('',))[0] and ('dig_down' in opts and 'Zap' in opts['dig_down'][0] or 'teleport' in opts):
+                del opts['pray']  # a hole is sure, a prayer 290 turns on is not: chose the gamble over a wand of digging at 9 HP, a little dog bit it dead mid-prayer (T3624)
         if 'flee_up' in opts and len(opts) > 1 and all(h['choice'] == 'flee_up' and 'after 1 steps' in h['outcome'] for h in self.history[-2:]):
             opts.pop('flee_up')  # 4 one-step flee_ups between an elf mummy, a Woodland-elf and soldier ants, 55 -> 0, wand of fire and 2 healing potions unused (T8671)
         if 'flee_up' in opts and not any(dist.get(q, 99) <= 1 for q in self.snap.find('<')) \

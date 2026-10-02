@@ -2427,3 +2427,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: In a food shop, a giant mimic stuck to Jev. Jev burned Elbereth, then chose `flee_up`, which cannot move a stuck hero (30 -> 13). It quaffed an unknown potion: hallucination. The shopkeeper then showed as a hostile "raging nerd", and Jev zapped fire at him. The shopkeeper killed Jev with his wand.
 - Prevention: When a monster holds you, fight it. While you hallucinate, monster names and the peaceful flag are not correct. Do not attack, zap or throw at a square where a peaceful monster was before.
 - Fix: `jev/bot.py` sets `held` on a mimic hit and offers attacks when `retreat` and `flee` are the only options. While Jev hallucinates, it removes attack, zap and throw options that point at the last known peaceful squares.
+
+## T3624 little dog, Dlvl 6
+
+- Cause: A were-form shed Jev's armor. Back in dwarf form at AC 10, a little dog (speed 18, 2 bites a turn) took Jev 42 -> 9. Jev had a wand of digging, but it chose a gamble prayer 290 turns after the last prayer. The prayer failed and the dog killed Jev.
+- Prevention: A wand of digging or teleportation is a sure escape. A prayer before the timeout is a gamble.
+- Fix: `jev/bot.py` removes the gamble prayer when a zap of digging down or a teleport is on offer.
