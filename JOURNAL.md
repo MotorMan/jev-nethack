@@ -2584,3 +2584,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev was at XL 4 and 28/54 HP on Elbereth. A cave spider, a rothe, a coyote and a pony were around it. A cornered monster cannot flee, so it attacks (monmove.c). The coyote bit for 7 HP. The bot allows only a hit below 10% of max HP as a "panic attack", so it marked Elbereth as failed. Only melee was left. Jev went from 21 to 10 HP and prayed 117 turns after the last prayer. The cave spider killed it during the prayer.
 - Prevention: In a crowd, one hit does not show that Elbereth failed. Keep the engraving while it is intact.
 - Fix: With 3 or more kinds of hostile monster adjacent, a hit below 20% of max HP counts as a panic attack. Elbereth stays in use.
+
+## T17902 soldier ant, Dlvl 6
+
+- Cause: Jev was at 33/79 HP on Elbereth, with an ape and a soldier ant adjacent. The soldier ant was cornered. In monmove.c, a scared monster that cannot move away attacks ("panic attack"). It hit Jev to 27 HP. The bot called this a panic attack and waited again. The ant was still cornered and hit Jev to 12 HP. An unknown potion (levitation) and a wand of slow monster did not help.
+- Prevention: A cornered monster attacks on each turn. Below half HP, do not wait on Elbereth next to it.
+- Fix: A panic attack keeps Elbereth in use only when Jev has half of max HP or more. Below that, the bot marks Elbereth as failed and offers other actions.
