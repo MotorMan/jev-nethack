@@ -2248,3 +2248,7 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 ## 2026-10-01 — stuck "feeling around in the dark", then fire ant on Dlvl 5 T11560 (run 20261001-200412)
 - **Cause:** a loop of leave_nymph down to Dlvl 5 (a room full of monsters), then upstairs straight back. fled_up blocks '>' for 50 turns and Dlvl 4 was fully explored, so no options were left. The "feel around in the dark" fallback then took thousands of random single steps beside the stairs. The user reported the bot as stuck. It went back down eventually and died to a fire ant while praying.
 - **Fix:** with no options and a flight up within the last 50 turns, the bot now rests for 20 turns.
+
+## 2026-10-01 — gargoyle, Sokoban Dlvl 7 T9530 (run 20261001-201806)
+- **Cause:** the forced soko_push filter only stood down while hostiles were in view and HP was under 60%. The gargoyle (speed 10, up to 28 damage a turn) kept stepping out of view. Each time, a push became the only option, at 20/57 and then 10/57, and each one walked the bot off its Elbereth. It died on the last push.
+- **Fix:** pushes are forced only at 60% HP or more. Below that, rest, Elbereth and the other options stay available.

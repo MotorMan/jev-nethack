@@ -1149,7 +1149,7 @@ class Bot:
                         self.run.setdefault('soko_stuck', {}).pop((m[0], i), None)
                     else:
                         self.run['soko_done'] = True
-                if 'soko_push' in opts and not near and not (hostiles and hp < 0.6 * hpmax):  # forced push off Elbereth at 26/64 with fled orcs in view: 14 HP next turn, dead (T5149)
+                if 'soko_push' in opts and not near and hp >= 0.6 * hpmax:  # forced push off Elbereth at 26/64 with fled orcs in view: 14 HP next turn, dead (T5149); a gargoyle out of view lifted the old hostiles gate, forced pushes at 20/57 then 10/57, dead (T9530)
                     opts = {k2: v for k2, v in opts.items() if k2 == 'soko_push' or k2 == 'pray' or k2.startswith('eat_')}
                 opts.pop('descend', None)  # a gnome king nearby lifted the filter and Jev walked out with 8 of 41 pushes left
             elif not ups and not m[0].startswith('soko1'):  # plan 'done' but '<' unreachable: the step count ran past a 166-push plan, soko_up/descend ping-ponged 11000 turns, starved (T17559)
