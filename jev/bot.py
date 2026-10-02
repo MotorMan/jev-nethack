@@ -626,6 +626,7 @@ class Bot:
             tag = {('potion', 20): 'healing', ('scroll', 20): 'identify', ('scroll', 80): 'enchant armor or remove curse'}.get((look[0], min(self.run.get('prices', {}).get(look) or {0})) if look and len(self.run.get('prices', {}).get(look) or ()) == 1 else None)
             if tag:
                 it['text'] += f' (priced as {tag})'
+            it['text'] = re.sub(r'\bwand called (cold|striking|magic missile|slow monster|speed monster|death/sleep|polymorph)\b', r'wand of \1', it['text'])  # named by the engrave test
             if it['text'] in self.run.get('empty_wands', ()):
                 it['text'] += ' (empty, x:0)'
         for it in uniq:  # user: #call what is certain (objects.h: clear is always water; base 20 scroll identify, 20 potion healing, 60 labeled scroll enchant weapon)
@@ -801,7 +802,7 @@ class Bot:
                     opts = {f'tame_{d}': (f"Throw {ok[0]['text']} to the {m['name']}", f"A hostile {sp} becomes peaceful (or your pet) when you throw it food it eats: cheaper than fighting it.", lambda l=ok[0]['letter'], d=d: self.act_throw(l, d))} \
                         if not any(o['dist'] <= 2 and not o['passive'] and self.species(o) not in DOMESTIC for o in hostiles) else {**opts, f'tame_{d}': (f"Throw {ok[0]['text']} to the {m['name']}", f"A thrown food item makes a hostile {sp} peaceful or tame.", lambda l=ok[0]['letter'], d=d: self.act_throw(l, d))}
                     break
-        wand = next((it for it in sorted(self.inventory, key=lambda i: not re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', i['text'])) if re.search(r'\bwand\b', it['text'])
+        wand = next((it for it in sorted(self.inventory, key=lambda i: not re.search(r'wand of (death/sleep|sleep|cold|fire|striking|magic missile|lightning)', i['text'])) if re.search(r'\bwand\b', it['text'])
                      and not re.search(r'probing|light|nothing|digging|opening|locking|enlightenment|secret door|create monster|wishing|undead turning|polymorph|make invisible|speed monster', it['text'])
                      and it['text'] not in self.run.get('bad_wands', ()) and not re.search(r':0\)', it['text'])
                      and self.run.setdefault('zaps', {}).get((it['text'], s.get('dlvl')), 0) < 4), None)  # a silent unknown wand (polymorph) zapped 379 times at molds turned one into a gargoyle that pinned Jev until it starved (T5526)
@@ -1035,7 +1036,7 @@ class Bot:
         if shop:  # an unknown wand zapped at a brown mold in Sipaliwini's store angered her: dead to her wand (T1314)
             # a known attack wand or a throw with no peaceful on the line or its bounce is safe: a fire ant panic-bit Jev 20 -> 0 in a shop door, magic missile unused (T4916)
             pp = {m['pos'] for m in mons if m['peaceful']}
-            opts = {k: v for k, v in opts.items() if not k.startswith(('zap_', 'throw_')) or k[-1] in DIRS and (k.startswith('throw_') or re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', v[0]))
+            opts = {k: v for k, v in opts.items() if not k.startswith(('zap_', 'throw_')) or k[-1] in DIRS and (k.startswith('throw_') or re.search(r'wand of (death/sleep|sleep|cold|fire|striking|magic missile|lightning)', v[0]))
                     and not any((me[0] + DIRS[k[-1]][0] * i * sg, me[1] + DIRS[k[-1]][1] * i * sg) in pp for i in range(1, 14) for sg in (1, -1))}
         # eat.c: a poisonous corpse costs rnd(15) HP and maybe Str without poison resistance; fainting with no prayer, kobolds beat starving (killed 10, ate none, fainted to a kitten T3459)
         self.run['calm'] = not hostiles and s.get('hunger') in ('Hungry', 'Weak', 'Fainting')  # eat.c: a bat stuns 30 turns, a giant bat 60: bearable with nothing in view, and only when food matters
@@ -1069,7 +1070,7 @@ class Bot:
             if fresh and 'eat_corpse' not in opts and not [m for m in near if 'much weaker' not in self.threat(m)] and 'goto_corpse' not in opts:  # (T3571)
                 p = min(fresh, key=dist.get)
                 opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.{why}", lambda p=p: self.act_goto_corpse(p))
-        ew = next((it for it in self.inventory if re.search(r'\bwand\b', it['text']) and 'wand of' not in it['text'] and it['text'] not in self.run.setdefault('etested', set())), None)
+        ew = next((it for it in self.inventory if re.search(r'\bwand\b', it['text']) and not re.search(r'wand (of|called)', it['text']) and it['text'] not in self.run.setdefault('etested', set())), None)
         if ew and not hostiles and not LOW_HP(s) and s.get('hunger') not in ('Weak', 'Fainting') and 'Blind' not in s.get('conditions', []) and self.standing_on() not in ('<', '>', '_', '{', '#') and not self.soko():
             # wiki (Engrave-identification): digging, fire and lightning auto-identify; 3 unknown wands rode to a lightning death on Dlvl 10 with no '<' known (T5319)
             opts[f"engrave_id_{ew['letter']}"] = ((f"Engrave-test {ew['text']}", 'Nothing hostile in view: engrave with the unknown wand to learn what it is (digging is an escape hole).', lambda it=ew: self.act_engrave_id(it)))
@@ -1813,7 +1814,7 @@ class Bot:
             # a gamble prayer is ~.6 at 250 turns (rnz(350) simulated); a known attack wand at the attacker beats it: pray-only at 8/62 with a wand of cold, dead (T5509)
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0] or k == 'dig_down' and 'gamble' in opts['pray'][0]
                     or k in ('elbereth', 'wait', 'teleport') and 'gamble' in opts['pray'][0] and turn - (self.run.get('prayed_turn') or 0) < 200  # pray-only on Elbereth 113 turns on: "Thou art arrogant", lost a level, dead (T7362) # rnz(350) is ~.5 at 100-200 turns vs ~.72 for a dust Elbereth: pray-only 123 turns on at 11/69 by a jaguar, dead (T7122)
-                    or k.startswith('zap_') and 'gamble' in opts['pray'][0] and re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', v[0])}  # chose an unknown black potion over a ~.7 prayer at 8/43: dead (T3559)
+                    or k.startswith('zap_') and 'gamble' in opts['pray'][0] and re.search(r'wand of (death/sleep|sleep|cold|fire|striking|magic missile|lightning)', v[0])}  # chose an unknown black potion over a ~.7 prayer at 8/43: dead (T3559)
             if 'gamble' in opts.get('pray', ('',))[0] and ('dig_down' in opts and 'Zap' in opts['dig_down'][0] or 'teleport' in opts):
                 del opts['pray']  # a hole is sure, a prayer 290 turns on is not: chose the gamble over a wand of digging at 9 HP, a little dog bit it dead mid-prayer (T3624)
         if 'flee_up' in opts and len(opts) > 1 and all(h['choice'] == 'flee_up' and 'after 1 steps' in h['outcome'] for h in self.history[-2:]):
@@ -2439,6 +2440,7 @@ class Bot:
 
     def act_engrave_id(self, it):
         self.run['etested'].add(it['text'])
+        mark = self.messages[-1] if self.messages else None
         self.t.send('E')
         if 'write with' not in self.t.lines()[0]:
             self.t.send('\x1b')
@@ -2463,6 +2465,21 @@ class Bot:
         if any('speed up!' in m for m in self.run['recent'][-3:]):  # engrave.c: 'The bugs ... speed up!' does not identify it: the 'runed wand' was zapped at an ettin zombie at 40/78, it sped up, dead (T7378)
             self.run.setdefault('bad_wands', []).append(it['text'])
             self.run['speed_wand'] = it['text']
+        # user: name the type by its engrave effect and keep the appearance (engrave.c zapwand messages)
+        news = ' | '.join(m['text'] for m in self.messages[next((i + 1 for i in range(len(self.messages) - 1, -1, -1) if self.messages[i] is mark), 0):])
+        look = re.search(r'(\w[\w ]*?) wand\b', it['text'])
+        new = next((i for i in self.inventory if i['letter'] == it['letter']), None)
+        name = next((n for k, n in (('speed up', 'speed monster'), ('slow down', 'slow monster'), ('stop moving', 'death/sleep'), ('ice cubes', 'cold'),
+                                    ('bullet holes', 'magic missile'), ('unsuccessfully fights', 'striking'), ('vanishes', 'cancel/tele/invis'), ('engraving now reads', 'polymorph'))
+                     if k in news), 'no engrave effect')
+        if look and new and 'wand of' not in new['text'] and 'worn out' not in news and 'write with' not in self.t.lines()[0]:
+            self.t.send('C'); self.t.send('o'); self.t.send(it['letter'])
+            if any(l.startswith('Call ') for l in self.t.lines()[:2]):
+                self.t.send('\x15' + f"{name} ({look[1].split()[-1]})" + '\r')
+            else:
+                self.t.send('\x1b\x1b')
+            self.settle()
+            self.read_inventory()
         return 'engrave-tested: ' + ' '.join(self.run['recent'][-2:])[-120:]
 
     def flee_up(self, act):
