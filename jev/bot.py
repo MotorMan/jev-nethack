@@ -2187,7 +2187,7 @@ class Bot:
         if self.snap.status.get('hp', 0) < hp:
             # monmove.c: a scared monster with no square to flee to panic-attacks anyway; one small hit in a crowd leaves the rest held off.
             # Treating it as failure dropped Elbereth for melee in a 12-monster swarm: 41 -> 0 in 8 turns (T1499)
-            if hp - self.snap.status.get('hp', 0) < 0.1 * self.snap.status.get('hpmax', 1) and self.elbereth_ok():
+            if hp - self.snap.status.get('hp', 0) < (0.2 if len(self.run.get('adj_names', ())) >= 3 else 0.1) * self.snap.status.get('hpmax', 1) and self.elbereth_ok():  # ringed by 4 kinds, a coyote's 7/54 bite dropped Elbereth: forced melee 21 -> 10, prayed 117 turns on, dead (T6943)
                 return 'a cornered monster panic-attacked; Elbereth is intact and still holds the rest off'
             self.run['elbereth'].discard((self.snap.status.get('dlvl'), self.snap.me))
             self.run['e_blockers'] = self.run.get('adj_names', ())  # a newt's hit blocked Elbereth against the rothe that came next: 19 -> 5, dead praying (T2568)

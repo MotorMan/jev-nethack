@@ -2578,3 +2578,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev stayed on Dlvl 7 (Minetown) from T8600 to T13885. Nymphs stole the shield, the helm, the apron, the banded mail and the orcish shield. Jev played at AC 10 for about 2000 turns. The bot did not offer "leave_nymph" by the up stairs, because of an old fix for an up-and-down loop (T9310). It did not find the down stairs. At the end, a dust vortex blinded Jev. Jev hit a watchman by mistake while blind, and a rothe killed it.
 - Prevention: Leave a nymph level by any staircase. Do not come back down at once.
 - Fix: "leave_nymph" can use the up stairs again. When it does, the bot blocks the way down for 300 turns, the same as after "flee_up". This block does not apply when Jev is Weak or Fainting.
+
+## T6943 cave spider, Dlvl 4
+
+- Cause: Jev was at XL 4 and 28/54 HP on Elbereth. A cave spider, a rothe, a coyote and a pony were around it. A cornered monster cannot flee, so it attacks (monmove.c). The coyote bit for 7 HP. The bot allows only a hit below 10% of max HP as a "panic attack", so it marked Elbereth as failed. Only melee was left. Jev went from 21 to 10 HP and prayed 117 turns after the last prayer. The cave spider killed it during the prayer.
+- Prevention: In a crowd, one hit does not show that Elbereth failed. Keep the engraving while it is intact.
+- Fix: With 3 or more kinds of hostile monster adjacent, a hit below 20% of max HP counts as a panic attack. Elbereth stays in use.
