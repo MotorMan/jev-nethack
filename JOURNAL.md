@@ -2566,3 +2566,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev was Hungry and had no food. It killed a shrieker 1 step north and the shrieker left a fresh corpse. Jev stood on an old pony corpse. The bot did not offer "goto_corpse" when any corpse was under Jev, even a corpse that was too old to eat. Jev went on to explore. The prayer at T3269 came too soon after the prayer at T2426 and failed. Jev became Weak, then Fainting, and an orc zombie killed it.
 - Prevention: A corpse that Jev cannot eat must not stop the bot from offering a fresh corpse nearby.
 - Fix: The bot blocks "goto_corpse" only when the corpse under Jev is less than 50 turns old (that is, when "eat_corpse" is offered).
+
+## T3009 Woodland-elf, Sokoban (Dlvl 5)
+
+- Cause: Jev was at 18/49 HP. A Woodland-elf shot arrows from range, and a gold golem was near. Jev picked up a spare orcish helm, a poisoned arrow and 2 elven arrows. The elf shot it to 10 HP during these turns. Jev rested, and the elf shot it to 2 HP. The prayer was not ready. Two potions and a wand of striking did not save it.
+- Prevention: At low HP with a hostile monster in view, do not spend turns on loot. Fight, escape or heal.
+- Fix: When HP is below half and a hostile monster is in view, the bot removes "pickup" and "fetch" options.

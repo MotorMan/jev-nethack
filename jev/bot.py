@@ -1484,6 +1484,8 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k in ('fetch_gear', 'pray') or k.startswith('eat_')}
         if not near and ('rest' in opts or 'wait' in opts) and s.get('hp', 1) < (0.75 if (s.get('turn') or 0) - self.run.get('hit_turn', -99) <= 50 else 0.5) * s.get('hpmax', 1):  # explored on at 11/65 HP into a giant beetle  # a jaguar fled off Elbereth out of view, Jev explored at 27/54 into it: 28 -> 0 (T3976)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door', 'descend', 'approach', 'kick', 'goto', 'search'))}
+        if s.get('hp', 1) < 0.5 * s.get('hpmax', 1) and any(not m['passive'] and not m['peaceful'] for m in hostiles) and len(opts) > 1:
+            opts = {k: v for k, v in opts.items() if not k.startswith(('pickup_', 'fetch'))} or opts  # picked up a spare helm and arrows at 18/49 with a Woodland-elf shooting: 18 -> 10 -> 2, dead (T3009)
         if (s.get('title') or '').startswith('Were'):  # animal form: armor falls off, paws can't wear or carry much
             opts = {k: v for k, v in opts.items() if not k.startswith(('pickup_', 'wear_', 'fetch'))}
         if any(k.startswith('explore') for k in opts) and not any(re.search(r'\b(key|lock pick|credit card)\b', it['text']) for it in self.inventory):
