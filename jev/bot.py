@@ -162,7 +162,7 @@ class Bot:
                 self.run['dropped'] = (self.snap.status.get('dlvl'), self.snap.me)
             if re.search(r'is displeased|Thou durst call upon me|Then die, mortal|voice of \w+ (booms|rings out|thunders)|relearn thy lessons|Thou hast angered me', text) and 'desecrate my altar' not in text:  # pray.c altar_wrath: engraving on your own altar costs 1 Wis and 1 alignment, not anger; flagged angry, no prayer offered at 7/56 888 turns on, dead (T5954)  # prayed too soon: god angry, Luck -3 (the quote after 'booms:' can be lost: wrath of Tyr killed T5998), praying again only makes it worse
                 self.run['god_angry'] = True
-            if re.search(r'grabs you|You are being choked|You are being held|cannot escape from|swings itself around you', text) and self.snap:
+            if re.search(r'grabs you|You are being (choked|held|crushed)|cannot escape from|swings itself around you', text) and self.snap:
                 self.run['held'] = self.snap.status.get('turn') or 0
             if re.search(r'nymph stole|nymph steals|She stole|He stole|stole .* from you|gladly hand over|gladly start removing', text) and self.snap:
                 self.run['nymph_lvl'] = self.snap.status.get('dlvl')
@@ -701,8 +701,9 @@ class Bot:
                 if not fast and not weak_only and not shot and hp < 0.7 * hpmax and self.retreat_dir(hostiles):  # one step back from a wand-zapping hill orc, 3 times at 5/45: zapped dead (T4400)  # at 50/53 Jev retreated 6 times from hill orcs, eating hits without swinging (T2966); retreating from a giant bat (speed 22) just gives it free hits
                     opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + ' Everything nearby is slower than you, so you can open a gap.', lambda: self.act_retreat(hostiles))
             # wiki (Fighting in corridors): a pack surrounds you on up to 8 sides; in a corridor only one or two can reach you. User: get to a hallway rather than sit on Elbereth
-            if len(pack_near) >= 2 and open_n(me) > 2 and (gap >= 2 or outrun) and sum(h['choice'] == 'choke' for h in self.history[-12:]) < 3:  # a pack 4 steps off that never came: choke <-> explore 34 times, Hungry to Weak, dead Fainting (T7245)  # walked off with two apes adjacent at 14/42: free hits, dead (T2116)
-                choke = min((q for q, dq in dist.items() if 0 < dq <= 15 and open_n(q) <= 2 and q not in self.level().traps and not snap.is_monster(*q)
+            close = gap < 2 and not outrun  # user: with a crowd already adjacent in a room corner, back into the doorway/hallway 1-2 steps off instead of 100+ turns on Elbereth (T11330-11430)
+            if len(pack_near) >= 2 + close and open_n(me) > 2 and (not close or hp >= 0.5 * hpmax) and sum(h['choice'] == 'choke' for h in self.history[-12:]) < 3:  # a pack 4 steps off that never came: choke <-> explore 34 times, Hungry to Weak, dead Fainting (T7245)  # walked off with two apes adjacent at 14/42: free hits, dead (T2116)
+                choke = min((q for q, dq in dist.items() if 0 < dq <= (2 if close else 15) and open_n(q) <= 2 and q not in self.level().traps and not snap.is_monster(*q)
                              and min(cheb(q, m['pos']) for m in pack_near) >= min(gap, 3)), key=dist.get, default=None)
                 if choke:
                     opts['choke'] = ('Fight from a corridor', f"Walk {dist[choke]} steps {compass(me, choke)} to a corridor or doorway square, so the {len(pack_near)} monsters can only reach you one or two at a time.", lambda q=choke: self.act_go(q, steps=15, stop_new=False))  # the pack is already in view: stopping on each 'new' one left a Mines walk at 1 step, 3 times, between garbled Elbereths (T5005)
@@ -757,6 +758,8 @@ class Bot:
             if 'choke' in opts and opts.get('wait', ('',))[0].startswith('Stay on Elbereth'):
                 del opts['wait']  # 0.4: at 25/53 Elbereth was dropped for a walk to a corridor beside a rothe, 25 -> 8 garbling retries (T3712)  # wiki: Elbereth is breathing room; a corridor is how to actually fight a group
             opts.pop('elbereth', None)
+            if 'choke' in opts and len(pack_near) >= 3:
+                opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'wait', 'explore', 'throw_'))}  # standing in the open with 3+ around: every turn spent swinging there lets all of them hit
 
         # the bounce risk is only for unknown wands: a known wand of fire zapped at an adjacent foe in a corridor bounced back, 26 -> 0 (T7065)
         # an ape took 38 -> 3 with only 'attack' on offer, prayer 100 turns old, two unknown potions and an unknown wand unused (T4683)
@@ -1249,7 +1252,8 @@ class Bot:
             opts.pop('rest', None)
             if not any(k.startswith(('eat_', 'goto_corpse')) for k in opts):
                 opts = {'pray': opts['pray']}  # Weak at low HP 844 turns after a prayer, offered 'pray' 4 times: swung at bees and descended instead, fainted, dead (T3493)
-        if (s.get('turn') or 0) - self.run.get('held', -99) <= 1:  # held: moving escapes 1 in 40 (hack.c); a rope golem choked Jev through 3 retreats (T5125). Wiki: Elbereth works while grabbed
+        if (s.get('turn') or 0) - self.run.get('held', -99) <= 2:  # owlbear crush: '<' tried 4 times 'held, and cannot go up', 82 -> 0 (T12770)
+            # held: moving escapes 1 in 40 (hack.c); a rope golem choked Jev through 3 retreats (T5125). Wiki: Elbereth works while grabbed
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray') or k.startswith(('attack_', 'quaff_', 'zap_'))} or opts  # an uncursed wand of fire stayed unzapped while two rope golems choked Jev 70 -> 0 (T5699)
         if any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and any(k.startswith(('attack_', 'flee_up', 'upstairs', 'retreat')) for k in opts):  # flee_up drops attacks, then explore was added back: explored 4 times beside Woodland-elves (T3567)  # explored away from 5 adjacent rats at 21/29: dead (T1354)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore_', 'search', 'throw_', 'pickup_', 'fetch', 'door_'))}  # picked up loot 3 times with Woodland-elves hitting (T6490); threw daggers at a far orc-captain with a giant spider adjacent: 19 -> 8 HP, dead (T4825); walked for a locked door 3 times inside a wererat's rat swarm: 17 -> 0 (T5245)

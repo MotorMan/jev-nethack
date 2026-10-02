@@ -2283,3 +2283,7 @@ Each change below was checked against the 5.0 source:
 - **#enhance:** weapon.c prints "You feel more confident in your weapon skills" when a skill can be advanced. Jev never ran #enhance, so its spear stayed at Basic. It now advances the wielded weapon's skill, otherwise the first skill offered, using the 5.0 menu format "x - name [Level]".
 - **Orcish Town:** one of the Minetown variants (minetn-1.lua) has dozens of orcs and no temple. Five or more hostile 'o' in view on Minetown depth or deeper marks it. Jev then heads back up, and the Mines stairs on the branch level are skipped for the rest of the game.
 - **Skipped:** Sokoban-top giant mimics and the zoo (Sokoban is already scripted), holes as an escape, and burned or dug Elbereth.
+
+## Choke with a crowd adjacent; held by an owlbear (T11430, T12770)
+- User screenshot: in a room corner on Dlvl 5 with an owlbear, gremlin, lizards, goblin and h around, Jev sat on garbling Elbereth for 100+ turns (61 -> 21) with a doorway 1 step north. Choke was only offered when no monster was adjacent (gap >= 2). Now with 3+ in the pack and HP >= 50%, a corridor/doorway square within 2 steps is offered, and attack/wait/explore are dropped in favor of it.
+- Run 20261001-203850 died to that same crowd (by a snake): it went back down to Dlvl 5, the owlbear grabbed it, and it chose '<' 4 times ("You are being held, and cannot go up"), 82 -> 0. "You are being crushed" now counts as held, and the held filter (attack/Elbereth/pray/quaff/zap only) lasts 2 turns, not 1.
