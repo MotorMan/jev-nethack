@@ -1032,6 +1032,9 @@ class Bot:
         above = self.run['levels'].get(s.get('dlvl', 1) - 1)
         if too_deep and ups and (self.standing_on() != '<' or mcap) and (mcap or not (above and sum(above.searched.values()) >= 800)) and (dist[ups[0]] <= 2 or not any(m['dist'] <= 1 for m in hostiles)):  # walked for '<' 50 steps off with Mordor orcs and a snake adjacent: 7 tries, 44 -> 0, dead praying (T3746)  # the level above already waited out its pace cap: going back just ping-pongs (4 <-> 5 25 times in 100 turns, T4478)  # XL5 on Dlvl 7 died to a winter wolf; XL+3 was too late
             opts['ascend'] = ('Head back upstairs', f"This level is far too deep for experience level {s.get('xl')}. Walk to the up staircase ({dist[ups[0]]} steps {compass(me, ups[0])}) and climb to Dlvl {s.get('dlvl', 0) - 1}.", lambda p=ups[0]: self.act_descend(p, '<'))
+        if too_deep and not ups and not self.in_mines() and any(k.startswith('explore_') for k in opts):
+            # a hole dropped XL4 Jev from Dlvl 5 to 7: 300 turns of fetches, pickups and hidden-door searches before a yellow light and an orc band, dead (T2696)
+            opts = {k: v for k, v in opts.items() if not k.startswith(('fetch', 'pickup_', 'search', 'rest', 'goto_', 'sell_', 'buy_'))}
         if len(snap.find('{')) >= 4:  # the Oracle's four fountains: Sokoban's entrance is the second '<' one level down
             self.run['oracle'] = s.get('dlvl')
         soko_hunt = s.get('dlvl') == (self.run.get('oracle') or -9) + 1 and len(snap.find('<')) < 2 and not self.run.get('soko_done') and self.frontiers(dist)

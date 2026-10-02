@@ -2123,3 +2123,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: a rope golem grabbed Jev. At HP < 50% the bot zapped the wand of digging down 12 times, and each zap failed with "You are being held, and cannot go down"; choked 47 -> 0. Prayer had been used at T13996 on hunger during the 2000-turn dark-spot wait loop (fixed above).
 - Wiki (Rope golem): held, you can't move away or go down; kill it (AC 8, weak) or teleport; Elbereth works while grabbed.
 - Fix: no dig_down offer while held; "You are being held" now also sets held, so only attack/Elbereth/pray/quaff/zap remain.
+
+## Gold golem after a hole to Dlvl 7 (run 172642, XL4, T2696)
+- Cause: a hole dropped Jev from Dlvl 5 to 7 (Oracle level) at XL4. With '<' unknown, ascend was never offered, and it spent ~300 turns on fetches, pickups and hidden-door searches. It meleed a yellow light off Elbereth (rule: kill it), missed, and the light exploded. Blind, it was mobbed by unseen Mordor orcs with prayer spent (T2605); a gold golem finished it.
+- Wiki (Trap door/hole): you land on a random spot below; the way back is '<', so finding it is priority one when the level is beyond you.
+- Fix: too deep with no '<' known (outside the Mines) → only exploring and fighting, no fetch/pickup/search/rest detours while explore options exist.
