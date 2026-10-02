@@ -2421,3 +2421,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: In the dark, a water nymph stole the plate mail, the shield and the spear (T5064). Later a wererat bite made Jev a wererat. As a rat, Jev was Overloaded. The drop options came from a stale inventory, so Jev tried 20 drops of items that were already gone. Monsters bit it 34 -> 15 meanwhile, and Jev used its prayer. 40 turns later, a mob killed it at AC 10.
 - Prevention: Read the inventory again after each drop. Do not spend turns on items that you do not have.
 - Fix: `jev/bot.py` reads the inventory after each `drop_` option.
+
+## T3000 shopkeeper's wand, Dlvl 5
+
+- Cause: In a food shop, a giant mimic stuck to Jev. Jev burned Elbereth, then chose `flee_up`, which cannot move a stuck hero (30 -> 13). It quaffed an unknown potion: hallucination. The shopkeeper then showed as a hostile "raging nerd", and Jev zapped fire at him. The shopkeeper killed Jev with his wand.
+- Prevention: When a monster holds you, fight it. While you hallucinate, monster names and the peaceful flag are not correct. Do not attack, zap or throw at a square where a peaceful monster was before.
+- Fix: `jev/bot.py` sets `held` on a mimic hit and offers attacks when `retreat` and `flee` are the only options. While Jev hallucinates, it removes attack, zap and throw options that point at the last known peaceful squares.

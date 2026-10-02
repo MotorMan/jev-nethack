@@ -168,7 +168,7 @@ class Bot:
                 self.run['god_angry'] = True
             if re.search(r'counting gold coins|footsteps of a guard on patrol|Ebenezer Scrooge', text) and self.snap:  # sounds.c: a vault with gold on this level; raid it with a pick-axe later
                 self.level().notes.add('vault')
-            if re.search(r'grabs you|You are being (choked|held|crushed)|cannot escape from|swings itself around you', text) and self.snap:
+            if re.search(r'grabs you|You are being (choked|held|crushed)|cannot escape from|swings itself around you|(large|giant) mimic hits', text) and self.snap:
                 self.run['held'] = self.snap.status.get('turn') or 0
             if re.search(r'nymph stole|nymph steals|She stole|He stole|stole .* from you|gladly hand over|gladly start removing', text) and self.snap:
                 self.run['nymph_lvl'] = self.snap.status.get('dlvl')
@@ -761,6 +761,12 @@ class Bot:
         # uhitm.c: no "Really attack?" while Hallu/Conf/Stun; hallucinating, Jev hit peacefuls, alignment went negative ("You had sinned"), the first prayer failed, fainted, dead (T2759)
         # hack.c: Stunned, every move goes a random direction: six "You attack thin air" swings in Orc Town, 24 -> 0 (T4713)
         stun = bool(set(s.get('conditions', [])) & {'Stun', 'Stn'})
+        if not hallu:
+            self.run['peace_pos'] = (s.get('dlvl'), {m['pos'] for m in mons if m['peaceful']})
+        elif self.run.get('peace_pos', (None,))[0] == s.get('dlvl'):  # hallucinating, the shopkeeper showed as a 'raging nerd': zapped fire at Zhangmu, his wand killed Jev (T3000)
+            pp = self.run['peace_pos'][1]
+            opts = {k: v for k, v in opts.items() if not (k.startswith(('attack_', 'zap_', 'throw_')) and k[-1] in DIRS
+                    and any((me[0] + DIRS[k[-1]][0] * i, me[1] + DIRS[k[-1]][1] * i) in pp for i in range(1, 1 + (1 if k.startswith('attack_') else 13))))}
         if stun or set(s.get('conditions', [])) & {'Hallu', 'Hal', 'Hl', 'Conf', 'Cnf'} and (s.get('turn') or 0) - self.run.get('hit_turn', -99) > 2:
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'throw_', 'zap_', 'explore', 'retreat', 'choke', 'goto_'))} or opts
             if stun:
@@ -1370,7 +1376,10 @@ class Bot:
         if adj and all((MONSTERS.get(self.species(m)) or [0, 99])[1] <= 3 and 'lichen' not in m['name'] for m in adj) and hp < 0.7 * hpmax and 'pray' not in opts and s.get('hunger') not in ('Weak', 'Fainting') and (s.get('turn') or 0) - self.run.get('held', -99) > 2 and self.retreat_dir(hostiles):  # stuck to a giant mimic: 'retreat' was the only option, 6 times 'You cannot escape', 62 -> 0 (T4379); monmove.c monflee releases the hero, so Elbereth or a fight it is  # starving: the slow thing is dinner; fainting with Tyr angry, Jev walked away from a rock mole 6 times and fainted to death (T6255)  # mimics (speed 3) hit through Elbereth (cornered: monmove.c panicattk); 100 turns re-engraving beside two drew a bones-level horde, dead (T4328)
             opts = {'retreat': ('Walk away from the slow monster', 'Step away: everything next to you moves at speed 3 or less, so two steps leave it behind for good.', lambda: self.act_retreat(hostiles))}
         if (s.get('turn') or 0) - self.run.get('held', -99) <= 2:  # held: 'flee_up' then 'retreat' never moved (T4379)
-            opts = {k: v for k, v in opts.items() if not k.startswith(('retreat', 'flee'))} or opts
+            opts = {k: v for k, v in opts.items() if not k.startswith(('retreat', 'flee'))}
+            for m in [] if opts else adj:  # stuck to a giant mimic on burned Elbereth, only 'retreat' and 'flee_up' were left: 30 -> 13 (T2998)
+                d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
+                opts[f'attack_{d}'] = (f"Attack {m['name']} ({DIR_NAME[d]})", 'You are stuck to it and cannot move away. Kill it.', lambda d=d: self.act_fight(d))
         if sum(m['dist'] <= 3 for m in near) >= 3:  # held a doorway against 15 Mines monsters, a kill left no one adjacent and explore stepped into the room: 22 -> 5 HP in 2 turns (T2970)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door_', 'search', 'goto_'))} or opts
         if near and 'wait' in opts and self.engraved_here() and s.get('hp', 1) * 2 < s.get('hpmax', 1):  # explored off Elbereth at 12/63 among 8 monsters, 3 times 'took damage after 1 steps' (T7921)
