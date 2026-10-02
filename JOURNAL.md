@@ -2786,3 +2786,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** Jev stood on Elbereth at 24/59 HP and was Weak. A gray unicorn (speed 24) and a lizard were near. Weak hunger turns off the rule that holds Jev on Elbereth. The T6823 rule removed the hunger prayer because the lizard was near. Only 'flee_up' was left. The pursuit rule does not remove the last option. Jev walked off Elbereth, and the unicorn killed it.
 - **Prevention:** Do not leave a working Elbereth to walk away from a fast monster. On Elbereth, a prayer is safe.
 - **Fix:** If the pursuit rule removes the last option while Jev is on Elbereth, the bot offers 'wait' on Elbereth. The T6823 rule no longer removes the hunger prayer on Elbereth.
+
+## Fainting deaths: corpses refused at age 31-49
+
+- **Cause:** 18 of the last 80 Hosted deaths were fainting or starvation. Each of these deaths has its own fix above. But the bot still prays for food about once each 1000 turns, so it lives on prayers. Each hunger prayer has a risk of about 6% (pray.c: the timeout is rnz(350)). A long game then dies to one failed prayer. One cause of the food shortage: the bot offered `eat_corpse` for a corpse younger than 50 turns, but `act_eat_corpse` accepted only kills from the last 30 turns. In the last 40 games, the bot refused 52 offers for corpses aged 31 to 49 turns. Each retry engraved Elbereth again, so the corpse got older (T4258, an Uruk-hai).
+- **Prevention:** eat.c: rotted = age / (10 + rn2(20)). A corpse is tainted only when rotted > 5, so a corpse younger than 50 turns is never tainted.
+- **Fix:** `act_eat_corpse` accepts kills from the last 50 turns, the same window as the offer. After a refusal, the bot marks the corpse as stale and does not offer it again.

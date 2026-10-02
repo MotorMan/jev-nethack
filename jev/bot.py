@@ -2303,7 +2303,7 @@ class Bot:
             self.act_elbereth()  # eat.c: 1 in 7 corpses is rotten, up to 10 turns out cold; a fresh rothe's packmate killed an unconscious Djev from 46/46 (T3021)
         self.t.send('e')
         turn = self.snap.status.get('turn') or 0
-        fresh = {k for t0, k in self.run.get('kills', []) if turn - t0 <= 30}
+        fresh = {k for t0, k in self.run.get('kills', []) if turn - t0 < 50}  # same window as the offer (eat.c: age < 50 is never tainted): 30 refused 52 offered corpses aged 31-49, each retry engraved again (T4258 Uruk-hai)
         for _ in range(8):  # eat.c asks per floor corpse: an old newt sat above a fresh quasit, 'y' to the first prompt, tainted, dead (T10532)
             top = self.t.lines()[0]
             m = re.search(r'There (?:is|are) (?:an? |\d+ )?(.+?) corpses? here; eat', top)
@@ -2319,6 +2319,8 @@ class Bot:
         self.observe()
         key = (self.snap.status.get('dlvl'), self.snap.me)
         self.run['here'][key] = self.look_here()
+        if (self.snap.status.get('turn') or 0) <= turn and self.snap.me:
+            self.level().corpses[self.snap.me] = -10**6  # refused: do not offer it again
         return 'ate corpse' if (self.snap.status.get('turn') or 0) > turn else 'did not eat: no corpse here is a fresh kill'  # 'ate corpse' 18 times with no turn passing (T7680)
 
     def blindfold(self):
