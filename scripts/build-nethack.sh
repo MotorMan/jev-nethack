@@ -39,14 +39,12 @@ rm -rf "$PREFIX"
 # Create the expected directory structure
 mkdir -p "$PREFIX/lib" "$PREFIX/lib/var" "$PREFIX/lib/var/save" "$PREFIX/lib/var/whereis" "$PREFIX/bin" "$PREFIX/dumplog"
 
-# Copy the binary and utilities
+# Copy data files
 cp -a src/nethack "$PREFIX/lib/nethack"
 cp -a util/recover "$PREFIX/lib/recover"
-
-# Copy data files
 cp -a dat/nhdat "$PREFIX/lib/nhdat"
 cp -a dat/symbols "$PREFIX/lib/symbols"
-cp -a license "$PREFIX/lib/license"
+cp -a dat/license "$PREFIX/lib/license" 2>/dev/null || true
 cp -a doc/NHdump.css "$PREFIX/lib/NHdump.css" 2>/dev/null || true
 
 # Create the expected bin/ symlink
