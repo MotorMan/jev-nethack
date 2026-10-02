@@ -2346,3 +2346,11 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - A giant mimic in a shop stuck to the bot ("You cannot escape from the giant mimic!"). The "walk away from the slow monster" rule replaced all options with 'retreat'. The bot tried to retreat 6 times and did not move, 62 -> 0 HP.
 - monmove.c: monflee() calls release_hero(), so a mimic that Elbereth scares lets go.
 - Fix: while held, the slow-monster rule does not apply, and no retreat or flee option is offered. Elbereth and attack stay.
+
+## T4640 owlbear, Dlvl 4
+- The bot came down to Dlvl 4 into a room with an owlbear, a pudding and molds. The owlbear was 2 squares away and the bot stood on the upstairs, with 'upstairs' offered. It picked wait, then 'choke', which walked it off the stairs. The owlbear hugged it: 65 -> 30 HP in one turn. Engraving failed while held, and two zaps of an unknown wand did nothing. Dead.
+- Fix: on the upstairs with a hugger (AT_HUGS) within 3 squares and not held, the only option is 'upstairs'.
+
+## Mimic memory (user note)
+- User: you can walk away from a found mimic (speed 3), but it can follow you and hide again. The "new" item on the way back is probably the mimic.
+- Fix: each level remembers every square where a mimic was seen. Object glyphs within 2 squares of those squares go into `avoid`, so the bot does not path through them.

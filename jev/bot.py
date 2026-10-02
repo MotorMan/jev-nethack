@@ -576,6 +576,11 @@ class Bot:
         mons = self.monsters()
         hostiles = [m for m in mons if m['hostile']]
         self.avoid = {m['pos'] for m in hostiles if m['passive'] and 'shrieker' not in m['name']}
+        # user: you can walk away from a found mimic (speed 3), but it can follow and hide again, so the 'new' item on the way back is the mimic
+        seen = self.level().__dict__.setdefault('mimics', set())
+        seen |= {m['pos'] for m in hostiles if 'mimic' in m['name']}
+        self.avoid |= {(x, y) for (mx, my) in seen for x in range(mx - 2, mx + 3) for y in range(my - 2, my + 3)
+                       if (g := snap.at(x, y)) and g.ch in ')[%?/=!("*$`0' and not snap.is_monster(x, y)}
         # a gas spore's blast next to a shopkeeper has killed two runs: leave those alone entirely
         hostiles = [m for m in hostiles if not ('gas spore' in m['name'] and any(o['peaceful'] and cheb(o['pos'], m['pos']) <= 2 for o in mons))]
         dist, prev = self.dijkstra()
@@ -1594,6 +1599,8 @@ class Bot:
                     d = next((k for k, (dx, dy) in DIRS.items() if (me[0] + dx, me[1] + dy) == m['pos']), None)
                     rest = {k: v for k, v in opts.items() if k not in (f'attack_{d}', f"approach_{m['pos'][0]}_{m['pos'][1]}")}
                     opts = rest or opts
+        if 'upstairs' in opts and (s.get('turn') or 0) - self.run.get('held', -99) > 2 and any(m['dist'] <= 3 and HUGGERS.search(m['name']) for m in hostiles):
+            opts = {'upstairs': opts['upstairs']}  # on '<' with an owlbear 2 squares off: wait, then 'choke' walked off the stairs, hugged, crushed 65 -> 0 (T4640)
         recent = self.history[-12:]
         if sum(h['choice'] == 'elbereth' for h in recent) >= 4 and len(recent) == 12 and s.get('hp', 0) <= recent[0].get('hp', 0):  # user: 'stop using elbereth so much': 100+ turns of re-engraving in a room corner while HP fell 61 -> 21 (T11430)
             rest = {k: v for k, v in opts.items() if k != 'elbereth' and not v[0].startswith('Stay on Elbereth')}
