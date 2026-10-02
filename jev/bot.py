@@ -1339,13 +1339,14 @@ class Bot:
                 m = min(fs, key=lambda m: d2[m['pos']])
                 opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat')}
                 opts['kill_blocker'] = (f"Kill the {m['name']}", f"No experience gained in {(s.get('turn') or 0) - self.run['exp_turn']} turns: the {m['name']} {m['where']} sits in the way. It cannot move or attack; hitting it hurts you a little. The fight stops if HP gets low.", lambda m=m: self.act_kill_blocker(m['pos']))
-        if not fr and not downs and not near and sum(lv.searched.values()) >= 300 * (lv.resets + 1):
-            # searched a long time for nothing: level memory may be hiding real exits (a starved run had an open doorway in view)
-            lv.resets += 1
-            lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
+        if not fr and not downs and not near and (lv.blocked - lv.locked or lv.dead) and s.get('turn', 0) - lv.__dict__.get('unblock_turn', -99) >= 30:
+            # one failed step into a doorway marked it blocked for good: 300 turns of search_hidden on each level, then a full memory reset re-walked every corridor (T27-T362, T604-T976, T1105-T1451). Forget bumps, keep what we have seen
+            lv.unblock_turn = s.get('turn', 0)
+            lv.blocked &= lv.locked; lv.dead.clear()
+            dist, _ = self.dijkstra()
             fr = self.frontiers(dist)
             if fr:
-                opts['explore_again'] = ('Re-explore this level', f"Searching found nothing, but there are unexplored edges again ({len(fr)} of them, nearest {fr[0][0]} steps {compass(me, fr[0][1])}).", lambda p=fr[0][1]: self.act_explore(p))
+                opts['explore_again'] = ('Re-explore this level', f"An exit that looked blocked may be open: unexplored edge {fr[0][0]} steps {compass(me, fr[0][1])}.", lambda p=fr[0][1]: self.act_explore(p))
         if not fr and not downs and not near and 'kill_blocker' not in opts and 'dead_end' not in opts:  # walled in: searching finds nothing  # search_hidden won 123 of 125 dead_end offers: 5000 turns on one Dlvl 3, starved (T6672)
             spot = self.search_spot(dist) or self.search_spot(dist, ghost=False)  # its own ghost kept touching Jev: every spot was 'near the ghost', no options, memory reset, explore into a stuck boulder 2700 turns, starved (T9746)
             if spot:
@@ -1873,12 +1874,12 @@ class Bot:
                 continue  # mkroom.c: a shop has exactly one door, so its walls hide nothing; 317 searches mostly inside one, starved (T6390)
             walls = sum(1 for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy) and (g := snap.at(p[0] + dx, p[1] + dy)) is not None and g.ch in ' |-')
             exits = sum(1 for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy) and snap.walkable(p[0] + dx, p[1] + dy))
-            if walls < 3:
-                continue
+            if walls < 3 or (snap.at(*p).ch == '#' and exits > 1) or snap.at(*p).ch != '#' and not any((g := snap.at(p[0] + dx, p[1] + dy)) is not None and g.ch in '|-' and not snap.is_door(p[0] + dx, p[1] + dy) for dx, dy in DIRS.values()):
+                continue  # user: a hidden spot is at a corridor's dead end or in a room wall, never mid-hallway
             g = getattr(lv, 'ghost', None)
             if ghost and g and (snap.status.get('turn') or 0) - g[1] < 300 and cheb(p, g[0]) <= 8:
                 continue  # speed 3 vs 12: searching 8+ squares away buys ~30 uninterrupted turns before it drifts back
-            score = lv.searched.get(p, 0) * 2 + d / 4 - (8 if snap.at(*p).ch == '#' and exits <= 1 else 0) - walls - blank(*p) / 12
+            score = max(lv.searched.get((p[0] + dx, p[1] + dy), 0) for dx in (-1, 0, 1) for dy in (-1, 0, 1)) // 30 * 40 + d / 4 - (8 if snap.at(*p).ch == '#' and exits <= 1 else 0) - walls - blank(*p) / 12  # 30 turns finds ~99% of adjacent hidden spots (rnl(7)); hopping after 15 turns walked the level back and forth (300 turns a level)
             if best is None or score < best[0]:
                 best = (score, p)
         return best and best[1]

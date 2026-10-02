@@ -25,3 +25,5 @@ dist = {(x, y): abs(x - 30) + abs(y - 5) for y in range(3, 9) for x in range(28,
 p = b.search_spot(dist)
 assert p[0] >= 33, p  # east wall of the right room, not the explored west room
 print('search_spot ok', p)
+assert b.search_spot({(19, 6): 1}) is None  # user: never search mid-hallway
+print('mid-hallway skipped')
