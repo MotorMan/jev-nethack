@@ -2117,3 +2117,4 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: the only door into the '>' room (and a corridor) held a web, shown as '"'. nh.py walkable() didn't include '"' (neither trap nor object), so '>' was unreachable. The bot searched for a hidden path; once the ghost fix ruled out search spots near the ghost, it waited ("Nothing else is possible").
 - Wiki (Web): walking in gets you stuck for a few turns; strong characters tear it apart. Not a wall.
 - Fix: '"' is walkable at trap cost (20), like '^'.
+- Follow-up: '>' still unreachable. The bot stood in an unlit area whose neighbors render blank, so no path existed from its square. The fallback 'wait' looped about 2000 turns, with 2 prayers spent on hunger. Fix: after 3 of 5 waits with no hostiles in view, step into a random blank/walkable neighbor to reveal the dark.

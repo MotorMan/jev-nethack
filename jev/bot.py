@@ -1286,6 +1286,10 @@ class Bot:
             lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
             lv.resets += 1
             opts['wait'] = ('Wait one turn', 'Nothing else is possible right now; search in place for one turn.', lambda: self.act_keys('ms', 'waited'))
+            # an unlit spot shows its neighbours blank, so no path leads anywhere: 2000 turns of 'wait' on Dlvl 7 (T11000-13200). Feel around instead
+            dark = [k for k, v in DIRS.items() if (g := snap.at(me[0] + v[0], me[1] + v[1])) and (g.ch == ' ' or snap.walkable(me[0] + v[0], me[1] + v[1]))]
+            if dark and sum(h['choice'] == 'wait' for h in self.history[-5:]) >= 3 and not hostiles:
+                opts['wait'] = ('Feel around in the dark', 'Nothing is reachable on the map: step into an unseen square next to you.', lambda d=random.choice(dark): self.act_keys(d, 'stepped into the dark'))
             # a trap door dropped Jev into a shop closed for inventory: 10000 turns waiting at a locked door (T399-T10300). wiki: unlock it, teleport out, or kick it and pay 400zm
             if lv.resets > 300:
                 d = next((k for k, v in DIRS.items() if not (v[0] and v[1]) and (me[0] + v[0], me[1] + v[1]) in lv.locked), None)
