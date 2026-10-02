@@ -46,5 +46,5 @@ export interface State {
   run: { id: string; started: string; character: string; max_dlvl: number; decisions: number; engine?: string; models?: string[] }
   runs: RunSummary[]
   inventory: { letter: string; text: string; contents?: string[] }[]
-  level: { dlvl: number; explored: number; downstairs: boolean; upstairs: boolean }
+  level: { dlvl: number; explored: number; downstairs: boolean; upstairs: boolean; notes?: [number | string, string][] }
 }

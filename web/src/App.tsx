@@ -653,6 +653,12 @@ function LevelInfo({ s }: { s: State }) {
         <Tag t={l.downstairs ? "green" : "muted"}>&gt; down {l.downstairs ? "known" : "unknown"}</Tag>
         <Tag t={l.upstairs ? "green" : "muted"}>&lt; up {l.upstairs ? "known" : "unknown"}</Tag>
       </div>
+      {l.notes?.map(([k, n]) => (
+        <div key={String(k)} className="flex gap-2 text-ui truncate mt-1" title={`Level notes for ${typeof k === "number" ? "Dlvl " + k : k}: ${n}`}>
+          <span className="text-primary shrink-0 w-8">{typeof k === "number" ? `D${k}` : k}</span>
+          <span className="truncate text-muted-foreground">{n}</span>
+        </div>
+      ))}
     </Panel>
   )
 }

@@ -3224,5 +3224,6 @@ class Bot:
                          max_dlvl=self.run['max_dlvl'], decisions=self.run['decisions'], engine=self.run['engine'], models=self.run['models']) if self.run else None,
                 runs=list(self.runs), inventory=list(self.inventory),
                 level=dict(dlvl=snap.status.get('dlvl', 0), explored=min(1.0, sum(1 for l in snap.lines[MAP_TOP:MAP_BOT + 1] for c in l if c != ' ') / 700),  # ponytail: ~700 drawn cells is a typical fully seen level
-                           downstairs=bool(snap.find('>')), upstairs=bool(snap.find('<'))) if snap and self.run else None,
+                           downstairs=bool(snap.find('>')), upstairs=bool(snap.find('<')),
+                           notes=[[k if isinstance(k, int) else f'{k[0]} {k[1]}', ', '.join(sorted(v.notes))] for k, v in sorted(self.run['levels'].items(), key=str) if v.notes]) if snap and self.run else None,
             )
