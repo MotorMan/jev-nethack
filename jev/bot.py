@@ -464,7 +464,7 @@ class Bot:
                     continue
                 if soko and (snap.at(*q).ch == '0' or snap.at(*q).ch == '^' and q not in safe or dx and dy and not all(snap.walkable(*c) and snap.at(*c).ch != '0' for c in ((p[0] + dx, p[1]), (p[0], p[1] + dy)))):
                     continue  # Sokoban: never shove a boulder off-plan or drop into a hole; no squeezing past boulders diagonally
-                if dx and dy and (not snap.diag_ok(p, q) or (p == start and self.standing_on() == 'door')
+                if dx and dy and (not snap.diag_ok(p, q) or (p == start and self.standing_on() == 'door') or 'door' in (self.run.get('under', {}).get((snap.status.get('dlvl'), p)), self.run.get('under', {}).get((snap.status.get('dlvl'), q)))
                                   or not (snap.walkable(p[0] + dx, p[1]) or snap.walkable(p[0], p[1] + dy))):  # squeezing between two walls fails over 600 weight ("carrying too much to get through"): up to 2171 blocked moves a game
                     continue
                 nd = d + snap.cost(*q)
@@ -1287,7 +1287,7 @@ class Bot:
             # same pace as the stairs: 'not too_deep' let XL5 dig 6 -> 7 and XL6 7 -> 8, dead to a giant spider (T4825)
             opts['dig_down'] = ('Dig down with the pick-axe', f"Apply {pick['text']} downward to dig a hole to Dlvl {s.get('dlvl', 0) + 1} (takes several turns; skips the rest of this level).", lambda l=pick['letter']: self.act_dig(l))
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
-        if not near and not any(m['dist'] <= 4 and not m['passive'] for m in hostiles) and not self.unseen_attacker() and s.get('hp', 1) < 0.85 * s.get('hpmax', 1):  # a pony 3-4 squares off but outside 'dist' (unreachable square): rested 15 turns at 16/41, 18 -> 7, dead praying (T2658)  # blind, Jev rested beside an orc and died (T3212)
+        if not near and not any(m['dist'] <= 4 and not m['passive'] for m in hostiles) and not self.unseen_attacker() and s.get('hp', 1) < 0.6 * s.get('hpmax', 1):  # user: too much searching; 0.85 rested off every scratch at ~1 HP per 10 turns and burned food  # a pony 3-4 squares off but outside 'dist' (unreachable square): rested 15 turns at 16/41, 18 -> 7, dead praying (T2658)  # blind, Jev rested beside an orc and died (T3212)
             opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
         elif not near and s.get('hp', 1) < 0.5 * s.get('hpmax', 1) and any(m['dist'] <= 4 and not m['passive'] for m in hostiles):
             opts['wait'] = ('Wait one turn', 'Hurt, with a monster close by: let it come to you and get the first hit rather than walking around.', lambda: self.act_keys('ms', 'waited'))
@@ -1559,7 +1559,7 @@ class Bot:
             # a giant spider (speed 15) fled Elbereth out of view at 15/62: Jev stepped off to look at an item, then walked 5 steps to '<', bitten 15 -> 0 (T6845-T6852). A faster monster catches you: heal on Elbereth first
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'goto', 'fetch', 'pickup', 'door_', 'search', 'ascend', 'flee_up', 'descend', 'approach_', 'choke'))}
             opts['wait'] = ('Stay on Elbereth one turn', 'A monster faster than you was here and you are below half HP: it would catch you off Elbereth. Heal here first.', self.act_wait_elbereth)
-        if downs or 'search_hidden' in opts and sum(lv.searched.values()) < 200:  # no stairs yet: search first; Asidonhopo's scuffed-sign shop door kicked at XL1 with search_hidden on offer, wand of striking (T596)  # a locked door can be a shop closed for inventory whose sign got scuffed: kicked one in, Mr. Kipawa killed Jev (runs before the empty guards: filtering after them left no options, 1100 turns searched)
+        if downs or 'search_hidden' in opts and sum(lv.searched.values()) < 60:  # user: de-emphasize searching; a locked door is the likelier exit  # no stairs yet: search first; Asidonhopo's scuffed-sign shop door kicked at XL1 with search_hidden on offer, wand of striking (T596)  # a locked door can be a shop closed for inventory whose sign got scuffed: kicked one in, Mr. Kipawa killed Jev (runs before the empty guards: filtering after them left no options, 1100 turns searched)
             opts = {k: v for k, v in opts.items() if not (k.startswith('kick_') or 'locked door' in v[0])}
         if not opts and downs and s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 and s.get('hunger') not in ('Hungry', 'Weak', 'Fainting') \
                 and (sum(lv.searched.values()) < 400 or s.get('dlvl', 1) + 1 >= (s.get('xl') or 1) + 2 and sum(lv.searched.values()) < 800):  # 1500: ~95 pace rests = 1900 of 3200 turns waiting for XP, fainted to a dog (T3853); hunger was 5 of 12 deaths  # uncapped, an XL2 rested 91% of 8000 turns on Dlvl 3, living on prayers until one angered Tyr (T8071)  # 'anyway' to XL+2 just ping-pongs with the forced ascend (Green-elves, T5351)
@@ -2135,7 +2135,8 @@ class Bot:
                 self.level().blocked.add(door)
                 return 'found a locked door'
             if any('diagonally' in m for m in news):  # we are (or it is) in a doorway we did not see
-                self.run['under'][(snap.status.get('dlvl'), me)] = 'door'
+                # 'into an intact doorway': the doorway is the target, hidden under a kobold corpse; marking our own square looped 900 times in a deli, starved (T2719-T3824)
+                self.run['under'][(snap.status.get('dlvl'), (nx, ny) if any('diagonally into' in m for m in news) else me)] = 'door'
                 continue
             if snap.me == me and not any('door opens' in m or 'open' in m for m in news):
                 step = (me[0] + DIRS[d][0], me[1] + DIRS[d][1])

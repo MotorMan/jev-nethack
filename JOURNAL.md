@@ -2917,3 +2917,10 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** At XL 6, Weak, with the prayer used at T6803, Jev stood on Elbereth at 15/62 HP. The giant spider fled out of view. Then no monster was "near", so the rule that holds Jev on Elbereth did not apply. Jev walked off to look at an item. The spider came back, and Jev chose to walk 5 steps to the up stairs. A giant spider has speed 15 and Jev has 12, so it bit Jev from 15 HP to 0.
 - **Prevention:** You cannot outrun a faster monster. Below half HP, stay on Elbereth and heal until it is safe. Only Fainting is a reason to leave.
 - **Fix:** The bot records the last turn that it saw a monster faster than itself that is not weaker. On Elbereth below half HP, for 30 turns after that, the bot removes explore, fetch, goto, ascend, flee_up and descend, and it offers 'wait'.
+
+## T2719-T3824: stuck in a delicatessen (killed by a garter snake while fainted, Dlvl 4)
+
+- **Cause:** A kobold corpse lay on the shop doorway, so the map showed '%' and not a door. The path went diagonally into the doorway. The game said "You can't move diagonally into an intact doorway." The bot then marked its own square as a door, not the target square, and it tried the same step about 900 times. It got hungry in the shop, prayed once, and fainted.
+- **Prevention:** When the game refuses a diagonal step into a doorway, remember that square as a doorway and go in straight.
+- **Fix:** The "diagonally into" message marks the target square as a door in `run['under']`. Dijkstra refuses diagonal steps into or out of any square that `run['under']` marks as a door.
+- **Also (user: too much searching):** 'rest' (15 turns of search) is offered only below 60% HP, not 85%. Locked doors can be kicked after 60 turns of search on a level, not 200.
