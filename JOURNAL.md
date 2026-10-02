@@ -2638,3 +2638,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A boulder in a corridor did not move ("You try to move the boulder, but in vain"). The bot marked the square as blocked. Jev's own ghost from an earlier game stayed next to Jev. The search planner skips every spot within 8 squares of a ghost, so it found no spot to search. With no options, the bot cleared its level memory, explored into the boulder again, and repeated this for 2700 turns. Jev starved.
 - Prevention: A ghost is slow and does 1 HP of damage for each touch. Never let it stop all actions.
 - Fix: If no search spot is far from the ghost, the bot searches near the ghost.
+
+## T3271 iguana while fainted, Dlvl 4
+
+- Cause: Jev was Hungry with no food. It killed two jackals at T2987, and their fresh corpses were near. A jackal hit Jev at T2986. For 5 turns after a hit, a filter removes the options to eat and to go to a corpse. Only "descend" was left. Jev walked 40 steps to the stairs, and the corpses went stale. Jev became Weak, then Fainting. It prayed too soon after the last prayer, and an iguana killed it.
+- Prevention: When Jev is hungry with no food, a fresh corpse nearby is more important than the stairs.
+- Fix: When Jev is hungry with no food and a corpse less than 35 turns old is within 15 steps, the bot does not offer the stairs. If no other option stays, it waits one turn.

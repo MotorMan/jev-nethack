@@ -936,6 +936,9 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k not in ('eat_corpse', 'goto_corpse')}
         if s.get('hunger') not in ('Weak', 'Fainting') and any(m['dist'] <= 2 for m in near):  # eating twice mid-swarm took 25 HP to 1 (giant rat, T2344)
             opts = {k: v for k, v in opts.items() if not k.startswith(('eat_', 'goto_corpse'))}
+        if s.get('hunger') in ('Hungry', 'Weak', 'Fainting') and not any(k.startswith(('eat_', 'goto_corpse')) for k in opts) and not any(FOOD.search(it['text']) for it in self.inventory) \
+                and any(s.get('turn', 0) - t0 < 35 and dist.get(p, 99) < 15 for p, t0 in lv.corpses.items()):  # Hungry, no food, two fresh jackals: the just-hit filter left only 'descend', walked off, fainted, iguana (T3271)
+            opts = {k: v for k, v in opts.items() if k not in ('descend', 'ascend')} or {'wait': ('Wait one turn', 'You are hungry with no food and a fresh corpse lies close: stay until it is safe to eat it.', lambda: self.act_keys('ms', 'waited'))}
 
         if shop and self.run.get('debt'):  # broke and billed, the shopkeeper blocks the door forever: sell things (general stores buy anything)
             if s.get('gold'):
