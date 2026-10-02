@@ -2469,3 +2469,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A wraith, a soldier and a pony were next to Jev on the stairs. Jev went up and down the stairs 7 times. The adjacent monsters followed on each trip and hit Jev. HP went from 71 to 0. Attack options were open each time.
 - Prevention: Adjacent monsters follow you up and down the stairs. After two stair trips that did not shake them off, fight.
 - Fix: `jev/bot.py` removes the stair options when a hostile monster is adjacent, attacks are open, and 2 of the last 3 decisions were stair trips.
+
+## T7569 ogre, Dlvl 8
+
+- Cause: A mumak, an ogre and a soldier ant were next to Jev. The last prayer was 75 turns before. Jev had a wand of digging, but the bot offered it only at 4 HP. Before that, Jev attacked and tried Elbereth. The ant interrupted the engraving. HP went from 48 to 4 in three turns.
+- Prevention: If two or more monsters are adjacent, one of them is stronger, and prayer is not available, escape at once.
+- Fix: `jev/bot.py` offers the wand of digging in this case, and removes the attack and Elbereth options.
