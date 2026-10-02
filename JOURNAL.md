@@ -2815,3 +2815,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** A fire ant (speed 18, two bites) took the Valkyrie from 38/67 to 0 in three turns. Her AC was 6. A monkey stole her shield and a nymph stole her helm, and she found no body armor in 7 levels. Three Elbereth tries in a row came out garbled (about a 2% chance).
 - **Prevention:** Good AC is the real defense against fast biters. The user also asked for less caution: at medium HP, keep fighting down to 20% HP.
 - **Fix:** All "back off" and "force Elbereth" limits are now 20% HP (they were 40-50%). The strategy prompt and the monster tips in `monsters.json` now say "over 20% HP".
+
+## T7278 owlbear, Dlvl 8
+
+- **Cause:** The Valkyrie engraved Elbereth with an owlbear next to her, at 55/79 HP. Then she attacked it from the square. The attack erased Elbereth, the owlbear grabbed her, and its hug took her from 55 to 0 in four turns. Zaps of a wand of striking did not kill it.
+- **Prevention:** In 5.0 (`mon.c` setmangry), any attack from an Elbereth square erases the engraving. This includes thrown items and zapped wands. Against a hugging monster, stay on Elbereth and do not attack.
+- **Fix:** On Elbereth with an adjacent hugger, the bot gets no attack, throw, zap or approach options. It gets "Stay on Elbereth". The owlbear tip no longer says "then throw things".

@@ -304,7 +304,7 @@
 "orc shaman": [5, 9, 0, "", "AC 5, MR 10, spell mage spells"],
 "orc zombie": [3, 6, 0, "", "AC 9, MR 0, claw 1d6; small groups"],
 "orc-captain": [7, 5, 0, "", "AC 10, MR 0, weapon 2d4, weapon 2d4"],
-"owlbear": [7, 12, 0, "Engrave Elbereth before it reaches you, then throw things; never let it get adjacent: it grabs and crushes 2d8 a turn and Elbereth fails once held", "AC 5, MR 0, claw 1d6, claw 1d6, hug 2d8"],
+"owlbear": [7, 12, 0, "Engrave Elbereth before it reaches you, then wait on it (any attack from it, thrown or zapped too, erases it); never let it grab you: it grabs and crushes 2d8 a turn and Elbereth fails once held", "AC 5, MR 0, claw 1d6, claw 1d6, hug 2d8"],
 "page": [7, 12, 0, "", "AC 10, MR 10, weapon 1d6, weapon 1d6"],
 "panther": [7, 15, 0, "", "AC 6, MR 0, claw 1d6, claw 1d6, bite 1d10"],
 "paper golem": [4, 12, 0, "", "AC 10, MR 0, claw 1d3"],
