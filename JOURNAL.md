@@ -2475,3 +2475,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A mumak, an ogre and a soldier ant were next to Jev. The last prayer was 75 turns before. Jev had a wand of digging, but the bot offered it only at 4 HP. Before that, Jev attacked and tried Elbereth. The ant interrupted the engraving. HP went from 48 to 4 in three turns.
 - Prevention: If two or more monsters are adjacent, one of them is stronger, and prayer is not available, escape at once.
 - Fix: `jev/bot.py` offers the wand of digging in this case, and removes the attack and Elbereth options.
+
+## T4427 cave spider, Dlvl 5
+
+- Cause: Jev was Hungry and had no food in its pack. It stood on a fresh kobold corpse, but the bot forbids a poisonous corpse until Jev is Weak and cannot pray. Jev then prayed for food 840 turns after the last prayer. The god was angry and took a level. Jev fainted again and again, and a cave spider bit it to death.
+- Prevention: With no food in the pack, eat the next safe or poisonous fresh corpse. Without poison resistance, the poison costs rnd(15) HP or some Str 4 times in 5. Starving costs the game.
+- Fix: `jev/bot.py` allows kobold and other poisonous corpses when Jev is Hungry with no food and more than 30 HP, or Weak with no food and more than 15 HP.

@@ -882,7 +882,9 @@ class Bot:
                     and not any((me[0] + DIRS[k[-1]][0] * i * sg, me[1] + DIRS[k[-1]][1] * i * sg) in pp for i in range(1, 14) for sg in (1, -1))}
         # eat.c: a poisonous corpse costs rnd(15) HP and maybe Str without poison resistance; fainting with no prayer, kobolds beat starving (killed 10, ate none, fainted to a kitten T3459)
         self.run['calm'] = not hostiles and s.get('hunger') in ('Hungry', 'Weak', 'Fainting')  # eat.c: a bat stuns 30 turns, a giant bat 60: bearable with nothing in view, and only when food matters
-        self.run['desperate'] = s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts and s.get('hp', 1) > 15
+        # Hungry with no food in the pack, Jev left a fresh kobold corpse (T3902); the hunger prayer 840 turns on was smitten, fainted to a cave spider (T4427). eat.c: 4 in 5 poison costs rnd(15) HP or Str
+        self.run['desperate'] = s.get('hunger') in ('Weak', 'Fainting') and ('pray' not in opts or not any(FOOD.search(it['text']) for it in self.inventory)) and s.get('hp', 1) > 15 \
+            or s.get('hunger') == 'Hungry' and not any(FOOD.search(it['text']) for it in self.inventory) and s.get('hp', 1) > 30
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):
             for it in self.inventory:
                 if re.search(FOOD, it['text']) and not any(n in it['text'] for n in NEVER_EAT) and it['text'] not in self.run.get('inedible', ()) \
