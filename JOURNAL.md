@@ -2718,3 +2718,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** A nymph lived on Dlvl 5. Jev went up to Dlvl 4 to get away from it, then came back down. The bot thought that Jev had "just fled up" on each of these levels. As a result, it blocked the descent and offered only "Rest and search 20 turns". Jev stayed on Dlvl 5 from T5000 to T11891. It found no food and prayed for food every 800 turns. The prayer at T11566 failed, Jev fainted, and a giant beetle killed it.
 - **Prevention:** Rest after a flight only on a level above the level that you fled from. On other levels, continue down.
 - **Fix:** `flee_up` records the level that Jev fled from. The rest rule applies only on a higher level.
+
+## T7987: two gargoyles while blind
+
+- **Cause:** A cockatrice's potion made a cloud of darkness, and Jev became blind beside two gargoyles. The bot shows unseen monsters with no threat level. Thus it did not offer "Run for the upstairs", although the up staircase was known. A prayer healed Jev to 85 HP. Then Jev fought the unseen gargoyles and went from 85 to 0 HP in 5 turns.
+- **Prevention:** When you are blind and an unseen monster attacks you, go away. You cannot know how strong it is.
+- **Fix:** When Jev is blind and an unseen monster attacks, the bot treats the fight as one against a much stronger monster. As a result, it offers the flight to a known up staircase up to 60 steps away.
