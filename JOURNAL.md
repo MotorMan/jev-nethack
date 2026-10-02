@@ -2184,3 +2184,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: the bot was resting on the '>' at 56/66 when a tiger at its own level showed up 3 steps away. It stepped off the stairs to close in. A leocrotta (speed 18, three 2d6 hits) joined, and the two took 56 -> 47 -> 27 -> 0. The stairs were one step away, but the only escape the bot ever offered was '<'.
 - Wiki (Stairs, Fleeing): fight beside or on the stairs, so you can leave when a fight turns. Only adjacent monsters follow you.
 - Fix: no 'approach' toward a monster that isn't weaker while the bot stands on '<' or '>'; it waits and lets the monster come. New 'downstairs' option: on '>' with danger, strong, pack or duo, and no up escape, flee down. It counts as a hop for the ping-pong guard, and attack/approach/explore are filtered as with upstairs when the threat is strong or a pack.
+
+## Death ray from an unseen zapper (run 20261001-190539, Mines 7, T8536)
+- Cause: "You hear a chugging sound" (a monster drank a potion, likely invisibility), then "You hear a nearby zap. The death ray whizzes by you!". The bot took this for an unseen melee attacker and searched in place with find_unseen, and the next ray killed it. It had no magic resistance or reflection.
+- Wiki (Wand of death, Ray): a ray travels in a straight line; Elbereth does not stop wands. Without MR or reflection, the only defense is to leave the line or the level.
+- Fix: for 2 turns after "whizzes by you" or "You hear a nearby zap", offer 'dodge': take stairs on or within 8 steps of the bot, else step to a random free neighboring square. Everything except dodge, pray, attack and quaff is dropped.

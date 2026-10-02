@@ -1403,6 +1403,17 @@ class Bot:
             opts.pop('elbereth', None)
         if 'pray' in opts and 'fatal within' in opts['pray'][1]:  # FoodPois with prayer ready: Jev rested and walked for corpses until it died (T2090)
             opts = {'pray': opts['pray']}
+        if (s.get('turn') or 0) - self.run.get('msg_turn', 0) <= 2 and any(re.search(r'whizzes by you|You hear a nearby zap', m) for m in self.run['recent'][-2:]):
+            # a monster drank invisibility ("chugging sound"), zapped death from out of view; find_unseen stood in the line, the second ray killed (T8536)
+            st = [(p, k) for k, ps in (('<', ups), ('>', downs)) for p in ps if p == me or dist.get(p, 99) <= 8]
+            steps = [d for d, (dx, dy) in DIRS.items() if snap.walkable(me[0] + dx, me[1] + dy) and not snap.is_monster(me[0] + dx, me[1] + dy)]
+            if st:
+                p, k = min(st, key=lambda e: dist.get(e[0], 0))
+                opts['dodge'] = ('Leave by the stairs', 'Something unseen is zapping rays at you; leave this level.', lambda p=p, k=k: self.act_keys(k, 'left by the stairs') if p == me else self.act_descend(p, k, stop_new=False))
+            elif steps:
+                opts['dodge'] = ('Step out of the line of fire', 'Something unseen is zapping rays at you; never stand still in its line.', lambda d=random.choice(steps): self.act_keys(d, 'dodged'))
+            if 'dodge' in opts:
+                opts = {k: v for k, v in opts.items() if k in ('dodge', 'pray') or k.startswith(('attack_', 'quaff_'))}
         if opts.get('pray', ('',))[0] == 'Pray to Tyr':  # a safe prayer fixes hunger with no 1-in-2 tripe vomiting (T3736)
             if s.get('hunger') == 'Weak' and not fatal and not LOW_HP(s) and not hostiles and any(k.startswith('eat_') for k in opts):
                 del opts['pray']  # prayed Weak with a tripe ration and nothing in view; 131 turns on, blind, a rabid rat at 11/38, no prayer left: dead (T4302)
