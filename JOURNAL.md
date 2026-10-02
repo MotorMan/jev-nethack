@@ -2179,3 +2179,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: chronically short of food. The bot carried no food at all by T7000 and had prayed for hunger 5 times. The fifth prayer, while Weak at T7042 and 936 turns after the last one, drew "Thou art arrogant" (the timeout had not expired: rnz(350) is heavy-tailed, roughly a 6% chance). The bot lost a level, fainted, and a dingo killed it. Meanwhile it had killed 33 giant bats and eaten none, because 'bat' is in NEVER_EAT.
 - Source: eat.c makes a bat corpse stun you for 30 turns and a giant bat for 60. There is no poison and no other harm.
 - Fix: bat corpses are now edible (run['calm']) when the bot is Hungry or worse and nothing hostile is in view; stun handling already makes it rest in place. Bat kills are now dated as fresh corpses. Vampire bats are still banned through 'vampire'.
+
+## Leocrotta + tiger (run 20261001-185848, Dlvl 8, T8476)
+- Cause: the bot was resting on the '>' at 56/66 when a tiger at its own level showed up 3 steps away. It stepped off the stairs to close in. A leocrotta (speed 18, three 2d6 hits) joined, and the two took 56 -> 47 -> 27 -> 0. The stairs were one step away, but the only escape the bot ever offered was '<'.
+- Wiki (Stairs, Fleeing): fight beside or on the stairs, so you can leave when a fight turns. Only adjacent monsters follow you.
+- Fix: no 'approach' toward a monster that isn't weaker while the bot stands on '<' or '>'; it waits and lets the monster come. New 'downstairs' option: on '>' with danger, strong, pack or duo, and no up escape, flee down. It counts as a hop for the ping-pong guard, and attack/approach/explore are filtered as with upstairs when the threat is strong or a pack.
