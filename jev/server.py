@@ -102,6 +102,7 @@ def make_handler(bot):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--hardfought', action='store_true')
+    ap.add_argument('--host', default='127.0.0.1')
     ap.add_argument('--port', type=int, default=int(os.environ.get('PORT', 8770)))
     ap.add_argument('--name', default='Jev')
     ap.add_argument('--paused', action='store_true')
@@ -116,8 +117,8 @@ def main():
         bot = Bot(local_launcher(args.name), jev, 'local', args.name)
     bot.paused = args.paused
     threading.Thread(target=bot.play, daemon=True).start()
-    srv = ThreadingHTTPServer(('127.0.0.1', args.port), make_handler(bot))
-    print(f'dashboard: http://127.0.0.1:{args.port}', flush=True)
+    srv = ThreadingHTTPServer((args.host, args.port), make_handler(bot))
+    print(f'dashboard: http://{args.host}:{args.port}', flush=True)
     srv.serve_forever()
 
 

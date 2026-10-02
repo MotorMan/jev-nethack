@@ -1,0 +1,13 @@
+# Ubuntu/Debian packages required to build NetHack and the dashboard.
+# Install with:
+#   sudo apt update
+#   sudo apt install -y $(cat scripts/requirements-apt.txt | grep -v '^#' | grep -v '^$')
+build-essential
+git
+pkg-config
+libncurses-dev
+liblua5.4-dev
+lua5.4
+uuid-dev
+nodejs
+npm
