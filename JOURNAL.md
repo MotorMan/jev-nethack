@@ -2530,3 +2530,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: On Dlvl 2, the only known `>` went to the Gnomish Mines. The main `>` was hidden. Below XL 10 the bot does not stay in the Mines before Sokoban, so Jev went back up. It arrived on the Mines `>`, and the bot offered "descend" there again. Jev went between Dlvl 2 and 3 for 8000 turns. It did not search Dlvl 2 for the main `>`. It ran out of food and fainted.
 - Prevention: When the bot skips the Mines stair, it must not offer that stair in any other way.
 - Fix: The "descend" option from the stair under the hero is not offered when that stair is the skipped Mines stair. Jev now explores and searches Dlvl 2. After 1500 searches, the Mines are allowed again.
+
+## T2319 shopkeeper, Dlvl 5 (bones again)
+
+- Cause: Dlvl 5 was a bones level again, from the T1984 death. Kediri was still angry. Jev explored for 9 turns, and Kediri came into view next to Jev. The T1984 fix showed Kediri as "much stronger", but attack was the only option. Kediri has speed 16, and Elbereth does not stop an `@`.
+- Prevention: Jev cannot escape from an adjacent angry shopkeeper at XL 6. To pay 1000 gold makes a shopkeeper peaceful (shk.c dopay), but Jev had less gold.
+- Fix: No code change. This death did not leave a Dlvl 5 bones file, so the chain is broken. If an angry shopkeeper kills Jev again, think about the `bones` option in `jev/nethackrc`.
