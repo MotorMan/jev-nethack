@@ -750,6 +750,7 @@ class Bot:
                 opts['downstairs'] = ('Flee down the stairs', 'Take the down staircase you are standing on to get away; only adjacent monsters may follow.', lambda: self.act_keys('>', 'went down'))
         hops = sum(h['choice'] in ('upstairs', 'flee_up', 'leave_nymph', 'downstairs') for h in self.history[-6:]) >= 4  # leave_nymph down into a weak pack, flee up, leave again: 14 round trips, then a gamble prayer angered Tyr (T8484)
         adj = [m for m in near if m['dist'] <= 1]
+        chased = 'upstairs' not in opts and any((MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12 for m in adj) and min((dist.get(p, 99) for p in snap.find('<')), default=99) > 3
         if any(h['choice'] == 'flee_up' and 'blocked' in h['outcome'] for h in self.history[-3:]):
             opts.pop('flee_up', None)
         # a wraith, a soldier and a pony followed each trip: 7 stair hops on Dlvl 9/10, 71 -> 0 with attacks offered each time (T8105). Adjacent monsters follow: fight them
