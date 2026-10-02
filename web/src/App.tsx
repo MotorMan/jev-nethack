@@ -445,25 +445,22 @@ function Orders({ s }: { s: State }) {
     setTimeout(() => setSent(false), 1500)
   }
   return (
-    <Panel title={<><Send className="size-3.5" /> standing orders</>} right={draft != null && <Tag t="yellow">unsent</Tag>}>
-      <Label className="mb-1">current</Label>
-      <div className="text-xs text-primary px-2 py-1 bg-background border border-border mb-2 whitespace-pre-wrap max-h-16 overflow-auto">
-        {s.order || <span className="text-muted-foreground">none</span>}
-      </div>
-      <Label className="mb-1">new order</Label>
+    <Panel
+      title={<><Send className="size-3.5" /> standing orders</>}
+      right={draft != null ? <Tag t="yellow">unsent</Tag> : <span className="normal-case tracking-normal">ctrl+enter to send</span>}
+      bodyClass="p-1.5 flex gap-1.5 items-stretch"
+    >
       <Textarea
         value={text}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send() }}
         placeholder="e.g. prioritize finding the downstairs"
-        className="text-xs min-h-[48px]"
+        rows={2}
+        className="text-xs min-h-0 py-1 resize-none flex-1"
       />
-      <div className="flex items-center justify-between mt-1.5">
-        <span className="text-label text-muted-foreground tracking-wider">ctrl+enter to send</span>
-        <Button size="sm" onClick={send} disabled={draft == null}>
-          <Send /> {sent ? "sent" : "transmit"}
-        </Button>
-      </div>
+      <Button size="sm" className="h-auto" onClick={send} disabled={draft == null}>
+        <Send /> {sent ? "sent" : "transmit"}
+      </Button>
     </Panel>
   )
 }
@@ -574,7 +571,7 @@ function Runs({ s }: { s: State }) {
 
 // version strings the engine reported (jev-1.13.0); a game continued on another engine shows both
 // Panes separated by invisible 6px drag handles (the old gap). Sizes are flex-grow ratios saved per
-// split; until a split has sizes its panes use display:contents, i.e. their natural layout.
+// split (0 = natural size); until a split has sizes its panes use display:contents, i.e. their natural layout.
 function Split({ id, row, init, className, children }: {
   id: string; row?: boolean; init?: number[]; className?: string; children: ReactNode
 }) {
@@ -602,7 +599,7 @@ function Split({ id, row, init, className, children }: {
     <div ref={ref} className={cn("flex min-h-0 min-w-0", row ? "flex-row" : "flex-col", className)}>
       {kids.flatMap((c, i) => [
         <div key={i} className={sizes ? "flex flex-col min-h-0 min-w-0 overflow-hidden [&>*]:flex-1 [&>*]:min-h-0" : "contents"}
-          style={sizes ? { flex: `${sizes[i]} 1 0` } : undefined}>{c}</div>,
+          style={sizes ? { flex: sizes[i] ? `${sizes[i]} 1 0` : "none" } : undefined}>{c}</div>,
         i < kids.length - 1 && <div key={"h" + i} onPointerDown={drag(i)}
           className={cn("shrink-0 touch-none", row ? "w-1.5 cursor-col-resize" : "h-1.5 cursor-row-resize")} />,
       ])}
@@ -631,7 +628,7 @@ export default function App() {
           <Feeds s={s} />
         </Split>
         {/* fixed ratios so the decision panel doesn't resize with its option count */}
-        <Split id="mid2" init={[18, 38, 44]}>
+        <Split id="mid3" init={[0, 45, 55]}>
           <Orders s={s} />
           <DecisionPanel s={s} />
           <Timeline s={s} />
