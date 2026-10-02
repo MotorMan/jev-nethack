@@ -2229,3 +2229,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** the bot had waited on Elbereth for 40+ turns and was at 36/59 HP. The "camped" release (60% HP) allowed attacks again, so it hit a giant rat off the engraving with a plains centaur and a fire ant nearby (both speed 18). Its next Elbereth came out garbled and it went from 37 to 0 in 2 turns.
 - **Wiki:** you can rest on Elbereth until healed against monsters that respect it. Attacking from it erases it.
 - **Fix:** with any non-weaker hostile within 5 squares, the camped release now needs 85% HP (it stays at 60% otherwise).
+
+## 2026-10-01 — plains centaur, Dlvl 8 T3823 (run 20261001-195058)
+- **Cause:** at XL4 the bot fell down a trap door from Dlvl 5 to Dlvl 8. A plains centaur (speed 18) caught it at 41/49 HP and its Elbereth came out garbled. Because it had lost HP while engraving, it was barred from engraving for 5 turns. That left melee as the only option, and it died.
+- **Source:** mhitu.c never wipes engravings. Wipes only come from your own melee, throws and kicks, and from rare random wear. A garble is the 1/25-per-letter typo, so a retry is a fresh ~72%.
+- **Fix:** the block now applies only after a second garble within 3 decisions, so one retry is allowed first.

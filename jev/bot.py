@@ -1885,7 +1885,8 @@ class Bot:
                 self.run['e_blockers'] = self.run.get('adj_names', ())  # a newt's hit blocked Elbereth against the rothe that came next: 19 -> 5, dead praying (T2568)
                 self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0
                 return 'nothing got written: the attack interrupted the engraving'
-            if self.snap.status.get('hp', 0) < hp0:  # hit mid-engraving: 5 'garbled' retries beside a gnome king, 19 -> 10, dead (T4230)
+            # mhitu.c never wipes engravings: a garble is the 1/25-per-letter typo, so one retry is a fresh ~72% (blocked at once, melee-only vs a plains centaur, dead T3823)
+            if self.snap.status.get('hp', 0) < hp0 and any(h['choice'] == 'elbereth' and 'garbled' in h['outcome'] for h in self.history[-3:]):  # hit mid-engraving: 5 'garbled' retries beside a gnome king, 19 -> 10, dead (T4230)
                 self.run['e_blockers'] = self.run.get('adj_names', ())
                 self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0
             return 'engraving came out garbled; not protected'  # engrave.c: each dust letter has a 1/25 typo, so a retry is a fresh ~72% shot; blocking retries after 2 garbles had 3 wolves bite 29 -> 0 (T2624)
