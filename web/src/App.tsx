@@ -387,10 +387,7 @@ function DecisionPanel({ s }: { s: State }) {
             return (
               <div
                 key={o.id}
-                className={cn(
-                  "grid grid-cols-[14px_minmax(0,1fr)_minmax(80px,32%)_48px] items-center gap-2 px-2 py-1 border-l-2",
-                  chosen ? "border-primary bg-[hsl(var(--smui-frost-2)/0.07)]" : "border-transparent",
-                )}
+                className="grid grid-cols-[14px_minmax(0,1fr)_minmax(80px,32%)_48px] items-center gap-2 px-2 py-1"
               >
                 {chosen ? <ChevronRight className="size-3.5 text-primary" /> : <span />}
                 <div className="min-w-0">
