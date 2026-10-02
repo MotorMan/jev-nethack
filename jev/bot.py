@@ -876,7 +876,7 @@ class Bot:
         if trouble and not self.run.get('god_angry') and (fatal or starving or (turn - last >= {'Weak': 1000 if not any(m['dist'] <= 1 for m in hostiles) and turn - self.run.get('hit_turn', -99) > 2
                                                                                       and not all('tripe' in it['text'] for it in self.inventory if FOOD.search(it['text'])) else 500 if any(FOOD.search(it['text']) for it in self.inventory) else 300, 'Fainting': 300}.get(s.get('hunger'), 500) if last is not None else turn >= 110)):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else 'boxed in by boulders and walls with no way out' if entombed and s.get('hunger') not in ('Weak', 'Fainting') else 'lycanthropy: you will turn into a jackal' if lyc and s.get('hunger') not in ('Weak', 'Fainting') else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
-        if 'pray' in opts and s.get('hunger') == 'Weak' and not fatal and not starving and not LOW_HP(s) and any(m['dist'] <= 3 and not m['passive'] for m in hostiles):
+        if 'pray' in opts and s.get('hunger') == 'Weak' and not fatal and not starving and not LOW_HP(s) and not self.engraved_here() and any(m['dist'] <= 3 and not m['passive'] for m in hostiles):
             opts.pop('pray')  # pray.c: the 3 prayer turns are safe only if it works. Weak at 60 HP with a werewolf 2 steps off: prayed, "Thou art arrogant", wolves summoned, 60 -> 0 (T6823). Fight first, Weak can wait
         # a fresh Elbereth beats a coin-flip prayer: 176 turns after praying, the forced gamble at 10/54 on a new Elbereth angered Tyr, dead to an Uruk-hai (T4295)
         elif not self.run.get('god_angry') and s.get('exp') is not None and (LOW_HP(s) or s.get('hunger') == 'Fainting' and any(m['dist'] <= 3 and not m['passive'] for m in hostiles)) and (any(m['dist'] <= 7 for m in hostiles) or self.unseen_attacker() or turn - self.run.get('hit_turn', -99) <= 3) and last is not None and turn - last >= 100 \
@@ -1609,8 +1609,9 @@ class Bot:
         for k in [k for k in ('flee_up', 'ascend', 'leave_nymph', 'descend', 'choke') if k in opts]:
             n = int((re.search(r'(\d+) steps', opts[k][1]) or [0, 0])[1])
             cost = pursuit_cost(n, [(18 if hallu else (MONSTERS.get(self.species(m)) or [0, 18])[1], m['dist'], (MONSTERS.get(self.species(m)) or [0] * 4 + ['1d12'])[4]) for m in hostiles], spd)  # unknown or hallucinated: assume fast
-            if n > 1 and cost >= 0.5 * hp and len(opts) > 1:
-                opts.pop(k)
+            if n > 1 and cost >= 0.5 * hp and (len(opts) > 1 or self.engraved_here()):
+                opts.pop(k)  # the only option, but on Elbereth: stay. Weak at 24/59, walked off Elbereth past a gray unicorn (speed 24), 24 -> 0 (T6914)
+                opts = opts or {'wait': ('Stay on Elbereth one turn', 'Walking away is too costly: the monsters are faster than you. Elbereth keeps most of them off.', self.act_wait_elbereth)}
             elif n > 1 and cost >= 1:
                 opts[k] = (opts[k][0], opts[k][1] + f' Monsters chasing you will deal about {round(cost)} damage on the way.', *opts[k][2:])
         if LOW_HP(s) and 'teleport' in opts and 'pray' not in opts and any(m['dist'] <= 1 and not m['peaceful'] for m in hostiles):
