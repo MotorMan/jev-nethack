@@ -2542,3 +2542,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A raven blinded Jev. A raven (speed 20) and a housecat (speed 16) attacked. Jev engraved Elbereth while blind, and lost 27 HP in 2 turns. The bot cannot read a dust engraving while blind, so it did not know whether Elbereth was there. At 20/68 HP, with no prayer, Jev drank an unknown potion. It was sleeping, and the cat killed Jev.
 - Prevention: engrave.c gives a 1/11 typo chance for each letter when the hero is blind, plus the usual 1/25. A blind dust Elbereth works only about 32% of the time.
 - Fix: When Jev is blind and a hostile monster is adjacent, the bot does not offer a dust Elbereth. A wand of fire or digging still makes it possible.
+
+## T14182 owlbear, Dlvl 8, sleeping
+
+- Cause: Jev was Weak at 19/75 HP, and the prayer at T14170 was 12 turns old. The Elbereth came out garbled. The owlbear was 4 steps away. Jev drank an unknown emerald potion. It was sleeping, and the owlbear killed Jev. This is the second death from an unknown potion of sleeping in a row (T6609).
+- Prevention: An unknown potion is a gamble. Most of the risk is sleeping. Use the gamble only when a monster already hits Jev, or when no hostile monster is near.
+- Fix: When the god cannot help, the bot offers an unknown potion only when a hostile monster is adjacent. With a hostile monster 2 to 6 steps away, Jev must engrave again, fight, or flee.
