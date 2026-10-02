@@ -2924,3 +2924,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Prevention:** When the game refuses a diagonal step into a doorway, remember that square as a doorway and go in straight.
 - **Fix:** The "diagonally into" message marks the target square as a door in `run['under']`. Dijkstra refuses diagonal steps into or out of any square that `run['under']` marks as a door.
 - **Also (user: too much searching):** 'rest' (15 turns of search) is offered only below 60% HP, not 85%. Locked doors can be kicked after 60 turns of search on a level, not 200.
+
+## T4644-T4656: fought an elf with no prayer left (killed by a Green-elf, Dlvl 8)
+
+- **Cause:** Jev prayed at T4532. At T4655 Jev was at 37/89 HP, next to a Green-elf at its level. The up stairs were 6 steps away. Jev attacked. The elf hit twice in one turn, 37 -> 17. Jev drank an unknown potion (17 HP is more than 1/7 of 89, so prayer would fix nothing). At 8 HP Jev prayed 124 turns after the last prayer, and the prayer failed.
+- **Prevention:** Elves and other '@' ignore Elbereth. With no prayer in reserve and below half HP, do not stay in melee with one at your level. Go up the stairs.
+- **Fix:** If HP is below half, the last prayer was less than 500 turns ago, and an '@' or a minotaur that is not weaker is adjacent, the bot offers 'flee_up' for an up staircase up to 20 steps away. It removes attack, approach and explore.

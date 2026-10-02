@@ -860,9 +860,14 @@ class Bot:
             # jabberwock (difficulty 18) at XL 8, '<' 2 steps away: stood and fought, 85 -> 0 (T8069). Non-stalkers never follow upstairs (mondata.c levl_follower)
             strong = any('much stronger' in self.threat(m) for m in near) or 'Blind' in s.get('conditions', []) and self.unseen_attacker()  # blind beside 2 gargoyles, '<' known: prayed to 85, then fought unseen, 85 -> 0 in 5 turns, no flee offered (T7987)
             duo = sum(m['dist'] <= 2 and 'weaker' not in self.threat(m) for m in near) >= 2  # offered, not forced: two Woodland-elves at its level (ignore Elbereth): 55 -> 10 in 4 swings, no flee offered, '<' ~15 steps (T4650)
+            # no prayer (124 turns after the last), 37/89 beside a Green-elf at its level (ignores Elbereth), '<' 6 steps: fought, 37 -> 17 -> 8, prayed too soon, dead (T4656)
+            bare = hp < 0.5 * hpmax and (s.get('turn') or 0) - (self.run.get('prayed_turn') or -10**9) < 500 and any(m['dist'] <= 1 and (m['ch'] == '@' or 'minotaur' in m['name']) and 'weaker' not in self.threat(m) for m in near)
+            duo = duo or bare
             ups_near = sorted((p for p in snap.find('<') if dist.get(p, 99) <= (60 if strong or outrun else 20 if duo else 8)), key=dist.get)  # speed boots beside a speed-8 giant zombie, '<' 12 steps off: Elbereth panic-attacks 91 -> 0 (T5790)  # a bones red dragon (speed 9) 3 steps off at XL 3: only explore was offered, breathed dead (T1893)
             if (danger or strong or pack or duo or outrun and hp < 0.5 * hpmax) and ups_near and self.standing_on() != '<' and s.get('dlvl', 1) > 1:
                 p = ups_near[0]
+                if bare:
+                    opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'explore'))}
                 opts['flee_up'] = ('Run for the upstairs', f"The up staircase is {dist[p]} steps {compass(me, p)}: walk there and climb. Only monsters right next to you follow.", lambda p=p: self.flee_up(lambda: self.act_descend(p, '<', stop_new=False)))  # fleeing: 'a monster came into view' stopped it twice 2 steps from '<' with a quasit, Grey-elf and elf zombie on it, 24 -> 0 (T10457)
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.flee_up(lambda: self.act_keys('<', 'went up')))
