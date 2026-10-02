@@ -53,7 +53,8 @@ ln -sf ../lib/nethack "$PREFIX/bin/nethack"
 # Create required var/ state files
 for f in perm record logfile xlogfile livelog; do
     touch "$PREFIX/lib/var/$f"
-    chmod 0600 "$PREFIX/lib/var/$f"
+    cp -a "$PREFIX/lib/var/$f" "$PREFIX/lib/$f" 2>/dev/null || touch "$PREFIX/lib/$f"
+    chmod 0600 "$PREFIX/lib/var/$f" "$PREFIX/lib/$f"
 done
 chmod 0700 "$PREFIX/lib/var" "$PREFIX/lib/var/save" "$PREFIX/lib/var/whereis"
 
