@@ -169,6 +169,8 @@ class Bot:
                 self.run['inv_stale'] = True  # a nymph took the worn shield while resting; the 25-decision refresh showed it worn for 250 turns at AC 10 (T3453)
             if re.search(r'Your armor falls|You can no longer hold your shield|falls to the ground|You find you must drop|You drop your (gloves|weapon)', text) and self.snap and self.snap.me:  # were form shed chain mail, shield, helm, spear; Jev never went back, AC 10, dead (T4960)
                 self.run['gear_at'] = (self.snap.status.get('dlvl'), self.snap.me)
+            if re.search(r'more confident in your|could be more dangerous', text):  # weapon.c: a skill can be advanced (#enhance); never done, the spear stayed Basic all game
+                self.run['enhance'] = True
             if re.search(r'You feel purified|You feel full of awe|affinity to \w+ disappears', text):  # prayer or holy water (potion.c peffect_water)
                 self.run['lycanthropy'] = False
             if re.search(r'no gold or credit|you pay for it|Usage fee|You owe|pay before leaving|leave without paying', text):  # not 'Pardon me': bumping a shopkeeper in a doorway set debt, pay said 'You do not owe', 348 pay/bump loops while a mob gathered (T7249)
@@ -1058,11 +1060,13 @@ class Bot:
         # a bad '>' is skipped only when another way down exists: otherwise the level above dead-ends too and Jev cascades up to Dlvl 1 (starved, T7223)
         downs = [p for p in downs if p not in bad] or downs
         ms = self.run.get('mines_stair')
-        if ms and ms[0] == s.get('dlvl') and xl_low and sum(lv.searched.values()) < 1500:
+        if self.in_mines() and s.get('dlvl', 1) >= min(self.run.get('mines_dls') or {0}) + 2 and sum(m['ch'] == 'o' and not m['peaceful'] for m in mons) >= 5:
+            self.run['orctown'] = True  # minetn-1.lua Orcish Town: dozens of orcs, no temple or shops; nothing there is worth the fight
+        if ms and ms[0] == s.get('dlvl') and (xl_low or self.run.get('orctown')) and sum(lv.searched.values()) < 1500:
             downs = [p for p in downs if p != ms[1]]  # main dungeon first: Oracle, Sokoban, XP
         md = self.run.get('mines_dls') or {0}
         stuck_main = ms and sum(self.run['levels'].get(ms[0], Level()).searched.values()) >= 1500  # main '>' never found: the Mines are the only way on (500 sent an XL5 into Mines Dlvl 5 ~30 times, killed by a rothe T3492)
-        mcap = self.in_mines() and xl_low and (not self.run.get('soko_done') and not stuck_main or lv.town or s.get('dlvl', 1) >= min(md) + 3)
+        mcap = self.in_mines() and self.run.get('orctown') or self.in_mines() and xl_low and (not self.run.get('soko_done') and not stuck_main or lv.town or s.get('dlvl', 1) >= min(md) + 3)
         too_deep = mcap or s.get('dlvl', 1) >= (s.get('xl') or 1) + 2  # pace: Dlvl <= XL+1 (XL+2 still lost most runs on Dlvl 4-5 before T2000)
         ups = [p for p in snap.find('<') if p in dist]
         above = self.run['levels'].get(s.get('dlvl', 1) - 1)
@@ -1665,6 +1669,23 @@ class Bot:
             k = (self.snap.status.get('dlvl'), q)
             self.run['gold_miss'][k] = self.run['gold_miss'].get(k, 0) + 1
         return r
+
+    def enhance(self):
+        self.t.send('#enhance\r')
+        time.sleep(0.3)
+        lines = self.t.lines()
+        if any('Pick a skill to advance' in l for l in lines):
+            picks = [m for l in lines for m in re.finditer(r'(?:^|\s)([a-z]) - \s*([a-z][a-z -]+?)\s+\[', l)]
+            wield = next((it['text'] for it in self.inventory if 'weapon in' in it['text']), '')
+            pick = next((m for m in picks if m[2].strip().rstrip('s') in wield), picks[0] if picks else None)
+            if pick:
+                self.t.send(pick[1])
+                time.sleep(0.3)
+                if any('Pick a skill' in l for l in self.t.lines()):
+                    self.t.send('\r')
+                self.log(f'enhanced {pick[2].strip()}')
+        self.t.send('\x1b')
+        self.observe()
 
     def act_donate(self, pos):
         me = self.snap.me
@@ -2597,6 +2618,8 @@ class Bot:
                 except RuntimeError as e:
                     self.log(str(e), 'error')
                     self.paused = True
+                if self.run.pop('enhance', False):
+                    self.enhance()
                 if self.run['decisions'] % 25 == 0 or self.run.pop('inv_stale', False):
                     self.read_inventory()
                 time.sleep(self.delay_ms / 1000)

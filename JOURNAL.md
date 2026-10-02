@@ -2278,3 +2278,8 @@ Each change below was checked against the 5.0 source:
 ## 2026-10-01 — warg while asleep, Dlvl 7 T6060 (run 20261001-203449)
 - **Cause:** a werewolf in @ form with a wand of fire zapped Jev 3 times (49 → 36 → 18). Only the first bolt, a miss, triggered 'dodge', which is limited to "whizzes by" from an unseen zapper. On the next turns, below half HP, the only option was exploring 1 step, which kept Jev in the ray's line. The werewolf then summoned wolves and a warg. A prayer at 6/77 restored HP, but the pack plus another fire bolt took it to 7. An unknown potion turned out to be sleeping, and Jev died.
 - **Fix:** when a visible monster that is zapping is in line (row, column or diagonal), offer a step to a square off every line to it. Rays only travel in the 8 directions (zap.c buzz). Below half HP this step is forced when nothing is adjacent.
+
+## 2026-10-01 — more transcript strategies (Mines/Sokoban part), checked against 5.0
+- **#enhance:** weapon.c prints "You feel more confident in your weapon skills" when a skill can be advanced. Jev never ran #enhance, so its spear stayed at Basic. It now advances the wielded weapon's skill, otherwise the first skill offered, using the 5.0 menu format "x - name [Level]".
+- **Orcish Town:** one of the Minetown variants (minetn-1.lua) has dozens of orcs and no temple. Five or more hostile 'o' in view on Minetown depth or deeper marks it. Jev then heads back up, and the Mines stairs on the branch level are skipped for the rest of the game.
+- **Skipped:** Sokoban-top giant mimics and the zoo (Sokoban is already scripted), holes as an escape, and burned or dug Elbereth.
