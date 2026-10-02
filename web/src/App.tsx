@@ -117,14 +117,6 @@ function Bar({ value, t, className }: { value: number; t: Tone; className?: stri
 
 // ---------- header ----------
 
-function phaseTone(s: State): Tone {
-  if (s.phase === "dead") return "red"
-  if (s.paused) return "yellow"
-  if (s.phase === "thinking") return "frost-2"
-  if (s.phase === "acting") return "green"
-  return "muted"
-}
-
 function Header({ s, conn }: { s: State; conn: Conn }) {
   const [drag, setDrag] = useState<number | null>(null)
   const delay = drag ?? s.delay_ms
@@ -143,10 +135,6 @@ function Header({ s, conn }: { s: State; conn: Conn }) {
           </span>
         </div>
         <Tag t={s.mode === "hardfought" ? "purple" : "frost-2"}>{s.mode}</Tag>
-        <div className="flex items-center gap-2 text-xs uppercase tracking-wider" style={{ color: tone(phaseTone(s)) }}>
-          <Dot t={phaseTone(s)} pulse={s.phase !== "dead"} />
-          {s.paused ? "paused" : s.phase}
-        </div>
         <div className="flex items-center gap-1.5 text-label uppercase tracking-wider" style={{ color: tone(connTone) }}>
           {conn === "offline" ? <WifiOff className="size-3.5" /> : <Wifi className="size-3.5" />}
           {connText}
