@@ -7,6 +7,8 @@ from . import sokoban
 from .nh import (DIRS, DIR_OF, DIR_NAME, MAP_TOP, MAP_BOT, OBJECT_CHARS, Snapshot, top_prompt, messages_from)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+HIGH_FOOD = re.compile(r'food rations?|lembas wafers?|cram rations?|[KC]-rations?')  # objects.h: 800 / 800 / 600 / 400 / 300 nutrition
+LOW_FOOD = re.compile(r'\b(apple|orange|banana|melon|carrot|pear|kelp frond|slime mold|fortune cookie|candy bar|cream pie|pancake)s?\b(?! (gem|potion|spellbook|glass))')  # 5-200 nutrition: not worth the weight
 FOOD = re.compile(r'\b(?:food ration|cram|lembas|biscuit|pancake|apple|orange(?! gem)|banana|melon|carrot|egg|tins?|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen)e?s?\b')  # word-bounded: 'dwarvish spear' is not a pear
 MONSTERS = json.load(open(os.path.join(os.path.dirname(__file__), 'monsters.json')))  # name -> [difficulty, speed], from monsters.h
 
@@ -300,6 +302,10 @@ class Bot:
             if bad:
                 self.refused_trap = bad.group(0).lower()
             return 'n' if bad else 'y'
+        if re.search(r'into that (vapor|poison gas) cloud', q):  # hack.c u_maybe_impaired_move 5.0: vapor (reg_damg 0) is harmless; 'n' blocked explore ~20 times a turn (T1855-T1860)
+            if 'poison' in q:
+                self.refused_trap = 'poison gas'
+            return 'n' if 'poison' in q else 'y'
         if 'Unlock it' in q:  # was ESC: a key never opened a door; starved beside two locked doors on a level whose '>' was behind one (T5360). Minetown's watch punishes lockpicking
             return 'n' if self.snap and self.run and self.level().town else 'y'
         for pat, ans in rules:
@@ -464,7 +470,7 @@ class Bot:
                     continue
                 if soko and (snap.at(*q).ch == '0' or snap.at(*q).ch == '^' and q not in safe or dx and dy and not all(snap.walkable(*c) and snap.at(*c).ch != '0' for c in ((p[0] + dx, p[1]), (p[0], p[1] + dy)))):
                     continue  # Sokoban: never shove a boulder off-plan or drop into a hole; no squeezing past boulders diagonally
-                if dx and dy and (not snap.diag_ok(p, q) or (p == start and self.standing_on() == 'door')
+                if dx and dy and (not snap.diag_ok(p, q) or (p == start and self.standing_on() == 'door') or 'door' in (self.run.get('under', {}).get((snap.status.get('dlvl'), p)), self.run.get('under', {}).get((snap.status.get('dlvl'), q)))
                                   or not (snap.walkable(p[0] + dx, p[1]) or snap.walkable(p[0], p[1] + dy))):  # squeezing between two walls fails over 600 weight ("carrying too much to get through"): up to 2171 blocked moves a game
                     continue
                 nd = d + snap.cost(*q)
@@ -563,7 +569,7 @@ class Bot:
                 self.level().blocked.add(m['pos'])
             m['hostile'] = not m['pet'] and not m['peaceful'] and not m['statue'] and (m['ch'] != 'I' or m['dist'] <= 1)
             # sessile, only hurt you if you hit them: never a reason to hold still, and never walk into them
-            m['passive'] = bool(re.search(r'floating eye|mold|shrieker|gas spore|acid blob|jelly', m['name'])) or (m['ch'] == 'e' and m['fg'] in ('blue', 'white', 'gray'))
+            m['passive'] = bool(re.search(r'floating eye|mold|shrieker|gas spore|jelly', m['name'])) or (m['ch'] == 'e' and m['fg'] in ('blue', 'white', 'gray'))  # user: just kill acid blobs (passive acid is 1d8 at most; avoiding them blocked corridors)
             m['where'] = f"{m['dist']} step{'s' if m['dist'] != 1 else ''} {compass(me, m['pos'])}"
         return out
 
@@ -630,10 +636,41 @@ class Bot:
                 self.t.send('\x15' + name + '\r')  # docall getlin 'Call a clear potion:'; ^U clears a prefill
                 self.settle()
                 self.log(f"called {look[1]} {look[0]} '{name}'")
+        for it in uniq:  # user: know what is in each bag. Cached by name; objnam.c adds ' containing N items' once looked at
+            if re.search(r'\b(bag|sack)\b', it['text']) and 'tricks' not in it['text']:
+                k = re.sub(r' containing \d+ items?', '', it['text'])
+                if k not in self.run.setdefault('bags', {}):
+                    self.run['bags'][k] = self.look_in_bag(it['letter'])
+                it['contents'] = self.run['bags'][k]
         if not uniq and self.inventory:  # an empty read lost the blindfold beside a yellow light: forced melee, missed, blinded, dead (T3177)
             return self.inventory
         self.inventory = uniq
         return uniq
+
+    def look_in_bag(self, letter):
+        """Apply a bag, ':' looks inside (pickup.c use_container; end.c container_contents lists items under 'Contents of', 2 spaces in)."""
+        out, looked = [], False
+        self.t.send('a' + letter)
+        for _ in range(10):
+            lines = self.t.lines()
+            head = next((l for l in lines if 'Contents of' in l), None)
+            if head:
+                c = head.index('Contents of')
+                out += [l[c + 2:].strip() for l in lines[lines.index(head) + 1:] if l[c:c + 2] == '  ' and l[c + 2:].strip() and not re.search(r'\(end\)|--More--|\(\d+ of \d+\)', l)]
+                pg = next((m for l in lines if (m := re.search(r'\((\d+) of (\d+)\)', l))), None)
+                self.t.send('>' if pg and pg[1] != pg[2] else '\r')
+                continue
+            kind, text = top_prompt(lines)
+            if 'Do what with' in text and not looked and 'is empty' not in text:
+                looked = True
+                self.t.send(':')
+            elif kind == 'more':
+                self.t.send('\r')
+            else:
+                break
+        self.t.send('\x1b')
+        self.settle()
+        return out
 
     def look_here(self):
         """':' look, free action. Returns item descriptions on this square."""
@@ -813,7 +850,7 @@ class Bot:
                 if not shot and not any(m['dist'] <= 1 for m in near) and sum(h['choice'] == 'wait' and h['outcome'] == 'waited' for h in self.history[-5:]) < 5:  # held 74 turns Hungry for a mountain nymph 4 steps off that never came, starved (T4008)  # "let them come" while six jackals and a werejackal already bit: 42 -> 0 HP in 3 waits
                     opts['wait'] = ('Hold position one turn', 'Search in place for one turn and let monsters come to you (you get the first hit when they step adjacent).', lambda: self.act_keys('ms', 'waited'))
                 weak_only = all('weaker' in self.threat(m) for m in near if m['dist'] <= 1) and any(m['dist'] <= 1 for m in near) and hp >= 0.25 * hpmax  # XL8 at 20/74 retreated twice from a rothe (speed 9: adjacent again each turn, 3 attacks), engraving garbled, dead (T13611)
-                if not fast and not weak_only and not shot and hp < 0.7 * hpmax and self.retreat_dir(hostiles):  # one step back from a wand-zapping hill orc, 3 times at 5/45: zapped dead (T4400)  # at 50/53 Jev retreated 6 times from hill orcs, eating hits without swinging (T2966); retreating from a giant bat (speed 22) just gives it free hits
+                if not fast and not weak_only and not shot and (hp < 0.4 * hpmax or hp < 0.7 * hpmax and any('stronger' in self.threat(m) for m in near)) and self.retreat_dir(hostiles):  # user: kill slow monsters, don't run, you need the XP  # one step back from a wand-zapping hill orc, 3 times at 5/45: zapped dead (T4400)  # at 50/53 Jev retreated 6 times from hill orcs, eating hits without swinging (T2966); retreating from a giant bat (speed 22) just gives it free hits
                     opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + ' Everything nearby is slower than you, so you can open a gap.', lambda: self.act_retreat(hostiles))
             # wiki (Fighting in corridors): a pack surrounds you on up to 8 sides; in a corridor only one or two can reach you. User: get to a hallway rather than sit on Elbereth
             close = gap < 2 and not outrun  # user: with a crowd already adjacent in a room corner, back into the doorway/hallway 1-2 steps off instead of 100+ turns on Elbereth (T11330-11430)
@@ -825,9 +862,14 @@ class Bot:
             # jabberwock (difficulty 18) at XL 8, '<' 2 steps away: stood and fought, 85 -> 0 (T8069). Non-stalkers never follow upstairs (mondata.c levl_follower)
             strong = any('much stronger' in self.threat(m) for m in near) or 'Blind' in s.get('conditions', []) and self.unseen_attacker()  # blind beside 2 gargoyles, '<' known: prayed to 85, then fought unseen, 85 -> 0 in 5 turns, no flee offered (T7987)
             duo = sum(m['dist'] <= 2 and 'weaker' not in self.threat(m) for m in near) >= 2  # offered, not forced: two Woodland-elves at its level (ignore Elbereth): 55 -> 10 in 4 swings, no flee offered, '<' ~15 steps (T4650)
+            # no prayer (124 turns after the last), 37/89 beside a Green-elf at its level (ignores Elbereth), '<' 6 steps: fought, 37 -> 17 -> 8, prayed too soon, dead (T4656)
+            bare = hp < 0.5 * hpmax and (s.get('turn') or 0) - (self.run.get('prayed_turn') or -10**9) < 500 and any(m['dist'] <= 1 and (m['ch'] == '@' or 'minotaur' in m['name']) and 'weaker' not in self.threat(m) for m in near)
+            duo = duo or bare
             ups_near = sorted((p for p in snap.find('<') if dist.get(p, 99) <= (60 if strong or outrun else 20 if duo else 8)), key=dist.get)  # speed boots beside a speed-8 giant zombie, '<' 12 steps off: Elbereth panic-attacks 91 -> 0 (T5790)  # a bones red dragon (speed 9) 3 steps off at XL 3: only explore was offered, breathed dead (T1893)
             if (danger or strong or pack or duo or outrun and hp < 0.5 * hpmax) and ups_near and self.standing_on() != '<' and s.get('dlvl', 1) > 1:
                 p = ups_near[0]
+                if bare:
+                    opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'explore'))}
                 opts['flee_up'] = ('Run for the upstairs', f"The up staircase is {dist[p]} steps {compass(me, p)}: walk there and climb. Only monsters right next to you follow.", lambda p=p: self.flee_up(lambda: self.act_descend(p, '<', stop_new=False)))  # fleeing: 'a monster came into view' stopped it twice 2 steps from '<' with a quasit, Grey-elf and elf zombie on it, 24 -> 0 (T10457)
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.flee_up(lambda: self.act_keys('<', 'went up')))
@@ -1081,6 +1123,17 @@ class Bot:
             if shop or 'for sale' in item or 'corpse' in item and not ('lichen' in item or 'lizard' in item and not any('lizard' in it['text'] for it in self.inventory)) or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
+        if not near and not shop and 'Burdened' not in s.get('conditions', []):  # user: keep 7-10 high-nutrition foods; eat low-nutrition food where it lies unless Satiated
+            high = sum(int(n[1]) if (n := re.match(r'(\d+) ', it['text'])) else 1 for it in self.inventory if HIGH_FOOD.search(it['text']))
+            for item in self.here_items():
+                if 'for sale' in item or 'corpse' in item or not (HIGH_FOOD.search(item) and high < 10 or LOW_FOOD.search(item) and s.get('hunger') != 'Satiated'):
+                    continue
+                opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat_')}
+                if HIGH_FOOD.search(item):
+                    opts['pickup_food'] = (f"Pick up {item}", f"High-nutrition food that keeps well; you carry {high} such items (keep up to 10).", lambda item=item: self.act_pickup(item))
+                else:
+                    opts['eat_floor'] = (f"Eat {item} here", "Low-nutrition food is not worth carrying: eat it now while you are not Satiated.", lambda item=item: self.act_eat_floor(item))
+                break
         box = next((i for i in self.here_items() if re.search(r'\b(chest|large box)\b', i) and 'for sale' not in i), None)
         if box and not shop and not any(m['dist'] <= 6 for m in hostiles) and self.run.setdefault('looted', {}).get((s.get('dlvl'), me), 0) < 2:  # 5.0 mklev.c: 2/3 of levels above the Oracle get a box, half with healing potions; the Mines entry level's always has food
             opts['loot'] = (f"Open {box} and take what is inside", 'Boxes on early levels often hold potions of healing, enchant scrolls or food. If it is locked: unlock it with a key or lock pick, else pry it with a dagger, else kick it open.', self.act_loot)
@@ -1145,6 +1198,10 @@ class Bot:
             unk = [it for it in self.inventory if UNKNOWN_BUC(it['text']) and it['text'] not in self.run.setdefault('buc_done', set())]
             if here_alt and unk:
                 opts['buc'] = ('Drop your unknown items on the altar to learn if they are cursed', f"Drop {len(unk)} item(s) whose curse status is unknown and pick them back up: a black flash means cursed, amber blessed. Then you can safely wear the armor.", lambda unk=unk: self.act_buc(unk))
+            known = [p for (dl, p), a in altars.items() if dl == s.get('dlvl') and p in dist and p != me]
+            if unk and not here_alt and known:  # user: BUC-test every untested item on any altar; before, 'buc' showed only while standing on one, so a known altar never got a second visit
+                q = min(known, key=dist.get)
+                opts['buc'] = (f"Take {len(unk)} untested item(s) to the altar {compass(me, q)}", f"Walk {dist[q]} steps to the altar, drop the items whose curse status is unknown and pick them back up: a black flash means cursed, amber blessed.", lambda q=q, unk=unk: self.act_buc(unk) if self.act_go(q) and self.snap.me == q else 'heading for the altar')
             lawful = [p for (dl, p), a in altars.items() if dl == s.get('dlvl') and a == 'lawful' and (p in dist or p == me)]
             carried = next((it for it in self.inventory if 'corpse' in it['text'] and not any(n in it['text'] for n in NEVER_OFFER)), None)
             if lawful and carried and s.get('turn', 0) - self.run.get('carry_turn', -99) < 45:
@@ -1211,6 +1268,14 @@ class Bot:
             if food:
                 q = min(food, key=dist.get)
                 opts['shop_food'] = (f"Go look at the food for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the '%' item and its price. You have {s.get('gold')} gold and {packed} food items packed.", lambda q=q: self.act_shop_go(q))
+        if not near and packed < 2 and not self.run.get('debt'):  # user: always buy 1-2 food rations in a shop when the pack has no food
+            rations = [(q, i) for (dl, q), v in self.run.get('here', {}).items() if dl == s.get('dlvl') and (q in dist or q == me) for i in v
+                       if (pr := re.search(r'food rations?\b.*for sale, (\d+) zorkmid', i)) and int((re.match(r'(\d+) ', i) or [0, 1])[1]) <= 2 and int((re.match(r'(\d+) ', i) or [0, 1])[1]) * int(pr[1]) <= s.get('gold', 0)]
+            if rations:
+                q, item = min(rations, key=lambda r: dist.get(r[0], 0))
+                opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat')}
+                opts['buy_ration'] = (f"Buy {item}", f"Walk {dist.get(q, 0)} steps {compass(me, q)}, pick it up and pay: a food ration is 800 nutrition and you carry {packed} food items.",
+                                      lambda q=q, item=item: (self.act_pickup(item), self.act_pay())[1] if self.snap.me == q or (self.act_go(q), self.snap.me == q)[1] else 'heading for the food ration')
         if not near and 'shop_food' not in opts:  # armor (AC), scrolls, potions, rings: stepping on each shows its price, which identifies some by type (user: walk past, no gold needed)
             wares = [q for c in '[?!=' for q in snap.find(c) if q in dist and 0 < dist[q] <= 20 and (s.get('dlvl'), q) not in self.run['here']
                      and sum(cheb(q, o) <= 3 for c2 in ')[%?/=!("' for o in snap.find(c2)) >= 6]
@@ -1283,7 +1348,7 @@ class Bot:
             # same pace as the stairs: 'not too_deep' let XL5 dig 6 -> 7 and XL6 7 -> 8, dead to a giant spider (T4825)
             opts['dig_down'] = ('Dig down with the pick-axe', f"Apply {pick['text']} downward to dig a hole to Dlvl {s.get('dlvl', 0) + 1} (takes several turns; skips the rest of this level).", lambda l=pick['letter']: self.act_dig(l))
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
-        if not near and not any(m['dist'] <= 4 and not m['passive'] for m in hostiles) and not self.unseen_attacker() and s.get('hp', 1) < 0.85 * s.get('hpmax', 1):  # a pony 3-4 squares off but outside 'dist' (unreachable square): rested 15 turns at 16/41, 18 -> 7, dead praying (T2658)  # blind, Jev rested beside an orc and died (T3212)
+        if not near and not any(m['dist'] <= 4 and not m['passive'] for m in hostiles) and not self.unseen_attacker() and s.get('hp', 1) < (0.5 if (s.get('xl') or 1) <= 5 else 0.3) * s.get('hpmax', 1):  # user: rest below 50% HP at XL 1-5, below 30% after; 0.85 rested off every scratch at ~1 HP per 10 turns and burned food  # a pony 3-4 squares off but outside 'dist' (unreachable square): rested 15 turns at 16/41, 18 -> 7, dead praying (T2658)  # blind, Jev rested beside an orc and died (T3212)
             opts['rest'] = ('Rest and search 15 turns', 'Stay put for up to 15 turns to regain HP. Interrupted if a monster appears.', lambda: self.act_search(15))
         elif not near and s.get('hp', 1) < 0.5 * s.get('hpmax', 1) and any(m['dist'] <= 4 and not m['passive'] for m in hostiles):
             opts['wait'] = ('Wait one turn', 'Hurt, with a monster close by: let it come to you and get the first hit rather than walking around.', lambda: self.act_keys('ms', 'waited'))
@@ -1555,10 +1620,10 @@ class Bot:
             # a giant spider (speed 15) fled Elbereth out of view at 15/62: Jev stepped off to look at an item, then walked 5 steps to '<', bitten 15 -> 0 (T6845-T6852). A faster monster catches you: heal on Elbereth first
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'goto', 'fetch', 'pickup', 'door_', 'search', 'ascend', 'flee_up', 'descend', 'approach_', 'choke'))}
             opts['wait'] = ('Stay on Elbereth one turn', 'A monster faster than you was here and you are below half HP: it would catch you off Elbereth. Heal here first.', self.act_wait_elbereth)
-        if downs or 'search_hidden' in opts and sum(lv.searched.values()) < 200:  # no stairs yet: search first; Asidonhopo's scuffed-sign shop door kicked at XL1 with search_hidden on offer, wand of striking (T596)  # a locked door can be a shop closed for inventory whose sign got scuffed: kicked one in, Mr. Kipawa killed Jev (runs before the empty guards: filtering after them left no options, 1100 turns searched)
+        if downs or 'search_hidden' in opts and sum(lv.searched.values()) < 60:  # user: de-emphasize searching; a locked door is the likelier exit  # no stairs yet: search first; Asidonhopo's scuffed-sign shop door kicked at XL1 with search_hidden on offer, wand of striking (T596)  # a locked door can be a shop closed for inventory whose sign got scuffed: kicked one in, Mr. Kipawa killed Jev (runs before the empty guards: filtering after them left no options, 1100 turns searched)
             opts = {k: v for k, v in opts.items() if not (k.startswith('kick_') or 'locked door' in v[0])}
         if not opts and downs and s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 and s.get('hunger') not in ('Hungry', 'Weak', 'Fainting') \
-                and (sum(lv.searched.values()) < 400 or s.get('dlvl', 1) + 1 >= (s.get('xl') or 1) + 2 and sum(lv.searched.values()) < 800):  # 1500: ~95 pace rests = 1900 of 3200 turns waiting for XP, fainted to a dog (T3853); hunger was 5 of 12 deaths  # uncapped, an XL2 rested 91% of 8000 turns on Dlvl 3, living on prayers until one angered Tyr (T8071)  # 'anyway' to XL+2 just ping-pongs with the forced ascend (Green-elves, T5351)
+                and (sum(lv.searched.values()) < 200 or s.get('dlvl', 1) + 1 >= (s.get('xl') or 1) + 2 and sum(lv.searched.values()) < 400):  # user: resting too much (was 400/800)  # 1500: ~95 pace rests = 1900 of 3200 turns waiting for XP, fainted to a dog (T3853); hunger was 5 of 12 deaths  # uncapped, an XL2 rested 91% of 8000 turns on Dlvl 3, living on prayers until one angered Tyr (T8071)  # 'anyway' to XL+2 just ping-pongs with the forced ascend (Green-elves, T5351)
             # Hungry is ~100 turns from Weak, where prayer takes over: Hungry 'anyway' took XL6 to Dlvl 8, ogre + giant spider (T5817)
             # 'anyway' took Jev past the pace limit 165 times in 60 games (median death XL5 on Dlvl 7): wait here for monsters and HP first
             opts['rest'] = ('Rest and search 20 turns', f"This level is cleared, but Dlvl {s.get('dlvl', 0) + 1} is too deep for experience level {s.get('xl')}. Wait here: wandering monsters bring experience, and HP recovers.", lambda: self.act_search(20))
@@ -2119,7 +2184,7 @@ class Bot:
             self.t.send(('m' if self.snap.is_monster(nx, ny) and not self.snap.at(nx, ny).reverse else '') + d)
             snap = self.after_move(before)
             if self.refused_trap:
-                self.level().traps.add((me[0] + DIRS[d][0], me[1] + DIRS[d][1]))
+                (self.level().blocked if self.refused_trap == 'poison gas' else self.level().traps).add((me[0] + DIRS[d][0], me[1] + DIRS[d][1]))  # a gas cloud fades: blocked is forgotten after 30 turns, traps never
                 if self.refused_trap in ('trap door', 'hole'):
                     self.level().holes.add((me[0] + DIRS[d][0], me[1] + DIRS[d][1]))
                 return f'stopped after {taken} steps: a known trap door or teleporter lies on the path'
@@ -2131,7 +2196,8 @@ class Bot:
                 self.level().blocked.add(door)
                 return 'found a locked door'
             if any('diagonally' in m for m in news):  # we are (or it is) in a doorway we did not see
-                self.run['under'][(snap.status.get('dlvl'), me)] = 'door'
+                # 'into an intact doorway': the doorway is the target, hidden under a kobold corpse; marking our own square looped 900 times in a deli, starved (T2719-T3824)
+                self.run['under'][(snap.status.get('dlvl'), (nx, ny) if any('diagonally into' in m for m in news) else me)] = 'door'
                 continue
             if snap.me == me and not any('door opens' in m or 'open' in m for m in news):
                 step = (me[0] + DIRS[d][0], me[1] + DIRS[d][1])
@@ -2424,6 +2490,21 @@ class Bot:
             return f'could not eat {text}'
         return 'ate'
 
+    def act_eat_floor(self, item):
+        name = LOW_FOOD.search(item)[1]
+        self.t.send('e')
+        for _ in range(8):  # eat.c floorfood: "There is an apple here; eat it?" for each floor item, then the pack prompt
+            top = self.t.lines()[0]
+            if not re.search(r'here; eat (it|one)\?', top):
+                self.t.send('\x1b')
+                break
+            self.t.send('y' if name in top else 'n')
+            if name in top:
+                break
+        self.observe()
+        self.run['here'][(self.snap.status.get('dlvl'), self.snap.me)] = self.look_here()
+        return f'ate {name}'
+
     def act_eat_corpse(self):
         if not self.engraved_here() and self.snap.status.get('hunger') != 'Fainting':
             self.act_elbereth()  # eat.c: 1 in 7 corpses is rotten, up to 10 turns out cold; a fresh rothe's packmate killed an unconscious Djev from 46/46 (T3021)
@@ -2705,7 +2786,7 @@ class Bot:
                 break
         self.observe()
         self.read_inventory()
-        self.run['buc_done'] |= {it['text'] for it in unk} | {it['text'] for it in self.inventory}
+        self.run['buc_done'] |= {it['text'] for it in self.inventory if UNKNOWN_BUC(it['text'])}  # only the ones the altar did not reveal: a later 'emerald potion' with the same text was skipped forever
         self.run['here'][(self.snap.status.get('dlvl'), self.snap.me)] = self.look_here()
         return 'BUC-tested: ' + ' '.join(m['text'] for m in self.messages[nmsg:])[:200]
 
@@ -2870,42 +2951,15 @@ class Bot:
             or self.snap.me and not any(cheb(q, self.snap.me) <= 1 for q in self.hostile_glyphs()) and any(re.search(r"\bThe [\w -]+ (hits|bites|stings|butts|kicks|touches|misses)!", m) and 'ghost' not in m for m in self.run['recent'][-1:])  # a named fire ant bit from a square the map never showed: 'rest' was the only option, 33 -> 0 (T5586)
 
     # ---------- Jev ----------
-    def role(self):
-        if getattr(self, '_role', None):
-            return self._role
-        for m in self.messages[-10:]:
-            text = m.get('text', '')
-            x = re.search(r'You are a (?:lawful|neutral|chaotic) (\w+) (\w+)', text)
-            if x:
-                self._role = x.group(2)
-                return self._role
-        title = (self.snap.status or {}).get('title')
-        if title:
-            self._role = title
-            return title
-        return 'Valkyrie'
-
-    def update_character(self):
-        if not self.snap or not self.snap.status:
-            return
-        role = self.role()
-        align = (self.snap.status or {}).get('align', 'lawful')
-        character = f"{align.lower()} {role}"
-        if character != self.run.get('character'):
-            self.run['character'] = character
-            self.runs[-1]['character'] = character
-            self._save_runs()
-
     def state_text(self, mons):
         s, snap = self.snap.status, self.snap
-        role = self.role()
         lv = self.level()
         inv = '; '.join(f"{i['letter']} - {i['text']}" for i in self.inventory) or 'unknown'
         seen = '; '.join(f"{m['name']}{self.threat(m)} {m['where']}" + (' (pet)' if m['pet'] else ' (peaceful)' if m['peaceful'] else '') for m in mons[:8]) or 'none'
         hist = '\n'.join(f"- T{h['turn']} {h['label']} -> {h['outcome']}" for h in self.history[-8:]) or '- (start of game)'
         recent = ' | '.join(self.run['recent'][-6:]) or 'none'
         return (
-            f"NetHack 5.0.0. You decide for {s.get('name', 'the hero')}, a {s.get('align', 'lawful').lower()} {role}.\n"
+            f"NetHack 5.0.0. You decide for {s.get('name', 'the hero')}, a {s.get('align', 'lawful').lower()} dwarven Valkyrie.\n"
             f"Standing order from the operator: {self.order}\n"
             f"Strategy notes: {STRATEGY}\n\n"
             f"Status: Dlvl {s.get('dlvl')}, HP {s.get('hp')}/{s.get('hpmax')}, Pw {s.get('pw')}/{s.get('pwmax')}, AC {s.get('ac')}, "
@@ -3028,8 +3082,7 @@ class Bot:
         rid = datetime.now().strftime('%Y%m%d-%H%M%S')
         self.run_dir = os.path.join(self.home, rid)
         os.makedirs(self.run_dir, exist_ok=True)
-        self._role = None
-        self.run = dict(id=rid, started=now(), ended=None, character=None, turns=0, max_dlvl=1, death=None, score=None,
+        self.run = dict(id=rid, started=now(), ended=None, character='dwarven Valkyrie', turns=0, max_dlvl=1, death=None, score=None,
                         engine='jev' if not self.jev.local else os.environ.get('JEV_LABEL') or self.jev.model, models=[], decisions=0, levels={}, under={}, here={}, elbereth=set(), prayed_turn=None, recent=[], death_msgs=[])
         self.history.clear()
         self.runs.append({k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score', 'engine', 'models')})
@@ -3059,7 +3112,6 @@ class Bot:
             self.t = self.launcher()
             self.t.pump(3)
             self.observe()
-            self.update_character()
             if any('welcome back' in l for l in self.snap.lines + [m['text'] for m in self.messages[-5:]]):  # restored save: keep the prayer clock
                 try:
                     t = json.load(open(os.path.join(self.home, 'prayer.json')))['prayed_turn']
@@ -3087,7 +3139,6 @@ class Bot:
                     continue
                 self.step_once = False
                 self.observe()
-                self.update_character()
                 if not self.t.alive:
                     break
                 if self.snap.me is None and any('Logged in as' in l for l in self.snap.lines):
