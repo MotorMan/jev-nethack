@@ -1588,9 +1588,10 @@ class Bot:
                 del opts['pray']  # a hole is sure, a prayer 290 turns on is not: chose the gamble over a wand of digging at 9 HP, a little dog bit it dead mid-prayer (T3624)
         if 'flee_up' in opts and len(opts) > 1 and all(h['choice'] == 'flee_up' and 'after 1 steps' in h['outcome'] for h in self.history[-2:]):
             opts.pop('flee_up')  # 4 one-step flee_ups between an elf mummy, a Woodland-elf and soldier ants, 55 -> 0, wand of fire and 2 healing potions unused (T8671)
-        if 'flee_up' in opts and not any(dist.get(q, 99) <= 1 for q in self.snap.find('<')) \
-                and any(m['dist'] <= 1 and m['ch'] not in '@&' and 'minotaur' not in m['name'] and (hallu or (MONSTERS.get(self.species(m)) or [0, 0])[1] > 12) for m in hostiles):  # hallucinating, the names hide the speed: fled beside soldier ants twice, 52 -> 19, a gamble prayer failed (T9456)
-            opts.pop('flee_up')  # walked for '<' with a jaguar (speed 15, 3 attacks) adjacent: 31 -> 14 -> 8 -> 0 in two steps, Elbereth unused (T3778)
+        for k in [k for k in ('flee_up', 'ascend') if k in opts and len(opts) > 1]:  # 'ascend' too, and 2 steps: walked off with a panther 2 steps east at 21/73, Elbereth on offer, dead (T6730)
+          if not any(dist.get(q, 99) <= 1 for q in self.snap.find('<')) \
+                and any(m['dist'] <= 2 and m['ch'] not in '@&' and 'minotaur' not in m['name'] and (hallu or (MONSTERS.get(self.species(m)) or [0, 0])[1] > 12) for m in hostiles):  # hallucinating, the names hide the speed: fled beside soldier ants twice, 52 -> 19, a gamble prayer failed (T9456)
+            opts.pop(k)  # walked for '<' with a jaguar (speed 15, 3 attacks) adjacent: 31 -> 14 -> 8 -> 0 in two steps, Elbereth unused (T3778)
         if LOW_HP(s) and 'teleport' in opts and 'pray' not in opts and any(m['dist'] <= 1 and not m['peaceful'] for m in hostiles):
             opts.pop('flee_up', None)  # walking off at 1/74 beside a Green-elf took a hit per step: dead with 13 unread scrolls (T7362)
         if any(sum(o['name'] == m['name'] for o in hostiles) >= 3 for m in hostiles):

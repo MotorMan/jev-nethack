@@ -2737,3 +2737,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Prevention:** When you are Hungry and have no food, do not rest. Look for food, or go down to find corpses.
 - **Fix:** The "fled up" rest rule now also excludes Hungry.
 - **Not fixed:** Jev went between Dlvl 4 and Dlvl 5 for about 1000 turns because there were nymphs on both levels. The nymph stole the weapon during this time.
+
+## T6730: panther, Dlvl 8 (kev-4b)
+
+- **Cause:** HP was 21/73 and a panther (speed 15, 3 attacks) was 2 steps away. Jev chose 'ascend' and walked toward the far up staircase. The panther caught Jev after 1 step. The fast-monster rule removed only 'flee_up', and only for a monster that was adjacent.
+- **Prevention:** Do not walk away from a monster that is faster than you. Fight it, or engrave Elbereth.
+- **Fix:** The rule now removes 'ascend' and 'flee_up' when a fast hostile is 2 steps away or nearer and the up staircase is not adjacent.
