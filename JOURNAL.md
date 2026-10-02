@@ -2481,3 +2481,10 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev was Hungry and had no food in its pack. It stood on a fresh kobold corpse, but the bot forbids a poisonous corpse until Jev is Weak and cannot pray. Jev then prayed for food 840 turns after the last prayer. The god was angry and took a level. Jev fainted again and again, and a cave spider bit it to death.
 - Prevention: With no food in the pack, eat the next safe or poisonous fresh corpse. Without poison resistance, the poison costs rnd(15) HP or some Str 4 times in 5. Starving costs the game.
 - Fix: `jev/bot.py` allows kobold and other poisonous corpses when Jev is Hungry with no food and more than 30 HP, or Weak with no food and more than 15 HP.
+
+## T8554 Woodland-elf, Dlvl 6
+
+- Cause: Jev killed one Woodland-elf. Then it walked toward three more at 61/71 HP. The up staircase was 5 steps away. Jev had AC 5, because it found no body armor in 8500 turns. Two elves hit it from 61 to 15 in three turns. The potions that it drank did not heal it.
+- Prevention: Do not close in on a group of monsters at your level or above. Let them come to a corridor, or leave by the stairs. Elves ignore Elbereth.
+- Fix: `jev/bot.py` does not offer "close in" on a monster that is not weaker when two or more such monsters are within 8 squares.
+- Open problem: AC 5 at T8500. Jev needs a way to get body armor (shops, kills of armored monsters).
