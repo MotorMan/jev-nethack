@@ -9,6 +9,16 @@ from .nh import (DIRS, DIR_OF, DIR_NAME, MAP_TOP, MAP_BOT, OBJECT_CHARS, Snapsho
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FOOD = re.compile(r'\b(?:food ration|cram|lembas|biscuit|pancake|apple|orange(?! gem)|banana|melon|carrot|egg|tins?|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen)e?s?\b')  # word-bounded: 'dwarvish spear' is not a pear
 MONSTERS = json.load(open(os.path.join(os.path.dirname(__file__), 'monsters.json')))  # name -> [difficulty, speed], from monsters.h
+
+
+def pursuit_cost(n, chasers, spd=12):
+    """Expected damage from (speed, gap, attack text) chasers on an n-step walk away. monmove.c: a monster that moves cannot
+    also melee; mcalcmove rounds speed to whole moves, so only a faster monster gets extra moves, each one beside you an attack round."""
+    cost = 0
+    for v, d, attacks in chasers:
+        rounds = n * (v - spd) / spd - (d - 1) if v > spd else n / 8 if v == spd and d <= 1 else 0  # equal speed adjacent: bends and blocks
+        cost += max(0, rounds) * sum(int(x) * (int(y) + 1) / 2 for x, y in re.findall(r'(\d+)d(\d+)', attacks))
+    return cost
 # objects.h ARMOR(... ac ...) is 10 - bonus; body armor only, best first matches first
 SUIT = {'dragon scale mail': 9, 'crystal plate mail': 7, 'bronze plate mail': 6, 'plate mail': 7, 'splint mail': 6, 'banded mail': 6, 'dwarvish mithril-coat': 6, 'elven mithril-coat': 5,
         'orcish chain mail': 4, 'crude chain mail': 4, 'chain mail': 5, 'scale mail': 4, 'studded leather armor': 3, 'orcish ring mail': 2, 'crude ring mail': 2, 'ring mail': 3,
@@ -1596,12 +1606,7 @@ class Bot:
         # a jaguar adjacent 31 -> 0 (T3778), a Grey-elf adjacent 18 -> 8 over 15 steps (T13186), soldier ants while hallucinating (T9456)
         for k in [k for k in ('flee_up', 'ascend', 'leave_nymph', 'descend', 'choke') if k in opts]:
             n = int((re.search(r'(\d+) steps', opts[k][1]) or [0, 0])[1])
-            cost = 0
-            for m in hostiles:
-                ml = MONSTERS.get(self.species(m)) or [0, 18, 0, '', '1d12']  # unknown (or hallucinated): assume fast
-                v, d = (18 if hallu else ml[1]), m['dist']
-                rounds = n * (v - spd) / spd - (d - 1) if v > spd else n / 8 if v == spd and d <= 1 else 0
-                cost += max(0, rounds) * sum(int(x) * (int(y) + 1) / 2 for x, y in re.findall(r'(\d+)d(\d+)', ml[4]))
+            cost = pursuit_cost(n, [(18 if hallu else (MONSTERS.get(self.species(m)) or [0, 18])[1], m['dist'], (MONSTERS.get(self.species(m)) or [0] * 4 + ['1d12'])[4]) for m in hostiles], spd)  # unknown or hallucinated: assume fast
             if n > 1 and cost >= 0.5 * hp and len(opts) > 1:
                 opts.pop(k)
             elif n > 1 and cost >= 1:
