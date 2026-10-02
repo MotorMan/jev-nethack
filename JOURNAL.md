@@ -2786,3 +2786,26 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** Jev stood on Elbereth at 24/59 HP and was Weak. A gray unicorn (speed 24) and a lizard were near. Weak hunger turns off the rule that holds Jev on Elbereth. The T6823 rule removed the hunger prayer because the lizard was near. Only 'flee_up' was left. The pursuit rule does not remove the last option. Jev walked off Elbereth, and the unicorn killed it.
 - **Prevention:** Do not leave a working Elbereth to walk away from a fast monster. On Elbereth, a prayer is safe.
 - **Fix:** If the pursuit rule removes the last option while Jev is on Elbereth, the bot offers 'wait' on Elbereth. The T6823 rule no longer removes the hunger prayer on Elbereth.
+
+## Fainting deaths: corpses refused at age 31-49
+
+- **Cause:** 18 of the last 80 Hosted deaths were fainting or starvation. Each of these deaths has its own fix above. But the bot still prays for food about once each 1000 turns, so it lives on prayers. Each hunger prayer has a risk of about 6% (pray.c: the timeout is rnz(350)). A long game then dies to one failed prayer. One cause of the food shortage: the bot offered `eat_corpse` for a corpse younger than 50 turns, but `act_eat_corpse` accepted only kills from the last 30 turns. In the last 40 games, the bot refused 52 offers for corpses aged 31 to 49 turns. Each retry engraved Elbereth again, so the corpse got older (T4258, an Uruk-hai).
+- **Prevention:** eat.c: rotted = age / (10 + rn2(20)). A corpse is tainted only when rotted > 5, so a corpse younger than 50 turns is never tainted.
+- **Fix:** `act_eat_corpse` accepts kills from the last 50 turns, the same window as the offer. After a refusal, the bot marks the corpse as stale and does not offer it again.
+
+## T6804 raven, Dlvl 7 (blind)
+
+- **Cause:** A raven blinded Jev and bit it. Jev engraved Elbereth blind. The T6087 rule trusts a blind engraving for 5 turns, because Jev cannot read it back. The rule to stay on Elbereth then gave only `wait`. The raven bit through it, from 44 HP to 0. Jev engraved 3 more times and did not attack.
+- **Prevention:** A hit after an engraving shows that the engraving does not protect you. Fight back.
+- **Fix:** `engraved_here` does not trust a blind engraving after a hit that comes after it. For 30 turns after such a hit, the bot does not offer a new blind Elbereth on the same square, so the attack on the unseen monster stays in the options.
+
+## Fight first: Elbereth only for emergencies
+
+- **Cause:** The user said: "I HARDLY EVER USE ELBERETH ... it's typically better to fight enemies." In 10 kev-4b games, the bot engraved Elbereth 15 to 40 times in each game and waited on it 50 to 200 times. Most of these were forced, because Elbereth was the only option. Packs of weak monsters also forced a walk to a corridor instead of a fight.
+- **Prevention:** Fight. A Valkyrie can fight 2 or 3 weak early monsters at once in the open. Against harder groups, go back into a corridor or a doorway. Use Elbereth only in an emergency.
+- **Fix:**
+  - Elbereth is offered below 1/3 HP with a monster near. It is also offered for these special threats: an adjacent were, a hugger, a sleep biter, a much stronger monster, being boxed in, or an unseen attacker below 1/2 HP. The rules for a pack in the open, a fast strong monster, and blindness below 70% HP are removed.
+  - The filter that makes Elbereth the only option applies below 40% HP, or when the last turn took more HP than is left.
+  - The bot stays on Elbereth only below 1/2 HP. Above that, it attacks from the square.
+  - With 3 or more monsters near, the corridor walk removes the attacks only when one of the monsters is not weaker than Jev.
+  - The prompt says the same.
