@@ -380,7 +380,7 @@ function DecisionPanel({ s }: { s: State }) {
         </TabsList>
         <TabsContent value="options" className="space-y-1">
           <div className="text-sm text-muted-foreground mb-2 line-clamp-3" title={d.question}>{d.question}</div>
-          {d.options.map((o) => {
+          {[...d.options].sort((a, b) => (b.p ?? -1) - (a.p ?? -1)).map((o) => {
             const chosen = o.id === d.choice
             return (
               <div
