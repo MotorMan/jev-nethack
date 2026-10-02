@@ -2415,3 +2415,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev was at AC 10 with no armor. Uruk-hai shot poisoned arrows and came adjacent. Jev chose `flee_up` 6 times. Each time, an Uruk-hai blocked the path after 1 step, and it hit Jev for free. HP fell 31 -> 0. The armor loss near T6400 has no clear message in the log.
 - Prevention: If a monster blocks the path to the stairs, fight it. Do not try the same walk again.
 - Fix: `jev/bot.py` removes `flee_up` for 3 decisions after a `flee_up` that was blocked.
+
+## T5635 rabid rat, Dlvl 5
+
+- Cause: In the dark, a water nymph stole the plate mail, the shield and the spear (T5064). Later a wererat bite made Jev a wererat. As a rat, Jev was Overloaded. The drop options came from a stale inventory, so Jev tried 20 drops of items that were already gone. Monsters bit it 34 -> 15 meanwhile, and Jev used its prayer. 40 turns later, a mob killed it at AC 10.
+- Prevention: Read the inventory again after each drop. Do not spend turns on items that you do not have.
+- Fix: `jev/bot.py` reads the inventory after each `drop_` option.

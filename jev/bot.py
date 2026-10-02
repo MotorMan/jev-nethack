@@ -960,7 +960,7 @@ class Bot:
         if 'Burdened' in s.get('conditions', []) or 'Stressed' in s.get('conditions', []):
             for it in self.inventory:
                 if (HEAVY.search(it['text']) or JUNK.search(it['text'])) and not re.search(r'weapon in|being worn|alternate weapon|mithril|at the ready|quiver|pick-axe|mattock', it['text']):
-                    opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", f"You are {'Burdened' if 'Burdened' in s['conditions'] else 'Stressed'}: slower, and you can't fight or flee well. {it['text']} is heavy and of little use.", lambda l=it['letter']: self.act_keys('d' + l, 'dropped it'))
+                    opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", f"You are {'Burdened' if 'Burdened' in s['conditions'] else 'Stressed'}: slower, and you can't fight or flee well. {it['text']} is heavy and of little use.", lambda l=it['letter']: (self.act_keys('d' + l, 'dropped it'), self.read_inventory())[0])
             spots = [] if near or self.soko() else [q for u in snap.find('<') for dx, dy in DIRS.values() if (q := (u[0] + dx, u[1] + dy)) in dist and dist[q] <= 40 and snap.at(*q).ch in '.' + ''.join(')[%?/=!("$')]
             if spots:  # wiki Stash: leave spares next to the up stairs (not on '>': they fall down), monsters don't act while you're off-level
                 q = min(spots, key=dist.get)
@@ -1448,11 +1448,11 @@ class Bot:
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door', 'descend', 'approach', 'kick', 'goto', 'search'))}
         if (s.get('title') or '').startswith('Were'):  # animal form: armor falls off, paws can't wear or carry much
             opts = {k: v for k, v in opts.items() if not k.startswith(('pickup_', 'wear_', 'fetch'))}
-        if 'Overloaded' in s.get('conditions', []):  # a wererat Jev tried to walk 291 times under a Valkyrie's pack
+        if 'Overloaded' in s.get('conditions', []):  # a wererat Jev tried to walk 291 times under a Valkyrie's pack  # stale inventory re-offered dropped items 20 times as a wererat, 'You don't have that object', bitten 34 -> 15 meanwhile, prayer spent, died (T5593)
             opts = {k: v for k, v in opts.items() if k == 'pray'}
             for it in self.inventory:
                 if not re.search(r'weapon in|being worn|gold piece', it['text']):
-                    opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", 'You are Overloaded and cannot move at all. Drop heavy things (armor, weapons, rations, tools) first.', lambda l=it['letter']: self.act_keys('d' + l, 'dropped it'))
+                    opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", 'You are Overloaded and cannot move at all. Drop heavy things (armor, weapons, rations, tools) first.', lambda l=it['letter']: (self.act_keys('d' + l, 'dropped it'), self.read_inventory())[0])
         if not near and any(k.startswith('sell_') for k in opts):  # Jev chose "explore" into Chicoutimi 3000 times instead
             opts = {k: v for k, v in opts.items() if k.startswith('sell_')}
         if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and (not near or any(m['peaceful'] and m['dist'] <= 1 for m in mons)):  # hack.c: Stunned always, Confusion 1 in 5 confdir()s the move or attack: a stunned swing at a mimic hit Izchak, dead (T2680)  # a confused bump into a shopkeeper attacks him
