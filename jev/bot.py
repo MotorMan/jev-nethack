@@ -873,7 +873,10 @@ class Bot:
         # walking distance, not cheb: outside a Minetown wall a shop 3 squares off dropped every throw at a floating eye blocking the corridor; 300 turns Fainting, dead (T7682)
         shop = any(d == s.get('dlvl') and dist.get(p, 99) <= 7 and any(re.search(r'for sale|no charge', i) for i in v) for (d, p), v in self.run.get('here', {}).items()) or self.run.get('debt') == s.get('dlvl')
         if shop:  # an unknown wand zapped at a brown mold in Sipaliwini's store angered her: dead to her wand (T1314)
-            opts = {k: v for k, v in opts.items() if not k.startswith(('zap_', 'throw_'))}
+            # a known attack wand or a throw with no peaceful on the line or its bounce is safe: a fire ant panic-bit Jev 20 -> 0 in a shop door, magic missile unused (T4916)
+            pp = {m['pos'] for m in mons if m['peaceful']}
+            opts = {k: v for k, v in opts.items() if not k.startswith(('zap_', 'throw_')) or k[-1] in DIRS and (k.startswith('throw_') or re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', v[0]))
+                    and not any((me[0] + DIRS[k[-1]][0] * i * sg, me[1] + DIRS[k[-1]][1] * i * sg) in pp for i in range(1, 14) for sg in (1, -1))}
         # eat.c: a poisonous corpse costs rnd(15) HP and maybe Str without poison resistance; fainting with no prayer, kobolds beat starving (killed 10, ate none, fainted to a kitten T3459)
         self.run['calm'] = not hostiles and s.get('hunger') in ('Hungry', 'Weak', 'Fainting')  # eat.c: a bat stuns 30 turns, a giant bat 60: bearable with nothing in view, and only when food matters
         self.run['desperate'] = s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts and s.get('hp', 1) > 15

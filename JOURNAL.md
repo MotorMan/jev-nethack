@@ -2445,3 +2445,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: An Uruk-hai shot volleys of 2 poisoned arrows. When the second arrow of a volley misses, the game prints "It misses.", and the bot took this as an unseen attacker. Jev chose `find_unseen` 5 times. Later, beside the Uruk-hai on Elbereth, Jev engraved again at 16 HP instead of hitting it. The scared Uruk-hai shot again, and the poison killed Jev.
 - Prevention: "It misses." after "shoots" or "throws" is a missile, not a monster. Elbereth does not stop arrows. Hit an adjacent archer.
 - Fix: `jev/bot.py` ignores "It hits/misses" after a volley in `unseen_attacker`. It removes `elbereth` when the shooter is adjacent, it shot in the last 3 messages, and an attack is on offer.
+
+## T4916 fire ant, Dlvl 6
+
+- Cause: Jev stood on Elbereth in a shop door. A boxed-in fire ant (speed 18, fire bites) panic-attacked it, 20 -> 6 -> 0. Jev had a wand of magic missile, but the shop rule removed every zap and throw near a shop.
+- Prevention: A known attack wand or a throw is safe in a shop when no peaceful monster is on the line or on its bounce.
+- Fix: `jev/bot.py` keeps throws and known attack-wand zaps near a shop when no peaceful monster is within 13 squares on that line, in both directions.
