@@ -1649,7 +1649,7 @@ class Bot:
                                              lambda q=q: self.act_go(q, steps=3) if q != me else self.act_keys('s', 'waited for the pet'))}
         # operator: a wand of speed monster: zap yourself (intrinsic Fast) and the pet, then break it (apply.c do_break_wand:
         # a rnd(4*charges) magic blast, then speed for every adjacent square), so only with no hostiles in view and HP to spare
-        sw = next((it['letter'] for it in self.inventory if 'wand of speed monster' in it['text']), None)
+        sw = next((it['letter'] for it in self.inventory if 'wand of speed monster' in it['text'] or it['text'] == self.run.get('speed_wand')), None)
         if sw and not hostiles and s.get('hp', 0) >= max(35, 0.7 * s.get('hpmax', 1)):
             pet = next((m for m in mons if m['pet'] and m['dist'] == 1), None)
             if not self.run.get('speed_self'):
@@ -2194,6 +2194,9 @@ class Bot:
                 break
         self.observe()
         self.read_inventory()
+        if any('speed up!' in m for m in self.run['recent'][-3:]):  # engrave.c: 'The bugs ... speed up!' does not identify it: the 'runed wand' was zapped at an ettin zombie at 40/78, it sped up, dead (T7378)
+            self.run.setdefault('bad_wands', []).append(it['text'])
+            self.run['speed_wand'] = it['text']
         return 'engrave-tested: ' + ' '.join(self.run['recent'][-2:])[-120:]
 
     def flee_up(self, act):

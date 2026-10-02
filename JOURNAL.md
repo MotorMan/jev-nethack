@@ -2724,3 +2724,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** A cockatrice's potion made a cloud of darkness, and Jev became blind beside two gargoyles. The bot shows unseen monsters with no threat level. Thus it did not offer "Run for the upstairs", although the up staircase was known. A prayer healed Jev to 85 HP. Then Jev fought the unseen gargoyles and went from 85 to 0 HP in 5 turns.
 - **Prevention:** When you are blind and an unseen monster attacks you, go away. You cannot know how strong it is.
 - **Fix:** When Jev is blind and an unseen monster attacks, the bot treats the fight as one against a much stronger monster. As a result, it offers the flight to a known up staircase up to 60 steps away.
+
+## T7378: an ettin zombie made fast by Jev's own wand
+
+- **Cause:** At T3759, an engrave test of "a runed wand" gave "The bugs on the floor speed up!". This message shows a wand of speed monster, but it does not identify the wand. The bot did not keep the result. At T7369, at 40/78 HP between two ettin zombies, Jev zapped the wand at a zombie. The zombies became fast and killed Jev, also after a successful prayer.
+- **Prevention:** After an engrave test, remember what the message shows. Never zap a wand of speed monster at a hostile monster. Zap it at yourself.
+- **Fix:** After "speed up!", `act_engrave_id` adds the wand to `bad_wands`, so the bot never zaps it at monsters. It also records the wand as the speed wand, so the `speed_self` option zaps it at Jev.
