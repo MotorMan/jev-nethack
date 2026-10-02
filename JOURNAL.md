@@ -2102,3 +2102,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
   - They never rot (eat.c nonrotting_corpse).
   - After a lichen kill, the bot steps onto the corpse and picks it up, carrying up to 4.
   - Lichen corpses in the pack get eaten like any other food when Hungry.
+
+## Ghost on a bones level (run 171431, Dlvl 7, T6700-8950)
+- Cause: "Hosted's ghost touches you!" matched unseen_attacker() → find_unseen/Elbereth, and every touch interrupted search_hidden ("You stop searching"), so the hunt for the hidden '>' never progressed.
+- Wiki (Ghost): speed 3, AC -5, 1d1 touch: harmless and very hard to kill; lure it away and work elsewhere.
+- Fix: ghost messages no longer count as an unseen attacker; on a ghost touch/miss the bot records lv.ghost and search_spot skips spots within 8 squares of it for 300 turns (it's 4x slower than us).

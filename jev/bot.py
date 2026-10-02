@@ -174,6 +174,8 @@ class Bot:
                 self.run['debt'] = self.snap.status.get('dlvl') if self.snap else True
             if re.search(r'You do not owe|You have paid|You paid|Thank you for shopping|pay .* in full', text, re.I):
                 self.run['debt'] = False
+            if re.search(r"ghost (touches|misses)", text) and self.snap and self.snap.me:
+                self.level().ghost = (self.snap.me, self.snap.status.get('turn') or 0)  # it is next to us: search somewhere else
             if re.search(r'You (kill|destroy) the lichen', text) and self.snap:
                 self.run['lichen_kill'] = self.snap.status.get('turn') or 0
             if 'little dart' in text and self.snap and self.snap.me:  # trap.c: we stand on a dart trap
@@ -1451,6 +1453,9 @@ class Bot:
             exits = sum(1 for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy) and snap.walkable(p[0] + dx, p[1] + dy))
             if walls < 3:
                 continue
+            g = getattr(lv, 'ghost', None)
+            if g and (snap.status.get('turn') or 0) - g[1] < 300 and cheb(p, g[0]) <= 8:
+                continue  # speed 3 vs 12: searching 8+ squares away buys ~30 uninterrupted turns before it drifts back
             score = lv.searched.get(p, 0) * 2 + d / 4 - (8 if snap.at(*p).ch == '#' and exits <= 1 else 0) - walls - blank(*p) / 12
             if best is None or score < best[0]:
                 best = (score, p)
@@ -2274,8 +2279,9 @@ class Bot:
         return tuple(n for n in NEVER_EAT if not (n in ('kobold', 'bat', 'dog', 'cat', 'kitten', 'acid blob') + POISONOUS and n not in BAD_EFFECT and self.run.get('desperate')))  # bat only stuns, pets only aggravate (eat.c): Weak with no prayer, explored off a 50-turn giant bat corpse, fainted, dead (T1956)
 
     def unseen_attacker(self):
-        return any(re.search(r"\b(It|ghost) (hits|bites|touches|stings|butts|kicks|misses)|feel an unseen monster|You hear a nearby zap|The bolt of \w+ hits you", m) for m in self.run['recent'][-2:]) \
-            or self.snap.me and not any(cheb(q, self.snap.me) <= 1 for q in self.hostile_glyphs()) and any(re.search(r"\bThe [\w -]+ (hits|bites|stings|butts|kicks|touches|misses)!", m) for m in self.run['recent'][-1:])  # a named fire ant bit from a square the map never showed: 'rest' was the only option, 33 -> 0 (T5586)
+        # wiki (Ghost): speed 3, a 1d1 touch, AC -5: not a threat, lure it off; treated as an unseen attacker it pinned Jev to find_unseen/Elbereth on its own bones level (T6700-7000)
+        return any(re.search(r"\bIt (hits|bites|touches|stings|butts|kicks|misses)|feel an unseen monster|You hear a nearby zap|The bolt of \w+ hits you", m) for m in self.run['recent'][-2:]) \
+            or self.snap.me and not any(cheb(q, self.snap.me) <= 1 for q in self.hostile_glyphs()) and any(re.search(r"\bThe [\w -]+ (hits|bites|stings|butts|kicks|touches|misses)!", m) and 'ghost' not in m for m in self.run['recent'][-1:])  # a named fire ant bit from a square the map never showed: 'rest' was the only option, 33 -> 0 (T5586)
 
     # ---------- Jev ----------
     def state_text(self, mons):
