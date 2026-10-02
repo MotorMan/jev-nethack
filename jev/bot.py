@@ -32,7 +32,8 @@ APPEAR = re.compile(r'scrolls? labeled ([A-Z][A-Z ]*[A-Z])|\b(dark green|sky blu
 
 
 # user: the items of interest, from the ascension kit and goals in statico/nethack-tools data/checklist.json, plus the user's priority tools
-INTEREST = re.compile(r'magic resistance|reflection|life saving|versus poison|speed boots|jumping boots|levitation|gauntlets of (power|dexterity)|helm of (telepathy|opposite alignment|brilliance)|elven (mithril|leather helm|cloak)|dwarvish mithril|oilskin|cloak of (protection|displacement)|dragon scale|unicorn horn|luckstone|towel|blindfold|\bcandles?\b|bag of holding|\bsack\b|magic marker|wand of (teleportation|death|digging|secret door detection|create monster|wishing)|ring of (conflict|teleport control|free action|poison resistance|fire resistance|slow digestion|regeneration)|scrolls? of (genocide|charging|enchant armor|enchant weapon|remove curse|identify|gold detection)|potions? of (full healing|extra healing|gain level)|holy water|K-ration|C-ration|lembas|royal jelly|skeleton key|lock pick|credit card|pick-axe|grease')
+INTEREST = re.compile(r'magic resistance|reflection|life saving|versus poison|speed boots|jumping boots|levitation|gauntlets of (power|dexterity)|helm of (telepathy|opposite alignment|brilliance)|elven (mithril|leather helm|cloak)|dwarvish mithril|oilskin|cloak of (protection|displacement)|dragon scale|unicorn horn|luckstone|towel|blindfold|\bcandles?\b|bag of holding|\bsack\b|magic marker|wand of (teleportation|death|digging|secret door detection|create monster|wishing)|ring of (conflict|teleport control|free action|poison resistance|fire resistance|slow digestion|regeneration)|scrolls? of (genocide|charging|enchant armor|enchant weapon|remove curse|identify|gold detection)|potions? of (full healing|extra healing|gain level)|holy water|K-ration|C-ration|lembas|royal jelly|skeleton key|lock pick|credit card|pick-axe|grease'
+                      r'|tattered cape|opera cloak|ornamental cope|piece of cloth|slippery cloak|faded pall|(plumed|etched|crested|visored|crystal) helmet|(old|padded|riding|fencing) gloves|(combat|jungle|hiking|mud|buckled|riding|snow) boots')  # objects.h 5.0: the random appearances of kit cloaks, helms, gloves and boots
 
 
 def appearance(t):
@@ -137,6 +138,7 @@ class Level:
         self.notes = set()     # user: annotate levels (vault, altar, stash): #annotate shows them in the ^O overview
         self.noted = ''
         self.shops = {}        # user: shop type -> [door, items seen, items of interest], kept for a return with gold
+        self.loose = set()     # user: kit items seen on the floor here and left behind (notes)
         self.arrival = None    # where we first stood here: the other '<' on the Oracle+1 level leads to Sokoban
         self.stairs = set()    # '>' found under objects by #terrain
         self.terrain_turn = -999
@@ -372,8 +374,8 @@ class Bot:
         return self.snap
 
     def note_shops(self):
-        """User: remember each shop's type, size and best wares as a level note, for a later visit with gold."""
-        lv = self.level()
+        """User: remember each shop's type, size and best wares, and kit items left on the floor, as level notes for a later visit."""
+        lv, rooms = self.level(), set()
         if (kind := self.run.pop('shop_kind', None)):
             lv.shops.setdefault(kind, [self.snap.me, 0, set()])
         for kind, shop in lv.shops.items():
@@ -384,6 +386,7 @@ class Bot:
                     continue
                 room.add((x, y))
                 todo += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+            rooms |= room
             n = sum(self.snap.at(*q).ch in OBJECT_CHARS - {'$'} for q in room - {shop[0], self.snap.me})
             for q in room:
                 for i in self.run.get('here', {}).get((self.snap.status.get('dlvl'), q), []):
@@ -394,6 +397,9 @@ class Bot:
             shop[1] = max(shop[1], n)  # max, not the latest count: a monster on an item changed it and re-annotated each turn
             best = sorted(shop[2])[:4] + ([f'+{len(shop[2]) - 4}'] if len(shop[2]) > 4 else [])  # the #annotate line has a length limit
             lv.notes = {t for t in lv.notes if not t.startswith(kind + ' (')} | {f"{kind} ({shop[1]} items{', ' if best else ''}{', '.join(best)})"}
+        dl = self.snap.status.get('dlvl')
+        loose = set(sorted({re.sub(r'^(an?|the|\d+) | [({].*$', '', i) for (d, q), v in self.run.get('here', {}).items() if d == dl and q not in rooms for i in v if INTEREST.search(i) and 'for sale' not in i})[:4])
+        lv.notes, lv.loose = (lv.notes - lv.loose) | loose, loose
 
     def overview(self):
         """^O on each new Dlvl: the heading above '<- You are here' says which branch we are in (dungeon.c print_dungeon)."""

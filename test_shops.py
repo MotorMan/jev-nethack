@@ -21,3 +21,10 @@ b.run = {'shop_kind': 'rare books', 'prices': {('scroll', 'FOO'): {300}},
 b.note_shops()
 assert lv.notes == {'rare books (5 items, scroll labeled FOO (300zm), scroll of genocide)'}, lv.notes
 print('shops ok')
+b.run['here'][(2, (19, 4))] = ['a tattered cape', 'a dagger']
+b.note_shops()
+assert lv.notes == {'rare books (5 items, scroll labeled FOO (300zm), scroll of genocide)', 'tattered cape'}, lv.notes
+b.run['here'][(2, (19, 4))] = ['a dagger']  # picked up
+b.note_shops()
+assert lv.notes == {'rare books (5 items, scroll labeled FOO (300zm), scroll of genocide)'}, lv.notes
+print('loose ok')

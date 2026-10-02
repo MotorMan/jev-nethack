@@ -2893,3 +2893,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The bot knew some item types from their appearance or price, but it did not name them in the game. The inventory and the discoveries list did not show this knowledge.
 - **Prevention:** The user rule: use `#call` for items that are obvious or that the bot can deduce.
 - **Fix:** After each inventory read, the bot calls each certain type one time (`C`, `o`, the item letter, the name). The certain types come from `objects.h` in 5.0: a clear potion is water, and a potion at base 20 is healing. A scroll at base 20 is identify, and a labeled scroll at base 60 is enchant weapon. No ring price group has only one type. If the "Call ..." prompt does not show, the bot presses Escape and does not type the name.
+
+## Kit items left on the floor
+
+- **Cause:** The level notes showed only shop wares. The bot forgot a kit item that it saw on the floor and did not take, for example an unknown cloak that has no known BUC.
+- **Prevention:** The user rule: note key ascension kit items on the level when the bot cannot take them.
+- **Fix:** Each level now notes up to 4 kit items on the floor outside shops. When an item is gone from its square, its note goes away. `INTEREST` now also matches the random appearances of kit armor in 5.0: the cloaks (tattered cape, opera cloak, ornamental cope, piece of cloth), the oilskin and elven cloaks, the helmets, the gloves and the boots.
