@@ -1471,7 +1471,8 @@ class Bot:
             if safe:
                 d = max(safe, key=lambda d: cheb((me[0] + DIRS[d][0], me[1] + DIRS[d][1]), zapper['pos']))
                 o = ('Step out of the line of fire', f"The {zapper['name']} {zapper['where']} is zapping a wand along this line; rays only go straight or diagonal. Step where it has no line to you.", lambda d=d: self.act_keys(d, 'dodged'))
-                opts = {'dodge': o} if hp < 0.5 * hpmax and not any(m['dist'] <= 1 and not m['passive'] for m in hostiles) else {**opts, 'dodge': o}
+                opts = {'dodge': o} if hp < 0.5 * hpmax and not any(m['dist'] <= 1 and not m['passive'] for m in hostiles) else \
+                    {k: v for k, v in opts.items() if k in ('pray', 'upstairs', 'flee_up') or k.startswith(('attack_', 'quaff_', 'zap_'))} | {'dodge': o}  # 'find_unseen' searched twice in a quasit's wand-of-fire line on '<': 55 -> 33 -> 0 (T15223)
         if (s.get('turn') or 0) - self.run.get('msg_turn', 0) <= 2 and any(re.search(r'whizzes by you|You hear a nearby zap', m) for m in self.run['recent'][-2:]):
             # a monster drank invisibility ("chugging sound"), zapped death from out of view; find_unseen stood in the line, the second ray killed (T8536)
             st = [(p, k) for k, ps in (('<', ups), ('>', downs)) for p in ps if p == me or dist.get(p, 99) <= 8]

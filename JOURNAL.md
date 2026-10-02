@@ -2295,3 +2295,7 @@ Each change below was checked against the 5.0 source:
 - **Less Elbereth:** if Elbereth was chosen 4+ times in the last 12 decisions and HP is no higher than 12 decisions ago, the Elbereth and stay-on-Elbereth options are dropped whenever an attack, choke, stairs, retreat, zap, throw, quaff or pray option exists.
 - **Shop mimics:** in 5.0, set_mimic_sym makes shop mimics copy the shop's own goods, so any item can be one. shop_look and shop_food now step one square at a time. Before each step, Jev searches once if any adjacent item square hasn't been tested yet; dosearch0 → mfind0 → seemimic always unmasks an adjacent mimic. At AC > 0, attack and approach options on a hostile mimic are dropped unless Jev is stuck to it. Mimics have speed 3, so walking away works.
 - **Peeking down stairs:** this already happens. A pack or a much stronger monster on arrival forces '<' (the "arrived into 3 wolves" fix).
+
+## 2026-10-01 — quasit's wand of fire, Dlvl 10 T15223 (run 20261001-205205)
+- **Cause:** a quasit with a wand of fire waited near the Dlvl 10 upstairs. Jev fled up at T15174 and rested, then came back down 50 turns later. Standing on '<' in the quasit's line, it took 'find_unseen' (search) twice at 55/x instead of the offered 'dodge' or 'upstairs', since the quasit flickers invisible. It went 55 -> 33 -> 0.
+- **Fix:** a visible zapper in line now narrows the options to dodge, upstairs, pray, quaff, zap and attack at any HP, not only below 50%.
