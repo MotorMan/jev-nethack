@@ -2307,3 +2307,8 @@ Each change below was checked against the 5.0 source:
 ## 2026-10-01 — tainted newt corpse, Dlvl 9 T10532 (run 20261001-210838)
 - **Cause:** at XL 8, AC -1, Jev killed an invisible quasit and went to eat the corpse while Not Hungry. An old newt corpse was on the same square, and eat.c floorfood asks about each corpse in pile order. Jev answered 'y' to the first prompt, which was the newt: "Ulch - that meat was tainted!", FoodPois. The prayer came too soon, so Tyr was displeased, and Jev then ate the quasit while sick and died.
 - **Fix:** kills are recorded from "You kill/destroy the X!". The floor-eat prompt loop now answers 'y' only to a corpse species killed in the last 30 turns (lichens and lizards never rot), and 'n' to every other prompt.
+
+## 2026-10-01 — jaguar while fainted, Dlvl 6 T10134 (run 20261001-211538)
+- **Cause:** Jev was Weak with no food, 357 turns after a low-HP prayer, and kept walking toward stairs for leave_nymph. The Weak prayer threshold was 1000 turns. In eat.c newuhs, Weak covers uhunger 1-50, and moving from Weak to Fainting faints at once (`u.uhs <= WEAK`), so the Fainting threshold (300) only applies after the first faint. Jev fainted mid-fight with a jaguar and died.
+- **Fix:** Weak with no food in the pack now prays at 300 turns, like Fainting (P ≈ .66 that the timeout is under 200).
+- **Pattern:** 3 of the top 5 scores died "while fainted from lack of food". The food supply is the main thing still wrong.
