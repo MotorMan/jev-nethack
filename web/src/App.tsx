@@ -376,22 +376,22 @@ function DecisionPanel({ s }: { s: State }) {
   if (d && !d.pending) lastNums.current = { conf: pct(d.confidence), lat: ms(d.latency_ms) }
   const numTone = d?.pending ? "text-muted-foreground" : "text-foreground"
   if (!d) {
-    return <Panel title="jev // decision"><div className="text-sm text-muted-foreground">awaiting first decision...</div></Panel>
+    return <Panel title="model // decision"><div className="text-sm text-muted-foreground">awaiting first decision...</div></Panel>
   }
   return (
     <Panel
       className="min-h-0" bodyClass="min-h-0 overflow-auto"
-      title={<><Cpu className="size-3.5" /> jev // decision #{d.id}</>}
+      title={<><Cpu className="size-3.5" /> model // decision #{d.id}</>}
       right={
         // fixed-width fields so the header doesn't jump between thinking and acting
         <span className="font-mono whitespace-pre tabular-nums">
           <span style={{ color: tone("frost-2") }}>{(d.pending ? "thinking" : "acting").padStart(8)}</span>
           {" · "}
-          <Tip tip="confidence: how decisively Jev preferred its choice over the alternatives">
+          <Tip tip="confidence: how decisively the model preferred its choice over the alternatives">
             <span>conf <span className={numTone}>{lastNums.current.conf.padStart(4)}</span></span>
           </Tip>
           {" "}
-          <Tip tip="latency: time Jev took to answer">
+          <Tip tip="latency: time the model took to answer">
             <span>lat <span className={numTone}>{lastNums.current.lat.padStart(5)}</span></span>
           </Tip>
         </span>
@@ -399,10 +399,10 @@ function DecisionPanel({ s }: { s: State }) {
     >
       <Tabs value={tab} onValueChange={pickTab}>
         <TabsList variant="line" className="w-full justify-start mb-2">
-          <TabsTrigger value="options" className="flex-none" title="the actions the bot offered, with Jev's probability for each">options ({d.options.length})</TabsTrigger>
-          <TabsTrigger value="question" className="flex-none" title="the question asked of Jev">instructions</TabsTrigger>
-          <TabsTrigger value="state" className="flex-none" title="the game state as text, as Jev read it">state text</TabsTrigger>
-          <TabsTrigger value="request" className="flex-none" title="the raw JSON sent to Jev and its reply">request</TabsTrigger>
+          <TabsTrigger value="options" className="flex-none" title="the actions the bot offered, with the model's probability for each">options ({d.options.length})</TabsTrigger>
+          <TabsTrigger value="question" className="flex-none" title="the question asked of the model">instructions</TabsTrigger>
+          <TabsTrigger value="state" className="flex-none" title="the game state as text, as the model read it">state text</TabsTrigger>
+          <TabsTrigger value="request" className="flex-none" title="the raw JSON sent to the model and its reply">request</TabsTrigger>
           <Tip tip="wrap long lines in state text and request">
             <Button size="xs" variant="ghost" className="ml-auto text-muted-foreground" onClick={toggleWrap}><WrapText /> wrap {wrap ? "on" : "off"}</Button>
           </Tip>
@@ -450,7 +450,7 @@ function DecisionPanel({ s }: { s: State }) {
             {/* always one line of text, so the JSON boxes below never shift */}
             <div className="text-xs text-muted-foreground truncate">
               {io.request.state === d.state_text ? "the call for this decision"
-                : d.pending ? "waiting for Jev; showing the previous call" : "one option, Jev not asked; showing the previous call"}</div>
+                : d.pending ? "waiting for the model; showing the previous call" : "one option, so the model was not asked; showing the previous call"}</div>
             <div className="flex items-center justify-between"><Label>request</Label><Copy text={JSON.stringify(io.request, null, 2)} tip="copy the request JSON to the clipboard" /></div>
             <Json v={io.request} wrap={wrap} />
             <div className="flex items-center justify-between"><Label>response</Label><Copy text={JSON.stringify(io.response, null, 2)} tip="copy the response JSON to the clipboard" /></div>
@@ -506,7 +506,7 @@ function Timeline({ s }: { s: State }) {
               <th className="px-2 py-1.5 font-normal" title="game turn">t</th>
               <th className="px-2 py-1.5 font-normal" title="dungeon level">dl</th>
               <th className="px-2 py-1.5 font-normal" title="the action chosen">choice</th>
-              <th className="px-2 py-1.5 font-normal text-right" title="Jev's probability for the chosen action">p</th>
+              <th className="px-2 py-1.5 font-normal text-right" title="the model's probability for the chosen action">p</th>
               <th className="px-2 py-1.5 font-normal text-right" title="confidence: margin over the alternatives">conf</th>
             </tr>
           </thead>
@@ -622,9 +622,9 @@ function Telemetry({ s }: { s: State }) {
   const j = s.jev
   const used = j.budget_usd ? j.cost_usd / j.budget_usd : 0
   return (
-    <Panel title={<><Cpu className="size-3.5" /> jev telemetry</>} right={<span className="normal-case tracking-normal">{j.last_model ?? "--"}</span>}>
+    <Panel title={<><Cpu className="size-3.5" /> model telemetry</>} right={<span className="normal-case tracking-normal">{j.last_model ?? "--"}</span>}>
       <div className="grid grid-cols-3 gap-1.5">
-        <Stat label="calls" value={num(j.calls)} tip="requests sent to the Jev model, all games" />
+        <Stat label="calls" value={num(j.calls)} tip="requests sent to the model, all games" />
         <Stat label="errors" value={num(j.errors)} t={j.errors ? "red" : undefined} tip="failed model requests (timeouts, HTTP errors)" />
         <Stat label="avg lat" value={ms(j.avg_latency_ms)} tip="average round-trip time of a model request" />
       </div>
