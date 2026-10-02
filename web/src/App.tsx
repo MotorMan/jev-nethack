@@ -326,7 +326,7 @@ function Vitals({ s }: { s: State }) {
     ["co", st.co, "constitution: HP gained per level, carrying capacity"], ["in", st.in, "intelligence: spellcasting for most roles"],
     ["wi", st.wi, "wisdom: power regeneration, spellcasting for priests and healers"], ["ch", st.ch, "charisma: shop prices"],
   ]
-  const hunger = st.hunger && st.hunger !== "Not Hungry" ? st.hunger : null
+  const hunger = st.hunger && !/^not hungry$/i.test(st.hunger) ? st.hunger : null
   return (
     <Panel
       title={<><Activity className="size-3.5" /> vitals</>}

@@ -2809,3 +2809,63 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
   - The bot stays on Elbereth only below 1/2 HP. Above that, it attacks from the square.
   - With 3 or more monsters near, the corridor walk removes the attacks only when one of the monsters is not weaker than Jev.
   - The prompt says the same.
+
+## T6927 fire ant, Dlvl 7, and the 20% HP rule
+
+- **Cause:** A fire ant (speed 18, two bites) took the Valkyrie from 38/67 to 0 in three turns. Her AC was 6. A monkey stole her shield and a nymph stole her helm, and she found no body armor in 7 levels. Three Elbereth tries in a row came out garbled (about a 2% chance).
+- **Prevention:** Good AC is the real defense against fast biters. The user also asked for less caution: at medium HP, keep fighting down to 20% HP.
+- **Fix:** All "back off" and "force Elbereth" limits are now 20% HP (they were 40-50%). The strategy prompt and the monster tips in `monsters.json` now say "over 20% HP".
+
+## T7278 owlbear, Dlvl 8
+
+- **Cause:** The Valkyrie engraved Elbereth with an owlbear next to her, at 55/79 HP. Then she attacked it from the square. The attack erased Elbereth, the owlbear grabbed her, and its hug took her from 55 to 0 in four turns. Zaps of a wand of striking did not kill it.
+- **Prevention:** In 5.0 (`mon.c` setmangry), any attack from an Elbereth square erases the engraving. This includes thrown items and zapped wands. Against a hugging monster, stay on Elbereth and do not attack.
+- **Fix:** On Elbereth with an adjacent hugger, the bot gets no attack, throw, zap or approach options. It gets "Stay on Elbereth". The owlbear tip no longer says "then throw things".
+
+## T4727 Uruk-hai, Dlvl 6
+
+- **Cause:** A mountain nymph stole the spear and the shield. The bot wielded an orcish dagger of unknown BUC, and it was cursed. At XL 3 and AC 9, two Uruk-hai caught the bot in a corridor. At 15/54 HP it engraved Elbereth, then attacked from it on the next turn. The attack erased the engraving, and the Uruk-hai killed it.
+- **Prevention:** If you engrave Elbereth, stay on it. The 20% fight rule had lowered the "stay on Elbereth" limit below the 1/3 HP limit where Elbereth is offered.
+- **Fix:** The bot now stays on Elbereth below 1/3 HP, the same limit as the offer. Fights in the open still go down to 20% HP.
+
+## Hunger: eat safe corpses whenever not Satiated
+
+- **Cause:** In 10 games the bot ate about 10 corpses each, and it prayed 5 to 8 times each for hunger. 25 of those prayers came at Weak with no food on offer. The corpse offer was dropped when any monster was within 6 squares (a newt was enough), below 50% HP, or within 10 turns of a hit.
+- **Prevention:** The user asked: if you are not Satiated and the corpse is safe, eat it. Eating keeps the bot fed and saves the prayer for emergencies. Floating eyes give telepathy, and elves give sleep resistance to a dwarf.
+- **Fix:** Only a monster stronger than "much weaker", within 6 squares, now blocks a meal. The HP limit is now 1/3, and the recent-hit limit is 5 turns. Nymph and leprechaun corpses are now never eaten (teleportitis, from the wiki). The other rules stay: kills younger than 50 turns only, no undead, no dwarves (cannibalism), no cats or dogs, no poisonous corpses unless the bot is desperate.
+
+## T5971 raven, Dlvl 7
+
+- **Cause:** A raven blinded the Valkyrie at 35/57 HP. While blind, the bot felt the raven on the square to the west, but its only options were Elbereth and "wait". The raven bit through both Elbereths. At 8 HP the bot prayed 589 turns after its last prayer, and the raven killed it during the prayer.
+- **Prevention:** A raven is a weak monster for an XL 6 Valkyrie. When you are blind and feel the attacker next to you, attack its square. Elbereth is for emergencies. Prayer is the last resort.
+- **Fix:** When blind, the bot can now attack a felt monster next to it at 1/3 HP or more. Before, it could attack only after an interrupted engraving. Weak hunger with food in the pack no longer offers a prayer: the bot eats. Prayer at low HP and for fatal trouble did not change.
+
+## Shop price identification
+
+- **Cause:** The bot reached Dlvl 6 and 7 with eight unknown scrolls and no identify. It looked at shop prices only with 20 or more gold, and it never got sell offers for the items that it carried.
+- **Prevention:** The 5.0 option `price_quotes` adds each price seen to the item name, for example `{buy 26 sell 10}`. A walk past shop items gives buy prices. To drop an item in a shop gives a sell offer. Say no to the offer, then pick the item up again.
+- **Fix:** `price_quotes` is on in `jev/nethackrc`. The bot reads the quotes and finds the possible base prices (buy: charisma and the 4/3 surcharge; sell: base/2 or base 3/8, from `shk.c` and nethack-tools). The shop walk now needs no gold and includes rings. On a shop square, the bot can drop an unknown scroll, potion or ring for a quote, say no, and pick it up again. A scroll of identify now identifies scrolls first, then rings, then potions.
+
+## T3363 floating eye corpse not eaten
+
+- **Cause:** The bot killed a floating eye with a thrown dagger. The dagger fell on the corpse, so the square showed `)`, not `%`. The corpse scan never gave the corpse a date, and the bot walked over a fresh floating eye corpse two times without an offer to eat it.
+- **Prevention:** A floating eye corpse gives telepathy. Eat each safe fresh corpse.
+- **Fix:** After a throw that kills, the bot dates the square of the target monster when an object shows there. The melee attack already did this for corpses under arrows.
+
+## T4093-T4250 Sokoban killer bees: Elbereth on the stairs
+
+- **Cause:** Killer bees in Sokoban took the Valkyrie to 3/47 HP. The bot then spent about 150 turns on Elbereth. For part of that time it stood on the down stairs, and it engraved Elbereth there.
+- **Prevention:** The user said: do not engrave Elbereth on stairs. Fight from the stairs and kill one target. When you need HP, go down the stairs and rest, then come back and fight again. Only adjacent monsters follow you on the stairs, so they come one at a time.
+- **Fix:** On stairs with a hostile next to it, the bot gets no Elbereth option. At 40% HP or more, it fights. Below 40% HP, or with no attack option, it takes the stairs. On the other side, it rests on the stairs until it has 85% HP, and then it goes back. If a monster comes near, the normal fight rules apply.
+
+## T5480-T5510 acid blob blocks the way to Sokoban
+
+- **Cause:** An acid blob sat in the corridor to the Sokoban up stairs. Each walk stopped after one step with "a monster came into view" or "no path". The bot changed between "Go up into Sokoban" and "explore" more than 40 times. The bot never attacked the blob, because the blocker rule ran only when no exploration was left.
+- **Prevention:** A slow passive monster in the way is weak. Kill it and continue.
+- **Fix:** If 5 of the last 8 walks stopped this way and a passive monster (not a floating eye, not a gas spore) is next to the bot, the only option is to kill it. The bot must have 50% HP or more, with no active hostile within 3 squares.
+
+## T5608-T5619: stair hop to a square beside the stairs
+
+- **Cause:** Jev went down the stairs to rest, and a homunculus followed. The homunculus took the up stairs. In 5.0, `u_collide_m` (`do.c`) then moves the hero to a square next to the stairs half of the time. The bot recorded `<` under the hero anyway. Each `stair_hop` then gave "You can't go up here", and Jev waited on Elbereth at 20/57 HP.
+- **Prevention:** After a level change, make sure that the arrival stairs are under the hero before you trust them.
+- **Fix:** `act_keys` does not record the arrival stairs when that stair glyph shows on a square next to the hero. A "You can't go up/down here" message removes the stair memory for that square.
