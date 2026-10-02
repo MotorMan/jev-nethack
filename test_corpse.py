@@ -34,7 +34,8 @@ print('ok')
 from jev.bot import Bot
 class _F: pass
 for desperate, corpse, banned in [(False, 'giant beetle corpse', True), (True, 'giant beetle corpse', False), (True, 'giant mimic corpse', True),
-                                  (True, 'acid blob corpse', False), (True, 'yellow mold corpse', True), (False, 'floating eye corpse', False)]:
+                                  (True, 'acid blob corpse', False), (True, 'yellow mold corpse', True), (False, 'floating eye corpse', False),
+                                  (False, 'Woodland-elf corpse', False), (False, 'water nymph corpse', True), (False, 'dwarf lord corpse', True)]:
     _f = _F(); _f.run = {'desperate': desperate}
     assert any(n in corpse for n in Bot.never_eat(_f)) == banned, (desperate, corpse)
 

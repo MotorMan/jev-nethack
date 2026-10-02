@@ -2827,3 +2827,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** A mountain nymph stole the spear and the shield. The bot wielded an orcish dagger of unknown BUC, and it was cursed. At XL 3 and AC 9, two Uruk-hai caught the bot in a corridor. At 15/54 HP it engraved Elbereth, then attacked from it on the next turn. The attack erased the engraving, and the Uruk-hai killed it.
 - **Prevention:** If you engrave Elbereth, stay on it. The 20% fight rule had lowered the "stay on Elbereth" limit below the 1/3 HP limit where Elbereth is offered.
 - **Fix:** The bot now stays on Elbereth below 1/3 HP, the same limit as the offer. Fights in the open still go down to 20% HP.
+
+## Hunger: eat safe corpses whenever not Satiated
+
+- **Cause:** In 10 games the bot ate about 10 corpses each, and it prayed 5 to 8 times each for hunger. 25 of those prayers came at Weak with no food on offer. The corpse offer was dropped when any monster was within 6 squares (a newt was enough), below 50% HP, or within 10 turns of a hit.
+- **Prevention:** The user asked: if you are not Satiated and the corpse is safe, eat it. Eating keeps the bot fed and saves the prayer for emergencies. Floating eyes give telepathy, and elves give sleep resistance to a dwarf.
+- **Fix:** Only a monster stronger than "much weaker", within 6 squares, now blocks a meal. The HP limit is now 1/3, and the recent-hit limit is 5 turns. Nymph and leprechaun corpses are now never eaten (teleportitis, from the wiki). The other rules stay: kills younger than 50 turns only, no undead, no dwarves (cannibalism), no cats or dogs, no poisonous corpses unless the bot is desperate.
