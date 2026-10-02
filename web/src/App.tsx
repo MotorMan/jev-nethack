@@ -219,6 +219,15 @@ function useRecordAlerts(s: State, conn: Conn) {
 function NotifyButton() {
   const [perm, setPerm] = useState(() => ("Notification" in window ? Notification.permission : "denied"))
   const on = perm === "granted"
+  // notifications are on by default: ask at load, and again at the first click or key press, because some browsers need a user gesture
+  useEffect(() => {
+    if (perm !== "default") return
+    const ask = () => Notification.requestPermission().then(setPerm)
+    ask()
+    window.addEventListener("pointerdown", ask, { once: true })
+    window.addEventListener("keydown", ask, { once: true })
+    return () => { window.removeEventListener("pointerdown", ask); window.removeEventListener("keydown", ask) }
+  }, [perm])
   return (
     <Tip tip={on ? "browser notifications are on: a new depth or score record sends one (this tab must stay open)" : perm === "denied" ? "notifications are blocked in this browser's site settings" : "turn on browser notifications for new depth and score records"}>
       <span><Button size="icon" variant="ghost" className="size-8" disabled={perm === "denied"} aria-label="record notifications"
