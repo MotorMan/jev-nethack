@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react"
+import { Children, useEffect, useRef, useState, type ReactNode } from "react"
 import {
   Activity, ChevronRight, Cpu, Footprints, Map as MapIcon, Moon, Package, Pause, Play, RotateCcw,
   Send, StepForward, Sun, Swords, Wifi, WifiOff,
@@ -573,6 +573,43 @@ function Runs({ s }: { s: State }) {
 // ---------- page ----------
 
 // version strings the engine reported (jev-1.13.0); a game continued on another engine shows both
+// Panes separated by invisible 6px drag handles (the old gap). Sizes are flex-grow ratios saved per
+// split; until a split has sizes its panes use display:contents, i.e. their natural layout.
+function Split({ id, row, init, className, children }: {
+  id: string; row?: boolean; init?: number[]; className?: string; children: ReactNode
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [sizes, setSizes] = useState<number[] | undefined>(() => {
+    try { return JSON.parse(localStorage.getItem("split:" + id) ?? "null") ?? init } catch { return init }
+  })
+  const drag = (i: number) => (e: React.PointerEvent) => {
+    e.preventDefault()
+    const panes = [...ref.current!.children].filter((_, k) => k % 2 == 0)
+    const px = panes.map(p => { const r = (p.firstElementChild ?? p).getBoundingClientRect(); return row ? r.width : r.height })
+    const pos = (ev: { clientX: number; clientY: number }) => row ? ev.clientX : ev.clientY
+    const start = pos(e), pair = px[i] + px[i + 1]
+    const move = (ev: PointerEvent) => {
+      const a = Math.min(Math.max(px[i] + pos(ev) - start, 40), pair - 40)
+      const next = [...px]; next[i] = a; next[i + 1] = pair - a
+      setSizes(next)
+      try { localStorage.setItem("split:" + id, JSON.stringify(next)) } catch { /* private mode */ }
+    }
+    const up = () => { removeEventListener("pointermove", move); removeEventListener("pointerup", up) }
+    addEventListener("pointermove", move); addEventListener("pointerup", up)
+  }
+  const kids = Children.toArray(children)
+  return (
+    <div ref={ref} className={cn("flex min-h-0 min-w-0", row ? "flex-row" : "flex-col", className)}>
+      {kids.flatMap((c, i) => [
+        <div key={i} className={sizes ? "flex flex-col min-h-0 min-w-0 overflow-hidden [&>*]:flex-1 [&>*]:min-h-0" : "contents"}
+          style={sizes ? { flex: `${sizes[i]} 1 0` } : undefined}>{c}</div>,
+        i < kids.length - 1 && <div key={"h" + i} onPointerDown={drag(i)}
+          className={cn("shrink-0 touch-none", row ? "w-1.5 cursor-col-resize" : "h-1.5 cursor-row-resize")} />,
+      ])}
+    </div>
+  )
+}
+
 const engine = (r: { engine?: string; models?: string[] }) => r.models?.length ? r.models.join(" → ") : r.engine ?? "--"
 
 export default function App() {
@@ -581,8 +618,8 @@ export default function App() {
     // fills the viewport (sized for a 1512x780 laptop window); long lists scroll inside their panels
     <main className="h-screen flex flex-col overflow-hidden">
       <Header s={s} conn={conn} />
-      <div className="flex-1 min-h-0 p-1.5 grid grid-cols-[520px_minmax(0,1fr)_340px] gap-1.5">
-        <div className="flex flex-col gap-1.5 min-h-0 min-w-0">
+      <Split id="cols" row init={[520, 640, 340]} className="flex-1 p-1.5">
+        <Split id="left">
           <Panel
             title={<>terminal // {s.status.name ?? "agent"}</>}
             right={<><span>dlvl {s.status.dlvl ?? "--"}</span><span>t:{s.status.turn ?? "--"}</span></>}
@@ -592,19 +629,20 @@ export default function App() {
             <Terminal screen={s.screen} />
           </Panel>
           <Feeds s={s} />
-        </div>
-        <div className="flex flex-col gap-1.5 min-h-0 min-w-0">
+        </Split>
+        {/* fixed ratios so the decision panel doesn't resize with its option count */}
+        <Split id="mid" init={[38, 44, 18]}>
           <DecisionPanel s={s} />
           <Timeline s={s} />
           <Orders s={s} />
-        </div>
-        <div className="flex flex-col gap-1.5 min-h-0 min-w-0">
+        </Split>
+        <Split id="right">
           <Vitals s={s} />
           <Telemetry s={s} />
           <LevelInfo s={s} />
           <Inventory s={s} />
-        </div>
-      </div>
+        </Split>
+      </Split>
     </main>
   )
 }
