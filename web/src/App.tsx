@@ -655,7 +655,7 @@ function LevelInfo({ s }: { s: State }) {
       </div>
       {l.notes?.map(([k, n]) => (
         <div key={String(k)} className="flex gap-2 text-ui truncate mt-1" title={`Level notes for ${typeof k === "number" ? "Dlvl " + k : k}: ${n}`}>
-          <span className="text-primary shrink-0 w-8">{typeof k === "number" ? `D${k}` : k}</span>
+          <span className="text-primary shrink-0 w-14">{typeof k === "number" ? `Dlvl ${k}` : k}</span>
           <span className="truncate text-muted-foreground">{n}</span>
         </div>
       ))}
