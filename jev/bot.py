@@ -1581,6 +1581,8 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k in ('flee_up', 'pray') or k.startswith('quaff_')}  # 200 turns on Elbereth beside a hill orc band at 19/57, prayer 141 turns old: waited and threw darts over 'flee_up', daggers thrown through Elbereth, dead (T4935)
         if s.get('hunger') in ('Weak', 'Fainting') and 'goto_corpse' in opts and not starving and not LOW_HP(s):  # Weak, a fresh corpse 10 steps off: dropped a helm, prayed 790 turns on (failed), explored, fainted, giant spider (T7451)
             opts = {k: v for k, v in opts.items() if k == 'goto_corpse' or k.startswith(('attack_', 'eat', 'elbereth', 'zap_', 'quaff_'))}
+        if 'Blind' in s.get('conditions', []) and len(opts) > 1 and any(m['dist'] <= 1 and not m['peaceful'] for m in hostiles) and not any(re.search(r'\bwand of (fire|digging)\b', it['text']) for it in self.inventory):
+            opts.pop('elbereth', None)  # engrave.c: blind adds a 1/11 typo per letter, so a dust Elbereth is ~32% and cannot be read back: a blind try beside a raven and a housecat took 53 -> 26, then an unknown potion was sleeping, dead (T6609)
         if self.standing_on() == '_':  # engraving on an altar: 'How darest thou desecrate my altar!' (pray.c altar_wrath), or Luck loss on a cross-aligned one
             opts.pop('elbereth', None)
         if 'pray' in opts and 'fatal within' in opts['pray'][1]:  # FoodPois with prayer ready: Jev rested and walked for corpses until it died (T2090)

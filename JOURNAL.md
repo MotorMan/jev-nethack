@@ -2536,3 +2536,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Dlvl 5 was a bones level again, from the T1984 death. Kediri was still angry. Jev explored for 9 turns, and Kediri came into view next to Jev. The T1984 fix showed Kediri as "much stronger", but attack was the only option. Kediri has speed 16, and Elbereth does not stop an `@`.
 - Prevention: Jev cannot escape from an adjacent angry shopkeeper at XL 6. To pay 1000 gold makes a shopkeeper peaceful (shk.c dopay), but Jev had less gold.
 - Fix: No code change. This death did not leave a Dlvl 5 bones file, so the chain is broken. If an angry shopkeeper kills Jev again, think about the `bones` option in `jev/nethackrc`.
+
+## T6609 housecat, Dlvl 6, blind
+
+- Cause: A raven blinded Jev. A raven (speed 20) and a housecat (speed 16) attacked. Jev engraved Elbereth while blind, and lost 27 HP in 2 turns. The bot cannot read a dust engraving while blind, so it did not know whether Elbereth was there. At 20/68 HP, with no prayer, Jev drank an unknown potion. It was sleeping, and the cat killed Jev.
+- Prevention: engrave.c gives a 1/11 typo chance for each letter when the hero is blind, plus the usual 1/25. A blind dust Elbereth works only about 32% of the time.
+- Fix: When Jev is blind and a hostile monster is adjacent, the bot does not offer a dust Elbereth. A wand of fire or digging still makes it possible.
