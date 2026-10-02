@@ -652,7 +652,7 @@ class Bot:
                         if not any(o['dist'] <= 2 and not o['passive'] and self.species(o) not in DOMESTIC for o in hostiles) else {**opts, f'tame_{d}': (f"Throw {ok[0]['text']} to the {m['name']}", f"A thrown food item makes a hostile {sp} peaceful or tame.", lambda l=ok[0]['letter'], d=d: self.act_throw(l, d))}
                     break
         wand = next((it for it in sorted(self.inventory, key=lambda i: not re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', i['text'])) if re.search(r'\bwand\b', it['text'])
-                     and not re.search(r'probing|light|nothing|opening|locking|enlightenment|secret door|create monster|wishing|undead turning|polymorph|make invisible|speed monster', it['text'])
+                     and not re.search(r'probing|light|nothing|digging|opening|locking|enlightenment|secret door|create monster|wishing|undead turning|polymorph|make invisible|speed monster', it['text'])
                      and it['text'] not in self.run.get('bad_wands', ()) and not re.search(r':0\)', it['text'])
                      and self.run.setdefault('zaps', {}).get((it['text'], s.get('dlvl')), 0) < 4), None)  # a silent unknown wand (polymorph) zapped 379 times at molds turned one into a gargoyle that pinned Jev until it starved (T5526)
         if wand:  # walled in by floating eyes once for 13000 turns with an unknown wand in the pack
@@ -1966,8 +1966,9 @@ class Bot:
     def act_elbereth(self):
         t0, hp0 = self.snap.status.get('turn'), self.snap.status.get('hp', 0)
         self.t.send('E')
+        burn = None
         if 'write with' in self.t.lines()[0]:  # engrave.c: burned (fire/lightning) or dug Elbereth has no typos and never smudges when you're hit; only attacking from it erases it
-            burn = next((it for it in self.inventory if re.search(r'\bwand of (fire|digging)\b', it['text']) and not re.search(r'\(\d+:0\)', it['text'])), None)
+            burn = next((it for it in self.inventory if re.search(r'\bwand of (fire|digging)\b', it['text']) and not re.search(r':0\)', it['text'])), None)
             self.t.send(burn['letter'] if burn else '-')
         for _ in range(6):
             top = self.t.lines()[0]
@@ -1982,6 +1983,10 @@ class Bot:
             else:
                 break
         self.observe()
+        if burn and 'too worn out to engrave' in ' '.join(self.run['recent'][-3:]):  # engrave.c zapwand: 0 charges; read as 'interrupted', 18 tries beside a nymph, then zapped down at 14 HP for nothing, dead to a giant ant (T3916)
+            self.run.setdefault('empty_wands', set()).add(burn['text'])
+            self.read_inventory()
+            return 'the wand is empty: nothing written'
         if not self.elbereth_ok():
             if re.search(r"can't reach the (floor|ground)", ' '.join(self.run['recent'][-3:])):  # grabbed by a rope golem or in a pit: logged as 'garbled' 3 times at 5 HP, dead (T3597)
                 self.run['no_engrave'] = self.snap.status.get('turn') or 0

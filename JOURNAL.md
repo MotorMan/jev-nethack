@@ -2318,3 +2318,6 @@ Out of food, Weak at T5669: prayed 828 turns after the last one ("Tyr is displea
 
 ## T7613 starved, boxed in (Sokoban, Dlvl 5)
 A nymph had taken all but one item on Dlvl 6. In Sokoban a monster read a scroll of earth, and the boulders landed around Jev in a 3-square corner. No diagonal pushes in Sokoban, so there was no way out. The T5636 prayer ("well-pleased") fixed only the worst trouble (HP). The bot didn't know it was trapped and searched walls for 2000 turns. A Weak prayer 504 turns later angered Tyr, so it starved. Fix: 8 rock/wall/boulder neighbours (pray.c stuck_in_wall) now count as prayer trouble on the normal timeout.
+
+## T3916 giant ant (Dlvl 7, XL4)
+The wand of digging was empty. Engraving with it gave "The wand is too worn out to engrave", which the bot read as "attack interrupted" and retried 18 times beside a water nymph. It then zapped the wand at the nymph 4 times (a horizontal dig only bores walls), and at 14 HP it "dug down" with it for nothing. Fix: "too worn out" marks the wand empty, which every wand option already respects. Known digging wands are no longer offered as attack wands.
