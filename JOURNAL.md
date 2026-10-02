@@ -2887,3 +2887,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The pickup filter treated knives as random weapons, and it stopped at 3 daggers. A Valkyrie with no darts then had nothing to throw.
 - **Prevention:** The user rule: if you have no darts, pick up daggers and knives to throw.
 - **Fix:** With no darts in the pack, the bot offers to pick up daggers and knives, up to 10 in total. With darts, the old limit of 3 daggers stays.
+
+## Call items that are certain
+
+- **Cause:** The bot knew some item types from their appearance or price, but it did not name them in the game. The inventory and the discoveries list did not show this knowledge.
+- **Prevention:** The user rule: use `#call` for items that are obvious or that the bot can deduce.
+- **Fix:** After each inventory read, the bot calls each certain type one time (`C`, `o`, the item letter, the name). The certain types come from `objects.h` in 5.0: a clear potion is water, and a potion at base 20 is healing. A scroll at base 20 is identify, and a labeled scroll at base 60 is enchant weapon. No ring price group has only one type. If the "Call ..." prompt does not show, the bot presses Escape and does not type the name.

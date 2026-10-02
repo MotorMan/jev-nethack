@@ -610,6 +610,20 @@ class Bot:
                 it['text'] += f' (priced as {tag})'
             if it['text'] in self.run.get('empty_wands', ()):
                 it['text'] += ' (empty, x:0)'
+        for it in uniq:  # user: #call what is certain (objects.h: clear is always water; base 20 scroll identify, 20 potion healing, 60 labeled scroll enchant weapon)
+            look = appearance(it['text'])
+            bases = look and self.run.setdefault('prices', {}).get(look) or ()
+            name = 'water' if look == ('potion', 'clear') else {('potion', 20): 'healing', ('scroll', 20): 'identify', ('scroll', 60): 'enchant weapon'}.get((look[0], min(bases))) if look and len(bases) == 1 else None
+            if name and look not in self.run.setdefault('called', set()):
+                self.run['called'].add(look)
+                self.t.send('C'); self.t.send('o'); self.t.send(it['letter'])
+                if not any(l.startswith('Call ') for l in self.t.lines()[:2]):  # the name typed as commands would be 'w'ield, 'a'pply...
+                    self.t.send('\x1b\x1b'); self.settle()
+                    self.log(f'no call prompt for {it["text"]}', 'warn')
+                    continue
+                self.t.send('\x15' + name + '\r')  # docall getlin 'Call a clear potion:'; ^U clears a prefill
+                self.settle()
+                self.log(f"called {look[1]} {look[0]} '{name}'")
         if not uniq and self.inventory:  # an empty read lost the blindfold beside a yellow light: forced melee, missed, blinded, dead (T3177)
             return self.inventory
         self.inventory = uniq
