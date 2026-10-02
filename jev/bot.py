@@ -753,8 +753,9 @@ class Bot:
         if chased or any(h['choice'] == 'flee_up' and 'blocked' in h['outcome'] for h in self.history[-3:]):
             opts.pop('flee_up', None)
         # a wraith, a soldier and a pony followed each trip: 7 stair hops on Dlvl 9/10, 71 -> 0 with attacks offered each time (T8105). Adjacent monsters follow: fight them
-        if adj and any(k.startswith('attack_') for k in opts) and sum(h['choice'] in ('upstairs', 'flee_up', 'downstairs', 'dodge') for h in self.history[-3:]) >= 2:
-            opts = {k: v for k, v in opts.items() if k not in ('upstairs', 'flee_up', 'downstairs')}
+        # a panther followed 4 hops between Dlvl 7 and a crocodile on Dlvl 8's '<': 70 -> 6, prayed too soon, dead (T7861). Count 6, and Elbereth also beats a hop
+        if adj and sum(h['choice'] in ('upstairs', 'flee_up', 'downstairs', 'dodge', 'dead_end') for h in self.history[-6:]) >= 2:
+            opts = {k: v for k, v in opts.items() if k not in ('upstairs', 'flee_up', 'downstairs')} or opts
         if (strong or pack) and not hops and ({'flee_up', 'upstairs', 'downstairs'} & opts.keys()) and not ('upstairs' not in opts and adj and (chased or all('weaker' in self.threat(m) for m in adj))):  # walked 4 steps to '<' with a werejackal and its jackals adjacent (all weaker): 14 -> 0 in free hits (T2336)  # a werewolf's summoned wolves (no M2_STALK: can't follow) took 34 -> 6 in a turn, '<' one step away (T5826)
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'explore'))}
             if 'upstairs' in opts and sum(m['dist'] <= 1 for m in near) >= 3:  # arrived on Dlvl 4 into 3 wolves, a Woodland-elf and a rothe: zapped striking 3 times on '<', 23 -> 6, prayed too soon (T9414)

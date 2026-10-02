@@ -2590,3 +2590,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev was at 33/79 HP on Elbereth, with an ape and a soldier ant adjacent. The soldier ant was cornered. In monmove.c, a scared monster that cannot move away attacks ("panic attack"). It hit Jev to 27 HP. The bot called this a panic attack and waited again. The ant was still cornered and hit Jev to 12 HP. An unknown potion (levitation) and a wand of slow monster did not help.
 - Prevention: A cornered monster attacks on each turn. Below half HP, do not wait on Elbereth next to it.
 - Fix: A panic attack keeps Elbereth in use only when Jev has half of max HP or more. Below that, the bot marks Elbereth as failed and offers other actions.
+
+## T7861 crocodile, Dlvl 8
+
+- Cause: A crocodile and an orc-captain waited at the up stairs of Dlvl 8. A panther was at the down stairs of Dlvl 7. Jev went up and down the stairs 4 times. The panther was adjacent, so it followed Jev each time. Jev went from 70 to 6 HP. It prayed 203 turns after the last prayer, and the crocodile killed it.
+- Prevention: An adjacent monster follows Jev on the stairs. After two stair trips with a monster adjacent, fight or engrave Elbereth.
+- Fix: The stair guard counts the last 6 decisions (it was 3) and counts "dead_end" too. It also applies when no attack is offered. The bot removes the stair options when something else remains.
