@@ -45,6 +45,20 @@ def sell_price(base, ch, sur):
 
 def price_bases(cls, price, ch):
     return {b for b in BASES[cls] for sur in (0, 1) if sell_price(b, ch, sur) == price}
+
+
+def quote_bases(cls, t, ch):
+    """objnam.c price_quotes: ' {buy 26-35 sell 10}' (per unit) -> the bases that fit. shk.c set_cost: an offer is base/2, or 3/8 when shk m_id % 4 == 0;
+    only the highest offer counts (a short-funded shk offers less, credit is 9/10)."""
+    q = re.search(r'\{(?:buy (\d+)(?:-(\d+))?)? ?(?:sell (?:\d+-)?(\d+))?\}', t)
+    if not q or not any(q.groups()):
+        return None
+    bases = set(BASES[cls])
+    for p in filter(None, q.groups()[:2]):
+        bases &= price_bases(cls, int(p), ch)
+    if q[3]:
+        bases &= {b for b in BASES[cls] for m, d in ((1, 2), (3, 8)) if (b * m * 10 // d + 5) // 10 == int(q[3])}
+    return bases or None
 JUNK = re.compile(r'\b(mail|plate|armor|shield|shoes|boots|cloak|wrapping|helm|helmet|gauntlets|gloves|short sword|long sword|broadsword|scimitar|axe|mace|club|bow|crossbow|pick-axe|morning star|flail|hammer|trident)\b')  # unworn copies: what to drop when Burdened
 SLOTS = {'boots': r'boots|shoes', 'helm': r'helm|hat|cap\b', 'cloak': r'cloak|robe|wrapping|apron', 'shield': r'shield', 'gloves': r'gloves|gauntlets', 'body': r'\bmail|plate|armor|coat'}
 HUGGERS = re.compile(r'\b(owlbear|python|rope golem|couatl|salamander|kraken|pit fiend|carnivorous ape|guardian naga)\b')  # AT_HUGS in monsters.h
@@ -61,13 +75,13 @@ POISONOUS = ('killer bee', 'soldier ant', 'giant beetle', 'queen bee', 'homuncul
 # eat.c 5.0 cpostfx: polymorph (chameleon, doppelganger, genetic engineer), helpless 20-50 turns as gold (mimics), stun 60+ (stalker), speed toggle (quantum mechanic),
 # random intrinsic loss (disenchanter), 200 turns hallucination (violet fungus, yellow mold, which is poisonous too)
 BAD_EFFECT = ('doppelganger', 'genetic engineer', 'mimic', 'stalker', 'quantum mechanic', 'disenchanter', 'violet fungus', 'yellow mold')
-NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy', 'dwarf', 'were', 'kobold', 'bat', 'ghoul', 'vampire', 'chameleon', 'dog', 'cat', 'kitten', 'acid blob', 'spotted jelly') + POISONOUS + BAD_EFFECT  # undead corpses are pre-aged: always tainted
+NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy', 'dwarf', 'were', 'kobold', 'bat', 'ghoul', 'vampire', 'chameleon', 'dog', 'cat', 'kitten', 'acid blob', 'spotted jelly', 'nymph', 'leprechaun') + POISONOUS + BAD_EFFECT  # undead corpses are pre-aged: always tainted. wiki (Corpse): nymphs and leprechauns give teleportitis
 # pray.c critically_low_hp: the major-trouble line prayer fixes
 LOW_HP = lambda s: s.get('hp', 1) <= 5 or s.get('hp', 1) * (5 if s.get('xl', 1) <= 5 else 6 if s.get('xl', 1) <= 13 else 7 if s.get('xl', 1) <= 21 else 8 if s.get('xl', 1) <= 29 else 9) <= min(s.get('hpmax', 1), 15 * s.get('xl', 1))
-STRATEGY = ("You are a {role} (NetHack 5.0). Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. Each monster in view shows its AC, attacks and, for the dangerous ones, a 'Fight if ...; avoid if ...' rule: follow it. "
-            "Fight weak monsters in melee; do not melee floating eyes (blue 'e') or cockatrices ('c' yellow) bare-handed. Against a group, fight from a corridor or doorway so only one or two reach you. Back off to heal at half HP, not at 1 HP. "
+STRATEGY = ("You are a dwarven Valkyrie (NetHack 5.0): strong melee, cold resistant, infravision; stealthy from XL 3, fast from XL 7. Gnomes and dwarves (the Mines) are peaceful to you. Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. Each monster in view shows its AC, attacks and, for the dangerous ones, a 'Fight if ...; avoid if ...' rule: follow it. "
+            "Fight weak monsters in melee; do not melee floating eyes (blue 'e') or cockatrices ('c' yellow) bare-handed. Against a group, fight from a corridor or doorway so only one or two reach you. Keep fighting down to about 20% HP, then back off to heal. "
             "Prayer fixes low HP (at or below 1/5 of max at XL 1-5, 1/6 at XL 6-13, or 5 HP) and Weak hunger, but only about once per 1000 turns; "
-            "the first prayer is safe after roughly turn 300. Fight: you can take 2 or 3 weak early monsters at once in the open; against harder groups, back into a corridor or doorway and fight them one at a time. Elbereth is only for emergencies (below a third of your HP). Elbereth in the dust (fails about 1 time in 4: check it) stops melee from most monsters, "
+            "the first prayer is safe after roughly turn 300. Fight: a Valkyrie can take 2 or 3 weak early monsters at once in the open; against harder groups, back into a corridor or doorway and fight them one at a time; Elbereth is only for emergencies (below a third of your HP). Elbereth in the dust (fails about 1 time in 4: check it) stops melee from most monsters, "
             "not @ humans or elves (including were-creatures in @ form), minotaurs, shopkeepers or peacefuls, and never wands, arrows or breath: kill a weak monster that zaps or shoots at you instead of waiting it out. If it keeps backing off as you close in (an aklys returns to its thrower), stop chasing it: break line of sight, heal or leave by the stairs. A scared monster with nowhere to flee can still hit you, and attacking, throwing or zapping from it erases it. Elbereth is for healing, not for living on: new monsters keep arriving (about one every 70 turns), so once healed, fight the weakest one and re-engrave when hurt. An invisible attacker: search one turn to mark it (I), then attack that square. "
             "Mumakil (speed 9) hit hardest of anything early: never trade blows, throw things or walk away. Never melee a were in animal form if you can avoid it: its bite gives lycanthropy ('You feel feverish'); pray as soon as it is safe to cure it, and while you are in animal form stay on the current level instead of going down. Kill wererats quickly, before they summon rats; a were-creature (either form) can call more of its kind whenever it attacks, so when mobbed kill it before anything it summoned. A yellow light blinds you for up to 200 turns when it explodes at you, even on Elbereth if it is cornered: put on a towel or blindfold first (the explosion then does nothing), else kill it (killing it is safe) rather than wait beside it. Blind and bitten by something unseen while engraving fails: fight back. Soldier ants (speed 18, poison) kill more players than anything: Elbereth works on them, never let them surround you, and zap or read teleportation to escape when hurt. A monster that is scared but cornered still attacks you on Elbereth: if you are hit there, Elbereth is not protecting you, so pray, quaff or leave. Never rest for long with a fast monster that keeps coming back; find the up stairs. A crowd too big to fight (a magic trap's flash and roar summon monsters right beside you) interrupts engraving: if the up stairs are a few steps away, take them. Elbereth does not make a crowd go away: if more and more monsters gather while you wait, and the up stairs are close, leave by them. In speed boots you are faster than almost everything early: walk away from slow heavy hitters (zombies, mumakil, ogres) to the up stairs instead of standing on Elbereth. Hungry with no food and a food shop near (Minetown often has a delicatessen): sell spare weapons and gems in a general store and buy food before you faint; prayer for hunger can fail if prayed too soon. "
             "Collect gold: a temple priest sells permanent AC for about 400-500 gold per experience level; keep 2000-4000 after that for shops. "
@@ -77,12 +91,12 @@ STRATEGY = ("You are a {role} (NetHack 5.0). Survive first. Monsters listed as w
             "Wear armor you find if it covers an empty slot. The ultimate goal is to retrieve the Amulet and ascend.")
 
 
-QUESTIONS = {'action': dict(type='choice', instructions='Choose the single best action for the {role} right now. Staying alive comes first; after that, '
+QUESTIONS = {'action': dict(type='choice', instructions='Choose the single best action for the Valkyrie right now. Staying alive comes first; after that, '
                             'make steady progress (explore, gear up, descend). Use the status, monsters, recent outcomes and the standing order.'),
-             'danger': dict(type='noul', instructions='Is the {role} in serious danger of dying within the next few turns?'),
+             'danger': dict(type='noul', instructions='Is the Valkyrie in serious danger of dying within the next few turns?'),
              # jev-doom's "exposure" rubric: a second pick judged on survival alone; danger ran 0.6-0.87 in the turns before recent deaths
-             'safest': dict(type='choice', instructions='Ignoring progress entirely, which action gives the {role} the best chance of still being alive 20 turns from now? You cannot see your other answers.')}
-questions = lambda criteria, role='hero': {k: dict(q, criteria=criteria, instructions=q['instructions'].format(role=role)) if q['type'] == 'choice' else dict(q, instructions=q['instructions'].format(role=role)) for k, q in QUESTIONS.items()}
+             'safest': dict(type='choice', instructions='Ignoring progress entirely, which action gives the Valkyrie the best chance of still being alive 20 turns from now? You cannot see your other answers.')}
+questions = lambda criteria: {k: dict(q, criteria=criteria) if q['type'] == 'choice' else q for k, q in QUESTIONS.items()}
 
 def runs_home(name):  # each player name (one per engine running side by side) keeps its own runs.json, prayer clock and ledger
     return os.path.join(ROOT, 'runs') if name == 'Jev' else os.path.join(ROOT, 'runs', name)
@@ -554,6 +568,10 @@ class Bot:
                 seen.add(it['letter']); uniq.append(it)
         for it in uniq:  # price-ID'd types read like named ones to the rest of the bot ('healing' in text is already trusted)
             look = appearance(it['text'])
+            quoted = quote_bases(look[0], it['text'], self.snap.status.get('ch') or 11) if look else None
+            if quoted:  # price_quotes keeps every price seen for this type
+                old = self.run.setdefault('prices', {}).get(look)
+                self.run['prices'][look] = quoted & old if old and quoted & old else quoted
             tag = {('potion', 20): 'healing', ('scroll', 20): 'identify', ('scroll', 80): 'enchant armor or remove curse'}.get((look[0], min(self.run.get('prices', {}).get(look) or {0})) if look and len(self.run.get('prices', {}).get(look) or ()) == 1 else None)
             if tag:
                 it['text'] += f' (priced as {tag})'
@@ -633,7 +651,7 @@ class Bot:
         # monmove.c: a scared monster with no square to flee to panic-attacks every turn; a plains centaur boxed in by hill orcs took 28 -> 9 on Elbereth (T5761)
         boxed = [m for m in hostiles if m['dist'] == 1 and not m['passive'] and not any(snap.walkable(x, y) and not snap.is_monster(x, y) and cheb((x, y), me) > 1
                  for x in range(m['pos'][0] - 1, m['pos'][0] + 2) for y in range(m['pos'][1] - 1, m['pos'][1] + 2))]
-        on_e = self.engraved_here() and hp < 0.5 * hpmax and not shot and not camped and not boxed  # zapped on Elbereth by an adjacent orc, the only option left was 'retreat' (T4400); healthy: fight from it rather than wait out a speed-1 fog cloud
+        on_e = self.engraved_here() and hp < 0.2 * hpmax and not shot and not camped and not boxed  # zapped on Elbereth by an adjacent orc, the only option left was 'retreat' (T4400); healthy: fight from it rather than wait out a speed-1 fog cloud
         for m in hostiles:
             if m['dist'] == 1 and m['pos'] not in self.avoid and not ((on_e or shot and self.engraved_here() and hp < 0.9 * hpmax and m['name'] != self.run.get('shooter')) and m['ch'] != '@' and 'minotaur' not in m['name']):  # shot by a hobgoblin, Jev hit the adjacent rothe off Elbereth instead: 13 -> 0 (T2445)
                 if m['name'] == "unknown '@'" and (lv.town or any(o['peaceful'] and o['ch'] == '@' for o in mons) or (s.get('turn') or 0) - self.run.get('hit_turn', -99) > 1):  # hit in the Mines dark by two farlook-failed Woodland-elves, explored instead of fighting: 67 -> 0 (T3567)
@@ -818,10 +836,10 @@ class Bot:
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_')) and k not in ('rest', 'wait')}
         if big_hit and {'elbereth', 'retreat', 'flee_up', 'upstairs'} & opts.keys():  # hallucinating, a 'shrieker' was a dwarf king: 35 -> 14 in a turn, threw a dart, dead (T4026)
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'throw_', 'approach_')) and k not in ('rest', 'wait')}
-        if hp < 0.5 * hpmax and ('elbereth' in opts or self.engraved_here()):  # choke <-> Elbereth alternation at 21/68 -> 10: each step off wasted the engraving (T5005)
+        if hp < 0.2 * hpmax and ('elbereth' in opts or self.engraved_here()):  # choke <-> Elbereth alternation at 21/68 -> 10: each step off wasted the engraving (T5005)
             opts.pop('choke', None)
         held = len(pack_near) >= 2 and open_n(me) <= 2 and not strong and not shot  # already in the corridor: fight them one at a time, don't stop to engrave
-        if ('choke' in opts or held) and hp >= 0.5 * hpmax and not self.unseen_attacker():
+        if ('choke' in opts or held) and hp >= 0.2 * hpmax and not self.unseen_attacker():  # user: at medium HP, fight on until 20% HP
             if 'choke' in opts and opts.get('wait', ('',))[0].startswith('Stay on Elbereth'):
                 del opts['wait']  # 0.4: at 25/53 Elbereth was dropped for a walk to a corridor beside a rothe, 25 -> 8 garbling retries (T3712)  # wiki: Elbereth is breathing room; a corridor is how to actually fight a group
             opts.pop('elbereth', None)
@@ -872,8 +890,8 @@ class Bot:
         # eat.c newuhs: Weak is uhunger 1-50 and the step to Fainting faints at once (u.uhs <= WEAK), so 'Fainting' is only seen after the first faint;
         # Weak with no food in the pack bets at 300 like Fainting: Weak 357 turns after praying, fainted beside a jaguar, dead (T10134)
         # starving is certain death, so hunger bets earlier (1000 let a Weak Jev faint to death 640 turns after praying; 600 did it again at 524, T5771)
-        if trouble and not self.run.get('god_angry') and (fatal or starving or (turn - last >= {'Weak': 1000 if not any(m['dist'] <= 1 for m in hostiles) and turn - self.run.get('hit_turn', -99) > 2
-                                                                                      and not all('tripe' in it['text'] for it in self.inventory if FOOD.search(it['text'])) else 500 if any(FOOD.search(it['text']) for it in self.inventory) else 300, 'Fainting': 300}.get(s.get('hunger'), 500) if last is not None else turn >= 110)):
+        if trouble and not self.run.get('god_angry') and (fatal or starving or (turn - last >= {'Weak': 10**9 if not all('tripe' in it['text'] for it in self.inventory if FOOD.search(it['text']))  # user: prayer is the last resort; Weak with food in the pack eats it
+                                                                                      else 500 if any(FOOD.search(it['text']) for it in self.inventory) else 300, 'Fainting': 300}.get(None if LOW_HP(s) else s.get('hunger'), 500) if last is not None else turn >= 110)):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else 'boxed in by boulders and walls with no way out' if entombed and s.get('hunger') not in ('Weak', 'Fainting') else 'lycanthropy: you will turn into a jackal' if lyc and s.get('hunger') not in ('Weak', 'Fainting') else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
         if 'pray' in opts and s.get('hunger') == 'Weak' and not fatal and not starving and not LOW_HP(s) and not self.engraved_here() and any(m['dist'] <= 3 and not m['passive'] for m in hostiles):
             opts.pop('pray')  # pray.c: the 3 prayer turns are safe only if it works. Weak at 60 HP with a werewolf 2 steps off: prayed, "Thou art arrogant", wolves summoned, 60 -> 0 (T6823). Fight first, Weak can wait
@@ -932,7 +950,8 @@ class Bot:
             if here and (age < 50 or re.search(r'lichen|lizard|acid blob', here[0]) or s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts and age < 60):  # eat.c: tainted when age/(10+rn2(20)) > 5, never below 60 uncursed; a 234-turn horse killed a Weak Jev (T6692)  # a destroyed zombie's corpse is pre-aged: always tainted, Weak Jev ate one and died of food poisoning (T2797)
                 opts['eat_corpse'] = (f"Eat the {here[0]} here", f"Eat {here[0]} on this square. It appeared about {age} turns ago (old corpses can be rotten or poisonous).{why}", self.act_eat_corpse)
             fresh = [p for p, t0 in lv.corpses.items() if p != me and p in dist and s.get('turn', 0) - t0 < 35 and dist[p] < 10]
-            if fresh and 'eat_corpse' not in opts and not near and 'goto_corpse' not in opts:  # (T3571)
+            # user: not Satiated and the corpse is safe: eat it. A newt in view blocked most meals (10 games: ~10 eaten, 5-8 hunger prayers each)
+            if fresh and 'eat_corpse' not in opts and not [m for m in near if 'much weaker' not in self.threat(m)] and 'goto_corpse' not in opts:  # (T3571)
                 p = min(fresh, key=dist.get)
                 opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.{why}", lambda p=p: self.act_goto_corpse(p))
         ew = next((it for it in self.inventory if re.search(r'\bwand\b', it['text']) and 'wand of' not in it['text'] and it['text'] not in self.run.setdefault('etested', set())), None)
@@ -941,7 +960,7 @@ class Bot:
             opts[f"engrave_id_{ew['letter']}"] = ((f"Engrave-test {ew['text']}", 'Nothing hostile in view: engrave with the unknown wand to learn what it is (digging is an escape hole).', lambda it=ew: self.act_engrave_id(it)))
         if 'eat_corpse' in opts and not near:  # taken 15 of 98 offers (explore won), and hunger is the top killer: eat it
             opts = {k: v for k, v in opts.items() if k in ('eat_corpse', 'pray')}
-        if 'goto_corpse' in opts and s.get('hunger') not in ('Weak', 'Fainting') and min((dist[p] for p, t0 in lv.corpses.items() if p in dist and s.get('turn', 0) - t0 < 35), default=99) > 2 and (hp < 0.6 * hpmax or (s.get('turn') or 0) - self.run.get('hit_turn', -99) <= 10):
+        if 'goto_corpse' in opts and s.get('hunger') not in ('Weak', 'Fainting') and min((dist[p] for p, t0 in lv.corpses.items() if p in dist and s.get('turn', 0) - t0 < 35), default=99) > 2 and (hp < hpmax / 3 or (s.get('turn') or 0) - self.run.get('hit_turn', -99) <= 5):  # user: eat more; was 60% HP and 10 turns
             del opts['goto_corpse']  # a fresh ape 1 step off at 38/93 Hungry was skipped by this, went stale, no food, fainted, mountain centaur (T8599)  # forced at 24/45 just after a hill orc fight: the next orc hit 24 -> 13 -> 3, prayed 158 turns on, dead (T4402)
         if 'goto_corpse' in opts and not near:  # passed up for explore/rest ~60% of the time; one Jev prayed 6 times for food in 7700 turns
             opts = {k: v for k, v in opts.items() if k in ('goto_corpse', 'pray')}
@@ -949,8 +968,8 @@ class Bot:
             opts.pop('goto_corpse', None)
         # eat.c:1953: any corpse has a 1/7 rotten roll, ~1 in 37 meals knocks you out up to 10 turns; an elf takes ~15 turns to eat.
         # Elves out of sight in a dark room beat an unconscious Jev 46 -> 1 HP (T8218)
-        if s.get('hunger') not in ('Weak', 'Fainting') and (any(m['dist'] <= 6 for m in hostiles) or (s.get('turn') or 0) - self.run.get('hit_turn', -99) <= 5
-                                                             or s.get('hunger') != 'Hungry' and s.get('hp', 1) < 0.5 * s.get('hpmax', 1)):  # Not hungry at 16 HP, ate an orc corpse in an orc pack's room: hit mid-meal 16 -> 9, gamble prayer angered Tyr, fainted later (T3978)
+        if s.get('hunger') not in ('Weak', 'Fainting') and (any(m['dist'] <= 6 and not m['passive'] and 'much weaker' not in self.threat(m) for m in hostiles) or (s.get('turn') or 0) - self.run.get('hit_turn', -99) <= 5
+                                                             or s.get('hunger') != 'Hungry' and s.get('hp', 1) < s.get('hpmax', 1) / 3):  # user: a newt in view or 40% HP with nothing around is no reason to skip a meal  # Not hungry at 16 HP, ate an orc corpse in an orc pack's room: hit mid-meal 16 -> 9, gamble prayer angered Tyr, fainted later (T3978)
             opts = {k: v for k, v in opts.items() if k not in ('eat_corpse', 'goto_corpse')}
         if s.get('hunger') not in ('Weak', 'Fainting') and any(m['dist'] <= 2 for m in near):  # eating twice mid-swarm took 25 HP to 1 (giant rat, T2344)
             opts = {k: v for k, v in opts.items() if not k.startswith(('eat_', 'goto_corpse'))}
@@ -1125,12 +1144,18 @@ class Bot:
             if food:
                 q = min(food, key=dist.get)
                 opts['shop_food'] = (f"Go look at the food for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the '%' item and its price. You have {s.get('gold')} gold and {packed} food items packed.", lambda q=q: self.act_shop_go(q))
-        if not near and s.get('gold', 0) >= 20 and 'shop_food' not in opts:  # armor (AC), scrolls, potions: stepping on each shows its price, which identifies some by type
-            wares = [q for c in '[?!' for q in snap.find(c) if q in dist and 0 < dist[q] <= 20 and (s.get('dlvl'), q) not in self.run['here']
+        if not near and 'shop_food' not in opts:  # armor (AC), scrolls, potions, rings: stepping on each shows its price, which identifies some by type (user: walk past, no gold needed)
+            wares = [q for c in '[?!=' for q in snap.find(c) if q in dist and 0 < dist[q] <= 20 and (s.get('dlvl'), q) not in self.run['here']
                      and sum(cheb(q, o) <= 3 for c2 in ')[%?/=!("' for o in snap.find(c2)) >= 6]
             if wares:
                 q = min(wares, key=dist.get)
-                opts['shop_look'] = (f"Go look at the {snap.at(*q).ch} for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the item and its price (you have {s.get('gold')} gold). Armor lowers AC; a price can identify a scroll or potion.", lambda q=q: self.act_shop_go(q))
+                opts['shop_look'] = (f"Go look at the {snap.at(*q).ch} for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the item and its price (you have {s.get('gold')} gold). Armor lowers AC; a price can identify a scroll, potion or ring.", lambda q=q: self.act_shop_go(q))
+        if not near and any('for sale' in i for i in self.here_items()):  # user: drop what you hold to hear the sell offer, say no, pick it back up
+            for it in self.inventory:
+                look = appearance(it['text'])
+                if look and 'sell' not in it['text'] and len(self.run.get('prices', {}).get(look) or ()) != 1 and (s.get('dlvl'), look) not in self.run.setdefault('quoted', set()) and 'being worn' not in it['text']:
+                    opts[f"quote_{it['letter']}"] = (f"Get a price for {it['text']}", 'Drop it here, hear what the shopkeeper offers, say no, and pick it back up. The offer narrows down what an unknown scroll, potion or ring is (a scroll offered 10 is identify).', lambda it=it: self.act_quote(it))
+                    break
         gold, xl = s.get('gold', 0), s.get('xl') or 1
         if not near and not shop and gold < 4000:  # user: gold buys protection, then keep 2000-4000 for shopping; fetch's 15-step radius left games at 13-533 gold
             coins = [q for q in snap.find('$') if q in dist and dist[q] > 0 and (s.get('dlvl'), q) not in self.run['here'] and self.run.setdefault('gold_miss', {}).get((s.get('dlvl'), q), 0) < 3 and sum(cheb(q, o) <= 3 for c in ')[%?/=!("' for o in snap.find(c)) < 6]
@@ -1231,6 +1256,11 @@ class Bot:
                         del opts['kill_blocker']  # throw at it instead: melee paralyses for up to 127 turns
                     elif m['ch'] == 'e' and rk and not self.blindfold():
                         opts['kill_blocker'] = ('Pick up the rocks here to throw at the eye', 'Rocks thrown at the floating eye hurt it without touching it; melee risks paralysis.', lambda rk=rk: self.act_pickup(rk))
+        stuck = sum(re.search(r'came into view|no path', h['outcome']) is not None for h in self.history[-8:]) >= 5
+        blob = next((m for m in hostiles if m['passive'] and m['dist'] <= 1 and m['ch'] != 'e' and 'gas spore' not in m['name']), None)
+        if stuck and blob and hp >= 0.5 * hpmax and not any(not m['passive'] and m['dist'] <= 3 for m in hostiles):
+            # an acid blob in the corridor to Sokoban's stairs: 'came into view' and 'no path' flip-flopped enter_sokoban and explore 40+ times (T5480-T5510)
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat')} | {'kill_blocker': (f"Kill the {blob['name']}", f"The {blob['name']} {blob['where']} keeps blocking your walk. It is much weaker than you; hitting it hurts you a little at most.", lambda m=blob: self.act_kill_blocker(m['pos']))}
         # stagnant: yellow + red molds plugged both corridors, rats behind them; explore/approach/wait looped 4000 turns at XL2, starved (T5244)
         if s.get('exp') != self.run.get('exp_seen'):
             self.run['exp_seen'], self.run['exp_turn'] = s.get('exp'), s.get('turn') or 0
@@ -1382,7 +1412,7 @@ class Bot:
         adj = [m for m in hostiles if m['dist'] <= 1 and not m['passive']]  # not adjacent yet: at 14/41 threw darts at an approaching hill-orc band, Elbereth next turn was interrupted, dead (T3736)
         prev = next((h for h in self.history[-2:-1] if h.get('hp') and (s.get('turn') or 0) - h['turn'] <= 3), None)
         losing = prev and prev['hp'] - s.get('hp', 0) >= s.get('hp', 0)  # an ape + pony took 34 -> 14 in two turns, Jev swung on with Elbereth offered: dead next turn (T3767)
-        if 'elbereth' in opts and (s.get('hp', 1) < 0.4 * s.get('hpmax', 1) or adj and losing) and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in adj) and not shot:  # shot: an Uruk-hai zapped magic missiles past its friend while this left only Elbereth (useless vs wands), 17 -> 3, dead (T6851)  # an Uruk-hai pack, 2 adjacent: swung from 44/66 to 23 with Elbereth on offer, then garbled, dead (T4643)  # swung at a giant ant (speed 18) from 23/62 to 14 with Elbereth on offer, then garbled + interrupted, dead (T5591)  # XL4 swung at a rope golem at 22/43 with Elbereth on offer: 22 -> 10, a snake interrupted the late engraving, dead (T2908)  # traded blows with 3 wolves 70 -> 6 with Elbereth on offer, died praying (T4527)
+        if 'elbereth' in opts and (s.get('hp', 1) < 0.2 * s.get('hpmax', 1) or adj and losing) and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in adj) and not shot:  # user: fight until 20% HP (was 40%)  # shot: an Uruk-hai zapped magic missiles past its friend while this left only Elbereth (useless vs wands), 17 -> 3, dead (T6851)  # an Uruk-hai pack, 2 adjacent: swung from 44/66 to 23 with Elbereth on offer, then garbled, dead (T4643)  # swung at a giant ant (speed 18) from 23/62 to 14 with Elbereth on offer, then garbled + interrupted, dead (T5591)  # XL4 swung at a rope golem at 22/43 with Elbereth on offer: 22 -> 10, a snake interrupted the late engraving, dead (T2908)  # traded blows with 3 wolves 70 -> 6 with Elbereth on offer, died praying (T4527)
             deaf = any(m['dist'] <= 1 and (m['ch'] == '@' or 'minotaur' in m['name']) for m in hostiles)  # blind at 67/73, a Green-elf (ignores Elbereth) hit; this filter left only quaff/rest: 67 -> 0 (T9689)
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray', 'upstairs', 'dig_down') or k == 'flee_up' and (outrun or any(dist.get(p, 99) <= 3 for p in snap.find('<'))) or k.startswith('quaff_') or deaf and k.startswith('attack_')}  # '<' 3 steps: a magic trap blinded Jev and summoned hill orcs, a pony and a wolf beside it; only Elbereth, interrupted, 48 -> 0 (T5706)  # upstairs: arrived on '<' into ~10 monsters, only Elbereth left, 67 -> 8 -> prayed -> dead (T8603)
         g = self.run.get('gear_at')
@@ -1553,7 +1583,7 @@ class Bot:
                 if not self.engraved_here() and not (be[:2] == (s.get('dlvl'), me) and self.run.get('hit_turn', -99) > be[2] and turn - be[2] <= 30):  # hit through a blind Elbereth: 3 more engravings while a raven bit, never swung (T6804)
                     fight['elbereth'] = ('Engrave Elbereth', 'You are blind and something unseen is biting you. Engraving works blind and scares most monsters off.', self.act_elbereth)
             felt = [m for m in hostiles if m['dist'] == 1 and 'unseen' in m['name']]
-            if felt and not shop and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5:  # blind, 5 Elbereths in a row "interrupted" by unseen fire ants, never swung back: 36 -> 0 (T5164)
+            if felt and not shop and ((s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5 or s.get('hp', 1) >= s.get('hpmax', 1) / 3):  # blinded by a raven at 35/57, its 'I' felt west: only Elbereth, then wait (bitten through both), then a 589-turn gamble prayer, dead (T5971). User: fight, Elbereth is for emergencies  # blind, 5 Elbereths in a row "interrupted" by unseen fire ants, never swung back: 36 -> 0 (T5164)
                 fight.pop('elbereth', None)
                 for m in felt:
                     d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
@@ -1566,12 +1596,16 @@ class Bot:
         if any(('much stronger' in self.threat(m) or (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 15 and 'weaker' not in self.threat(m)) and m['dist'] <= 7 for m in hostiles):
             self.run['scary_turn'] = s.get('turn') or 0
         scary = (s.get('turn') or 0) - self.run.get('scary_turn', -99) <= 20  # XL4 on Elbereth, a soldier ant stepped out of view: fetched an item at 36/36, it came back, 12-step run for '<', dead (T2653)
-        if self.engraved_here() and s.get('hunger') not in ('Weak', 'Fainting') and s.get('hp', 1) < 0.5 * s.get('hpmax', 1) and (scary or any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles)) \
+        if self.engraved_here() and s.get('hunger') not in ('Weak', 'Fainting') and s.get('hp', 1) < s.get('hpmax', 1) / 3 and (scary or any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles)) \
                 and not shot and not camped and not boxed and not any('not protecting' in h['outcome'] for h in self.history[-6:]) \
                 and not (s.get('hunger') == 'Hungry' and not pack and sum(h['choice'] == 'wait' for h in self.history[-20:]) >= 15) \
                 and not any((m['ch'] == '@' and ('were' not in m['name'] or m['dist'] <= 1) or 'minotaur' in m['name']) and m['dist'] <= 7 for m in hostiles):  # an adjacent wererat in @ form hit through it while only 'wait' was offered: 12 -> 0 (T8786)  # a were-@ summons rats/jackals that do respect it: left Elbereth at 24/36 for a wererat, summoned rats 25 -> 0 in 2 turns (T1818)  # a bugbear threw daggers at a waiting Jev (Elbereth only stops melee): 13 -> 0 (T2350)  # a Woodland-elf (ignores Elbereth) walked up to a waiting Jev: 36 -> 0 (T7182)
-            # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
+            # same limit as the Elbereth offer (a third HP): at 20% this engraved at 15/54 between two Uruk-hai, then swung from it next turn, 15 -> 0 (T4727)
+        # stepping off a working Elbereth at a third HP with rothes/apes in view ended two runs in one hour
             opts = {k: v for k, v in opts.items() if k in ('pray', 'teleport') or k == 'flee_up' and s.get('hp', 1) >= s.get('hpmax', 1) / 3 or k.startswith(('quaff_', 'eat', 'wear_'))} | {'wait': ('Stay on Elbereth one turn', 'You are hurt and monsters are in view; Elbereth keeps most of them off while you heal.', self.act_wait_elbereth)}  # flee_up only above a third: at 4/68 it stepped off a working Elbereth twice toward '<' 3 steps off, a jaguar (speed 15) caught it (T9280)  # flee_up kept: 16 forced waits at 55/55 Hungry 2 steps from '<' while an orc horde gathered; Weak, prayer failed, pony 55 -> 0 (T5858)
+        if hugger and self.engraved_here() and any(m['dist'] <= 1 and HUGGERS.search(m['name']) for m in hostiles):
+            # mon.c setmangry: any attack from Elbereth (melee, throw, zap) erases it. Attacked an adjacent owlbear from a fresh Elbereth at 55/79: grabbed, crushed, dead (T7278)
+            opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'throw_', 'zap_'))} | {'wait': ('Stay on Elbereth one turn', "A hugging monster is next to you. While you stand on Elbereth it cannot grab you; any attack (melee, throw or zap) erases the engraving.", lambda: self.act_keys('ms', 'waited on Elbereth'))}
         # hit through Elbereth twice by a soldier ant, then 6 turns alternating Elbereth (2 garbled), wait and one attack: 58 -> 0 (T5688). Once it fails here, commit to fighting
         if any('not protecting' in h['outcome'] for h in self.history[-6:]) and any(k.startswith('attack_') for k in opts) and not any(k.startswith(('quaff_', 'zap_')) or k in ('pray', 'teleport', 'flee_up') for k in opts):
             opts = {k: v for k, v in opts.items() if k not in ('elbereth', 'wait')}
@@ -1732,6 +1766,22 @@ class Bot:
                     opts = rest or opts
         if 'upstairs' in opts and (s.get('turn') or 0) - self.run.get('held', -99) > 2 and any(m['dist'] <= 3 and HUGGERS.search(m['name']) for m in hostiles):
             opts = {'upstairs': opts['upstairs']}  # on '<' with an owlbear 2 squares off: wait, then 'choke' walked off the stairs, hugged, crushed 65 -> 0 (T4640)
+        # user: no Elbereth on stairs. Fight from them; when hurt, take the stairs, rest on the other side, come back, repeat.
+        # Sokoban killer-bee zoo: 150 turns of Elbereth down to 3/47 HP, a '>' under it the whole time (T4093-T4250)
+        on, dance, turn = self.standing_on(), self.run.get('stair_dance'), s.get('turn') or 0
+        hop = on if on == '>' or on == '<' and s.get('dlvl', 1) > 1 else None
+        if hop and any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and not self.run.get('engulfed') and not any(h['choice'] == 'stair_hop' for h in self.history[-2:]):
+            opts = {k: v for k, v in opts.items() if k not in ('elbereth', 'downstairs', 'upstairs', 'flee_up') and not v[0].startswith('Stay on Elbereth')}
+            if s.get('hp', 1) < 0.4 * s.get('hpmax', 1) or not any(k.startswith('attack_') for k in opts):
+                opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0]} | {'stair_hop': (
+                    f"Go {'down' if hop == '>' else 'up'} the stairs to rest", 'You stand on stairs and are hurt: take them. Only adjacent monsters follow, one at a time. Rest on the other side, then come back and fight again.',
+                    lambda hop=hop: (self.run.__setitem__('stair_dance', (s.get('dlvl'), turn, hop)), self.act_keys(hop, 'took the stairs to rest'))[1])}
+        elif dance and dance[0] != s.get('dlvl') and turn - dance[1] < 500 and on == {'>': '<', '<': '>'}[dance[2]] and not any(m['dist'] <= 5 and not m['passive'] for m in hostiles) and s.get('hunger') not in ('Weak', 'Fainting'):
+            if s.get('hp', 1) < 0.85 * s.get('hpmax', 1):
+                opts = {'rest': ('Rest on the stairs', 'You came here to heal. Rest on the stairs; if a monster comes, fight it or take the stairs.', lambda: self.act_search(15))}
+            else:
+                opts = {'stair_back': ('Go back and fight', f"You have healed to {s.get('hp')}/{s.get('hpmax')}. Go back to Dlvl {dance[0]} and fight from the stairs again.",
+                                       lambda: (self.run.pop('stair_dance', None), self.act_keys(on, 'went back to fight'))[1])}
         recent = self.history[-12:]
         if sum(h['choice'] == 'elbereth' for h in recent) >= 4 and len(recent) == 12 and s.get('hp', 0) <= recent[0].get('hp', 0):  # user: 'stop using elbereth so much': 100+ turns of re-engraving in a room corner while HP fell 61 -> 21 (T11430)
             rest = {k: v for k, v in opts.items() if k != 'elbereth' and not v[0].startswith('Stay on Elbereth')}
@@ -1816,8 +1866,8 @@ class Bot:
             lines = self.t.lines()
             kind, _ = top_prompt(lines)
             if kind == 'menu':
-                items = [m.groups() for l in lines for m in [re.search(r'(?:^|\s)([a-zA-Z]) - (.*)', l)] if m]  # the menu lists only unidentified things
-                rank = lambda x: next((i for i, w in enumerate(('wand', 'amulet', 'ring', 'armor|mail|cloak|boots|gloves|helm|shield|pall|cape|robe|apron|tunic', 'potion', 'scroll', 'spellbook')) if re.search(w, x[1])), 9 if re.search(r'gem|stone|glass|rock', x[1]) else 8)
+                items = [m.groups() for l in lines for m in [re.search(r'(?:^|\s)([a-zA-Z]) - (.*)', l)] if m]  # the menu lists only unidentified things. User: scrolls, then rings, then potions
+                rank = lambda x: next((i for i, w in enumerate(('scroll', 'ring', 'potion', 'wand', 'amulet', 'armor|mail|cloak|boots|gloves|helm|shield|pall|cape|robe|apron|tunic', 'spellbook')) if re.search(w, x[1])), 9 if re.search(r'gem|stone|glass|rock', x[1]) else 8)
                 pick = min(items, key=rank)[0] if items else None  # gems last: an identify spent on a black gem leaves the wands unknown
                 self.t.send((pick or '') + '\r')
             elif kind == 'more':
@@ -1936,7 +1986,11 @@ class Bot:
         self.t.send(keys)
         self.after_move(before)
         if keys in ('<', '>') and self.snap.status.get('dlvl') != before.status.get('dlvl') and self.snap.me:  # arrived on Dlvl 7 by '>' into fire ants: standing_on() was None, so no 'upstairs' was offered, attacked 71 -> 0 (T8343)
-            self.run['under'][(self.snap.status.get('dlvl'), self.snap.me)] = '<' if keys == '>' else '>'
+            g, (x, y) = '<' if keys == '>' else '>', self.snap.me
+            if not any(self.snap.at(x + dx, y + dy) and self.snap.at(x + dx, y + dy).ch == g for dx in (-1, 0, 1) for dy in (-1, 0, 1) if dx or dy):  # 5.0 u_collide_m: a homunculus followed onto the '<', the hero landed beside it, 'stair_hop' then said "You can't go up here" and Jev waited on Elbereth at 20/57 HP (T5608-5619)
+                self.run['under'][(self.snap.status.get('dlvl'), self.snap.me)] = g
+        if keys in ('<', '>') and re.search(r"can't go (up|down) here", ' '.join(self.run['recent'][-2:])):
+            self.run['under'].pop((self.snap.status.get('dlvl'), self.snap.me), None)
         if keys[:1] == 'z' and keys[1:2] in inv and any(re.search(r'(?<!Unfortunately, n)Nothing happens|Are you waiting to get hit', m) for m in self.run['recent'][-3:]):  # 'z E .' in one send: '.' (rest) prints over 'Nothing happens', 3 more empty zaps beside a winter wolf cub, dead (T7978)
             self.run.setdefault('empty_wands', set()).add(inv[keys[1]])  # zap.c dozap: !zappable -> "Nothing happens": 5 zaps of an empty wand of teleportation beside a jaguar, dead (T7489)
         return what
@@ -2389,6 +2443,8 @@ class Bot:
     def act_throw(self, letter, d, key='t'):
         self.run['elbereth'].discard((self.snap.status.get('dlvl'), self.snap.me))  # firing from Elbereth erases it
         self.run['fired_turn'] = self.snap.status.get('turn') or 0
+        me = self.snap.me
+        target = next((q for k in range(1, 9) for q in [(me[0] + DIRS[d][0] * k, me[1] + DIRS[d][1] * k)] if self.snap.is_monster(*q)), None) if me and d in DIRS else None
         self.t.send(key)
         if re.search(r'throw|zap', self.t.lines()[0].lower()):
             self.t.send(letter)
@@ -2400,6 +2456,9 @@ class Bot:
             self.t.send('\x1b')
         self.observe()
         self.read_inventory()
+        recent = ' '.join(self.run['recent'][-2:])
+        if target and 'You kill' in recent and self.snap.at(*target) and self.snap.at(*target).ch in OBJECT_CHARS - {'%'} and not any(re.search(rf'You kill the [\w -]*{n}', recent) for n in self.never_eat()):
+            self.level().corpses[target] = self.snap.status.get('turn') or 0  # the dagger lies on the corpse and shows ')': walked over a fresh floating eye corpse (telepathy) twice, never offered (T3363)
         return f"{'zapped' if key == 'z' else 'threw'} item {letter} {DIR_NAME[d]}"
 
     def wish(self):
@@ -2438,6 +2497,31 @@ class Bot:
             tested |= adj
             return self.act_keys('s', 'searched for shop mimics')
         return self.act_go(q, steps=1)
+
+    def act_quote(self, it):
+        """shk.c sellobj: the offer is recorded for price_quotes even when refused; a refused item stays ours ('no charge')."""
+        cls, look = appearance(it['text'])
+        self.run.setdefault('quoted', set()).add((self.snap.status.get('dlvl'), (cls, look)))
+        self.t.send('d' + it['letter'])
+        for _ in range(4):
+            kind, _ = top_prompt(self.t.lines())
+            if kind in ('yn', 'ask'):
+                self.t.send('n')
+            elif kind == 'more':
+                self.t.send('\r')
+            else:
+                break
+        self.t.send(',')
+        lines = self.t.lines()
+        if top_prompt(lines)[0] == 'menu':
+            for l in lines:
+                m = re.search(r'([a-zA-Z]) - (.+)$', l)
+                if m and look in m[2] and cls in m[2] and 'for sale' not in m[2]:
+                    self.t.send(m[1])
+            self.t.send('\r')
+        self.observe()
+        self.read_inventory()
+        return 'dropped it for a price quote, picked it back up' if any(appearance(i['text']) == (cls, look) for i in self.inventory) else 'dropped it for a price quote; it is still on the floor'
 
     def act_goto_corpse(self, p):
         r = self.act_go(p)
@@ -2714,36 +2798,17 @@ class Bot:
             or self.snap.me and not any(cheb(q, self.snap.me) <= 1 for q in self.hostile_glyphs()) and any(re.search(r"\bThe [\w -]+ (hits|bites|stings|butts|kicks|touches|misses)!", m) and 'ghost' not in m for m in self.run['recent'][-1:])  # a named fire ant bit from a square the map never showed: 'rest' was the only option, 33 -> 0 (T5586)
 
     # ---------- Jev ----------
-    def role(self):
-        if getattr(self, '_role', None):
-            return self._role
-        title = (self.snap.status or {}).get('title') or 'Valkyrie'
-        self._role = title
-        return title
-
-    def update_character(self):
-        if not self.snap or not self.snap.status:
-            return
-        role = self.role()
-        align = (self.snap.status or {}).get('align', 'lawful')
-        character = f"{align.lower()} {role}"
-        if character != self.run.get('character'):
-            self.run['character'] = character
-            self.runs[-1]['character'] = character
-            self._save_runs()
-
     def state_text(self, mons):
         s, snap = self.snap.status, self.snap
-        role = self.role()
         lv = self.level()
         inv = '; '.join(f"{i['letter']} - {i['text']}" for i in self.inventory) or 'unknown'
         seen = '; '.join(f"{m['name']}{self.threat(m)} {m['where']}" + (' (pet)' if m['pet'] else ' (peaceful)' if m['peaceful'] else '') for m in mons[:8]) or 'none'
         hist = '\n'.join(f"- T{h['turn']} {h['label']} -> {h['outcome']}" for h in self.history[-8:]) or '- (start of game)'
         recent = ' | '.join(self.run['recent'][-6:]) or 'none'
         return (
-            f"NetHack 5.0.0. You decide for {s.get('name', 'the hero')}, a {s.get('align', 'lawful').lower()} {role}.\n"
+            f"NetHack 5.0.0. You decide for {s.get('name', 'the hero')}, a {s.get('align', 'lawful').lower()} dwarven Valkyrie.\n"
             f"Standing order from the operator: {self.order}\n"
-            f"Strategy notes: {STRATEGY.format(role=self.role())}\n\n"
+            f"Strategy notes: {STRATEGY}\n\n"
             f"Status: Dlvl {s.get('dlvl')}, HP {s.get('hp')}/{s.get('hpmax')}, Pw {s.get('pw')}/{s.get('pwmax')}, AC {s.get('ac')}, "
             f"XL {s.get('xl')} ({s.get('exp')} exp), turn {s.get('turn')}, gold {s.get('gold')}, hunger: {s.get('hunger')}, "
             f"conditions: {', '.join(s.get('conditions') or []) or 'none'}. Str {s.get('st')} Dex {s.get('dx')} Con {s.get('co')}.\n"
@@ -2822,7 +2887,7 @@ class Bot:
             key, answers, meta = next(iter(opts)), {}, dict(latency_ms=0, model=None)
             probs, conf = {key: 1.0}, 1.0
         else:
-            qs = questions(criteria, role=self.role())
+            qs = questions(criteria)
             answers, meta = self.jev.ask(state, qs)
             key = answers['action']['choice']
             if (answers['danger'].get('noul') or 0) >= 0.6 and answers['safest']['choice'] != key:
@@ -2863,8 +2928,7 @@ class Bot:
         rid = datetime.now().strftime('%Y%m%d-%H%M%S')
         self.run_dir = os.path.join(self.home, rid)
         os.makedirs(self.run_dir, exist_ok=True)
-        self._role = None
-        self.run = dict(id=rid, started=now(), ended=None, character=None, turns=0, max_dlvl=1, death=None, score=None,
+        self.run = dict(id=rid, started=now(), ended=None, character='dwarven Valkyrie', turns=0, max_dlvl=1, death=None, score=None,
                         engine='jev' if not self.jev.local else os.environ.get('JEV_LABEL') or self.jev.model, models=[], decisions=0, levels={}, under={}, here={}, elbereth=set(), prayed_turn=None, recent=[], death_msgs=[])
         self.history.clear()
         self.runs.append({k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score', 'engine', 'models')})
@@ -2879,7 +2943,6 @@ class Bot:
             x = dict(f.split('=', 1) for f in [l for l in open(os.path.join(ROOT, 'nethack', 'lib', 'xlogfile')).read().splitlines() if f'\tname={self.name}\t' in l][-1].split('\t') if '=' in f)
             if self.mode == 'local' and abs(int(x.get('turns', -1)) - (self.run.get('turns') or 0)) <= 200:  # the last screen we read can lag the death by ~50 turns
                 self.run['death'] = x['death'] + (f", {x['while']}" if x.get('while') else '')
-                self.run['score'] = int(x.get('score', 0)) if 'score' in x else None
         except (OSError, IndexError, KeyError, ValueError):
             pass
         self.run['ended'] = now()
@@ -2895,7 +2958,6 @@ class Bot:
             self.t = self.launcher()
             self.t.pump(3)
             self.observe()
-            self.update_character()
             if any('welcome back' in l for l in self.snap.lines + [m['text'] for m in self.messages[-5:]]):  # restored save: keep the prayer clock
                 try:
                     t = json.load(open(os.path.join(self.home, 'prayer.json')))['prayed_turn']
