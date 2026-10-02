@@ -187,6 +187,9 @@ class Bot:
                 self.run['shot_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
                 if m := re.search(r'The ([\w -]+?) (?:throws|shoots|zaps|breathes|spits)\b', text):
                     self.run['shooter'] = m[1]
+            for k in re.findall(r'You (?:kill|destroy) (?:the |an? )?(?:invisible )?([a-z -]+?)!', text):  # which corpse is fresh: the eat prompt names each one on the square
+                self.run.setdefault('kills', []).append(((self.snap.status.get('turn') or 0) if self.snap else 0, k))
+                del self.run['kills'][:-20]
             if re.search(r'\b(hits|bites|stings|kicks|butts|claws|touches)!', text):
                 self.run['hit_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
             ev = re.findall(r'(engulfs you|swallows you|The exit\?|laden with moisture|enveloped in a cloud of steam)|get expelled|regurgitates you|expels you|You (?:destroy|kill) (?:it|the)|dissipates|thin air|You get released', text)
@@ -2092,13 +2095,20 @@ class Bot:
         if not self.engraved_here() and self.snap.status.get('hunger') != 'Fainting':
             self.act_elbereth()  # eat.c: 1 in 7 corpses is rotten, up to 10 turns out cold; a fresh rothe's packmate killed an unconscious Djev from 46/46 (T3021)
         self.t.send('e')
-        top = self.t.lines()[0]
-        if ('eat it?' in top or 'eat one?' in top) and not any(n in top for n in self.never_eat()):
-            self.t.send('y')
-            if self.snap.me:  # age is per square and the top corpse is the newest: a fresh lizard sat on an old hill orc, ate both, food poisoning (T2656)
-                self.level().corpses[self.snap.me] = -10**6
-        else:
-            self.t.send('\x1b')
+        turn = self.snap.status.get('turn') or 0
+        fresh = {k for t0, k in self.run.get('kills', []) if turn - t0 <= 30}
+        for _ in range(8):  # eat.c asks per floor corpse: an old newt sat above a fresh quasit, 'y' to the first prompt, tainted, dead (T10532)
+            top = self.t.lines()[0]
+            m = re.search(r'There (?:is|are) (?:an? |\d+ )?(.+?) corpses? here; eat', top)
+            if not m:
+                self.t.send('\x1b')
+                break
+            if any(m[1] == k or m[1].endswith(' ' + k) for k in fresh | {'lichen', 'lizard'}) and not any(n in top for n in self.never_eat()):
+                self.t.send('y')
+                if self.snap.me:  # a fresh lizard sat on an old hill orc, ate both, food poisoning (T2656)
+                    self.level().corpses[self.snap.me] = -10**6
+                break
+            self.t.send('n')
         self.observe()
         key = (self.snap.status.get('dlvl'), self.snap.me)
         self.run['here'][key] = self.look_here()

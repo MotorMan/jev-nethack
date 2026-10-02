@@ -2303,3 +2303,7 @@ Each change below was checked against the 5.0 source:
 ## 2026-10-01 — fainted beside a floating eye, Minetown Dlvl 6 T7682 (run 20261001-210301)
 - **Cause:** Jev stood in the corridor outside Minetown's NW wall. A floating eye in the 1-wide corridor south blocked the only way back to '>', and Jev held 16 darts. It still searched for hidden passages for 1300 turns, Hungry → Weak → Fainting, living on prayers until a hill orc killed it. Throwing at the eye was offered once. Every other time, the `shop` flag removed all throw and zap options, because shop squares it had stood on earlier were within Chebyshev 7 *through the town wall*.
 - **Fix:** shop proximity now uses walking distance (dijkstra ≤ 7), not Chebyshev distance.
+
+## 2026-10-01 — tainted newt corpse, Dlvl 9 T10532 (run 20261001-210838)
+- **Cause:** at XL 8, AC -1, Jev killed an invisible quasit and went to eat the corpse while Not Hungry. An old newt corpse was on the same square, and eat.c floorfood asks about each corpse in pile order. Jev answered 'y' to the first prompt, which was the newt: "Ulch - that meat was tainted!", FoodPois. The prayer came too soon, so Tyr was displeased, and Jev then ate the quasit while sick and died.
+- **Fix:** kills are recorded from "You kill/destroy the X!". The floor-eat prompt loop now answers 'y' only to a corpse species killed in the last 30 turns (lichens and lizards never rot), and 'n' to every other prompt.
