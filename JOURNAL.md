@@ -2451,3 +2451,15 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev stood on Elbereth in a shop door. A boxed-in fire ant (speed 18, fire bites) panic-attacked it, 20 -> 6 -> 0. Jev had a wand of magic missile, but the shop rule removed every zap and throw near a shop.
 - Prevention: A known attack wand or a throw is safe in a shop when no peaceful monster is on the line or on its bounce.
 - Fix: `jev/bot.py` keeps throws and known attack-wand zaps near a shop when no peaceful monster is within 13 squares on that line, in both directions.
+
+## T6798 soldier ant, Dlvl 8
+
+- Cause: A soldier ant (speed 18) was adjacent at 43/66 HP. Jev chose Elbereth over an attack. In 5.0, engraving is an occupation and a hit interrupts it. The ant bit and stung Jev through the engraving, and the poison finished it.
+- Prevention: Engrave before a fast monster is adjacent. When it is adjacent, fight.
+- Fix: `jev/bot.py` removes `elbereth` when a hostile with speed 15 or more is adjacent, an attack is on offer and HP is 1/3 or more.
+
+## T245 shopkeeper Cahersiveen, Dlvl 2
+
+- Cause: Jev kicked a locked door. No sign was in the dust, but the door was a closed shop. The shopkeeper zapped a wand of striking and killed Jev. Three explore options were open at that time.
+- Prevention: A locked door can be a closed shop with a scuffed sign. Kick a locked door only when nothing else is left to explore.
+- Fix: `jev/bot.py` stops when it finds a door locked and decides again. It removes locked-door options while explore options exist and Jev has no key or lock pick.

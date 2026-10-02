@@ -1370,6 +1370,8 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k.startswith(('zap_', 'quaff_', 'flee')) or k in ('elbereth', 'upstairs', 'ascend', 'teleport', 'dig_down')}
             if any(re.search(r'zaps (a|an) [\w ]*wand', r) for r in self.run['recent'][-3:]) and any(k.startswith(('zap_', 'teleport', 'dig_down')) for k in opts):
                 opts.pop('elbereth', None)  # monmove.c m_move then mhitu.c find_offensive: a scared monster steps off and zaps from range; engraved beside a hill orc with a wand of striking at 12/62 over its own wand, dead (T6827)
+        if any(m['dist'] == 1 and (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 15 and not m['passive'] for m in hostiles) and any(k.startswith('attack_') for k in opts) and s.get('hp', 1) * 3 >= s.get('hpmax', 1):
+            opts.pop('elbereth', None)  # engrave.c: engraving is an occupation that a hit interrupts; a soldier ant (speed 18) stung through it 43 -> 0 (T6798)
         shooter_adj = [m for m in hostiles if m['dist'] == 1 and m['name'] == self.run.get('shooter')]
         if shooter_adj and any(re.search(r'\b(shoots|throws|zaps)\b', r) for r in self.run['recent'][-3:]) and any(k.startswith('attack_') for k in opts):
             opts.pop('elbereth', None)  # a scared Uruk-hai beside the Elbereth square kept shooting poisoned arrows: engraved instead of hitting it at 16 HP, dead (T4657)
@@ -1465,6 +1467,8 @@ class Bot:
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door', 'descend', 'approach', 'kick', 'goto', 'search'))}
         if (s.get('title') or '').startswith('Were'):  # animal form: armor falls off, paws can't wear or carry much
             opts = {k: v for k, v in opts.items() if not k.startswith(('pickup_', 'wear_', 'fetch'))}
+        if any(k.startswith('explore') for k in opts) and not any(re.search(r'\b(key|lock pick|credit card)\b', it['text']) for it in self.inventory):
+            opts = {k: v for k, v in opts.items() if not (k.startswith('door_') and tuple(map(int, k.split('_')[1:])) in self.level().locked)}  # a scuffed "Closed for inventory" sign: kicked in Cahersiveen's door with 3 explore options open, his wand, dead (T245)
         if 'Overloaded' in s.get('conditions', []):  # a wererat Jev tried to walk 291 times under a Valkyrie's pack  # stale inventory re-offered dropped items 20 times as a wererat, 'You don't have that object', bitten 34 -> 15 meanwhile, prayer spent, died (T5593)
             opts = {k: v for k, v in opts.items() if k == 'pray'}
             for it in self.inventory:
@@ -2550,6 +2554,7 @@ class Bot:
                 return 'opened the door'
             if door not in self.level().locked:
                 return 'door did not open: ' + r
+            return 'the door is locked'  # decide again: a locked door can be a closed shop (T245)
         sale = [p for (dl, p), v in self.run.get('here', {}).items() if dl == self.snap.status.get('dlvl') and any('for sale' in i for i in v)]
         # dokick.c: only a shop's own door (shop cost) or a door in Minetown (the watch) is punished. Any shop on the level vetoed every door:
         # 4400 turns on Dlvl 2 beside an unkicked locked door 15 squares from the shop, starved (T6390)
