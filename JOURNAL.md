@@ -2512,3 +2512,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Dlvl 3 had two locked doors and no known down staircase. Jev had engraved Elbereth in front of both doors during fights. Before a kick, the bot reads the dust, and any writing stopped the kick as a possible "Closed for inventory" sign. So Jev never kicked either door. It searched and waited for 2400 turns, fainted, and a coyote killed it.
 - Prevention: A shop sign is 20 letters long and keeps its length when scuffed. Elbereth is 8 letters. Short writing is not a shop sign.
 - Fix: `jev/bot.py` treats dust writing as a shop sign only if it has "for inv", or if the text it read is 12 letters or longer, or if no text was read.
+
+## T4935 hill orc, Dlvl 6
+
+- Cause: A band of more than 10 hill orcs came to a corridor. Jev killed many of them, but its AC was 8. It prayed at T4734. For 200 turns it stayed on Elbereth at 4 to 29 HP. The bot offered "flee_up" at 19/57 HP two times, but Jev waited and threw darts. The orcs threw daggers through Elbereth. A prayer 141 turns after the last prayer failed.
+- Prevention: Elbereth does not stop thrown weapons. If a band is near and the god cannot help, go to a different level.
+- Fix: If 3 or more hostile monsters of one kind were in view in the last 200 turns, the last prayer was less than 500 turns ago, HP is less than 60%, and no monster is adjacent, the bot offers only "flee_up", "pray" and potions.

@@ -1572,6 +1572,10 @@ class Bot:
             opts.pop('flee_up')  # walked for '<' with a jaguar (speed 15, 3 attacks) adjacent: 31 -> 14 -> 8 -> 0 in two steps, Elbereth unused (T3778)
         if LOW_HP(s) and 'teleport' in opts and 'pray' not in opts and any(m['dist'] <= 1 and not m['peaceful'] for m in hostiles):
             opts.pop('flee_up', None)  # walking off at 1/74 beside a Green-elf took a hit per step: dead with 13 unread scrolls (T7362)
+        if any(sum(o['name'] == m['name'] for o in hostiles) >= 3 for m in hostiles):
+            self.run['horde_turn'] = s.get('turn') or 0
+        if 'flee_up' in opts and no_god and (s.get('turn') or 0) - self.run.get('horde_turn', -999) <= 200 and s.get('hp', 1) < 0.6 * s.get('hpmax', 1) and not any(m['dist'] <= 1 and not m['passive'] for m in hostiles):
+            opts = {k: v for k, v in opts.items() if k in ('flee_up', 'pray') or k.startswith('quaff_')}  # 200 turns on Elbereth beside a hill orc band at 19/57, prayer 141 turns old: waited and threw darts over 'flee_up', daggers thrown through Elbereth, dead (T4935)
         if s.get('hunger') in ('Weak', 'Fainting') and 'goto_corpse' in opts and not starving and not LOW_HP(s):  # Weak, a fresh corpse 10 steps off: dropped a helm, prayed 790 turns on (failed), explored, fainted, giant spider (T7451)
             opts = {k: v for k, v in opts.items() if k == 'goto_corpse' or k.startswith(('attack_', 'eat', 'elbereth', 'zap_', 'quaff_'))}
         if self.standing_on() == '_':  # engraving on an altar: 'How darest thou desecrate my altar!' (pray.c altar_wrath), or Luck loss on a cross-aligned one
