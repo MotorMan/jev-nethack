@@ -2543,7 +2543,7 @@ class Bot:
             group = [it for it in inv if re.search(pat, it['text']) and not ('blindfold' not in pat and (INTEREST.search(it['text']) or 'polished silver' in it['text']))]
             keep = max(group, key=lambda it: ('being worn' in it['text'] or 'weapon in' in it['text'], 'towel' in it['text'], not re.search(r'\bcursed', it['text'])), default=None)
             out += [it for it in group if it is not keep and not re.search(r'being worn|weapon in', it['text'])]
-        return out
+        return out + [it for it in inv if re.search(r'\blenses\b', it['text']) and 'being worn' not in it['text']]  # user: lenses are junk
 
     def blindfold(self):
         return None if 'Blind' in str(self.snap.status.get('conditions')) else \
