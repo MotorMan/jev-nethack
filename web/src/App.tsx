@@ -356,7 +356,7 @@ function DecisionPanel({ s }: { s: State }) {
       right={
         // fixed-width fields so the header doesn't jump between thinking and acting
         <span className="font-mono whitespace-pre tabular-nums">
-          <span style={{ color: tone(d.pending ? "frost-2" : "green") }}>{(d.pending ? "thinking" : "acting").padStart(8)}</span>
+          <span style={{ color: tone("frost-2") }}>{(d.pending ? "thinking" : "acting").padStart(8)}</span>
           {" · "}
           <Tip tip="confidence: how decisively Jev preferred its choice over the alternatives">
             <span>conf <span className="text-foreground">{(d.pending ? "----" : pct(d.confidence)).padStart(4)}</span></span>
