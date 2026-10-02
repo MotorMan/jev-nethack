@@ -8,6 +8,11 @@ import os, re, sys, time
 from .term import Term
 
 
+# NEVER more than 2-3 actions/sec on a public server (HF, NAO): every send, including the login keys, waits at least this long.
+# Term.floor enforces it below the UI delay, so the delay slider cannot go faster. Any NAO launcher must pass the same floor.
+REMOTE_GAP = 0.4  # 2.5 sends/sec
+
+
 def wait_for(t, pattern, timeout=20):
     end = time.time() + timeout
     while time.time() < end:
@@ -36,9 +41,9 @@ def launcher(username, password):
 
     def launch():
         if os.environ.get('HARDFOUGHT_SSH'):
-            t = Term(['ssh', '-o', 'StrictHostKeyChecking=accept-new', 'nethack@hardfought.org'], idle=0.3)
+            t = Term(['ssh', '-o', 'StrictHostKeyChecking=accept-new', 'nethack@hardfought.org'], idle=0.3, floor=REMOTE_GAP)
         else:
-            t = Term([sys.executable, '-m', 'jev.wsbridge'], idle=0.3)
+            t = Term([sys.executable, '-m', 'jev.wsbridge'], idle=0.3, floor=REMOTE_GAP)
         wait_for(t, r'l\) Login')
         t.send('l')
         wait_for(t, r'enter your username')
@@ -62,4 +67,5 @@ def launcher(username, password):
 if __name__ == '__main__':
     assert game_key('  p) Play NetHack 3.6.7\n  x) Play NetHack 5.0.0\n  o) Edit NetHack 5.0 options') == 'x'
     assert game_key('  a) NetHack 3.7') is None
+    assert 1 / 3 <= REMOTE_GAP <= 1 / 2  # 2-3 actions/sec at most
     print('ok')

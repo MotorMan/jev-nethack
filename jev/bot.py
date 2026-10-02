@@ -2712,7 +2712,7 @@ class Bot:
                     self.t.send('\x12')  # ^R: repaints if our emulated screen drifted (e.g. scrolled)
                     time.sleep(0.2)
                     continue
-                self.t.gap = max(self.delay_ms, 0 if self.mode == 'local' else 250) / 1000  # per action, not per decision; HF/NAO: at most 4 actions/sec
+                self.t.gap = self.delay_ms / 1000  # per action, not per decision; public servers add Term.floor on top (see REMOTE_GAP in hardfought.py)
                 try:
                     self.decide()
                 except RuntimeError as e:

@@ -55,7 +55,7 @@ Every death is a lesson. Most games can be won, so do not call a death bad luck.
 - Do not dip for Excalibur.
 - Gold: buy protection from a priest first. After that, keep 2000 to 4000 gold.
 - Elbereth is for emergencies. The default against a group is to fight from a corridor or a doorway.
-- Rate limit: on public servers (hardfought, NAO), send 2 to 5 actions each second. The delay includes the time of the Jev call.
+- Rate limit: NEVER send more than 2 to 3 actions each second to a public server (hardfought, NAO). `REMOTE_GAP` in `jev/hardfought.py` sets this limit, and `Term.floor` enforces it. A new NAO launcher must use the same floor. Local play has no limit. The delay includes the time of the Jev call.
 
 ## UI rules from the user
 
