@@ -155,7 +155,7 @@ class Bot:
                 self.level().town = True
             if re.search(r'You feel feverish|You turn into a were', text):
                 self.run['lycanthropy'] = True
-            if 'strange mental acuity' in text:  # telepathy: blind, you still see the floating eye, so a blindfold no longer stops its gaze (uhitm.c passive: !canseemon)
+            if 'strange mental acuity' in text:  # telepathy (uhitm.c passive uses canseemon, which needs sight, so a blindfold still stops the floating eye)
                 self.run['telepathic'] = True
             if re.search(r'Your armor falls|You find you must drop|can no longer hold your', text) and self.snap and self.snap.me:  # armor and weapon fall to the floor here (polyself.c break_armor/drop_weapon); a bare 'You turn into' re-shift moved the spot off the real pile, gear lost, starved (T5749)
                 self.run['dropped'] = (self.snap.status.get('dlvl'), self.snap.me)
@@ -1013,7 +1013,7 @@ class Bot:
                 opts['fetch_gold'] = (f"Pick up the gold {compass(me, q)}", f"Walk {dist[q]} steps to the '$'. You have {gold} gold: about {500 * xl} buys permanent AC from a temple priest, and more buys food and armor in shops.", lambda q=q: self.act_fetch_gold(q))
         priest = [m for m in mons if m['peaceful'] and re.match(r'(peaceful )?priest(ess)? of ', m['name'])]
         if priest and not near and gold >= 500 * xl + (4000 if self.run.get('protection') else 0):  # 5.0 priest.c: offering the larger "suggested" sum gives 1 AC per 2x base (base = peak XL x 150-250), any temple priest
-            opts['donate'] = (f"Buy protection from the {priest[0]['name'].replace('peaceful ', '')}", f"You have {gold} gold. Walk to the priest ({priest[0]['where']}) and donate: about {400 * xl}-{500 * xl} gold buys permanent divine protection (lower AC).", lambda p=priest[0]['pos']: self.act_donate(p))
+            opts['donate'] = (f"Buy protection from the {priest[0]['name'].replace('peaceful ', '')}", f"You have {gold} gold. Walk to the priest ({priest[0]['where']}) and donate the larger suggested sum (2x a base of 150-250 per peak XL, so {300 * xl}-{500 * xl} gold); it buys 2-4 points of permanent divine protection (lower AC), then +1 per later purchase.", lambda p=priest[0]['pos']: self.act_donate(p))
         fr = self.frontiers(dist)
         picked = []
         for d, p in fr:
@@ -1232,7 +1232,8 @@ class Bot:
         g = self.run.get('gear_at')
         if g and g[0] == s.get('dlvl') and s.get('exp') is not None and not any(m['dist'] <= 1 for m in near):  # 'not near': a speed-3 rock mole stayed in view 230 turns, the shield never recovered, dead at AC 10 (T3665)
             if me == g[1]:
-                self.run['gear_at'] = None  # the pickup and wear options take it from here
+                pile = [q for c in ')[' for q in snap.find(c) if 0 < cheb(me, q) <= 3 and q in dist]
+                self.run['gear_at'] = None if self.here_items() or not pile else (g[0], min(pile, key=dist.get))  # the pickup and wear options take it from here; the spot was recorded a step off, empty square cleared it and Jev descended with no spear or shield, AC 9, dead to a werejackal (T6987)
             elif g[1] in dist:
                 if not near or (s.get('ac') or 0) >= 9:  # back from rat form at AC 10, a wererat 2 steps off: closed in instead, a rat pack took 48 -> 6, dead (T3091)
                     opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'pickup_', 'wear_', 'wield_'))}
@@ -2014,7 +2015,7 @@ class Bot:
         return 'ate corpse'
 
     def blindfold(self):
-        return None if self.run.get('telepathic') or 'Blind' in str(self.snap.status.get('conditions')) else \
+        return None if 'Blind' in str(self.snap.status.get('conditions')) else \
             next((i for i in self.inventory if re.search(r'\b(blindfold|towel)\b', i['text']) and not re.search(r'\bcursed', i['text'])), None)
 
     def act_kill_blocker(self, pos):

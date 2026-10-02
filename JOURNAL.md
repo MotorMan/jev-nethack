@@ -2258,3 +2258,10 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause, part 2:** the bot put on a towel against a yellow light, and the towel was cursed. 'unblind' tried 'R' thousands of times on T3457, then a rothe killed the blind bot.
 - **Source:** pray.c lists TROUBLE_CURSED_BLINDFOLD as major trouble (1), so a safe prayer uncurses it.
 - **Fix:** MINES_XL is now 10. stuck_main now needs 1500 search turns, since the main '>' always exists and is just hidden. A worn cursed towel or blindfold is fixed by prayer (more than 1000 turns since the last one); otherwise 'unblind' isn't offered.
+
+## 2026-10-01 — werejackal, Dlvl 4 T6987 (run 20261001-203017)
+- **Cause:** at T6120 a werejackal bite turned Jev into a jackal, and its spear, shield and helm fell off. After the prayer cure, recover_gear walked to the recorded spot. The spot was one step off the real pile and the square was empty, so gear_at was cleared and Jev descended with the ')' one step away. It met the werejackal again at AC 9 with no weapon; the werejackal summoned jackals and a coyote, and they took it from 59 to 0 in 7 turns.
+- **Fix:** when Jev reaches the gear spot and finds nothing there, it now retargets the nearest ')' or '[' within 3 squares instead of giving up.
+- **Also (transcript strategies, source-checked):**
+  - The blindfold is no longer disabled by telepathy. uhitm.c's passive paralysis needs canseemon, and display.h says that needs actual sight, so blind is always safe from a floating eye.
+  - The donate text now matches priest.c in 5.0: base = peak XL × 150-250, offer the larger suggested sum (2× base), first purchase gives 2-4 AC.
