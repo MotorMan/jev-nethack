@@ -2500,3 +2500,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: On the Oracle level (Dlvl 6), a peaceful gnome lord stood in the only corridor that was not explored. Jev could not pass it. It chose "explore" 2045 times, and each walk was blocked ("Pardon me, gnome lord"). Jev stayed 4400 turns and lived on five prayers. The sixth hunger came too soon after a prayer. Jev fainted and a pony killed it.
 - Prevention: A peaceful monster that blocks the only way on for many turns must go. 5.0 source (mon.c): a peaceful kill costs Luck -1 half the time, and some alignment. That is much less than the cost of starving.
 - Fix: `jev/bot.py` offers "attack the peaceful monster" after 20 of the last 30 explore walks were blocked, with a peaceful non-human adjacent and no hostile within 3 squares. Not in a town, and not when hallucinating. The option removes explore, wait and search.
+
+## T13037 Ms. Kediri the shopkeeper, Dlvl 5
+
+- Cause: Jev stood in the doorway of a delicatessen, and the shopkeeper stood next to it. Explore was blocked, so Jev chose "dig down" with its pick-axe. Digging in a shop doorway damages the door. The shopkeeper got angry ("How dare you ruin my door?"). She took Jev from 87 HP to 0 with a wand of striking and her hits.
+- Prevention: Never dig in a shop, in a shop door, or near a shopkeeper.
+- Fix: `jev/bot.py` does not offer the pick-axe dig on a door, in or near a known shop, or with a peaceful `@` within 8 squares. The wand of digging escape is also not offered in or near a shop.

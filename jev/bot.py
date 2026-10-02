@@ -1158,7 +1158,9 @@ class Bot:
         elif downs:
             opts['descend'] = ('Head for the downstairs', f"Walk to the known down staircase ({dist[downs[0]]} steps {compass(me, downs[0])}) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
         pick = next((it for it in self.inventory if re.search(r'pick-axe|dwarvish mattock', it['text'])), None)
-        if pick and not near and s.get('dlvl', 1) < (s.get('xl') or 1) + 1 and not soko_hunt and not mcap and self.standing_on() not in ('<', '>', '_', '{'):
+        # dug down in Kediri's shop doorway with her adjacent: "How dare you ruin my door?", her wand of striking and hits took 87 -> 0 (T13037). dig.c: digging in a shop or its door angers the shopkeeper
+        keeper = any(m['peaceful'] and m['ch'] == '@' and m['dist'] <= 8 for m in mons)
+        if pick and not near and not shop and not keeper and not snap.is_door(*me) and s.get('dlvl', 1) < (s.get('xl') or 1) + 1 and not soko_hunt and not mcap and self.standing_on() not in ('<', '>', '_', '{'):
             # same pace as the stairs: 'not too_deep' let XL5 dig 6 -> 7 and XL6 7 -> 8, dead to a giant spider (T4825)
             opts['dig_down'] = ('Dig down with the pick-axe', f"Apply {pick['text']} downward to dig a hole to Dlvl {s.get('dlvl', 0) + 1} (takes several turns; skips the rest of this level).", lambda l=pick['letter']: self.act_dig(l))
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
@@ -1374,7 +1376,7 @@ class Bot:
         # a mumak (stronger), an ogre and a soldier ant adjacent, prayer 75 turns old: the wand was offered only at 4 HP, dead mid-zap (T7569)
         mob = 'pray' not in opts and sum(m['dist'] <= 1 for m in near) >= 2 and any(m['dist'] <= 1 and 'stronger' in self.threat(m) for m in near)
         dig = next((it for it in self.inventory if 'wand of digging' in it['text'] and not re.search(r':0\)', it['text'])), None)
-        if dig and (s.get('turn') or 0) - self.run.get('held', -99) > 1 and (s.get('hp', 1) * 2 < s.get('hpmax', 1) and any(m['dist'] <= 1 for m in near) or mob or not downs and not near and s.get('hunger') in ('Hungry', 'Weak', 'Fainting') and not any(FOOD.search(it['text']) for it in self.inventory)) and not self.soko() and self.standing_on() not in ('<', '>', '_', '\\', '{'):  # starving: fainted searching walls for 400 turns with this wand in the pack, dead to a goblin (T6106)  # a hill orc pack, a wand of digging unused, gamble prayer failed, dead (T2926)
+        if dig and (s.get('turn') or 0) - self.run.get('held', -99) > 1 and (s.get('hp', 1) * 2 < s.get('hpmax', 1) and any(m['dist'] <= 1 for m in near) or mob or not downs and not near and s.get('hunger') in ('Hungry', 'Weak', 'Fainting') and not any(FOOD.search(it['text']) for it in self.inventory)) and not self.soko() and not shop and self.standing_on() not in ('<', '>', '_', '\\', '{'):  # starving: fainted searching walls for 400 turns with this wand in the pack, dead to a goblin (T6106)  # a hill orc pack, a wand of digging unused, gamble prayer failed, dead (T2926)
             opts['dig_down'] = (f"Zap {dig['text']} down", 'Dig a hole through the floor and fall to the level below, leaving every monster here behind.', lambda l=dig['letter']: (self.act_keys('z' + l + '>', 'dug down'), self.read_inventory())[0])  # held: "You are being held, and cannot go down" x12 while a rope golem choked 47 -> 0 (T14075)
             if mob:
                 opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'elbereth'))}
