@@ -1388,6 +1388,8 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {f'attack_{d}': ('Kill the yellow light', 'It explodes and blinds you for 10-200 turns when it attacks, and cornered on Elbereth it still attacks. Killing it is safe: it only explodes as an attack.', lambda d=d: self.act_fight(d))}
         # a safe prayer fully heals; Jev chose Elbereth over it at 1 HP and died. 500+ turns on, rnz(350) - elapsed < 200 most of the time:
         # Jev threw darts at 8 HP instead of a 700-turn gamble and died (T5087)
+        if 'elbereth' in opts and 'gamble' in opts.get('pray', ('',))[0] and (s.get('turn') or 0) - (self.run.get('prayed_turn') or 0) < 200 and len(opts) > 1:
+            del opts['pray']  # 144 turns after praying, a wererat's rats at 10/50: the gamble over a ~72% Elbereth angered Tyr, dead (T1583)
         if LOW_HP(s) and 'pray' in opts:  # the gamble (100+ turns) is ~.5-.87: Jev engraved at 1 HP 478 turns after praying and died (T4535)
             # a gamble prayer is ~.6 at 250 turns (rnz(350) simulated); a known attack wand at the attacker beats it: pray-only at 8/62 with a wand of cold, dead (T5509)
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0] or k == 'dig_down' and 'gamble' in opts['pray'][0]

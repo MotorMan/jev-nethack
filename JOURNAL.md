@@ -2219,3 +2219,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** the bot was at XL4 and full HP, waiting on Elbereth beside a soldier ant rated "much stronger". The ant stepped out of view and the bot left the engraving to fetch an item. The ant came back and the bot ran 12 steps for '<' (the ant has speed 18, the bot 12). Two Elbereths came out garbled, a prayer healed it, and the melee killed it anyway.
 - **Wiki:** soldier ants are the top killer, and you can't outrun one. Elbereth works against them, so stay on it.
 - **Fix:** once a "much stronger" monster has been within 7 squares, the stay-on-Elbereth rule now holds for 20 turns, even at full HP and even when the monster is out of view.
+
+## 2026-10-01 — sewer rat while praying, Dlvl 3 T1583 (run 20261001-194523)
+- **Cause:** at 10/50 HP, beside a wererat in animal form and the rats it had summoned, the bot was offered both Elbereth and a gamble prayer. The last prayer had been 144 turns earlier. Jev chose the prayer (p 0.52); it failed and the rats killed it mid-prayer.
+- **Wiki/source:** the prayer timeout after a successful prayer is rnz(350), so praying under ~200 turns later usually fails. Animal-form weres and rats respect Elbereth, and a dust Elbereth comes out legible about 72% of the time.
+- **Fix:** when Elbereth is offered and the last prayer was under 200 turns ago, the gamble prayer is removed.
