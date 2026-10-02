@@ -2650,3 +2650,10 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: The bot records each kill from the message "You kill the X!". The eat action accepts only a corpse of a recent kill. The regex for the kill name accepted only lowercase letters. "You kill the Mordor orc!" and "You kill the Woodland-elf!" were not recorded. As a result, the eat action answered "n" to each corpse prompt and reported "ate corpse". This occurred about 40 times in the game, and no turn passed. Jev fainted from hunger on Dlvl 8, and a mumak killed it.
 - Prevention: Monster names can start with a capital letter. Make sure that each message regex accepts this.
 - Fix: The kill regex accepts capital letters. The eat action reports "did not eat" when no turn passes.
+
+## T11970 water nymph with a wand of striking, Dlvl 5
+
+- Cause: A water nymph zapped a wand of striking at Jev from 2 squares. Three hits took HP from 70 to 11. The bot never offers to close in on a nymph, because each touch steals an item. Jev had nothing to throw. The only options were Elbereth and explore, and Elbereth does not stop wands. Prayer was on timeout, and the nymph killed Jev with one more zap.
+- Prevention: A monster that zaps or shoots at you must be killed. Elbereth does not stop it. A stolen item costs less than death.
+- Fix: The bot can close in on a nymph if she is the monster that shot at Jev.
+- Second fault: The bot offered "break the wand of speed monster" at Str 9. In 5.0 (apply.c `do_break_wand`), you need Str 10 to break a wand. The action failed 30 times and no turn passed. The offer now requires Str 10.
