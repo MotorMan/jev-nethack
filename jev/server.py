@@ -1,4 +1,4 @@
-"""Entry point: runs the bot in a thread and serves the dashboard + API on 127.0.0.1.
+"""Entry point: runs the bot in a thread and serves the dashboard + API on 0.0.0.0 (all interfaces).
 
     python -m jev.server              # local NetHack build in ./nethack
     python -m jev.server --hardfought # SSH to hardfought.org (see jev/hardfought.py)
@@ -116,7 +116,7 @@ def main():
         bot = Bot(local_launcher(args.name), jev, 'local', args.name)
     bot.paused = args.paused
     threading.Thread(target=bot.play, daemon=True).start()
-    srv = ThreadingHTTPServer(('127.0.0.1', args.port), make_handler(bot))
+    srv = ThreadingHTTPServer(('0.0.0.0', args.port), make_handler(bot))
     print(f'dashboard: http://127.0.0.1:{args.port}', flush=True)
     srv.serve_forever()
 
