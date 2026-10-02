@@ -2572,3 +2572,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev was at 18/49 HP. A Woodland-elf shot arrows from range, and a gold golem was near. Jev picked up a spare orcish helm, a poisoned arrow and 2 elven arrows. The elf shot it to 10 HP during these turns. Jev rested, and the elf shot it to 2 HP. The prayer was not ready. Two potions and a wand of striking did not save it.
 - Prevention: At low HP with a hostile monster in view, do not spend turns on loot. Fight, escape or heal.
 - Fix: When HP is below half and a hostile monster is in view, the bot removes "pickup" and "fetch" options.
+
+## T13885 rothe, Minetown (Dlvl 7)
+
+- Cause: Jev stayed on Dlvl 7 (Minetown) from T8600 to T13885. Nymphs stole the shield, the helm, the apron, the banded mail and the orcish shield. Jev played at AC 10 for about 2000 turns. The bot did not offer "leave_nymph" by the up stairs, because of an old fix for an up-and-down loop (T9310). It did not find the down stairs. At the end, a dust vortex blinded Jev. Jev hit a watchman by mistake while blind, and a rothe killed it.
+- Prevention: Leave a nymph level by any staircase. Do not come back down at once.
+- Fix: "leave_nymph" can use the up stairs again. When it does, the bot blocks the way down for 300 turns, the same as after "flee_up". This block does not apply when Jev is Weak or Fainting.

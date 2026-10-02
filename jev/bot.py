@@ -1303,14 +1303,12 @@ class Bot:
             opts = {k2: v for k2, v in opts.items() if k2 == 'pray' or k2.startswith('eat_')}
             opts['enter_sokoban'] = ('Go up into Sokoban', f"This level has a second up staircase ({dist[p]} steps {compass(me, p)}): it leads to Sokoban, four puzzle levels with a known solution, safe food, rings, wands and a bag of holding or amulet of reflection at the top.", lambda p=p: self.act_descend(p, '<'))
         nexit = (downs[0], '>') if downs and s.get('dlvl', 1) <= (s.get('xl') or 1) else (ups[0], '<') if ups and s.get('dlvl', 1) > 1 else None  # XL3 on Dlvl 4: '>' was past pace, so Jev stayed 2000 turns while one wood nymph took 12 items incl. shield and spear, then died bare-handed (T3162)
-        if nexit and nexit[1] == '<' and self.run.get('nymph_lvl') == s.get('dlvl'):  # up then straight back down: leave_nymph/descend ping-ponged Dlvl 10 <-> 9 for 400 turns, Weak with no food, fainted beside a barrow wight (T9310)
-            nexit = None  # the elif below explores for '>' instead
         # the nymph itself counted as 'near': leave offered 4 times in 83 decisions, 39 waits on Elbereth while one wood nymph took darts, shield, sling, spear, scroll and potions; bare-handed at AC 10, a kitten killed Jev (T3361)
         nonymph = [x for x in near if 'nymph' not in x['name']]
         if self.run.get('nymph_lvl') == s.get('dlvl') and not hops and nexit and not nonymph and not m and s.get('hp', 1) >= (0.5 if near else 0.8) * s.get('hpmax', 1):  # left at 38/55 into a Woodland-elf + Mordor orc: 38 -> 7 in 2 turns (T5934)
             # a nymph teleports back for more: one wood nymph took shield, spear, bag, ration and egg over 500 turns
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat_')}
-            opts['leave_nymph'] = ('Leave this level (a nymph lives here)', f"A nymph on this level keeps coming back to steal your things. Walk to the staircase ({dist.get(nexit[0], 0)} steps) and leave.", lambda e=nexit: self.act_descend(e[0], e[1], stop_new=False))
+            opts['leave_nymph'] = ('Leave this level (a nymph lives here)', f"A nymph on this level keeps coming back to steal your things. Walk to the staircase ({dist.get(nexit[0], 0)} steps) and leave.", lambda e=nexit: self.flee_up(lambda: self.act_descend(e[0], e[1], stop_new=False)) if e[1] == '<' else self.act_descend(e[0], e[1], stop_new=False))  # up then straight back down ping-ponged 400 turns (T9310), so '<' was banned; Minetown's '>' stayed unfound, 5 thefts, 5000 turns at AC 10, a rothe killed Jev (T13885): '<' now blocks descent 300 turns
         elif self.run.get('nymph_lvl') == s.get('dlvl') and not downs and not nonymph:  # downstairs unknown: 1000 turns on a nymph level, five thefts (shield, mithril, shield, helm, daggers), AC 10, killed by a wolf (T4895)
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'explore', 'door_', 'search')) or k == 'rest' and s.get('hp', 1) * 2 < s.get('hpmax', 1)} or opts  # rest: at 6/51 this sent Jev exploring into a fire ant (T3848)
         if were_throw in opts and not any(m['dist'] <= 1 for m in hostiles):
