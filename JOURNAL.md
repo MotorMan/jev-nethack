@@ -2942,3 +2942,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** At T7218 a floating eye blocked the only exit. The eye was not on a straight line from the bot, so the bot got no throw option. The bot hit the eye in melee with 10 darts in the pack. The eye paralyzed the bot. During the paralysis, lycanthropy changed the bot into a wererat. The rat was Overloaded and dropped the spear, the shield, the darts and the wands. The rat stood on the pile, and that cleared the pile spot. In @ form, the bot did not go back for the gear. At AC 9 it attacked an Uruk-hai (28 -> 9 HP), prayed too soon, and a couatl killed it.
 - **Prevention:** Do not melee a floating eye when you have missiles. Walk to a square on a line with the eye, then throw. Go back for gear that you drop in animal form.
 - **Fix:** `kill_blocker` for an eye now walks to a square 2 to 4 steps away on a clear line, and then the throw option fires. The Overloaded drop records the spot in `dropped`. The `dropped` and `gear_at` spots stay set while the bot is in were form.
+
+## Sokoban stall, T6297-T6935 (Dlvl 4)
+
+- Cause: a floating eye and a nymph stood on the only path to the square behind the next boulder. The walk stopped after 1 step, 1500 times. The forced push removed every other option, so the bot could not remove the eye.
+- Prevention: when the walk to the push square is blocked, deal with the monster first.
+- Fix: after a blocked walk, the bot does not offer the push for 40 turns. The other options (throw at the eye, fight) come back.
