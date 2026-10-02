@@ -193,7 +193,7 @@ class Bot:
                 self.run['shot_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
                 if m := re.search(r'The ([\w -]+?) (?:throws|shoots|zaps|breathes|spits)\b', text):
                     self.run['shooter'] = m[1]
-            for k in re.findall(r'You (?:kill|destroy) (?:the |an? )?(?:invisible )?([a-z -]+?)!', text):  # which corpse is fresh: the eat prompt names each one on the square
+            for k in re.findall(r'You (?:kill|destroy) (?:the |an? )?(?:invisible )?([A-Za-z -]+?)!', text):  # which corpse is fresh: the eat prompt names each one on the square. Capitals: 'Mordor orc', 'Woodland-elf' never counted, 'n' to every prompt, fainted, mumak (T7680)
                 self.run.setdefault('kills', []).append(((self.snap.status.get('turn') or 0) if self.snap else 0, k))
                 del self.run['kills'][:-20]
             if re.search(r'\b(hits|bites|stings|kicks|butts|claws|touches)!', text):
@@ -2279,7 +2279,7 @@ class Bot:
         self.observe()
         key = (self.snap.status.get('dlvl'), self.snap.me)
         self.run['here'][key] = self.look_here()
-        return 'ate corpse'
+        return 'ate corpse' if (self.snap.status.get('turn') or 0) > turn else 'did not eat: no corpse here is a fresh kill'  # 'ate corpse' 18 times with no turn passing (T7680)
 
     def blindfold(self):
         return None if 'Blind' in str(self.snap.status.get('conditions')) else \

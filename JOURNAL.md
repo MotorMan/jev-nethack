@@ -2644,3 +2644,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev was Hungry with no food. It killed two jackals at T2987, and their fresh corpses were near. A jackal hit Jev at T2986. For 5 turns after a hit, a filter removes the options to eat and to go to a corpse. Only "descend" was left. Jev walked 40 steps to the stairs, and the corpses went stale. Jev became Weak, then Fainting. It prayed too soon after the last prayer, and an iguana killed it.
 - Prevention: When Jev is hungry with no food, a fresh corpse nearby is more important than the stairs.
 - Fix: When Jev is hungry with no food and a corpse less than 35 turns old is within 15 steps, the bot does not offer the stairs. If no other option stays, it waits one turn.
+
+## T7680 mumak while fainted, Dlvl 8
+
+- Cause: The bot records each kill from the message "You kill the X!". The eat action accepts only a corpse of a recent kill. The regex for the kill name accepted only lowercase letters. "You kill the Mordor orc!" and "You kill the Woodland-elf!" were not recorded. As a result, the eat action answered "n" to each corpse prompt and reported "ate corpse". This occurred about 40 times in the game, and no turn passed. Jev fainted from hunger on Dlvl 8, and a mumak killed it.
+- Prevention: Monster names can start with a capital letter. Make sure that each message regex accepts this.
+- Fix: The kill regex accepts capital letters. The eat action reports "did not eat" when no turn passes.
