@@ -30,6 +30,6 @@ if [ -n "$3" ]; then
     JEV_ENDPOINT=$3 JEV_MODEL=${4:-jev-latest} JEV_LABEL=$5
     export JEV_ENDPOINT JEV_MODEL JEV_LABEL
 fi
-JEV_CHAR=${JEV_CHAR:-Valkyrie:dwarf:female:lawful} JEV_BUDGET_USD=${JEV_BUDGET_USD:-25} nohup .venv/bin/python -u -m jev.server --name "$NAME" --port "$PORT" --host 0.0.0.0 --char "${JEV_CHAR}" >> "$LOG" 2>&1 &
+JEV_CHAR=${JEV_CHAR:-Valkyrie:dwarf:female:lawful} JEV_BUDGET_USD=${JEV_BUDGET_USD:-25} JEV_HOST=${JEV_HOST:-0.0.0.0} nohup .venv/bin/python -u -m jev.server --name "$NAME" --port "$PORT" --host "${JEV_HOST}" --char "${JEV_CHAR}" >> "$LOG" 2>&1 &
 for i in $(seq 30); do curl -s -XPOST "127.0.0.1:$PORT/api/control" -d '{"action":"speed","delay_ms":0}' >/dev/null && break; sleep 1; done
 echo "$NAME on http://127.0.0.1:$PORT (${JEV_ENDPOINT:-hosted Jev}) char=${JEV_CHAR} log $LOG"
