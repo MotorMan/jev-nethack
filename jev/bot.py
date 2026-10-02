@@ -1659,6 +1659,10 @@ class Bot:
         self.t.send('F' + d)
         self.after_move(before)
         self.run['elbereth'].discard((before.status.get('dlvl'), before.me))
+        recent = ' '.join(self.run['recent'][-2:])
+        q = (before.me[0] + DIRS[d][0], before.me[1] + DIRS[d][1]) if before.me else None
+        if q and 'You kill' in recent and self.snap.at(*q) and self.snap.at(*q).ch in OBJECT_CHARS - {'%'} and not any(re.search(rf'You kill the [\w -]*{n}', recent) for n in self.never_eat()):
+            self.level().corpses[q] = self.snap.status.get('turn') or 0  # a corpse under dropped arrows shows ')', so the '%' scan never dated it: stood on a fresh giant ant, ate 3 corpses in 8700 turns, fainted (T8693)
         return f'attacked {DIR_NAME[d]}'
 
     def act_go(self, target, dist_prev=None, steps=40, adjacent_ok=False, stop_new=True):

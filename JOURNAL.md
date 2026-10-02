@@ -2148,3 +2148,9 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: a wood nymph on Dlvl 4 stole 12 items over 2000 turns (shield T888, spear T2928, rings, potions, wand). leave_nymph required Dlvl ≤ XL, and Jev was XL3 on Dlvl 4, so it never fired until XL4. Then the walk to '>' stopped at every monster coming into view (~100 turns to leave). On Dlvl 5, with an empty pack at AC 10 and bare-handed, a werejackal pack killed it.
 - Wiki (Nymph): she teleports away after each theft and comes back; leave the level (she only follows if adjacent) or kill her on sight.
 - Fix: leave_nymph uses '<' when '>' would break the pace rule, and walks without stopping for newly seen monsters.
+
+## Soldier ant while fainting (run 174940, Dlvl 7, XL6, T8693)
+- Cause: hunger. Jev prayed for hunger 5 times in 8700 turns and ate only 3 corpses, despite dozens of kills with a corpse nearby. The prayer at T8646 (830 turns after the last) didn't fix Weak; it fainted mid-fight with a soldier ant.
+- Found: corpse tracking only dates squares showing '%'. A kill whose square also holds dropped items (arrows, weapons) shows ')' or '[', so the corpse got 'unknown age = rotten' and was never offered (T7158: standing on a fresh giant ant corpse under 11 orcish arrows, no eat option).
+- Wiki/eat.c: corpses under 50 turns old are safe (rot = age/(10+rn2(20))).
+- Fix: a melee kill whose square shows a non-'%' object is recorded as a fresh corpse; goto_corpse already drops the entry if none is there.
