@@ -538,7 +538,7 @@ class Bot:
             return ''
         desc = re.sub(r'^\S\s+', '', desc)
         desc = re.sub(r'\s*\[seen:.*$', '', desc)
-        desc = re.sub(r", can't move \([^)]*\)", '', desc)  # pager.c: the nested parens made a sleeping Woodland-elf 'paralyzed or sleeping or busy)' (T8550)
+        desc = re.sub(r", can't move \([^)]*\)", ', asleep', desc)  # pager.c: the nested parens made a sleeping Woodland-elf 'paralyzed or sleeping or busy)' (T8550)
         # "tame a dog or other canine (little dog called Kiki)" -> "tame little dog called Kiki"
         m = re.match(r'^((?:tame|peaceful)\s+)?.*\((.+)\)$', desc)
         return (m[1] or '') + m[2] if m else desc
@@ -562,6 +562,7 @@ class Bot:
                 m['name'] = re.sub(r',.*$', '', desc) or f"unknown '{m['ch']}'"
                 m['pet'] = m['pet'] or 'tame' in desc
                 m['peaceful'] = 'peaceful' in desc
+                m['asleep'] = ', asleep' in desc
                 if m['peaceful'] and (m['ch'] == '@' or m['ch'] in 'Gh' and snap.find('{')):  # shopkeeper, watchman or priest: breaking doors here gets us killed
                     self.level().town = True  # peaceful gnomes + a fountain is Minetown: no sign, no @ seen, kicked Izchak's door, struck dead (T6005)
         out = [m for m in out if not (m['name'] or '').startswith(('statue', 'a statue'))]
@@ -571,6 +572,8 @@ class Bot:
             if m['statue']:
                 self.level().blocked.add(m['pos'])
             m['hostile'] = not m['pet'] and not m['peaceful'] and not m['statue'] and (m['ch'] != 'I' or m['dist'] <= 1)
+            if m.get('asleep') and re.search(r'nymph|leprechaun', m['name']):  # user: a sleeping nymph or leprechaun is no threat; Valkyries are stealthy and walk past
+                m['hostile'], m['name'] = False, m['name'] + ' (asleep)'
             # sessile, only hurt you if you hit them: never a reason to hold still, and never walk into them
             m['passive'] = bool(re.search(r'floating eye|mold|shrieker|gas spore|jelly', m['name'])) or (m['ch'] == 'e' and m['fg'] in ('blue', 'white', 'gray'))  # user: just kill acid blobs (passive acid is 1d8 at most; avoiding them blocked corridors)
             m['where'] = f"{m['dist']} step{'s' if m['dist'] != 1 else ''} {compass(me, m['pos'])}"
