@@ -1365,6 +1365,8 @@ class Bot:
             opts['dig_down'] = (f"Zap {dig['text']} down", 'Dig a hole through the floor and fall to the level below, leaving every monster here behind.', lambda l=dig['letter']: (self.act_keys('z' + l + '>', 'dug down'), self.read_inventory())[0])  # held: "You are being held, and cannot go down" x12 while a rope golem choked 47 -> 0 (T14075)
         if 'pray' not in opts and s.get('hp', 1) * 3 < s.get('hpmax', 1) and any(k.startswith(('zap_', 'teleport', 'dig_down')) for k in opts):  # an unknown wand sat unzapped while a Woodland-elf meleed 30 -> 2, prayer 90 turns old (T5409)
             opts = {k: v for k, v in opts.items() if k.startswith(('zap_', 'quaff_', 'flee')) or k in ('elbereth', 'upstairs', 'ascend', 'teleport', 'dig_down')}
+            if any(re.search(r'zaps (a|an) [\w ]*wand', r) for r in self.run['recent'][-3:]) and any(k.startswith(('zap_', 'teleport', 'dig_down')) for k in opts):
+                opts.pop('elbereth', None)  # monmove.c m_move then mhitu.c find_offensive: a scared monster steps off and zaps from range; engraved beside a hill orc with a wand of striking at 12/62 over its own wand, dead (T6827)
         if self.unseen_attacker():  # a fire ant bit from a square the map showed empty; 3 x 15-turn searches and explores, 47 -> 8, prayed too soon (T3879)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'search', 'rest', 'door_', 'goto_', 'choke'))} or opts
             if not any(m['dist'] <= 1 for m in hostiles) and 'Blind' not in s.get('conditions', []):  # detect.c: searching maps an adjacent invisible monster as 'I', which gets an attack option

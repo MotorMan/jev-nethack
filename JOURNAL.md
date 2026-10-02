@@ -2433,3 +2433,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A were-form shed Jev's armor. Back in dwarf form at AC 10, a little dog (speed 18, 2 bites a turn) took Jev 42 -> 9. Jev had a wand of digging, but it chose a gamble prayer 290 turns after the last prayer. The prayer failed and the dog killed Jev.
 - Prevention: A wand of digging or teleportation is a sure escape. A prayer before the timeout is a gamble.
 - Fix: `jev/bot.py` removes the gamble prayer when a zap of digging down or a teleport is on offer.
+
+## T6827 hill orc's wand of striking, Dlvl 6
+
+- Cause: A band of 6 hill orcs came down a narrow room. One zapped a wand of striking. Jev closed in, 46 -> 29 -> 12. At 12/62 it engraved Elbereth instead of zapping its own unknown wand. The orc hit it during the engraving, and the next zap killed it.
+- Prevention: Elbereth does not stop a wand. A scared monster steps away and zaps from range (monmove.c m_move, mhitu.c find_offensive).
+- Fix: `jev/bot.py` removes `elbereth` at low HP when a monster zapped a wand in the last 3 messages and a zap, teleport or dig-down option is on offer.
