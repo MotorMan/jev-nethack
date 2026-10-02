@@ -54,7 +54,7 @@ LOW_HP = lambda s: s.get('hp', 1) <= 5 or s.get('hp', 1) * (5 if s.get('xl', 1) 
 STRATEGY = ("You are a dwarven Valkyrie (NetHack 5.0): strong melee, cold resistant, infravision; stealthy from XL 3, fast from XL 7. Gnomes and dwarves (the Mines) are peaceful to you. Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. Each monster in view shows its AC, attacks and, for the dangerous ones, a 'Fight if ...; avoid if ...' rule: follow it. "
             "Fight weak monsters in melee; do not melee floating eyes (blue 'e') or cockatrices ('c' yellow) bare-handed. Against a group, fight from a corridor or doorway so only one or two reach you. Back off to heal at half HP, not at 1 HP. "
             "Prayer fixes low HP (at or below 1/5 of max at XL 1-5, 1/6 at XL 6-13, or 5 HP) and Weak hunger, but only about once per 1000 turns; "
-            "the first prayer is safe after roughly turn 300. Elbereth in the dust (fails about 1 time in 4: check it) stops melee from most monsters, "
+            "the first prayer is safe after roughly turn 300. Your default against anything you cannot kill at once is to back into a corridor or doorway and fight one at a time; Elbereth is for emergencies only. Elbereth in the dust (fails about 1 time in 4: check it) stops melee from most monsters, "
             "not @ humans or elves (including were-creatures in @ form), minotaurs, shopkeepers or peacefuls, and never wands, arrows or breath: kill a weak monster that zaps or shoots at you instead of waiting it out. If it keeps backing off as you close in (an aklys returns to its thrower), stop chasing it: break line of sight, heal or leave by the stairs. A scared monster with nowhere to flee can still hit you, and attacking, throwing or zapping from it erases it. Elbereth is for healing, not for living on: new monsters keep arriving (about one every 70 turns), so once healed, fight the weakest one and re-engrave when hurt. An invisible attacker: search one turn to mark it (I), then attack that square. "
             "Mumakil (speed 9) hit hardest of anything early: never trade blows, throw things or walk away. Never melee a were in animal form if you can avoid it: its bite gives lycanthropy ('You feel feverish'); pray as soon as it is safe to cure it, and while you are in animal form stay on the current level instead of going down. Kill wererats quickly, before they summon rats; a were-creature (either form) can call more of its kind whenever it attacks, so when mobbed kill it before anything it summoned. A yellow light blinds you for up to 200 turns when it explodes at you, even on Elbereth if it is cornered: put on a towel or blindfold first (the explosion then does nothing), else kill it (killing it is safe) rather than wait beside it. Blind and bitten by something unseen while engraving fails: fight back. Soldier ants (speed 18, poison) kill more players than anything: Elbereth works on them, never let them surround you, and zap or read teleportation to escape when hurt. A monster that is scared but cornered still attacks you on Elbereth: if you are hit there, Elbereth is not protecting you, so pray, quaff or leave. Never rest for long with a fast monster that keeps coming back; find the up stairs. A crowd too big to fight (a magic trap's flash and roar summon monsters right beside you) interrupts engraving: if the up stairs are a few steps away, take them. Elbereth does not make a crowd go away: if more and more monsters gather while you wait, and the up stairs are close, leave by them. In speed boots you are faster than almost everything early: walk away from slow heavy hitters (zombies, mumakil, ogres) to the up stairs instead of standing on Elbereth. Hungry with no food and a food shop near (Minetown often has a delicatessen): sell spare weapons and gems in a general store and buy food before you faint; prayer for hunger can fail if prayed too soon. "
             "Collect gold: a temple priest sells permanent AC for about 400-500 gold per experience level; keep 2000-4000 after that for shops. "
@@ -674,7 +674,7 @@ class Bot:
                 if not fast and not weak_only and not shot and hp < 0.7 * hpmax and self.retreat_dir(hostiles):  # one step back from a wand-zapping hill orc, 3 times at 5/45: zapped dead (T4400)  # at 50/53 Jev retreated 6 times from hill orcs, eating hits without swinging (T2966); retreating from a giant bat (speed 22) just gives it free hits
                     opts['retreat'] = ('Retreat one step', 'Step to the adjacent square farthest from visible hostiles.' + ' Everything nearby is slower than you, so you can open a gap.', lambda: self.act_retreat(hostiles))
             # wiki (Fighting in corridors): a pack surrounds you on up to 8 sides; in a corridor only one or two can reach you. User: get to a hallway rather than sit on Elbereth
-            if len(pack_near) >= 2 and open_n(me) > 2 and gap >= 2 and sum(h['choice'] == 'choke' for h in self.history[-12:]) < 3:  # a pack 4 steps off that never came: choke <-> explore 34 times, Hungry to Weak, dead Fainting (T7245)  # walked off with two apes adjacent at 14/42: free hits, dead (T2116)
+            if len(pack_near) >= 2 and open_n(me) > 2 and (gap >= 2 or outrun) and sum(h['choice'] == 'choke' for h in self.history[-12:]) < 3:  # a pack 4 steps off that never came: choke <-> explore 34 times, Hungry to Weak, dead Fainting (T7245)  # walked off with two apes adjacent at 14/42: free hits, dead (T2116)
                 choke = min((q for q, dq in dist.items() if 0 < dq <= 15 and open_n(q) <= 2 and q not in self.level().traps and not snap.is_monster(*q)
                              and min(cheb(q, m['pos']) for m in pack_near) >= min(gap, 3)), key=dist.get, default=None)
                 if choke:
@@ -707,7 +707,8 @@ class Bot:
             if stun:
                 opts.setdefault('wait', ('Wait out the stun', 'You are stunned: any move or attack goes in a random direction. Search in place one turn until it wears off.', lambda: self.act_keys('ms', 'waited')))
         big_hit = bool(self.history) and (self.history[-1]['hp'] or 0) - hp >= hp and any(m['dist'] <= 1 for m in hostiles)  # one more turn like the last one kills
-        if (near and hp < 0.7 * hpmax or dread or pack or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
+        # operator: Elbereth is for emergencies; the default is back into a corridor and fight one at a time (was hp < 0.7 or any pack: 30-140 engravings a game, mostly forced)
+        if (near and hp < 0.45 * hpmax or dread or pack and open_n(me) > 2 and 'choke' not in opts and hp < 0.6 * hpmax or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & ({'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} | (set() if big_hit else {'Hallu', 'Hal', 'Hl'})) \
                 and sum(h['choice'] == 'elbereth' and 'interrupted' in h['outcome'] for h in self.history[-4:]) < 2 \
                 and (s.get('turn') or 0) - self.run.get('no_engrave', -99) > 5 \
@@ -989,10 +990,10 @@ class Bot:
                 opts['shop_look'] = (f"Go look at the {snap.at(*q).ch} for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the item and its price (you have {s.get('gold')} gold). Armor lowers AC; a price can identify a scroll or potion.", lambda q=q: self.act_go(q))
         gold, xl = s.get('gold', 0), s.get('xl') or 1
         if not near and not shop and gold < 4000:  # user: gold buys protection, then keep 2000-4000 for shopping; fetch's 15-step radius left games at 13-533 gold
-            coins = [q for q in snap.find('$') if q in dist and dist[q] > 0 and (s.get('dlvl'), q) not in self.run['here'] and sum(cheb(q, o) <= 3 for c in ')[%?/=!("' for o in snap.find(c)) < 6]
+            coins = [q for q in snap.find('$') if q in dist and dist[q] > 0 and (s.get('dlvl'), q) not in self.run['here'] and self.run.setdefault('gold_miss', {}).get((s.get('dlvl'), q), 0) < 3 and sum(cheb(q, o) <= 3 for c in ')[%?/=!("' for o in snap.find(c)) < 6]
             if coins and 'fetch' not in opts or coins and snap.at(*min(coins, key=dist.get)).ch == '$':
                 q = min(coins, key=dist.get)
-                opts['fetch_gold'] = (f"Pick up the gold {compass(me, q)}", f"Walk {dist[q]} steps to the '$'. You have {gold} gold: about {500 * xl} buys permanent AC from a temple priest, and more buys food and armor in shops.", lambda q=q: self.act_go(q))
+                opts['fetch_gold'] = (f"Pick up the gold {compass(me, q)}", f"Walk {dist[q]} steps to the '$'. You have {gold} gold: about {500 * xl} buys permanent AC from a temple priest, and more buys food and armor in shops.", lambda q=q: self.act_fetch_gold(q))
         priest = [m for m in mons if m['peaceful'] and re.match(r'(peaceful )?priest(ess)? of ', m['name'])]
         if priest and not near and gold >= 500 * xl + (4000 if self.run.get('protection') else 0):  # 5.0 priest.c: offering the larger "suggested" sum gives 1 AC per 2x base (base = peak XL x 150-250), any temple priest
             opts['donate'] = (f"Buy protection from the {priest[0]['name'].replace('peaceful ', '')}", f"You have {gold} gold. Walk to the priest ({priest[0]['where']}) and donate: about {400 * xl}-{500 * xl} gold buys permanent divine protection (lower AC).", lambda p=priest[0]['pos']: self.act_donate(p))
@@ -1363,7 +1364,7 @@ class Bot:
                     or k.startswith('zap_') and 'gamble' in opts['pray'][0] and re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', v[0])}  # chose an unknown black potion over a ~.7 prayer at 8/43: dead (T3559)
         if 'flee_up' in opts and len(opts) > 1 and all(h['choice'] == 'flee_up' and 'after 1 steps' in h['outcome'] for h in self.history[-2:]):
             opts.pop('flee_up')  # 4 one-step flee_ups between an elf mummy, a Woodland-elf and soldier ants, 55 -> 0, wand of fire and 2 healing potions unused (T8671)
-        if 'flee_up' in opts and 'elbereth' in opts and not any(dist.get(q, 99) <= 1 for q in self.snap.find('<')) \
+        if 'flee_up' in opts and not any(dist.get(q, 99) <= 1 for q in self.snap.find('<')) \
                 and any(m['dist'] <= 1 and m['ch'] not in '@&' and 'minotaur' not in m['name'] and (MONSTERS.get(self.species(m)) or [0, 0])[1] > 12 for m in hostiles):
             opts.pop('flee_up')  # walked for '<' with a jaguar (speed 15, 3 attacks) adjacent: 31 -> 14 -> 8 -> 0 in two steps, Elbereth unused (T3778)
         if LOW_HP(s) and 'teleport' in opts and 'pray' not in opts and any(m['dist'] <= 1 and not m['peaceful'] for m in hostiles):
@@ -1390,6 +1391,8 @@ class Bot:
                     lv.shadowed += 1
                     opts = {'shadow_dwarf': (f"Follow the {dw['name']} and let your pet kill it", f"No pick-axe yet: stay beside the {dw['name']} {dw['where']} so your pet attacks it; dwarves often carry a pick-axe.",
                                              lambda q=q: self.act_go(q, steps=3) if q != me else self.act_keys('s', 'waited for the pet'))}
+        if 'fetch_gold' in opts and not any(not m['passive'] for m in hostiles) and s.get('hp', 1) >= 0.5 * s.get('hpmax', 1) and s.get('hunger') not in ('Weak', 'Fainting'):
+            opts = {'fetch_gold': opts['fetch_gold']}  # operator: gold buys priest protection, then 2000-4000 for shops; offered 45 times, taken 14, games ended at 16-160 gold
         rid = next((k for k, v in opts.items() if k.startswith('read_') and 'identify' in v[0]), None)  # operator: read identify as soon as anything major is unknown
         if rid and not hostiles and any(re.search(r'\b(wand|ring|amulet)\b(?! of| mail)|scrolls? labeled|potions?\b(?! of)', it['text']) and not re.search(r'\bcalled\b|\bnamed\b', it['text']) for it in self.inventory if it['letter'] != rid[5:]):
             opts = {rid: opts[rid]}
@@ -1497,6 +1500,13 @@ class Bot:
             return 'wore armor'
         self.run['unwearable'][it['text']] = self.snap.status.get('ac') or 0  # wrong slot taken, two-handed weapon, too big...: stop offering it
         return 'could not wear it: ' + (self.run['recent'][-1] if self.run['recent'] else '')
+
+    def act_fetch_gold(self, q):
+        r = self.act_go(q)
+        if self.snap.me != q:  # unreachable '$' (seen across rock): 6 blocked walks in a row (T2647)
+            k = (self.snap.status.get('dlvl'), q)
+            self.run['gold_miss'][k] = self.run['gold_miss'].get(k, 0) + 1
+        return r
 
     def act_donate(self, pos):
         me = self.snap.me

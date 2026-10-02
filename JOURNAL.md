@@ -2070,3 +2070,23 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** a jaguar and a Green-elf were adjacent at 28/72 HP. The bot zapped its wand of teleportation at itself five times and got "Nothing happens" every time. The wand was empty, and each zap was a free round of hits. A wand of cold was in the pack.
 - **Wiki/source:** zap.c dozap: if the wand isn't zappable (no charges left), you get "Nothing happens". Bad luck instead gives "Unfortunately, nothing happens" and burns a charge.
 - **Fix:** after a zap that reports "Nothing happens", the bot marks the wand "(empty, x:0)" in its inventory, and every wand option skips it. Teleport and attack zaps then fall through to the next option.
+
+## Elbereth is for emergencies only (operator)
+- **Operator:** "I've hardly used Elbereth in real games except for emergencies. The default is to retreat to a hallway and fight monsters 1 on 1."
+- **Data:** the bot engraved 2–140 times per game, mostly with Elbereth as the only option offered (forced).
+- **Fix:**
+  - Elbereth is now offered only below 45% HP (was 70%), against dread monsters or unseen attackers, or for a pack in the open with no reachable corridor below 60% HP.
+  - "Fight from a corridor" is also offered when monsters are already adjacent, if the bot can outrun them.
+  - The strategy text now gives corridor fighting as the default.
+
+## Run 20261001-170929: killed by a little dog (T1741, Dlvl 4, XL 4)
+- **Cause:** at 51/51 HP the bot walked for '<' with a weaker but fast (speed 18) little dog adjacent. Three blocked steps gave three free bites, 51 → 14. Then Elbereth, a hit on it anyway, an early prayer, and a hill orc.
+- **Wiki:** you can't outrun something faster than you. Fight it.
+- **Fix:** whenever '<' isn't adjacent, the bot no longer runs for it on foot with a speed-13+ melee monster adjacent. This used to apply only when Elbereth was also on offer.
+
+## Gold (operator rule, from earlier)
+- **Rule:** gold buys protection from any temple priest, then keep 2000–4000 for shops.
+- **Data:** the last eight games ended with 6–160 gold. fetch_gold was taken in 14 of 45 offers.
+- **Fix:**
+  - The bot always goes for visible gold when no active hostile is in view, HP is at least half, and it isn't Weak.
+  - A '$' it fails to reach 3 times is dropped (it had walked "blocked after 1 step" six times in a row).
