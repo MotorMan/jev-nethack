@@ -2626,3 +2626,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A floating eye stopped in the only door of a shop while Jev was in the shop. Later a shrieker took the door. Jev searched for hidden passages for 16000 turns. It lived on prayers and then starved. The "kill the blocker" option never came. The variable `walled` had two definitions in `build_options`. The second definition (stuck in rock) replaced the first (boxed in by a floating eye). Also, the first definition needs 3 reachable squares or less, and the shop had more. The shrieker was not attacked because the bot counted the adjacent floating eye as a stronger monster.
 - Prevention: If a passive monster blocks the only exit for 200 turns, kill it. Throw things at a floating eye if possible.
 - Fix: The stuck-in-rock variable is now `entombed`. The 200-turn timer starts when the level has no unexplored edge and no known downstairs. A passive monster no longer stops an attack on a shrieker.
+
+## T7978 elf mummy, Dlvl 7
+
+- Cause: A plains centaur took Jev from 86 to 19 HP. Jev zapped a wand of teleportation at itself twice and escaped. Then the wand had no charges. The bot sends `z`, the wand letter and `.` together. For an empty wand, the game prints "Nothing happens" before it asks for a direction. The `.` then became a rest command, and its message "Are you waiting to get hit?" replaced "Nothing happens". The bot did not mark the wand empty. It zapped the empty wand 3 more times beside a winter wolf cub and an elf mummy, 20 -> 0 HP.
+- Prevention: When a zap gives no effect, mark the wand empty and use a different escape.
+- Fix: The bot also marks a wand empty when "Are you waiting to get hit?" comes after the zap.
