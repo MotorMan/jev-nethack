@@ -55,6 +55,12 @@ Every death is a lesson. Most games can be won, so do not call a death bad luck.
 - Do not dip for Excalibur.
 - Gold: buy protection from a priest first. After that, keep 2000 to 4000 gold.
 - Elbereth is for emergencies. The default against a group is to fight from a corridor or a doorway.
+- Boxes: unlock with a key or lock pick. If you have neither, pry the lock with a dagger. If you have no dagger, kick the box. Never force a lock with the main weapon. Keep 2 to 3 daggers until you have a key or lock pick.
+- A key, a lock pick and a unicorn horn are priority items. Buy them in shops.
+- 5.0 source: the watch treats any tool on a locked town door as lock picking, keys too. Do not unlock town doors where the watch can see you.
+- Do not pick up gems or gray stones (a gray stone can be a loadstone). Do not pick up random weapons. The Valkyrie keeps the spear until Mjollnir (sacrifice at a co-aligned altar) or a better artifact.
+- Test BUC on altars. Wear any armor with a known good BUC: helmets (elven is better than orcish), gloves, boots, shirts. Target AC -10 by Dlvl 10.
+- Note vaults, altars and stashes with `#annotate`. With a pick-axe, raid known vaults, then buy protection from a priest.
 - Rate limit: NEVER send more than 2 to 3 actions each second to a public server (hardfought, NAO). `REMOTE_GAP` in `jev/hardfought.py` sets this limit, and `Term.floor` enforces it. A new NAO launcher must use the same floor. Local play has no limit. The delay includes the time of the Jev call.
 
 ## UI rules from the user

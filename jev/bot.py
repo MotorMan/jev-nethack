@@ -44,6 +44,7 @@ WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber',
 WEAPON = re.compile(r'\b(' + '|'.join(WEAPON_RANK) + r')s?\b(?! corpse)')
 # pray.c: never offer own race (dwarf), a former pet, a co-aligned (white) unicorn; touching a cockatrice bare-handed stones you
 NEVER_OFFER = ('cockatrice', 'chickatrice', 'dwarf', 'kitten', 'housecat', 'large cat', 'little dog', 'large dog', 'dog corpse', 'pony', 'horse', 'white unicorn', 'Medusa', 'Death', 'Pestilence', 'Famine', 'were')
+UNLOCKER = re.compile(r'\b(skeleton key|key|lock pick|credit card)\b')  # lock.c: opens boxes (and doors, but the watch treats any of them as lock picking)
 UNKNOWN_BUC = lambda t: not re.search(r'\b(cursed|uncursed|blessed)\b|being worn|weapon in|gold piece|corpse', t)
 MINES_XL = 10  # 33 of 78 deaths were in the Mines, mostly Dlvl 6-8 at avg XL 5.5: below this, Mines only after Sokoban and never past Minetown
 POISONOUS = ('killer bee', 'soldier ant', 'giant beetle', 'queen bee', 'homunculus', 'rabid rat', 'giant spider', 'scorpion', 'snake', 'water moccasin', 'pit viper', 'cobra', 'gremlin', 'xan', 'jellyfish', 'salamander', 'guardian naga', 'green dragon')  # monsters.h M1_POIS, eat.c 5.0: 4 in 5 cost rnd(4) Str + rnd(15) HP without poison res (dwarven Valks have none); a homunculus and a giant beetle took Str 17 -> 5 (T6625)
@@ -105,6 +106,8 @@ class Level:
         self.resets = 0        # times near/dead/blocked were wiped after fruitless searching
         self.corpses = {}      # square -> turn the corpse was first seen
         self.town = False      # a peaceful @ lives here (Izchak killed a run over a kicked shop door; the cash-register chime means a shopkeeper: a wiped "Closed for inventory" sign let Jev kick in Kinojevis' door, zapped dead T972)
+        self.notes = set()     # user: annotate levels (vault, altar, stash): #annotate shows them in the ^O overview
+        self.noted = ''
         self.arrival = None    # where we first stood here: the other '<' on the Oracle+1 level leads to Sokoban
         self.stairs = set()    # '>' found under objects by #terrain
         self.terrain_turn = -999
@@ -163,6 +166,8 @@ class Bot:
                 self.run['dropped'] = (self.snap.status.get('dlvl'), self.snap.me)
             if re.search(r'is displeased|Thou durst call upon me|Then die, mortal|voice of \w+ (booms|rings out|thunders)|relearn thy lessons|Thou hast angered me', text) and 'desecrate my altar' not in text:  # pray.c altar_wrath: engraving on your own altar costs 1 Wis and 1 alignment, not anger; flagged angry, no prayer offered at 7/56 888 turns on, dead (T5954)  # prayed too soon: god angry, Luck -3 (the quote after 'booms:' can be lost: wrath of Tyr killed T5998), praying again only makes it worse
                 self.run['god_angry'] = True
+            if re.search(r'counting gold coins|footsteps of a guard on patrol|Ebenezer Scrooge', text) and self.snap:  # sounds.c: a vault with gold on this level; raid it with a pick-axe later
+                self.level().notes.add('vault')
             if re.search(r'grabs you|You are being (choked|held|crushed)|cannot escape from|swings itself around you', text) and self.snap:
                 self.run['held'] = self.snap.status.get('turn') or 0
             if re.search(r'nymph stole|nymph steals|She stole|He stole|stole .* from you|gladly hand over|gladly start removing', text) and self.snap:
@@ -300,6 +305,12 @@ class Bot:
         s = self.snap.status
         if self.run is not None and s.get('dlvl') and self.run.get('ov_dl') != s['dlvl'] and top_prompt(self.snap.lines)[0] is None:
             return self.overview()
+        if self.run is not None and s.get('dlvl') and top_prompt(self.snap.lines)[0] is None and (lv := self.level()).notes and lv.noted != (note := ', '.join(sorted(lv.notes))):
+            lv.noted = note
+            self.t.send('#annotate\r'); self.t.pump(0.5)
+            self.t.send('\x15' + note + '\r')  # ^U clears an EDIT_GETLIN prefill ('Replace annotation ... with?')
+            self.settle()
+            return self.observe()
         if self.snap.me and s.get('dlvl'):
             lv = self.level()
             x, y = self.snap.me
@@ -568,6 +579,7 @@ class Bot:
         alt = re.search(r'altar to .+? \((lawful|neutral|chaotic|unaligned)\)', blob.replace('\n', ' '))
         if alt and self.snap and self.snap.me:
             self.run.setdefault('altars', {})[(self.snap.status.get('dlvl'), self.snap.me)] = alt[1]
+            self.level().notes.add(f'{alt[1]} altar')
         return [i for i in items if not re.search(r'engraving|written|There is|Dlvl|St:', i)]
 
     # ---------- options ----------
@@ -917,6 +929,8 @@ class Bot:
                    else 'Better body armor than you wear: lower AC.' if (suit_ac(item) or 0) > max((suit_ac(it['text']) or 0 for it in self.inventory if 'being worn' in it['text']), default=0) + 1
                    else 'A helmet for your bare head: lower AC.' if re.search(r'orcish helm|dwarvish iron helm|hard hat|elven leather helm|leather hat', item) and not re.search(r'helm|hat|cap', worn)
                    else 'Boots for bare feet: lower AC.' if re.search(r'low boots|walking shoes|high boots|jackboots|iron shoes|hard shoes', item) and not re.search(r'boots|shoes', worn)
+                   else 'A key or lock pick: opens locked boxes and doors (a priority item).' if UNLOCKER.search(item) and not any(UNLOCKER.search(it['text']) for it in self.inventory)
+                   else 'A unicorn horn cures confusion, stun, blindness and sickness (a priority item).' if 'unicorn horn' in item and not any('unicorn horn' in it['text'] for it in self.inventory)
                    else 'Priced like a scroll of identify (base 20).' if look and look[0] == 'scroll' and known == {20}
                    else 'Priced like enchant armor or remove curse (base 80): both worth reading.' if look and look[0] == 'scroll' and known == {80}
                    else 'Priced like a potion of healing (base 20).' if look and look[0] == 'potion' and known == {20}
@@ -924,12 +938,16 @@ class Bot:
             if price and (FOOD.search(item) and 'corpse' not in item or why) and int(price[1]) <= s.get('gold', 0) and not self.run.get('debt'):
                 opts[f'buy_{i}'] = (f"Buy {item}", f"Pick up {item} and pay {price[1]} of your {s.get('gold')} gold. " + (why or 'Packed food prevents fainting from hunger.'), lambda item=item: (self.act_pickup(item), self.act_pay())[1])
                 continue
+            daggers = sum(int(n[1]) if (n := re.match(r'(\d+) ', it['text'])) else 1 for it in self.inventory if 'dagger' in it['text'])
+            # user: no gems (not playing for score; a gray stone can be a loadstone), no random weapons: the spear stays until Mjollnir; 2-3 daggers pry boxes and get thrown
+            if re.search(r'\b(gems?|stones?|rocks?|glass)\b', item) and 'luckstone' not in item or WEAPON.search(item) and not re.search(r'dagger|pick-axe|Mjollnir|Excalibur', item) or 'dagger' in item and daggers >= 3:
+                continue
             if shop or 'for sale' in item or 'corpse' in item and not ('lichen' in item or 'lizard' in item and not any('lizard' in it['text'] for it in self.inventory)) or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
         box = next((i for i in self.here_items() if re.search(r'\b(chest|large box)\b', i) and 'for sale' not in i), None)
         if box and not shop and not any(m['dist'] <= 6 for m in hostiles) and self.run.setdefault('looted', {}).get((s.get('dlvl'), me), 0) < 2:  # 5.0 mklev.c: 2/3 of levels above the Oracle get a box, half with healing potions; the Mines entry level's always has food
-            opts['loot'] = (f"Open {box} and take what is inside", 'Boxes on early levels often hold potions of healing, enchant scrolls or food. If it is locked, force it with your weapon (takes a few turns; a bashed box can break its potions).', self.act_loot)
+            opts['loot'] = (f"Open {box} and take what is inside", 'Boxes on early levels often hold potions of healing, enchant scrolls or food. If it is locked: unlock it with a key or lock pick, else pry it with a dagger, else kick it open.', self.act_loot)
         if 'Burdened' in s.get('conditions', []) or 'Stressed' in s.get('conditions', []):
             for it in self.inventory:
                 if (HEAVY.search(it['text']) or JUNK.search(it['text'])) and not re.search(r'weapon in|being worn|alternate weapon|mithril|at the ready|quiver|pick-axe|mattock', it['text']):
@@ -1592,6 +1610,9 @@ class Bot:
         rid = next((k for k, v in opts.items() if k.startswith('read_') and 'identify' in v[0]), None)  # operator: read identify as soon as anything major is unknown
         if rid and not hostiles and any(re.search(r'\b(wand|ring|amulet)\b(?! of| mail)|scrolls? labeled|potions?\b(?! of)', it['text']) and not re.search(r'\bcalled\b|\bnamed\b', it['text']) for it in self.inventory if it['letter'] != rid[5:]):
             opts = {rid: opts[rid]}
+        prio = next((k for k, v in opts.items() if k.startswith(('pickup_', 'buy_')) and (UNLOCKER.search(v[0]) or 'unicorn horn' in v[0])), None)
+        if prio and not hostiles:  # user: a key/lock pick and a unicorn horn are priority items
+            opts = {prio: opts[prio]}
         eid = next((k for k in opts if k.startswith('engrave_id_')), None)
         if eid and not hostiles:  # offered 39 times, explore always won: a balsa wand rode unknown to a fainting death (T7765)
             opts = {eid: opts[eid]}
@@ -1794,6 +1815,7 @@ class Bot:
             return r
         self.act_keys('d' + letter, 'dropped')
         self.run.setdefault('stashes', {}).setdefault((self.snap.status.get('dlvl'), q), []).append(text)
+        self.level().notes.add('stash')
         return f'stashed {text} by the up stairs'
 
     def act_keys(self, keys, what):
@@ -2320,29 +2342,56 @@ class Bot:
         return f'picked up {item}'
 
     def act_loot(self):
+        """user: unlock with a key/lock pick; else pry with a spare dagger (never force with the main weapon: a blunt one bashes and breaks potions); else kick."""
         key = (self.snap.status.get('dlvl'), self.snap.me)
         self.run.setdefault('looted', {})[key] = self.run['looted'].get(key, 0) + 1
-        seen = ''
-        for cmd in ('#loot\r', '#force\r', '#loot\r'):  # lock.c doforce: a non-blade weapon bashes (1 in 3 destroys the box), so loot first
-            self.t.send(cmd)
+        seen = []
+
+        def box(keys):
+            self.t.send(keys)
             for _ in range(12):
                 lines = self.t.lines()
                 kind, text = top_prompt(lines)
-                seen += ' ' + lines[0].strip()
+                seen.append(lines[0].strip())
                 if kind == 'menu':
                     self.t.send('o' if 'Do what with' in text else 'aA\r' if 'what type' in text else '.\r' if 'Take out what' in text else '\x1b')
                 elif kind == 'more':
                     self.t.send('\r')
                 elif kind in ('yn', 'ask'):
-                    self.t.send('y' if re.search(r'loot it\?|force its lock\?', text) else '\x1b')
+                    self.t.send('y' if re.search(r'loot it\?|force its lock\?|unlock it\?|Unlock it with', text) else '\x1b')
                 else:
                     break
-            if cmd == '#loot\r' and 'locked' not in seen or cmd == '#force\r' and not re.search(r'You succeed|totally destroyed', seen):
-                break
+            return ' '.join(seen)
+
+        if 'locked' not in box('#loot\r'):
+            pass
+        elif (tool := next((it for it in self.inventory if UNLOCKER.search(it['text'])), None)):
+            if re.search(r'succeed in (unlocking|picking)', box('a' + tool['letter'])):
+                box('#loot\r')
+        elif (dagger := next((it for it in self.inventory if 'dagger' in it['text'] and re.search(r'\b(uncursed|blessed)\b', it['text']) and 'weapon in' not in it['text']), None)):
+            main = next((it for it in self.inventory if 'weapon in' in it['text']), None)  # known-BUC dagger only: a cursed one welds to the hand
+            box('w' + dagger['letter'])
+            ok = re.search(r'succeed in forcing', box('#force\r'))
+            if main:
+                box('w' + main['letter'])
+            if ok:
+                box('#loot\r')
+        else:  # dokick.c: a kicked box can burst open ('WHAMM!' when it holds); potions inside may break
+            me = self.snap.me
+            spot = next((q for d, (dx, dy) in DIRS.items() if not (dx and dy) and self.snap.walkable(*(q := (me[0] + dx, me[1] + dy))) and not self.snap.is_monster(*q) and self.snap.at(*q).ch in '.#'), None)
+            if spot and self.act_go(spot, steps=1) and self.snap.me == spot:
+                for _ in range(5):  # dokick.c: 'THUD!' = it stayed put and held; otherwise it opened or slid off (kicking the empty square strains a muscle)
+                    n = len(seen)
+                    box('\x04' + DIR_OF[(me[0] - spot[0], me[1] - spot[1])])
+                    if 'break open' in ' '.join(seen[n:]) or 'THUD' not in ' '.join(seen[n:]):
+                        break
+                self.act_go(me, steps=1)
+                if self.snap.me == me:
+                    box('#loot\r')
         self.observe()
         self.read_inventory()
         self.run['here'][key] = self.look_here()
-        return ' '.join(seen.split())[-150:] or 'looted'
+        return ' '.join(' '.join(seen).split())[-150:] or 'looted'
 
     def act_altar(self, q):
         r = self.act_go(q)

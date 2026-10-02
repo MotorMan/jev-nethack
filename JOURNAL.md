@@ -2359,3 +2359,10 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - The bot went down the Mines branch to Mines Dlvl 4, came back, and later took the main '>' to main Dlvl 4. `in_mines()` only checks if the Dlvl number is in `mines_dls`, and the set only grew. So main Dlvl 4 counted as the Mines, and the Mines XL cap said "far too deep" each time. The bot went 3 <-> 4 about 50 times (the giant mimic game showed the same loop).
 - That burned the food. It prayed for hunger at T1235, T2298 and T3149. The fourth prayer, at Weak 1003 turns after the third, was too soon (pray.c p_type 0, "Thou art arrogant"). Then it fainted beside a wererat.
 - Fix: when ^O overview says that the hero is not in the Mines, remove that Dlvl from `mines_dls`.
+
+## User early-game tips (chests, pickups, keys, vaults)
+- Boxes: `act_loot` unlocks with a key or lock pick (5.0 autounlock asks "Unlock it with ...?"). Else it wields a dagger with a known BUC, uses #force (a blade pries), and wields the main weapon again. Else it kicks the box from an orthogonal square. It stops when a kick does not give "THUD!", because the box opened or slid away (dokick.c), and kicking an empty square strains a muscle. The main weapon is never used to force.
+- Pickups: no gems, stones or random weapons. Daggers up to 3, a pick-axe, a luckstone and named artifacts are allowed. A key, lock pick or unicorn horn is the only option when no hostiles are in view. Shops price them as worth buying.
+- Watch: lock.c/monmove.c watch_on_duty counts any unlocking tool on a locked town door as picking. The bot already leaves watched town doors shut.
+- Level notes: a vault sound (sounds.c: counting gold coins, guard footsteps, Ebenezer Scrooge), a known altar, or a stash adds a note. The bot writes the notes with `#annotate`.
+- Not done yet: the vault raid with a pick-axe, hunting cross-aligned unicorns, BUC tests with a pet, and selling weapons for gold.
