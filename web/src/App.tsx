@@ -1,6 +1,6 @@
 import { Children, useEffect, useRef, useState, type ReactNode } from "react"
 import {
-  Activity, ChevronRight, Cpu, Footprints, Map as MapIcon, Moon, Package, Pause, Play, RotateCcw,
+  Activity, ChevronRight, Cpu, Footprints, Map as MapIcon, LayoutPanelLeft, Moon, Package, Pause, Play, RotateCcw,
   Send, StepForward, Sun, Swords, Wifi, WifiOff,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -162,6 +162,9 @@ function Header({ s, conn }: { s: State; conn: Conn }) {
               onValueCommit={([v]) => { setDrag(null); control({ action: "speed", delay_ms: v }) }}
             />
           </div>
+          <Button size="icon" variant="ghost" className="size-8" onClick={() => dispatchEvent(new Event("split-reset"))} aria-label="reset panes" title="reset panes">
+            <LayoutPanelLeft />
+          </Button>
           <Button size="icon" variant="ghost" className="size-8" onClick={() => setDark(!dark)} aria-label="toggle theme">
             {dark ? <Sun /> : <Moon />}
           </Button>
@@ -594,6 +597,11 @@ function Split({ id, row, init, className, children }: {
     const up = () => { removeEventListener("pointermove", move); removeEventListener("pointerup", up) }
     addEventListener("pointermove", move); addEventListener("pointerup", up)
   }
+  useEffect(() => {
+    const reset = () => { try { localStorage.removeItem("split:" + id) } catch { /* private mode */ } setSizes(init) }
+    addEventListener("split-reset", reset)
+    return () => removeEventListener("split-reset", reset)
+  }, [id, init])
   const kids = Children.toArray(children)
   return (
     <div ref={ref} className={cn("flex min-h-0 min-w-0", row ? "flex-row" : "flex-col", className)}>
