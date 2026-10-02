@@ -18,12 +18,12 @@ Jev does not write text or type commands. It only picks one answer from a list. 
 
 ## Current status
 
-Status on 2026-10-01. No game has ascended yet.
+Status on 2026-10-02. No game has ascended yet.
 
 - Games played: 570. Each game is a dwarven Valkyrie.
 - Deepest level: Dlvl 11. Twelve games reached Dlvl 10.
 - Longest game: 34,423 turns.
-- Highest score: 15,664 points. Jev died in the Gnomish Mines on Dlvl 6, at 114 max HP.
+- Highest score: 18,708 points. Jev died in Sokoban on T13186, at 94 max HP. A Grey-elf killed it while it prayed. That game reached Dlvl 10.
 - Sokoban: Jev solved the first level. Its best game reached the second level (`soko3-1`).
 - Typical game: about 4,500 turns, deepest level Dlvl 6.
 - Most frequent causes of death: rothes, wands, Woodland-elves, werejackals, wolves, and starvation.
