@@ -2809,3 +2809,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
   - The bot stays on Elbereth only below 1/2 HP. Above that, it attacks from the square.
   - With 3 or more monsters near, the corridor walk removes the attacks only when one of the monsters is not weaker than Jev.
   - The prompt says the same.
+
+## T6927 fire ant, Dlvl 7, and the 20% HP rule
+
+- **Cause:** A fire ant (speed 18, two bites) took the Valkyrie from 38/67 to 0 in three turns. Her AC was 6. A monkey stole her shield and a nymph stole her helm, and she found no body armor in 7 levels. Three Elbereth tries in a row came out garbled (about a 2% chance).
+- **Prevention:** Good AC is the real defense against fast biters. The user also asked for less caution: at medium HP, keep fighting down to 20% HP.
+- **Fix:** All "back off" and "force Elbereth" limits are now 20% HP (they were 40-50%). The strategy prompt and the monster tips in `monsters.json` now say "over 20% HP".
