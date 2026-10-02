@@ -2265,3 +2265,12 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Also (transcript strategies, source-checked):**
   - The blindfold is no longer disabled by telepathy. uhitm.c's passive paralysis needs canseemon, and display.h says that needs actual sight, so blind is always safe from a floating eye.
   - The donate text now matches priest.c in 5.0: base = peak XL × 150-250, offer the larger suggested sum (2× base), first purchase gives 2-4 AC.
+
+## 2026-10-01 — strategies from "NetHack overexplained" (3.6.7), checked against 5.0
+Each change below was checked against the 5.0 source:
+- **Taming with food:** throw food at a hostile kitten, housecat, large cat, dog or horse instead of fighting it. befriend_with_obj (mondata.h) plus tamedog (dog.c) make it peaceful at worst. Horses only accept veggy food. The throw is forced unless a non-domestic monster is within 2.
+- **Unicorn horn:** apply it for stun, confusion, hallucination or blindness (apply.c). In 5.0 it no longer restores lost attributes.
+- **Stoning:** keep one lizard corpse (it never rots, eat.c), and eat it only when Fainting. When stoning starts, eat the lizard or an acid blob corpse, or quaff acid, before using the prayer (fix_petrification).
+- **Lycanthropy:** quaff holy water before praying. Lawful heroes get "You feel full of awe" and you_unwere (potion.c peffect_water).
+- **Spheres:** monster tips added. Explosions destroy wands and rings (shock) and scrolls and potions (fire) via explode.c destroy_items.
+- **Not done:** Excalibur (operator rule), and priest protection, which is already 5.0-correct.

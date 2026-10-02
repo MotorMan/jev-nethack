@@ -38,6 +38,7 @@ def price_bases(cls, price, ch):
 JUNK = re.compile(r'\b(mail|plate|armor|shield|shoes|boots|cloak|wrapping|helm|helmet|gauntlets|gloves|short sword|long sword|broadsword|scimitar|axe|mace|club|bow|crossbow|pick-axe|morning star|flail|hammer|trident)\b')  # unworn copies: what to drop when Burdened
 SLOTS = {'boots': r'boots|shoes', 'helm': r'helm|hat|cap\b', 'cloak': r'cloak|robe|wrapping|apron', 'shield': r'shield', 'gloves': r'gloves|gauntlets', 'body': r'\bmail|plate|armor|coat'}
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
+DOMESTIC = {'kitten', 'housecat', 'large cat', 'little dog', 'dog', 'large dog', 'pony', 'horse', 'warhorse'}  # M2_DOMESTIC (monsters.h)
 WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber', 'short sword', 'spear', 'mace', 'morning star', 'war hammer', 'flail', 'trident', 'dagger', 'knife', 'club']
 WEAPON = re.compile(r'\b(' + '|'.join(WEAPON_RANK) + r')s?\b(?! corpse)')
 # pray.c: never offer own race (dwarf), a former pet, a co-aligned (white) unicorn; touching a cockatrice bare-handed stones you
@@ -168,7 +169,7 @@ class Bot:
                 self.run['inv_stale'] = True  # a nymph took the worn shield while resting; the 25-decision refresh showed it worn for 250 turns at AC 10 (T3453)
             if re.search(r'Your armor falls|You can no longer hold your shield|falls to the ground|You find you must drop|You drop your (gloves|weapon)', text) and self.snap and self.snap.me:  # were form shed chain mail, shield, helm, spear; Jev never went back, AC 10, dead (T4960)
                 self.run['gear_at'] = (self.snap.status.get('dlvl'), self.snap.me)
-            if 'You feel purified' in text:
+            if re.search(r'You feel purified|You feel full of awe|affinity to \w+ disappears', text):  # prayer or holy water (potion.c peffect_water)
                 self.run['lycanthropy'] = False
             if re.search(r'no gold or credit|you pay for it|Usage fee|You owe|pay before leaving|leave without paying', text):  # not 'Pardon me': bumping a shopkeeper in a doorway set debt, pay said 'You do not owe', 348 pay/bump loops while a mob gathered (T7249)
                 self.run['debt'] = self.snap.status.get('dlvl') if self.snap else True
@@ -632,6 +633,18 @@ class Bot:
                         nymph_throw = f'throw_{d}'
                     if 'were' in m['name'] and m['ch'] != '@' and not self.run.get('lycanthropy'):
                         were_throw = f'throw_{d}'
+        food = [it for it in self.inventory if FOOD.search(it['text']) and 'lizard' not in it['text'] and not re.search(r'potion|gem|stone|glass|spellbook|wand|ring|scroll|amulet|opener|tins?\b', it['text'])]
+        for m in hostiles:  # dog.c tamedog via dothrow.c befriend_with_obj: any food thrown at a hostile domestic d/f makes it peaceful at worst (tame if it likes it); horses only take veggy food
+            dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
+            sp = self.species(m)
+            if sp in DOMESTIC and m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
+                ok = [it for it in food if not sp.endswith(('pony', 'horse')) or re.search(r'apple|carrot|banana|melon|orange|pear|slime mold|kelp|lichen', it['text'])]
+                ok.sort(key=lambda it: not re.search(r'tripe|meatball|corpse|apple|carrot', it['text']))
+                if ok and (len(food) >= 2 or re.search(r'tripe|meatball|corpse', ok[0]['text'])):
+                    d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
+                    opts = {f'tame_{d}': (f"Throw {ok[0]['text']} to the {m['name']}", f"A hostile {sp} becomes peaceful (or your pet) when you throw it food it eats: cheaper than fighting it.", lambda l=ok[0]['letter'], d=d: self.act_throw(l, d))} \
+                        if not any(o['dist'] <= 2 and not o['passive'] and self.species(o) not in DOMESTIC for o in hostiles) else {**opts, f'tame_{d}': (f"Throw {ok[0]['text']} to the {m['name']}", f"A thrown food item makes a hostile {sp} peaceful or tame.", lambda l=ok[0]['letter'], d=d: self.act_throw(l, d))}
+                    break
         wand = next((it for it in sorted(self.inventory, key=lambda i: not re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', i['text'])) if re.search(r'\bwand\b', it['text'])
                      and not re.search(r'probing|light|nothing|opening|locking|enlightenment|secret door|create monster|wishing|undead turning|polymorph|make invisible|speed monster', it['text'])
                      and it['text'] not in self.run.get('bad_wands', ()) and not re.search(r':0\)', it['text'])
@@ -720,6 +733,11 @@ class Bot:
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'throw_', 'zap_', 'explore', 'retreat', 'choke', 'goto_'))} or opts
             if stun:
                 opts.setdefault('wait', ('Wait out the stun', 'You are stunned: any move or attack goes in a random direction. Search in place one turn until it wears off.', lambda: self.act_keys('ms', 'waited')))
+        horn = next((it for it in self.inventory if 'unicorn horn' in it['text'] and not re.search(r'\bcursed', it['text'])), None)
+        ills = set(s.get('conditions', [])) & {'Stun', 'Stn', 'Conf', 'Cnf', 'Hallu', 'Hal', 'Hl', 'Blind', 'Blnd', 'Bl'}
+        if horn and ills and not any('being worn' in it['text'] and re.search(r'blindfold|towel', it['text']) for it in self.inventory):  # apply.c use_unicorn_horn: fixes stun, confusion, hallucination, blindness (not lost stats in 5.0)
+            opts = {'unihorn': (f"Apply {horn['text']}", f"A unicorn horn cures {', '.join(sorted(ills))}: apply it (may take a couple of tries).", lambda l=horn['letter']: self.act_keys('a' + l, 'applied the unicorn horn')),
+                    **{k: v for k, v in opts.items() if k != 'wait'}}
         big_hit = bool(self.history) and (self.history[-1]['hp'] or 0) - hp >= hp and any(m['dist'] <= 1 for m in hostiles)  # one more turn like the last one kills
         # operator: Elbereth is for emergencies; the default is back into a corridor and fight one at a time (was hp < 0.7 or any pack: 30-140 engravings a game, mostly forced)
         if (near and hp < 0.45 * hpmax or dread or pack and open_n(me) > 2 and 'choke' not in opts and hp < 0.6 * hpmax or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
@@ -784,6 +802,13 @@ class Bot:
                 and not (self.engraved_here() and s.get('hp', 1) > 5 and not shot and turn - self.run.get('hit_turn', -99) > 3 and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in hostiles if m['dist'] <= 7)):  # stung on Elbereth (a cornered scared monster panic-attacks, monmove.c) at 7/60 171 turns after praying: no gamble, the soldier ant finished it (T6021)  # exp None: polymorphed, 0 HP only reverts form; gambled at 3/3 HD2 and angered Tyr (T8484)  # a quasit's wand took 29 -> 0 from range; 3/54 HP 243 turns after a prayer, no gamble offered, dead (T5218). rnz(350)<=200+t is ~50% at t=100; failing angers Tyr, but death was certain
             opts['pray'] = ('Pray to Tyr (gamble)', f"Last prayer was only {turn - last} turns ago: Tyr may well be angry (bad luck, maybe smiting). But {'fainting from hunger' if s.get('hunger') == 'Fainting' else 'at ' + str(s.get('hp')) + ' HP'} with a monster attacking, this may be the last chance.", self.act_pray)
 
+        holy = next((it for it in self.inventory if re.search(r'\bholy water|blessed (clear )?potions? of water', it['text'])), None)
+        if holy and self.run.get('lycanthropy'):  # potion.c: blessed water cures lycanthropy ("You feel purified") and saves the prayer
+            opts['holy_water'] = (f"Quaff {holy['text']}", 'Holy water cures lycanthropy without using a prayer.', lambda l=holy['letter']: (self.act_keys('q' + l, 'quaffed holy water'), self.read_inventory())[0])
+            opts.pop('pray', None) if not LOW_HP(s) and not fatal else None
+        cure = next((it for it in self.inventory if re.search(r'lizard corpse|acid blob corpse|potion of acid', it['text'])), None)
+        if cure and set(fatal) & {'Stone', 'Ston', 'Sto'}:  # eat.c fix_petrification: a lizard or acidic corpse (or acid, potion.c) cures stoning without using the prayer
+            opts = {'unstone': (f"{'Quaff' if 'potion' in cure['text'] else 'Eat'} {cure['text']}", 'You are turning to stone: this cures it at once.', lambda it=cure: self.act_keys('q' + it['letter'], 'quaffed acid') if 'potion' in it['text'] else self.act_eat(it['letter']))}
         if 'pray' in opts and not fatal and not starving and not LOW_HP(s) and s.get('hunger') != 'Fainting' and any('nymph' in m['name'] and m['dist'] <= 7 for m in hostiles):
             del opts['pray']  # helpless 3 turns: prayed Weak with a wood nymph 3 steps off, it took mithril, chain mail and every weapon; AC 10 bare-handed till death (T3753)
         if not self.run.get('god_angry') and (turn - last >= 800 if last is not None else turn >= 300):  # prayer ready: fight on, pray at low HP
@@ -800,7 +825,7 @@ class Bot:
             for it in self.inventory:
                 if re.search(FOOD, it['text']) and not any(n in it['text'] for n in NEVER_EAT) and it['text'] not in self.run.get('inedible', ()) \
                         and not re.search(r'potion|gem|stone|glass|spellbook|wand|ring|scroll|amulet|opener', it['text']) \
-                        and (s.get('hunger') == 'Fainting' or not any(m['dist'] <= 1 and not m['passive'] for m in hostiles)) and (s.get('hunger') != 'Hungry' or 'tripe' not in it['text']):
+                        and (s.get('hunger') == 'Fainting' or not any(m['dist'] <= 1 and not m['passive'] for m in hostiles)) and (s.get('hunger') != 'Hungry' or 'tripe' not in it['text']) and ('lizard' not in it['text'] or s.get('hunger') == 'Fainting'):  # the lizard is the stoning cure
                     # eat.c: food older than 30 turns rots 1 in 7 (rations too), rotten can knock you out: ate a ration Weak beside a pony, unconscious, dead (T4291)
                     # tripe: rn2(2) vomiting for non-orc non-cavemen (eat.c); ate it Hungry beside a black unicorn, confused+stunned, dead (T4650)
                     opts[f"eat_{it['letter']}"] = (f"Eat {it['text']}", f"You are {s.get('hunger')}: eat item {it['letter']} from your pack now, before you weaken and faint (fainting next to a monster is how most of your games have ended).", lambda l=it['letter']: self.act_eat(l))
@@ -869,7 +894,7 @@ class Bot:
             if price and (FOOD.search(item) and 'corpse' not in item or why) and int(price[1]) <= s.get('gold', 0) and not self.run.get('debt'):
                 opts[f'buy_{i}'] = (f"Buy {item}", f"Pick up {item} and pay {price[1]} of your {s.get('gold')} gold. " + (why or 'Packed food prevents fainting from hunger.'), lambda item=item: (self.act_pickup(item), self.act_pay())[1])
                 continue
-            if shop or 'for sale' in item or 'corpse' in item and 'lichen' not in item or HEAVY.search(item) or item in self.run.get('heavy', ()):
+            if shop or 'for sale' in item or 'corpse' in item and not ('lichen' in item or 'lizard' in item and not any('lizard' in it['text'] for it in self.inventory)) or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
         box = next((i for i in self.here_items() if re.search(r'\b(chest|large box)\b', i) and 'for sale' not in i), None)
