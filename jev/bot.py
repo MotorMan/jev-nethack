@@ -1231,7 +1231,7 @@ class Bot:
             if fr:
                 opts['explore_again'] = ('Re-explore this level', f"Searching found nothing, but there are unexplored edges again ({len(fr)} of them, nearest {fr[0][0]} steps {compass(me, fr[0][1])}).", lambda p=fr[0][1]: self.act_explore(p))
         if not fr and not downs and not near and 'kill_blocker' not in opts and 'dead_end' not in opts:  # walled in: searching finds nothing  # search_hidden won 123 of 125 dead_end offers: 5000 turns on one Dlvl 3, starved (T6672)
-            spot = self.search_spot(dist)
+            spot = self.search_spot(dist) or self.search_spot(dist, ghost=False)  # its own ghost kept touching Jev: every spot was 'near the ghost', no options, memory reset, explore into a stuck boulder 2700 turns, starved (T9746)
             if spot:
                 opts['search_hidden'] = ('Search for hidden passages', f"No unexplored edges or downstairs are known. Walk {dist[spot]} steps {compass(me, spot)} to a likely spot (dead end or wall) and search there.", lambda: self.act_search_at(spot))
             # never read unknown scrolls (only known or price-ID'd identify): ZLORFIK read here 'to find the stairs' was punishment, ball and chain, dead to a pony (T3251)
@@ -1707,7 +1707,7 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k not in ('wait', 'choke', 'rest') and not k.startswith('search')}
         return opts, mons
 
-    def search_spot(self, dist):
+    def search_spot(self, dist, ghost=True):
         snap, lv = self.snap, self.level()
         best = None
         # wiki (Searching): hidden passages lead to the unmapped part. 14000 turns on a Dlvl 3 searching the explored west half while the east half stayed blank (T15494)
@@ -1727,7 +1727,7 @@ class Bot:
             if walls < 3:
                 continue
             g = getattr(lv, 'ghost', None)
-            if g and (snap.status.get('turn') or 0) - g[1] < 300 and cheb(p, g[0]) <= 8:
+            if ghost and g and (snap.status.get('turn') or 0) - g[1] < 300 and cheb(p, g[0]) <= 8:
                 continue  # speed 3 vs 12: searching 8+ squares away buys ~30 uninterrupted turns before it drifts back
             score = lv.searched.get(p, 0) * 2 + d / 4 - (8 if snap.at(*p).ch == '#' and exits <= 1 else 0) - walls - blank(*p) / 12
             if best is None or score < best[0]:

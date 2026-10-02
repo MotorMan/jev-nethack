@@ -2632,3 +2632,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A plains centaur took Jev from 86 to 19 HP. Jev zapped a wand of teleportation at itself twice and escaped. Then the wand had no charges. The bot sends `z`, the wand letter and `.` together. For an empty wand, the game prints "Nothing happens" before it asks for a direction. The `.` then became a rest command, and its message "Are you waiting to get hit?" replaced "Nothing happens". The bot did not mark the wand empty. It zapped the empty wand 3 more times beside a winter wolf cub and an elf mummy, 20 -> 0 HP.
 - Prevention: When a zap gives no effect, mark the wand empty and use a different escape.
 - Fix: The bot also marks a wand empty when "Are you waiting to get hit?" comes after the zap.
+
+## T9746 starvation, Dlvl 9 (bones level)
+
+- Cause: A boulder in a corridor did not move ("You try to move the boulder, but in vain"). The bot marked the square as blocked. Jev's own ghost from an earlier game stayed next to Jev. The search planner skips every spot within 8 squares of a ghost, so it found no spot to search. With no options, the bot cleared its level memory, explored into the boulder again, and repeated this for 2700 turns. Jev starved.
+- Prevention: A ghost is slow and does 1 HP of damage for each touch. Never let it stop all actions.
+- Fix: If no search spot is far from the ghost, the bot searches near the ghost.
