@@ -746,7 +746,8 @@ class Bot:
         adj = [m for m in near if m['dist'] <= 1]
         # a speed-12+ monster adjacent hits on every step of a long walk: ran 15 steps for '<' at 18/94 beside a Grey-elf (ignores Elbereth), 18 -> 8, gamble prayer, dead (T13186)
         chased = 'upstairs' not in opts and any((MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12 for m in adj) and min((dist.get(p, 99) for p in snap.find('<')), default=99) > 3
-        if chased:
+        # a blocked walk is a free hit: 6 'flee_up ... blocked after 1 steps' beside an Uruk-hai, 31 -> 0 (T7304)
+        if chased or any(h['choice'] == 'flee_up' and 'blocked' in h['outcome'] for h in self.history[-3:]):
             opts.pop('flee_up', None)
         if (strong or pack) and not hops and ({'flee_up', 'upstairs', 'downstairs'} & opts.keys()) and not ('upstairs' not in opts and adj and (chased or all('weaker' in self.threat(m) for m in adj))):  # walked 4 steps to '<' with a werejackal and its jackals adjacent (all weaker): 14 -> 0 in free hits (T2336)  # a werewolf's summoned wolves (no M2_STALK: can't follow) took 34 -> 6 in a turn, '<' one step away (T5826)
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'explore'))}

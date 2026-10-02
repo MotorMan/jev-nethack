@@ -2409,3 +2409,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: At XL 1, a rolling boulder trap took Jev from 18 to 6 HP. Jev rested to 10/18. Then the gold rule made "fetch the gold" the only option, because HP was more than half. On the way, a second rolling boulder trap killed Jev.
 - Prevention: With a low maximum HP, one trap or one hit can kill. Rest to 3/4 HP before you walk for an item that is not necessary.
 - Fix: `jev/bot.py` forces `fetch_gold` only at 3/4 HP or more when `rest` is on offer.
+
+## T7304 Uruk-hai, Dlvl 4
+
+- Cause: Jev was at AC 10 with no armor. Uruk-hai shot poisoned arrows and came adjacent. Jev chose `flee_up` 6 times. Each time, an Uruk-hai blocked the path after 1 step, and it hit Jev for free. HP fell 31 -> 0. The armor loss near T6400 has no clear message in the log.
+- Prevention: If a monster blocks the path to the stairs, fight it. Do not try the same walk again.
+- Fix: `jev/bot.py` removes `flee_up` for 3 decisions after a `flee_up` that was blocked.
