@@ -2608,3 +2608,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Dlvl 7 had a throne room full of sleeping monsters (an Elvenking, dwarves, hobbits, orcs, gnome lords). The down stairs were not found. Jev stood near the door for about 7000 turns. It chose "wait", "choke" and one-step "approach" moves, and the monsters did not come. It lived on a prayer for food every 850 turns. Then it fainted, and the Elvenking killed it.
 - Prevention: Sleeping monsters do not come to you. If nothing happens for a long time, go to them and fight at the door.
 - Fix: If 180 of the last 200 decisions were wait, choke, approach, search or rest, and HP is 80% or more, the bot removes wait, choke, rest and search when it can offer "approach".
+
+## T4204 fire ant, Dlvl 6
+
+- Cause: Jev was XL 4. Dlvl 5 had nothing left to explore, so the bot took the stairs "anyway" to Dlvl 6. A fire ant (speed 18, stronger than Jev) attacked. Only "attack" was offered at 42 and 32 HP. Elbereth was first offered at 24 HP, and two engravings came out garbled. The ant took Jev to 2 HP. The prayer came 126 turns after the last prayer, and Jev died.
+- Prevention: Against a fast, stronger monster, engrave Elbereth early. A dust Elbereth fails about 1 time in 4, so Jev needs HP for a second try.
+- Fix: The bot offers Elbereth below 80% HP when a stronger monster with speed 15 or more is 2 squares away or nearer.
