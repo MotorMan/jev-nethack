@@ -2315,3 +2315,6 @@ Each change below was checked against the 5.0 source:
 
 ## T6106 goblin, fainted (Dlvl 4)
 Out of food, Weak at T5669: prayed 828 turns after the last one ("Tyr is displeased"), then picked "search for hidden passages" over a locked door 2 steps away ~30 times (51/49 split) while Fainting, with a **wand of digging** in the pack. The wand was only offered as an HP emergency. Fix: with no food and Hungry or worse, the wand's dig-down is offered whenever no downstairs is known and nothing is near; searching/resting is dropped whenever a door, kick, explore or dig option exists. A new level means new corpses.
+
+## T7613 starved, boxed in (Sokoban, Dlvl 5)
+A nymph had taken all but one item on Dlvl 6. In Sokoban a monster read a scroll of earth, and the boulders landed around Jev in a 3-square corner. No diagonal pushes in Sokoban, so there was no way out. The T5636 prayer ("well-pleased") fixed only the worst trouble (HP). The bot didn't know it was trapped and searched walls for 2000 turns. A Weak prayer 504 turns later angered Tyr, so it starved. Fix: 8 rock/wall/boulder neighbours (pray.c stuck_in_wall) now count as prayer trouble on the normal timeout.
