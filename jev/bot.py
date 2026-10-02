@@ -2799,10 +2799,19 @@ class Bot:
 
     # ---------- Jev ----------
     def role(self):
+        if getattr(self, '_role', None):
+            return self._role
         title = (self.snap.status or {}).get('title')
         if title:
             self._role = title
-        return getattr(self, '_role', None) or 'Valkyrie'
+            return title
+        for m in self.messages[-10:]:
+            text = m.get('text', '')
+            x = re.search(r'You are a (?:lawful|neutral|chaotic) (\w+) (\w+)', text)
+            if x:
+                self._role = x.group(2)
+                return self._role
+        return 'Valkyrie'
 
     def update_character(self):
         if not self.snap or not self.snap.status:
