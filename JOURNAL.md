@@ -2614,3 +2614,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev was XL 4. Dlvl 5 had nothing left to explore, so the bot took the stairs "anyway" to Dlvl 6. A fire ant (speed 18, stronger than Jev) attacked. Only "attack" was offered at 42 and 32 HP. Elbereth was first offered at 24 HP, and two engravings came out garbled. The ant took Jev to 2 HP. The prayer came 126 turns after the last prayer, and Jev died.
 - Prevention: Against a fast, stronger monster, engrave Elbereth early. A dust Elbereth fails about 1 time in 4, so Jev needs HP for a second try.
 - Fix: The bot offers Elbereth below 80% HP when a stronger monster with speed 15 or more is 2 squares away or nearer.
+
+## T9689 Green-elf, Dlvl 9
+
+- Cause: Jev was blind at 67/73 HP, beside a Green-elf. The emergency filter for low HP kept only Elbereth, pray, stairs and quaff. The blind rule then removed Elbereth. As a result, the only options were "rest" and "quaff". Jev rested from 67 to 0 HP while the elf hit it. An elf ignores Elbereth.
+- Prevention: Against a monster that ignores Elbereth (@ humans and elves, minotaurs), fight back.
+- Fix: The emergency filter keeps the attack options when an adjacent monster ignores Elbereth. The blind check for "being attacked" also matches monster names with a capital letter now, for example "The Green-elf hits!".
