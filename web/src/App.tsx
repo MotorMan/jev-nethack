@@ -1,6 +1,6 @@
 import { Children, Fragment, useEffect, useRef, useState, type ReactNode } from "react"
 import {
-  Activity, Check, ChevronRight, Copy as CopyIcon, Cpu, Footprints, Map as MapIcon, LayoutPanelLeft, Maximize2, Moon, Package, Pause, Play, RotateCcw,
+  Activity, Bell, BellOff, Check, ChevronRight, Copy as CopyIcon, Cpu, Footprints, Map as MapIcon, LayoutPanelLeft, Maximize2, Moon, Package, Pause, Play, RotateCcw,
   Send, StepForward, Sun, Swords, Wifi, WifiOff, WrapText, X,
 } from "lucide-react"
 import { Dialog } from "radix-ui"
@@ -197,6 +197,38 @@ function Bar({ value, t, className }: { value: number; t: Tone; className?: stri
   )
 }
 
+// ---------- record alerts ----------
+
+// browser notification when the live game goes deeper than every earlier game, or a finished game sets a new best score.
+// The score is known only when a game ends. The last values sent are kept in localStorage, so a reload does not repeat them.
+function useRecordAlerts(s: State, conn: Conn) {
+  useEffect(() => {
+    if (conn !== "live" || !s.run || !("Notification" in window)) return
+    const dl = Math.max(s.run.max_dlvl, ...s.runs.filter((r) => r.id !== s.run.id).map((r) => r.max_dlvl), 0)
+    const score = Math.max(...s.runs.map((r) => r.score ?? 0), 0)
+    let seen: { dl: number; score: number } | null = null
+    try { seen = JSON.parse(localStorage.getItem("records") ?? "null") } catch { /* storage blocked */ }
+    if (seen && Notification.permission === "granted") {
+      if (dl > seen.dl) new Notification("NetHack: new depth record", { body: `Dlvl ${dl} (was ${seen.dl}), turn ${s.status.turn ?? "?"}` })
+      if (score > seen.score) new Notification("NetHack: new score record", { body: `${score} points (was ${seen.score})` })
+    }
+    try { localStorage.setItem("records", JSON.stringify({ dl: Math.max(dl, seen?.dl ?? 0), score: Math.max(score, seen?.score ?? 0) })) } catch { /* storage blocked */ }
+  }, [conn, s.run, s.runs, s.status.turn])
+}
+
+function NotifyButton() {
+  const [perm, setPerm] = useState(() => ("Notification" in window ? Notification.permission : "denied"))
+  const on = perm === "granted"
+  return (
+    <Tip tip={on ? "browser notifications are on: a new depth or score record sends one (this tab must stay open)" : perm === "denied" ? "notifications are blocked in this browser's site settings" : "turn on browser notifications for new depth and score records"}>
+      <span><Button size="icon" variant="ghost" className="size-8" disabled={perm === "denied"} aria-label="record notifications"
+        onClick={() => !on && Notification.requestPermission().then(setPerm)}>
+        {on ? <Bell /> : <BellOff />}
+      </Button></span>
+    </Tip>
+  )
+}
+
 // ---------- header ----------
 
 function Header({ s, conn }: { s: State; conn: Conn }) {
@@ -254,6 +286,7 @@ function Header({ s, conn }: { s: State; conn: Conn }) {
             />
           </div>
           </Tip>
+          <NotifyButton />
           <Tooltip>
             <TooltipTrigger asChild>
               <Button size="icon" variant="ghost" className="size-8" onClick={() => dispatchEvent(new Event("split-reset"))} aria-label="reset panes">
@@ -809,6 +842,7 @@ const engine = (r: { engine?: string; models?: string[] }) => r.models?.length ?
 
 export default function App() {
   const [s, conn] = useJevState()
+  useRecordAlerts(s, conn)
   return (
     // fills the viewport (sized for a 1512x780 laptop window); long lists scroll inside their panels
     <main className="h-screen flex flex-col overflow-hidden">
