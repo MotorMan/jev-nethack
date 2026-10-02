@@ -2899,3 +2899,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The level notes showed only shop wares. The bot forgot a kit item that it saw on the floor and did not take, for example an unknown cloak that has no known BUC.
 - **Prevention:** The user rule: note key ascension kit items on the level when the bot cannot take them.
 - **Fix:** Each level now notes up to 4 kit items on the floor outside shops. When an item is gone from its square, its note goes away. `INTEREST` now also matches the random appearances of kit armor in 5.0: the cloaks (tattered cape, opera cloak, ornamental cope, piece of cloth), the oilskin and elven cloaks, the helmets, the gloves and the boots.
+
+## T3813-T3820: dwarf king melee (killed by a dwarf king, Dlvl 5)
+
+- **Cause:** At XL 5 (49 max HP), Jev meleed a dwarf king. One turn took 38 HP down to 6. Prayer restored 49 HP. Then Jev attacked again over 'descend', and next over 'retreat'. The dwarf king has speed 6 and Jev had speed 12, so walking away was safe. HP went 49 -> 34 -> 4, and Jev died while it engraved.
+- **Prevention:** After a monster hits for a large amount, do not stand next to it while one more such turn can kill you. Walk away from a slow heavy hitter.
+- **Fix:** The bot records the worst one-turn HP loss next to each monster species (`run['worst_hit']`). If an adjacent monster's worst turn, doubled, is the current HP or more, `big_hit` is true. Then the melee, throw and approach options go when Elbereth, retreat or the up stairs are available. If all such monsters are slower than speed 12, 'descend' also counts as a way out.

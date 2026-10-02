@@ -868,6 +868,14 @@ class Bot:
             opts = {'unihorn': (f"Apply {horn['text']}", f"A unicorn horn cures {', '.join(sorted(ills))}: apply it (may take a couple of tries).", lambda l=horn['letter']: self.act_keys('a' + l, 'applied the unicorn horn')),
                     **{k: v for k, v in opts.items() if k != 'wait'}}
         big_hit = bool(self.history) and (self.history[-1]['hp'] or 0) - hp >= hp and any(m['dist'] <= 1 for m in hostiles)  # one more turn like the last one kills
+        # a dwarf king took 38 -> 6 in one turn; after the prayer (49/49) Jev meleed it again over 'descend' and 'retreat' (it has speed 6, Jev 12): 49 -> 34 -> 4, dead (T3820). Remember each species' worst turn
+        hits = self.run.setdefault('worst_hit', {})
+        if self.history and (loss := (self.history[-1]['hp'] or 0) - hp) > 0:
+            for m in hostiles:
+                if m['dist'] <= 1:
+                    hits[m['name']] = max(hits.get(m['name'], 0), loss)
+        heavy = [m for m in hostiles if m['dist'] <= 1 and 2 * hits.get(m['name'], 0) >= hp]
+        big_hit = big_hit or bool(heavy)
         # operator: Elbereth is for emergencies; the default is back into a corridor and fight one at a time (was hp < 0.7 or any pack: 30-140 engravings a game, mostly forced)
         # monmove.c: scared with no square to flee to (MMOVE_NOMOVES) sets panicattk, so Elbereth cannot stop a boxed monster; engrave/attack alternation
         # against a scorpion in a dead-end corridor gave it a free turn each engraving, 33/78 -> 6, a too-soon prayer, dead (T12125)
@@ -889,7 +897,7 @@ class Bot:
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
         if (hugger or unicorn) and 'elbereth' in opts:
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_')) and k not in ('rest', 'wait')}
-        if big_hit and {'elbereth', 'retreat', 'flee_up', 'upstairs'} & opts.keys():  # hallucinating, a 'shrieker' was a dwarf king: 35 -> 14 in a turn, threw a dart, dead (T4026)
+        if big_hit and ({'elbereth', 'retreat', 'flee_up', 'upstairs'} | ({'descend', 'downstairs'} if heavy and all((MONSTERS.get(self.species(m)) or [0, 99])[1] < 12 for m in heavy) else set())) & opts.keys():  # hallucinating, a 'shrieker' was a dwarf king: 35 -> 14 in a turn, threw a dart, dead (T4026)
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'throw_', 'approach_')) and k not in ('rest', 'wait')}
         if hp < 0.2 * hpmax and ('elbereth' in opts or self.engraved_here()):  # choke <-> Elbereth alternation at 21/68 -> 10: each step off wasted the engraving (T5005)
             opts.pop('choke', None)
