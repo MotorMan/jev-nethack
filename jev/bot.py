@@ -2798,15 +2798,34 @@ class Bot:
             or self.snap.me and not any(cheb(q, self.snap.me) <= 1 for q in self.hostile_glyphs()) and any(re.search(r"\bThe [\w -]+ (hits|bites|stings|butts|kicks|touches|misses)!", m) and 'ghost' not in m for m in self.run['recent'][-1:])  # a named fire ant bit from a square the map never showed: 'rest' was the only option, 33 -> 0 (T5586)
 
     # ---------- Jev ----------
+    def role(self):
+        if getattr(self, '_role', None):
+            return self._role
+        title = (self.snap.status or {}).get('title') or 'Valkyrie'
+        self._role = title
+        return title
+
+    def update_character(self):
+        if not self.snap or not self.snap.status:
+            return
+        role = self.role()
+        align = (self.snap.status or {}).get('align', 'lawful')
+        character = f"{align.lower()} {role}"
+        if character != self.run.get('character'):
+            self.run['character'] = character
+            self.runs[-1]['character'] = character
+            self._save_runs()
+
     def state_text(self, mons):
         s, snap = self.snap.status, self.snap
+        role = self.role()
         lv = self.level()
         inv = '; '.join(f"{i['letter']} - {i['text']}" for i in self.inventory) or 'unknown'
         seen = '; '.join(f"{m['name']}{self.threat(m)} {m['where']}" + (' (pet)' if m['pet'] else ' (peaceful)' if m['peaceful'] else '') for m in mons[:8]) or 'none'
         hist = '\n'.join(f"- T{h['turn']} {h['label']} -> {h['outcome']}" for h in self.history[-8:]) or '- (start of game)'
         recent = ' | '.join(self.run['recent'][-6:]) or 'none'
         return (
-            f"NetHack 5.0.0. You decide for {s.get('name', 'the hero')}, a {s.get('align', 'lawful').lower()} dwarven Valkyrie.\n"
+            f"NetHack 5.0.0. You decide for {s.get('name', 'the hero')}, a {s.get('align', 'lawful').lower()} {role}.\n"
             f"Standing order from the operator: {self.order}\n"
             f"Strategy notes: {STRATEGY}\n\n"
             f"Status: Dlvl {s.get('dlvl')}, HP {s.get('hp')}/{s.get('hpmax')}, Pw {s.get('pw')}/{s.get('pwmax')}, AC {s.get('ac')}, "
@@ -2928,7 +2947,8 @@ class Bot:
         rid = datetime.now().strftime('%Y%m%d-%H%M%S')
         self.run_dir = os.path.join(self.home, rid)
         os.makedirs(self.run_dir, exist_ok=True)
-        self.run = dict(id=rid, started=now(), ended=None, character='dwarven Valkyrie', turns=0, max_dlvl=1, death=None, score=None,
+        self._role = None
+        self.run = dict(id=rid, started=now(), ended=None, character=None, turns=0, max_dlvl=1, death=None, score=None,
                         engine='jev' if not self.jev.local else os.environ.get('JEV_LABEL') or self.jev.model, models=[], decisions=0, levels={}, under={}, here={}, elbereth=set(), prayed_turn=None, recent=[], death_msgs=[])
         self.history.clear()
         self.runs.append({k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score', 'engine', 'models')})
@@ -2958,6 +2978,7 @@ class Bot:
             self.t = self.launcher()
             self.t.pump(3)
             self.observe()
+            self.update_character()
             if any('welcome back' in l for l in self.snap.lines + [m['text'] for m in self.messages[-5:]]):  # restored save: keep the prayer clock
                 try:
                     t = json.load(open(os.path.join(self.home, 'prayer.json')))['prayed_turn']
@@ -2985,6 +3006,7 @@ class Bot:
                     continue
                 self.step_once = False
                 self.observe()
+                self.update_character()
                 if not self.t.alive:
                     break
                 if self.snap.me is None and any('Logged in as' in l for l in self.snap.lines):
@@ -3018,13 +3040,16 @@ class Bot:
     def state(self):
         t, snap = self.t, self.snap
         with self.lock:
+            role = self.role() if snap else None
+            align = (snap.status or {}).get('align') if snap else None
+            character = f"{align.lower()} {role}" if role and align else self.run.get('character')
             return dict(
                 mode=self.mode, paused=self.paused, phase=self.phase, delay_ms=self.delay_ms, order=self.order,
                 screen=dict(rows=t.runs() if t else [], cursor=list(t.cursor()) if t else [0, 0], cols=80, lines=24),
                 status=snap.status if snap else {'conditions': []},
                 decision=self.decision, history=list(self.history), messages=list(self.messages), log=list(self.logs),
                 jev=self.jev.summary(),
-                run=dict(id=self.run['id'], started=self.run['started'], character=self.run['character'],
+                run=dict(id=self.run['id'], started=self.run['started'], character=character,
                          max_dlvl=self.run['max_dlvl'], decisions=self.run['decisions'], engine=self.run['engine'], models=self.run['models']) if self.run else None,
                 runs=list(self.runs), inventory=list(self.inventory),
                 level=dict(dlvl=snap.status.get('dlvl', 0), explored=min(1.0, sum(1 for l in snap.lines[MAP_TOP:MAP_BOT + 1] for c in l if c != ' ') / 700),  # ponytail: ~700 drawn cells is a typical fully seen level
