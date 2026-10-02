@@ -174,7 +174,11 @@ class Bot:
                 self.run['debt'] = self.snap.status.get('dlvl') if self.snap else True
             if re.search(r'You do not owe|You have paid|You paid|Thank you for shopping|pay .* in full', text, re.I):
                 self.run['debt'] = False
-            if re.search(r'\b(throws|shoots|zaps|breathes|spits)\b|gaze!', text) or re.search(r'\b(arrow|dart|dagger|knife|bolt|spear|shuriken|missile|ray)s? (hits|misses|bounces)', text) and (self.snap.status.get('turn') or 0 if self.snap else 0) - self.run.get('fired_turn', -99) > 2:  # our own bounced magic missile read as being shot: Jev left a fresh Elbereth at 7/54 among hill orcs, dead (T4858)
+            if re.search(r'You (kill|destroy) the lichen', text) and self.snap:
+                self.run['lichen_kill'] = self.snap.status.get('turn') or 0
+            if 'little dart' in text and self.snap and self.snap.me:  # trap.c: we stand on a dart trap
+                self.level().__dict__.setdefault('dart_traps', set()).add(self.snap.me)
+            elif re.search(r'\b(throws|shoots|zaps|breathes|spits)\b|gaze!', text) or re.search(r'\b(arrow|dart|dagger|knife|bolt|spear|shuriken|missile|ray)s? (hits|misses|bounces)', text) and (self.snap.status.get('turn') or 0 if self.snap else 0) - self.run.get('fired_turn', -99) > 2:  # our own bounced magic missile read as being shot: Jev left a fresh Elbereth at 7/54 among hill orcs, dead (T4858)
                 self.run['shot_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
                 if m := re.search(r'The ([\w -]+?) (?:throws|shoots|zaps|breathes|spits)\b', text):
                     self.run['shooter'] = m[1]
@@ -852,7 +856,7 @@ class Bot:
             if price and (FOOD.search(item) and 'corpse' not in item or why) and int(price[1]) <= s.get('gold', 0) and not self.run.get('debt'):
                 opts[f'buy_{i}'] = (f"Buy {item}", f"Pick up {item} and pay {price[1]} of your {s.get('gold')} gold. " + (why or 'Packed food prevents fainting from hunger.'), lambda item=item: (self.act_pickup(item), self.act_pay())[1])
                 continue
-            if shop or 'for sale' in item or 'corpse' in item or HEAVY.search(item) or item in self.run.get('heavy', ()):
+            if shop or 'for sale' in item or 'corpse' in item and 'lichen' not in item or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
         box = next((i for i in self.here_items() if re.search(r'\b(chest|large box)\b', i) and 'for sale' not in i), None)
@@ -1391,6 +1395,33 @@ class Bot:
                     lv.shadowed += 1
                     opts = {'shadow_dwarf': (f"Follow the {dw['name']} and let your pet kill it", f"No pick-axe yet: stay beside the {dw['name']} {dw['where']} so your pet attacks it; dwarves often carry a pick-axe.",
                                              lambda q=q: self.act_go(q, steps=3) if q != me else self.act_keys('s', 'waited for the pet'))}
+        # operator: lichen corpses never rot (eat.c nonrotting_corpse): carry a few as emergency food
+        lichens = sum(int(m[1] or 1) for it in self.inventory for m in [re.match(r'(\d+ )?.*lichen corpse', it['text'])] if m)
+        lk = next((k for k, v in opts.items() if k.startswith('pickup_') and 'lichen corpse' in v[0]), None)
+        if lichens < 4 and not any(m['dist'] <= 1 and not m['passive'] for m in hostiles):
+            if lk:
+                opts = {lk: opts[lk]}
+            elif (s.get('turn') or 0) - self.run.get('lichen_kill', -99) <= 3:
+                q = next((q for q in snap.find('%') if cheb(q, me) == 1 and q in dist), None)
+                if q:
+                    opts = {'get_lichen': ('Step onto the lichen corpse', 'Lichen corpses never rot: pick it up as emergency food.', lambda q=q: self.act_go(q, steps=1))}
+        darts = sum(int(m[1] or 1) for it in self.inventory for m in [re.match(r'(\d+ )?.*\bdarts?\b(?! trap)', it['text'])] if m)
+        if darts >= 10:
+            opts = {k: v for k, v in opts.items() if not (k.startswith('pickup_') and re.search(r'\bdarts?\b', v[0]))}
+        elif not any(not m['passive'] for m in hostiles) and s.get('hp', 1) >= 0.7 * s.get('hpmax', 1) and not self.soko():
+            # operator: farm a dart trap for ~10 darts. #untrap from beside it: success drops 50-rnl(50) darts (trap.c disarm_shooting_trap);
+            # a "Whoops" walks us onto it for one dart (1d3; 1 in 6 poisoned, and poison is 1 in 30 deadly without resistance)
+            kinds = lv.__dict__.setdefault('trap_kind', {})
+            for q in snap.find('^'):
+                if q not in kinds and q in dist and dist[q] <= 8:
+                    kinds[q] = self.farlook(q)
+            lv.__dict__.setdefault('dart_traps', set()).update(q for q, k in kinds.items() if 'dart trap' in k)
+            tries = lv.__dict__.setdefault('untrap_tries', {})
+            for trap in sorted(lv.dart_traps):
+                q = min((q for q in dist if cheb(q, trap) == 1 and q not in lv.traps), key=dist.get, default=None)
+                if q is not None and tries.get(trap, 0) < 15:
+                    opts = {'untrap_darts': (f"Disarm the dart trap {compass(me, trap)} for darts", f"You carry {darts} darts. Stand beside the dart trap and #untrap it: success leaves a stack of darts to throw.", lambda trap=trap, q=q: self.act_untrap_darts(trap, q))}
+                    break
         if 'fetch_gold' in opts and not any(not m['passive'] for m in hostiles) and s.get('hp', 1) >= 0.5 * s.get('hpmax', 1) and s.get('hunger') not in ('Weak', 'Fainting'):
             opts = {'fetch_gold': opts['fetch_gold']}  # operator: gold buys priest protection, then 2000-4000 for shops; offered 45 times, taken 14, games ended at 16-160 gold
         rid = next((k for k, v in opts.items() if k.startswith('read_') and 'identify' in v[0]), None)  # operator: read identify as soon as anything major is unknown
@@ -1500,6 +1531,27 @@ class Bot:
             return 'wore armor'
         self.run['unwearable'][it['text']] = self.snap.status.get('ac') or 0  # wrong slot taken, two-handed weapon, too big...: stop offering it
         return 'could not wear it: ' + (self.run['recent'][-1] if self.run['recent'] else '')
+
+    def act_untrap_darts(self, trap, q):
+        lv = self.level()
+        r = self.act_go(q)
+        if self.snap.me != q:
+            lv.untrap_tries[trap] = lv.untrap_tries.get(trap, 0) + 1
+            return 'going to the dart trap: ' + r
+        lv.untrap_tries[trap] = lv.untrap_tries.get(trap, 0) + 1
+        self.act_keys('#untrap\r' + DIR_OF[(trap[0] - q[0], trap[1] - q[1])], '')
+        news = ' | '.join(self.run['recent'][-3:])
+        if 'You disarm' in news or self.snap.me == trap:  # disarmed, or "Whoops..." walked us onto it (a missed dart lies here)
+            lv.dart_traps.discard(trap) if 'You disarm' in news else None
+            self.act_go(trap, steps=1)
+            dart = next((i for i in self.here_items() if re.search(r'\bdarts?\b', i)), None)
+            if self.snap.me == trap and dart:
+                self.act_pickup(dart)
+                it = next((i for i in self.inventory if re.match(r'(\d+) .*\bdarts\b', i['text'])), None)
+                if it and int(it['text'].split()[0]) > 10:
+                    self.act_keys('d' + str(int(it['text'].split()[0]) - 10) + it['letter'], '')  # keep 10 (operator)
+                    self.read_inventory()
+        return 'untrap: ' + news[-120:]
 
     def act_fetch_gold(self, q):
         r = self.act_go(q)

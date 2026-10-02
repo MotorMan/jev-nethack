@@ -2090,3 +2090,15 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Fix:**
   - The bot always goes for visible gold when no active hostile is in view, HP is at least half, and it isn't Weak.
   - A '$' it fails to reach 3 times is dropped (it had walked "blocked after 1 step" six times in a row).
+
+## Dart traps and lichen corpses (operator)
+- **Dart traps:**
+  - **How a trap is recognized:** "A little dart shoots out at you", or a '^' within 8 squares that farlooks as a dart trap.
+  - **When it is used:** the bot has fewer than 10 darts, no active hostile is in view, and HP is at least 70%. It stands beside the trap and #untraps it, up to 15 tries per trap.
+  - **Source (trap.c):** a disarm succeeds with chance 1 in 3 and drops 50-rnl(50) darts. A "Whoops" failure walks you onto the trap for one dart, which lies there if it missed.
+  - **After a disarm or a Whoops:** the bot steps on the square, picks up the darts and drops all but 10. It stops picking up darts once it has 10.
+  - **Risk:** 1 trap dart in 6 is poisoned, and without poison resistance poison is deadly 1 time in 30.
+- **Lichen corpses:**
+  - They never rot (eat.c nonrotting_corpse).
+  - After a lichen kill, the bot steps onto the corpse and picks it up, carrying up to 4.
+  - Lichen corpses in the pack get eaten like any other food when Hungry.
