@@ -2869,3 +2869,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** Jev went down the stairs to rest, and a homunculus followed. The homunculus took the up stairs. In 5.0, `u_collide_m` (`do.c`) then moves the hero to a square next to the stairs half of the time. The bot recorded `<` under the hero anyway. Each `stair_hop` then gave "You can't go up here", and Jev waited on Elbereth at 20/57 HP.
 - **Prevention:** After a level change, make sure that the arrival stairs are under the hero before you trust them.
 - **Fix:** `act_keys` does not record the arrival stairs when that stair glyph shows on a square next to the hero. A "You can't go up/down here" message removes the stair memory for that square.
+
+## Shop notes for later visits
+
+- **Cause:** The bot saw shops when it had no gold, and then it forgot them. It could not plan a return to a good shop.
+- **Prevention:** Record each shop as a level note: the shop type, the number of items and the items of interest. The items of interest come from the goals and the ascension kit in statico/nethack-tools `data/checklist.json`, plus keys, lock picks and pick-axes.
+- **Fix:** The welcome message gives the shop type. A flood fill from the shop door counts the items on the floor. Here-items in the shop that match `INTEREST`, and unknown scrolls (300 zm) or rings (200 zm or more) by price, become part of the note. `#annotate` writes the note into the ^O overview. The state text for Jev now has a "Level notes" line for all levels.

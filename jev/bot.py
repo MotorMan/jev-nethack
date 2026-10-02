@@ -31,6 +31,10 @@ BASES = {'scroll': (20, 50, 60, 80, 100, 200, 300), 'potion': (20, 50, 100, 150,
 APPEAR = re.compile(r'scrolls? labeled ([A-Z][A-Z ]*[A-Z])|\b(dark green|sky blue|brilliant blue|[\w-]+) potions?\b(?! of| called)|\b(tiger eye|black onyx|[\w-]+) rings?\b(?! of| called)')
 
 
+# user: the items of interest, from the ascension kit and goals in statico/nethack-tools data/checklist.json, plus the user's priority tools
+INTEREST = re.compile(r'magic resistance|reflection|life saving|versus poison|speed boots|jumping boots|levitation|gauntlets of (power|dexterity)|helm of (telepathy|opposite alignment|brilliance)|elven (mithril|leather helm|cloak)|dwarvish mithril|oilskin|cloak of (protection|displacement)|dragon scale|unicorn horn|luckstone|towel|blindfold|\bcandles?\b|bag of holding|\bsack\b|magic marker|wand of (teleportation|death|digging|secret door detection|create monster|wishing)|ring of (conflict|teleport control|free action|poison resistance|fire resistance|slow digestion|regeneration)|scrolls? of (genocide|charging|enchant armor|enchant weapon|remove curse|identify|gold detection)|potions? of (full healing|extra healing|gain level)|holy water|K-ration|C-ration|lembas|royal jelly|skeleton key|lock pick|credit card|pick-axe|grease')
+
+
 def appearance(t):
     m = APPEAR.search(t)
     return m and (('scroll', m[1]) if m[1] else ('potion', m[2]) if m[2] else ('ring', m[3]))
@@ -132,6 +136,7 @@ class Level:
         self.town = False      # a peaceful @ lives here (Izchak killed a run over a kicked shop door; the cash-register chime means a shopkeeper: a wiped "Closed for inventory" sign let Jev kick in Kinojevis' door, zapped dead T972)
         self.notes = set()     # user: annotate levels (vault, altar, stash): #annotate shows them in the ^O overview
         self.noted = ''
+        self.shops = {}        # user: shop type -> [door, items seen, items of interest], kept for a return with gold
         self.arrival = None    # where we first stood here: the other '<' on the Oracle+1 level leads to Sokoban
         self.stairs = set()    # '>' found under objects by #terrain
         self.terrain_turn = -999
@@ -230,6 +235,8 @@ class Bot:
                 self.run['engulfer'] = (re.findall(r'The ([a-z ]+?) (?:engulfs|swallows) you', text) or [self.run.get('engulfer')])[-1]
             if re.search(r"[Ww]elcome (again )?to \w", text) and self.snap:
                 self.run['welcome'] = (self.snap.status.get('dlvl'), self.snap.status.get('turn') or 0)
+                if (k := re.search(r"[Ww]elcome (?:again )?to [^!]*?'s? ([a-z -]+)!", text)):
+                    self.run['shop_kind'] = k[1]
             self.run['recent'].append(text)
             self.run['msg_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
             del self.run['recent'][:-12]
@@ -331,6 +338,8 @@ class Bot:
         s = self.snap.status
         if self.run is not None and s.get('dlvl') and self.run.get('ov_dl') != s['dlvl'] and top_prompt(self.snap.lines)[0] is None:
             return self.overview()
+        if self.run is not None and s.get('dlvl') and self.snap.me:
+            self.note_shops()
         if self.run is not None and s.get('dlvl') and top_prompt(self.snap.lines)[0] is None and (lv := self.level()).notes and lv.noted != (note := ', '.join(sorted(lv.notes))):
             lv.noted = note
             self.t.send('#annotate\r'); self.t.pump(0.5)
@@ -361,6 +370,30 @@ class Bot:
                 self.run['turns'] = s.get('turn') or self.run['turns']
         self.touch()
         return self.snap
+
+    def note_shops(self):
+        """User: remember each shop's type, size and best wares as a level note, for a later visit with gold."""
+        lv = self.level()
+        if (kind := self.run.pop('shop_kind', None)):
+            lv.shops.setdefault(kind, [self.snap.me, 0, set()])
+        for kind, shop in lv.shops.items():
+            room, todo = set(), [shop[0]]  # flood fill from the door; walls, doors' corridors and unseen squares stop it
+            while todo and len(room) < 400:
+                x, y = todo.pop()
+                if (x, y) in room or not MAP_TOP <= y <= MAP_BOT or not 0 <= x < 80 or (x, y) != shop[0] and self.snap.at(x, y).ch in ' #|-+':
+                    continue
+                room.add((x, y))
+                todo += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+            n = sum(self.snap.at(*q).ch in OBJECT_CHARS - {'$'} for q in room - {shop[0], self.snap.me})
+            for q in room:
+                for i in self.run.get('here', {}).get((self.snap.status.get('dlvl'), q), []):
+                    look = appearance(i)
+                    if INTEREST.search(i) or look and min(self.run.get('prices', {}).get(look) or {0}) >= (200 if look[0] == 'ring' else 300):
+                        zm = self.run.get('prices', {}).get(look) if look else None
+                        shop[2].add(re.sub(r'^(an?|the|\d+) | [({].*$', '', i) + (f" ({'/'.join(map(str, sorted(zm)))}zm)" if zm else ''))
+            shop[1] = max(shop[1], n)  # max, not the latest count: a monster on an item changed it and re-annotated each turn
+            best = sorted(shop[2])[:4] + ([f'+{len(shop[2]) - 4}'] if len(shop[2]) > 4 else [])  # the #annotate line has a length limit
+            lv.notes = {t for t in lv.notes if not t.startswith(kind + ' (')} | {f"{kind} ({shop[1]} items{', ' if best else ''}{', '.join(best)})"}
 
     def overview(self):
         """^O on each new Dlvl: the heading above '<- You are here' says which branch we are in (dungeon.c print_dungeon)."""
@@ -2818,6 +2851,7 @@ class Bot:
             f"Inventory: {inv}\n"
             f"Level: downstairs {'known' if snap.find('>') or self.standing_on() == '>' else 'not found yet'}; "
             f"deepest level reached this game {self.run['max_dlvl']}.\n"
+            f"Level notes: {'; '.join(f'{k if isinstance(k, int) else k[0] + chr(32) + str(k[1])}: ' + ', '.join(sorted(v.notes)) for k, v in sorted(self.run['levels'].items(), key=str) if v.notes) or 'none'}.\n"
             f"Recent game messages: {recent}\n"
             f"Recent decisions:\n{hist}\n\n"
             f"Map around you (@ is you; # corridor, + or orange | - doors, < > stairs, letters are monsters):\n{snap.crop()}\n"

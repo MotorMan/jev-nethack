@@ -40,7 +40,7 @@ Every death is a lesson. Most games can be won, so do not call a death bad luck.
 
 ## Commands
 
-- Tests: `.venv/bin/python test_corpse.py && .venv/bin/python test_loop_guard.py && .venv/bin/python test_sokoban.py && .venv/bin/python test_price_id.py && .venv/bin/python test_search_spot.py && .venv/bin/python test_mines.py && .venv/bin/python test_pursuit.py && ! .venv/bin/python -m pyflakes jev/ | grep 'undefined name'`. The pyflakes step finds a deleted variable that is still in use. Two crashes came from this.
+- Tests: `.venv/bin/python test_corpse.py && .venv/bin/python test_loop_guard.py && .venv/bin/python test_sokoban.py && .venv/bin/python test_price_id.py && .venv/bin/python test_search_spot.py && .venv/bin/python test_mines.py && .venv/bin/python test_pursuit.py && .venv/bin/python test_shops.py && ! .venv/bin/python -m pyflakes jev/ | grep 'undefined name'`. The pyflakes step finds a deleted variable that is still in use. Two crashes came from this.
 - Restart Hosted: `kill $(pgrep -f "[j]ev.server --name Hosted --port 8771")`. Then run `scripts/play.sh Hosted 8771` as a background command. The bot continues from the saved game.
 - Run only Hosted (port 8771). The user stopped the LunaRoute engines and the local models. Do not start them.
 - Never use `pkill -f jev.server`. It also kills the shell of the tool.
