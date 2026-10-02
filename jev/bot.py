@@ -1484,7 +1484,8 @@ class Bot:
         # a pack at any HP: left a working Elbereth at 40/44 to throw at bugbears and a goblin gang, dead 4 turns later
         # Weak is only nutrition 1-50 (eat.c): 23 turns camping on Elbereth there fainted Jev into a kitten's jaws (T4709)
         duo = sum(m['dist'] <= 3 and not m['peaceful'] and 'weaker' not in self.threat(m) for m in hostiles) >= 2  # explored off a fresh Elbereth at 32/38 with a wolf and a lizard 2 steps off; the warg joined: 32 -> 0 in 3 turns (T3260)
-        if any('much stronger' in self.threat(m) and m['dist'] <= 7 for m in hostiles):
+        # fast and not weak: a soldier ant (speed 18) out of view for 10 turns, Jev left the Elbereth wait at 22/53 to rest 15 turns, it came back: 22 -> 0 (T7927)
+        if any(('much stronger' in self.threat(m) or (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 15 and 'weaker' not in self.threat(m)) and m['dist'] <= 7 for m in hostiles):
             self.run['scary_turn'] = s.get('turn') or 0
         scary = (s.get('turn') or 0) - self.run.get('scary_turn', -99) <= 20  # XL4 on Elbereth, a soldier ant stepped out of view: fetched an item at 36/36, it came back, 12-step run for '<', dead (T2653)
         if self.engraved_here() and s.get('hunger') not in ('Weak', 'Fainting') and (pack or duo or scary or s.get('hp', 1) < 0.75 * s.get('hpmax', 1)) and (scary or any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles)) \

@@ -2397,3 +2397,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A wood nymph stole the spear, the plate mail and a helm. Then a werejackal bite turned Jev into a jackal. The filter for random weapons (from the tips of the user) blocked the pickup of all weapons except daggers. Jev walked over 2 scimitars and fought hill orcs bare-handed, 34 -> 0.
 - Prevention: The rule against random weapons is for a Valkyrie that has a weapon. With no weapon, any weapon is better than bare hands.
 - Fix: `jev/bot.py` permits a weapon pickup when the pack has no weapon, and makes it a priority option. The existing wield rule then wields it.
+
+## T7927 soldier ant, Dlvl 7
+
+- Cause: Jev waited on Elbereth at 22/53 HP. A soldier ant (speed 18) fled out of view. After 10 turns with no monster in view, the Elbereth wait stopped, and Jev chose a 15-turn rest. The ant came back and took 22 -> 11 in one turn. An engraving try was interrupted, and the ant killed Jev.
+- Prevention: A fast monster comes back faster than HP comes back. Stay on Elbereth until HP is high, also when the fast monster is out of view.
+- Fix: `jev/bot.py` sets `scary_turn` for a monster with speed 15 or more that is not weaker than Jev. The Elbereth wait then continues for 20 turns after the monster goes out of view.
