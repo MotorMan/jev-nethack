@@ -2127,7 +2127,7 @@ class Bot:
             self.t.send(('m' if self.snap.is_monster(nx, ny) and not self.snap.at(nx, ny).reverse else '') + d)
             snap = self.after_move(before)
             if self.refused_trap:
-                self.level().traps.add((me[0] + DIRS[d][0], me[1] + DIRS[d][1]))
+                (self.level().blocked if self.refused_trap == 'poison gas' else self.level().traps).add((me[0] + DIRS[d][0], me[1] + DIRS[d][1]))  # a gas cloud fades: blocked is forgotten after 30 turns, traps never
                 if self.refused_trap in ('trap door', 'hole'):
                     self.level().holes.add((me[0] + DIRS[d][0], me[1] + DIRS[d][1]))
                 return f'stopped after {taken} steps: a known trap door or teleporter lies on the path'
