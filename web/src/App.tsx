@@ -120,7 +120,7 @@ function Max({ title, right, bodyClass, children }: { title: ReactNode; right?: 
               <Dialog.Close asChild><Button size="icon" variant="ghost" className="size-4 text-muted-foreground" aria-label="close"><X className="size-3" /></Button></Dialog.Close>
             </div>
           </div>
-          <div className={cn("p-2.5 flex-1 min-h-0 flex flex-col overflow-auto", bodyClass)}>{children}</div>
+          <div className={cn("p-2.5 flex-1 min-h-0 flex flex-col overflow-auto", bodyClass)} style={{ containerType: "size" }}>{children}</div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

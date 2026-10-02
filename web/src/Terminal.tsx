@@ -37,7 +37,8 @@ export const Terminal = memo(function Terminal({ screen }: { screen: State["scre
   return (
     // container query units scale the grid to the panel width: cols * --ch em = 100cqw (--ch is the font advance, set per mode in index.css)
     <div className="term p-2" style={{ containerType: "inline-size" }}>
-      <div style={{ fontSize: `calc(100cqw / (${cols} * var(--ch) + 0.5))`, lineHeight: 1.2 }} className="relative">
+      {/* cqh: the lightbox body is a size container, so maximized it also fits the height (elsewhere cqh falls back to the viewport, and width wins) */}
+      <div style={{ fontSize: `min(calc(100cqw / (${cols} * var(--ch) + 0.5)), calc((100cqh - 1rem) / (${lines} * 1.2)))`, lineHeight: 1.2 }} className="relative">
         <pre>
           {Array.from({ length: lines }, (_, y) => (
             <div key={y} style={{ height: "1.2em" }}>
