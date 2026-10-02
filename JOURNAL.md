@@ -2670,3 +2670,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Prevention: Do not move toward a were-creature in animal form. Let it come to you, and stand on Elbereth.
 - Fix: The approach option excludes a were-creature in animal form.
 - Not changed: The unknown potion was allowed by the rule "below 1/4 HP with two adjacent attackers". Earlier deaths in melee caused that rule, so one result is not sufficient to change it.
+
+## T5652 Woodland-elf, Dlvl 6
+
+- Cause: Two Woodland-elves came. One shot arrows from 3 to 4 squares. Below half HP, the bot closes in only on a "weaker" shooter, and these elves were "about your level". The bot blocks retreat and holding while Jev is shot, and Elbereth does not stop an elf. All options were removed, and the fallback was "wait". Jev waited 4 turns, and HP went from 41 to 7. A prayer healed Jev to 83. The two elves then took 83 HP in melee.
+- Prevention: Do not stand still while a monster shoots at you. Close in, or break the line of sight.
+- Fix: If no option is left and a visible monster shoots at Jev, the bot offers "close in" on that monster instead of "wait".

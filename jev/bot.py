@@ -1464,6 +1464,9 @@ class Bot:
             if d:
                 opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'quaff_', 'attack_', 'throw_', 'zap_'))}
                 opts['escape_trap'] = ('Pull free of the bear trap', 'Your foot is caught in a bear trap. Each diagonal move attempt loosens it; searching or waiting never does.', lambda d=d: self.act_escape_trap(d))
+        sh = next((m for m in hostiles if shot and m['name'] == self.run.get('shooter') and 2 <= m['dist'] <= 8 and m['pos'] in dist), None)
+        if not opts and sh:  # 'wait' was the only option 4 turns while a Woodland-elf shot arrows from 3 steps: 41 -> 7, dead (T5652)
+            opts[f"approach_{sh['pos'][0]}_{sh['pos'][1]}"] = (f"Close in on {sh['name']}", f"It is shooting you from {sh['where']}; waiting only takes more arrows.", lambda m=sh: self.act_go(m['pos'], steps=1, adjacent_ok=True))
         if not opts:
             # nothing to do usually means level memory has walled us in (once for 7800 turns): forget it and look again
             lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
