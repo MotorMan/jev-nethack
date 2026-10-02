@@ -2518,3 +2518,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A band of more than 10 hill orcs came to a corridor. Jev killed many of them, but its AC was 8. It prayed at T4734. For 200 turns it stayed on Elbereth at 4 to 29 HP. The bot offered "flee_up" at 19/57 HP two times, but Jev waited and threw darts. The orcs threw daggers through Elbereth. A prayer 141 turns after the last prayer failed.
 - Prevention: Elbereth does not stop thrown weapons. If a band is near and the god cannot help, go to a different level.
 - Fix: If 3 or more hostile monsters of one kind were in view in the last 200 turns, the last prayer was less than 500 turns ago, HP is less than 60%, and no monster is adjacent, the bot offers only "flee_up", "pray" and potions.
+
+## T1984 shopkeeper, Dlvl 5 (bones)
+
+- Cause: Dlvl 5 was a bones level from run 20261002-005508. Its shopkeeper, Kediri, killed that Jev and stayed angry. Farlook showed only "Kediri". The bot did not know the species, so it showed no threat. Jev threw 3 daggers at Kediri and walked to it. Kediri hit for 33 in one turn.
+- Prevention: A shopkeeper is level 12 and hits two times for 4d4. Do not fight one at XL 4.
+- Fix: An `@` with a capitalized name that is not a known species is a "shopkeeper" for the threat check. It is "much stronger" now.

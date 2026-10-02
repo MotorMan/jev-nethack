@@ -506,6 +506,8 @@ class Bot:
         if set(self.snap.status.get('conditions', [])) & {'Hallu', 'Hal', 'Hl'}:
             return 'hallucinated monster'  # names are random each turn: an 'Archon' (much stronger) got retreats, an 'acid blob' (much weaker) got hits; a pony killed Jev 60 -> 0 (T3336)
         name = re.sub(r'^(tame|peaceful)\s+', '', m['name'])
+        if m['ch'] == '@' and name not in MONSTERS and re.fullmatch(r"[A-Z][\w'-]+", name):
+            return 'shopkeeper'  # an angry bones shopkeeper farlooks as just 'Kediri': no threat known, Jev threw daggers at it, dead (T1984)
         return re.sub(r'\s+(called\s+.*|- .*)$', '', name)  # 'coyote - Overconfidentii Vulgaris'
 
     def threat(self, m):
