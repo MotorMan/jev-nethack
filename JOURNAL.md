@@ -2252,3 +2252,9 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 ## 2026-10-01 — gargoyle, Sokoban Dlvl 7 T9530 (run 20261001-201806)
 - **Cause:** the forced soko_push filter only stood down while hostiles were in view and HP was under 60%. The gargoyle (speed 10, up to 28 damage a turn) kept stepping out of view. Each time, a push became the only option, at 20/57 and then 10/57, and each one walked the bot off its Elbereth. It died on the last push.
 - **Fix:** pushes are forced only at 60% HP or more. Below that, rest, Elbereth and the other options stay available.
+
+## 2026-10-01 — rothe in the Mines, Dlvl 5 T3492 (run 20261001-202507)
+- **Cause, part 1:** the main '>' on Dlvl 4, the Mines branch level, wasn't found within 500 search turns. stuck_main then opened the Mines at XL5, and the bot ping-ponged Dlvl 4↔5 about 30 times. The user flagged it: the plan was no Mines until XL 10.
+- **Cause, part 2:** the bot put on a towel against a yellow light, and the towel was cursed. 'unblind' tried 'R' thousands of times on T3457, then a rothe killed the blind bot.
+- **Source:** pray.c lists TROUBLE_CURSED_BLINDFOLD as major trouble (1), so a safe prayer uncurses it.
+- **Fix:** MINES_XL is now 10. stuck_main now needs 1500 search turns, since the main '>' always exists and is just hidden. A worn cursed towel or blindfold is fixed by prayer (more than 1000 turns since the last one); otherwise 'unblind' isn't offered.

@@ -43,7 +43,7 @@ WEAPON = re.compile(r'\b(' + '|'.join(WEAPON_RANK) + r')s?\b(?! corpse)')
 # pray.c: never offer own race (dwarf), a former pet, a co-aligned (white) unicorn; touching a cockatrice bare-handed stones you
 NEVER_OFFER = ('cockatrice', 'chickatrice', 'dwarf', 'kitten', 'housecat', 'large cat', 'little dog', 'large dog', 'dog corpse', 'pony', 'horse', 'white unicorn', 'Medusa', 'Death', 'Pestilence', 'Famine', 'were')
 UNKNOWN_BUC = lambda t: not re.search(r'\b(cursed|uncursed|blessed)\b|being worn|weapon in|gold piece|corpse', t)
-MINES_XL = 6  # 33 of 78 deaths were in the Mines, mostly Dlvl 6-8 at avg XL 5.5: below this, Mines only after Sokoban and never past Minetown
+MINES_XL = 10  # 33 of 78 deaths were in the Mines, mostly Dlvl 6-8 at avg XL 5.5: below this, Mines only after Sokoban and never past Minetown
 POISONOUS = ('killer bee', 'soldier ant', 'giant beetle', 'queen bee', 'homunculus', 'rabid rat', 'giant spider', 'scorpion', 'snake', 'water moccasin', 'pit viper', 'cobra', 'gremlin', 'xan', 'jellyfish', 'salamander', 'guardian naga', 'green dragon')  # monsters.h M1_POIS, eat.c 5.0: 4 in 5 cost rnd(4) Str + rnd(15) HP without poison res (dwarven Valks have none); a homunculus and a giant beetle took Str 17 -> 5 (T6625)
 # eat.c 5.0 cpostfx: polymorph (chameleon, doppelganger, genetic engineer), helpless 20-50 turns as gold (mimics), stun 60+ (stalker), speed toggle (quantum mechanic),
 # random intrinsic loss (disenchanter), 200 turns hallucination (violet fungus, yellow mold, which is poisonous too)
@@ -1033,10 +1033,10 @@ class Bot:
         # a bad '>' is skipped only when another way down exists: otherwise the level above dead-ends too and Jev cascades up to Dlvl 1 (starved, T7223)
         downs = [p for p in downs if p not in bad] or downs
         ms = self.run.get('mines_stair')
-        if ms and ms[0] == s.get('dlvl') and xl_low and sum(lv.searched.values()) < 500:
+        if ms and ms[0] == s.get('dlvl') and xl_low and sum(lv.searched.values()) < 1500:
             downs = [p for p in downs if p != ms[1]]  # main dungeon first: Oracle, Sokoban, XP
         md = self.run.get('mines_dls') or {0}
-        stuck_main = ms and sum(self.run['levels'].get(ms[0], Level()).searched.values()) >= 500  # main '>' never found: the Mines are the only way on
+        stuck_main = ms and sum(self.run['levels'].get(ms[0], Level()).searched.values()) >= 1500  # main '>' never found: the Mines are the only way on (500 sent an XL5 into Mines Dlvl 5 ~30 times, killed by a rothe T3492)
         mcap = self.in_mines() and xl_low and (not self.run.get('soko_done') and not stuck_main or lv.town or s.get('dlvl', 1) >= min(md) + 3)
         too_deep = mcap or s.get('dlvl', 1) >= (s.get('xl') or 1) + 2  # pace: Dlvl <= XL+1 (XL+2 still lost most runs on Dlvl 4-5 before T2000)
         ups = [p for p in snap.find('<') if p in dist]
@@ -1384,7 +1384,10 @@ class Bot:
         # and blinds anyway: waited at 72/72 beside one, blinded, 3 unseen rothes 72 -> 0 (T5778). Wiki: kill it, or be blind already
         yl = [m for m in hostiles if 'yellow light' in m['name'] and m['dist'] == 1]
         cover = next((it for it in self.inventory if re.search(r'\b(blindfold|towel)\b', it['text'])), None)  # wiki (Yellow light): be blind already when it explodes
-        if cover and 'being worn' in cover['text'] and not any('yellow light' in m['name'] for m in hostiles):
+        stuck_on = cover and re.search(r'\bcursed\b', cover['text']) and 'uncursed' not in cover['text']  # 'R' fails on a cursed one: 3000+ unblind decisions on T3457 (run 202507)
+        if stuck_on and 'being worn' in cover['text'] and (s.get('turn') or 0) - (self.run.get('prayed_turn') or -2000) > 1000:
+            opts = {'pray': ('Pray to Tyr', 'A cursed towel/blindfold over your eyes is major trouble (pray.c TROUBLE_CURSED_BLINDFOLD): a safe prayer uncurses it.', self.act_pray)}
+        elif cover and 'being worn' in cover['text'] and not stuck_on and not any('yellow light' in m['name'] for m in hostiles):
             opts = {'unblind': ('Take off the ' + cover['text'], 'No yellow light in view any more: see again.', lambda l=cover['letter']: (self.act_keys('R' + l, 'took it off'), self.read_inventory())[0])}
         elif yl and cover and 'Blind' not in s.get('conditions', []):  # melee missed one at 36/56: blinded, unseen fire ants, dead (T5164)
             opts = {'blindfold': ('Put on the ' + cover['text'], 'A yellow light is next to you: its explosion only blinds, so cover your eyes first and it does nothing.', lambda l=cover['letter']: (self.act_keys('P' + l, 'put it on'), self.read_inventory())[0])}
