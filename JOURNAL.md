@@ -2730,3 +2730,10 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** At T3759, an engrave test of "a runed wand" gave "The bugs on the floor speed up!". This message shows a wand of speed monster, but it does not identify the wand. The bot did not keep the result. At T7369, at 40/78 HP between two ettin zombies, Jev zapped the wand at a zombie. The zombies became fast and killed Jev, also after a successful prayer.
 - **Prevention:** After an engrave test, remember what the message shows. Never zap a wand of speed monster at a hostile monster. Zap it at yourself.
 - **Fix:** After "speed up!", `act_engrave_id` adds the wand to `bad_wands`, so the bot never zaps it at monsters. It also records the wand as the speed wand, so the `speed_self` option zaps it at Jev.
+
+## T10884: plains centaur, Fainting, during a failed prayer (kev-4b)
+
+- **Cause:** At T10596, a water nymph stole the spear and the helm. Jev prayed for HP at T10676. At T10737, Jev was Hungry and had no food. The rule for "you just fled up" excluded only Weak and Fainting, so the bot rested 9 times for 20 turns while Hungry. Jev became Fainting. The next prayer was only 207 turns after the last one, and it failed. A plains centaur killed Jev.
+- **Prevention:** When you are Hungry and have no food, do not rest. Look for food, or go down to find corpses.
+- **Fix:** The "fled up" rest rule now also excludes Hungry.
+- **Not fixed:** Jev went between Dlvl 4 and Dlvl 5 for about 1000 turns because there were nymphs on both levels. The nymph stole the weapon during this time.
