@@ -7,8 +7,6 @@
 
 ![Jev playing NetHack in the web UI](docs/demo.gif)
 
-The web UI uses the [SMUI](https://smui.statico.io) theme for shadcn/ui.
-
 ## How it works
 
 Jev does not write text or type commands. It only picks one answer from a list. This project uses that as follows:
@@ -86,6 +84,8 @@ To stop the watcher, push Ctrl-C.
 ## More information
 
 `JOURNAL.md` is the development log. It records each finding and decision in time order.
+
+The web UI uses the [SMUI](https://smui.statico.io) theme for shadcn/ui.
 
 ## License
 
