@@ -1414,6 +1414,9 @@ class Bot:
                 opts['dodge'] = ('Step out of the line of fire', 'Something unseen is zapping rays at you; never stand still in its line.', lambda d=random.choice(steps): self.act_keys(d, 'dodged'))
             if 'dodge' in opts:
                 opts = {k: v for k, v in opts.items() if k in ('dodge', 'pray') or k.startswith(('attack_', 'quaff_'))}
+        if shot and self.standing_on() == '<' and s.get('dlvl', 1) > 1 and hp < 0.7 * hpmax and 'dodge' not in opts:  # a fled hill orc zapped striking at an Elbereth on '<': 43 -> 21 -> 14 -> 0 with only 'wait' offered (T2894)
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('attack_', 'quaff_'))}
+            opts['upstairs'] = ('Flee up the stairs', 'You are being shot or zapped and Elbereth does not stop that: climb the stairs you stand on.', lambda: self.flee_up(lambda: self.act_keys('<', 'went up')))
         if opts.get('pray', ('',))[0] == 'Pray to Tyr':  # a safe prayer fixes hunger with no 1-in-2 tripe vomiting (T3736)
             if s.get('hunger') == 'Weak' and not fatal and not LOW_HP(s) and not hostiles and any(k.startswith('eat_') for k in opts):
                 del opts['pray']  # prayed Weak with a tripe ration and nothing in view; 131 turns on, blind, a rabid rat at 11/38, no prayer left: dead (T4302)

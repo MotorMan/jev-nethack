@@ -2189,3 +2189,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: "You hear a chugging sound" (a monster drank a potion, likely invisibility), then "You hear a nearby zap. The death ray whizzes by you!". The bot took this for an unseen melee attacker and searched in place with find_unseen, and the next ray killed it. It had no magic resistance or reflection.
 - Wiki (Wand of death, Ray): a ray travels in a straight line; Elbereth does not stop wands. Without MR or reflection, the only defense is to leave the line or the level.
 - Fix: for 2 turns after "whizzes by you" or "You hear a nearby zap", offer 'dodge': take stairs on or within 8 steps of the bot, else step to a random free neighboring square. Everything except dodge, pray, attack and quaff is dropped.
+
+## Hill orc's wand of striking on Elbereth (run 20261001-191134, Dlvl 6, T2894)
+- Cause: the bot sat on an Elbereth it had engraved on '<'. A hill orc that had fled from the engraving zapped a wand of striking at it: 43 -> 21, then a re-engrave, then 14, then dead. With the orc no longer in 'near', 'upstairs' was rarely offered, and when it was, the model chose wait.
+- Wiki (Elbereth): it never stops wands or missiles.
+- Fix: when shot or zapped while standing on '<' below 70% HP, the options become upstairs, pray, attack and quaff only.
