@@ -2960,3 +2960,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: a floating eye stood in the only doorway of a closed room. The bot had no missiles. It had a wand of cold, but the eye was not on one of the 8 lines, so no zap was offered. The bot meleed the eye while Hungry, was frozen, and starved.
 - Prevention: kill a blocking eye from range. An attack wand works from any square in line with the eye.
 - Fix: if an attack wand is in the pack, the eye option walks to the nearest square in line (1 to 6 steps away, clear line), then zaps the wand at the eye.
+
+## Uruk-hai arrows, T6422 (Dlvl 4)
+
+- Cause: an Uruk-hai shot poisoned arrows up a dark corridor from out of view. At 16/62 HP the bot engraved Elbereth (it does not stop arrows), then rested 15 turns in the line of fire. The rest option checked only for visible monsters. The upstairs was 3 steps away.
+- Prevention: when an unseen archer shoots, leave its line. Do not rest there.
+- Fix: no rest for 3 turns after a shot. Below half HP while being shot, offer the upstairs if it is 20 steps or less away.
