@@ -37,6 +37,7 @@ def price_bases(cls, price, ch):
     return {b for b in BASES[cls] for sur in (0, 1) if sell_price(b, ch, sur) == price}
 JUNK = re.compile(r'\b(mail|plate|armor|shield|shoes|boots|cloak|wrapping|helm|helmet|gauntlets|gloves|short sword|long sword|broadsword|scimitar|axe|mace|club|bow|crossbow|pick-axe|morning star|flail|hammer|trident)\b')  # unworn copies: what to drop when Burdened
 SLOTS = {'boots': r'boots|shoes', 'helm': r'helm|hat|cap\b', 'cloak': r'cloak|robe|wrapping|apron', 'shield': r'shield', 'gloves': r'gloves|gauntlets', 'body': r'\bmail|plate|armor|coat'}
+HUGGERS = re.compile(r'\b(owlbear|python|rope golem|couatl|salamander|kraken|pit fiend|carnivorous ape|guardian naga)\b')  # AT_HUGS in monsters.h
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
 DOMESTIC = {'kitten', 'housecat', 'large cat', 'little dog', 'dog', 'large dog', 'pony', 'horse', 'warhorse'}  # M2_DOMESTIC (monsters.h)
 WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber', 'short sword', 'spear', 'mace', 'morning star', 'war hammer', 'flail', 'trident', 'dagger', 'knife', 'club']
@@ -747,12 +748,16 @@ class Bot:
                     **{k: v for k, v in opts.items() if k != 'wait'}}
         big_hit = bool(self.history) and (self.history[-1]['hp'] or 0) - hp >= hp and any(m['dist'] <= 1 for m in hostiles)  # one more turn like the last one kills
         # operator: Elbereth is for emergencies; the default is back into a corridor and fight one at a time (was hp < 0.7 or any pack: 30-140 engravings a game, mostly forced)
-        if (near and hp < 0.45 * hpmax or dread or pack and open_n(me) > 2 and 'choke' not in opts and hp < 0.6 * hpmax or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
+        # AT_HUGS (monsters.h): once held, engrave.c can_reach_floor is FALSE and you cannot step away, so engrave before contact: an owlbear took 51/94 to 0 in 4 turns, Elbereth refused 'cannot reach the floor' (T9944)
+        hugger = (s.get('turn') or 0) - self.run.get('held', -99) > 2 and hp < 0.75 * hpmax and any(m['dist'] <= 3 and HUGGERS.search(m['name']) for m in hostiles)
+        if (near and hp < 0.45 * hpmax or hugger or dread or pack and open_n(me) > 2 and 'choke' not in opts and hp < 0.6 * hpmax or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & ({'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} | (set() if big_hit else {'Hallu', 'Hal', 'Hl'})) \
                 and sum(h['choice'] == 'elbereth' and 'interrupted' in h['outcome'] for h in self.history[-4:]) < 2 \
                 and (s.get('turn') or 0) - self.run.get('no_engrave', -99) > 5 \
                 and not (any(m['dist'] == 1 and m['name'] in self.run.get('e_blockers', ()) for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # count: unseen biters left adj_names empty, 16 interrupted engravings in a row while Hungry turned Weak, then Fainting (T5312)  # @ ignore it (monmove.c onscary: S_HUMAN); 2 Elbereths at 9/49 beside a Woodland-elf, a rock mole also near, dead (T2543); engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
+        if hugger and 'elbereth' in opts:
+            opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_')) and k not in ('rest', 'wait')}
         if big_hit and {'elbereth', 'retreat', 'flee_up', 'upstairs'} & opts.keys():  # hallucinating, a 'shrieker' was a dwarf king: 35 -> 14 in a turn, threw a dart, dead (T4026)
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'throw_', 'approach_')) and k not in ('rest', 'wait')}
         if hp < 0.5 * hpmax and ('elbereth' in opts or self.engraved_here()):  # choke <-> Elbereth alternation at 21/68 -> 10: each step off wasted the engraving (T5005)
