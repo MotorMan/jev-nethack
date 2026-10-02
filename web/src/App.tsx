@@ -344,6 +344,8 @@ function Vitals({ s }: { s: State }) {
 function DecisionPanel({ s }: { s: State }) {
   const d = s.decision
   const [wrap, setWrap] = useState(() => { try { return localStorage.getItem("wrap") === "1" } catch { return false } })
+  const [tab, setTab] = useState(() => { try { return localStorage.getItem("tab") ?? "options" } catch { return "options" } })
+  const pickTab = (t: string) => { setTab(t); try { localStorage.setItem("tab", t) } catch { /* private mode */ } }
   const toggleWrap = () => { setWrap(!wrap); try { localStorage.setItem("wrap", wrap ? "0" : "1") } catch { /* private mode */ } }
   const io = s.jev.last
   if (!d) {
@@ -368,7 +370,7 @@ function DecisionPanel({ s }: { s: State }) {
         </span>
       }
     >
-      <Tabs defaultValue="options">
+      <Tabs value={tab} onValueChange={pickTab}>
         <TabsList variant="line" className="w-full justify-start mb-2">
           <TabsTrigger value="options" className="flex-none" title="the actions the bot offered, with Jev's probability for each">options ({d.options.length})</TabsTrigger>
           <TabsTrigger value="question" className="flex-none" title="the question asked of Jev">instructions</TabsTrigger>
