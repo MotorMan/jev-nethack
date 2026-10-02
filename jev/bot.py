@@ -1589,7 +1589,7 @@ class Bot:
         if 'flee_up' in opts and len(opts) > 1 and all(h['choice'] == 'flee_up' and 'after 1 steps' in h['outcome'] for h in self.history[-2:]):
             opts.pop('flee_up')  # 4 one-step flee_ups between an elf mummy, a Woodland-elf and soldier ants, 55 -> 0, wand of fire and 2 healing potions unused (T8671)
         if 'flee_up' in opts and not any(dist.get(q, 99) <= 1 for q in self.snap.find('<')) \
-                and any(m['dist'] <= 1 and m['ch'] not in '@&' and 'minotaur' not in m['name'] and (MONSTERS.get(self.species(m)) or [0, 0])[1] > 12 for m in hostiles):
+                and any(m['dist'] <= 1 and m['ch'] not in '@&' and 'minotaur' not in m['name'] and (hallu or (MONSTERS.get(self.species(m)) or [0, 0])[1] > 12) for m in hostiles):  # hallucinating, the names hide the speed: fled beside soldier ants twice, 52 -> 19, a gamble prayer failed (T9456)
             opts.pop('flee_up')  # walked for '<' with a jaguar (speed 15, 3 attacks) adjacent: 31 -> 14 -> 8 -> 0 in two steps, Elbereth unused (T3778)
         if LOW_HP(s) and 'teleport' in opts and 'pray' not in opts and any(m['dist'] <= 1 and not m['peaceful'] for m in hostiles):
             opts.pop('flee_up', None)  # walking off at 1/74 beside a Green-elf took a hit per step: dead with 13 unread scrolls (T7362)

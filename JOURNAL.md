@@ -2706,3 +2706,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** Jev went down the stairs into a group: 2 fire ants, an orc zombie, an Uruk-hai and a dwarf. The bot did not record the up staircase under the arrival square. `standing_on()` gave None, so the bot did not offer "Flee up the stairs". Jev attacked from 71 HP to 0.
 - **Prevention:** When a level is dangerous on arrival, go back up the stairs at once. Only adjacent monsters follow.
 - **Fix:** `act_keys` records `<` under the hero after a descent by `>`, and `>` after a climb by `<`.
+
+## T9456: soldier ants while hallucinating
+
+- **Cause:** A black light exploded and Jev started to hallucinate. The monster names became random, so the bot did not know that the adjacent monsters were fast soldier ants. The bot offered "Run for the upstairs" two times with the ants adjacent. HP went from 52 to 19. A prayer 545 turns after the last one failed, and Jev died.
+- **Prevention:** Do not walk away from an adjacent monster that can be fast. When you hallucinate, you cannot know the speed of a monster.
+- **Fix:** When Jev hallucinates, the bot removes "Run for the upstairs" if a hostile monster is adjacent and the staircase is not adjacent.
