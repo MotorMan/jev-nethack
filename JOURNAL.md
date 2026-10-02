@@ -2755,3 +2755,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** Jev was Weak, with 60 HP. A werewolf was 2 steps away. Jev prayed. The prayer failed ("Thou art arrogant"), and Jev lost a level. During the prayer the werewolf summoned two wolves and a winter wolf. HP went from 60 to 0. Before this, Jev did about 25 explore walks of 1 step each. A blue jelly and peaceful monsters went in and out of view and stopped each walk.
 - **Prevention:** The 3 prayer turns are safe only if the prayer works (pray.c). Weak is not urgent. Kill the monster first, then pray.
 - **Fix:** The bot does not offer a hunger prayer when a hostile is 3 steps away or nearer, unless HP is low or Jev is starving. After 3 walks in a row that a new monster stopped, the next walk stops only for damage.
+
+## T1953: homunculus, Dlvl 3 (kev-4b)
+
+- **Cause:** Jev fought a homunculus at XL 3 and missed 10 of 12 attacks. One bite put Jev to sleep, and the free bites took HP from 34 to 19. The bot offered Elbereth only below 45% HP. Jev was put to sleep again at 14 HP and died.
+- **Prevention:** A sleep bite (mhitu.c AD_SLEE) puts you to sleep for up to 10 turns. Do not fight a sleep biter when hurt. Elbereth works against it.
+- **Fix:** Elbereth is offered when a monster with a sleep attack is 2 steps away or nearer and HP is below 75%.
