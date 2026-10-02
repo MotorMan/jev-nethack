@@ -2194,3 +2194,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: the bot sat on an Elbereth it had engraved on '<'. A hill orc that had fled from the engraving zapped a wand of striking at it: 43 -> 21, then a re-engrave, then 14, then dead. With the orc no longer in 'near', 'upstairs' was rarely offered, and when it was, the model chose wait.
 - Wiki (Elbereth): it never stops wands or missiles.
 - Fix: when shot or zapped while standing on '<' below 70% HP, the options become upstairs, pray, attack and quaff only.
+
+## Ape among a fire ant and a plains centaur (run 20261001-191409, Dlvl 7, T6191)
+- Cause: on Elbereth at 37/84 the bot was offered a charge at the plains centaur shooting at it (the "kill a weak shooter" rule), while an ape and a fire ant were within 3 squares. It stepped off and took hits. It then swung at a grid bug with the ape adjacent, quaffed an unknown potion (object detection), charged again at 20/84, and died.
+- Wiki (Elbereth): stepping off gives every nearby monster free hits; a shooter is worth charging only when it is alone.
+- Fix: the shooter charge at low HP is offered only when no other non-passive hostile is within 3 squares. Grid bugs, newts and lichens join the "don't swing at it while something real is adjacent" list.
