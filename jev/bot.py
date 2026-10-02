@@ -588,7 +588,7 @@ class Bot:
         # attacking from Elbereth erases it and costs alignment (5.0: "You feel like a hypocrite"); only @ and minotaurs ignore it
         # wiki (Elbereth): rest on it, then scuff it and attack, re-engrave when hurt. allmain.c spawns a monster every ~70 turns: 910 waits on Elbereth
         # in a closed Dlvl 8 room at 50/58 filled it with apes, fire ants and zombies, dead (T3499)
-        camped = sum(h['choice'] == 'wait' and 'Elbereth' in h['outcome'] for h in self.history[-50:]) >= 40 and hp >= 0.6 * hpmax
+        camped = sum(h['choice'] == 'wait' and 'Elbereth' in h['outcome'] for h in self.history[-50:]) >= 40 and hp >= (0.85 if any(m['dist'] <= 5 and 'weaker' not in self.threat(m) and not m['passive'] for m in hostiles) else 0.6) * hpmax  # camped at 36/59: hit a giant rat off Elbereth with a plains centaur and fire ant near, 37 -> 0 in 2 turns (T5097)
         on_e = self.engraved_here() and hp < 0.9 * hpmax and not shot and not camped  # zapped on Elbereth by an adjacent orc, the only option left was 'retreat' (T4400); healthy: fight from it rather than wait out a speed-1 fog cloud
         for m in hostiles:
             if m['dist'] == 1 and m['pos'] not in self.avoid and not ((on_e or shot and self.engraved_here() and hp < 0.9 * hpmax and m['name'] != self.run.get('shooter')) and m['ch'] != '@' and 'minotaur' not in m['name']):  # shot by a hobgoblin, Jev hit the adjacent rothe off Elbereth instead: 13 -> 0 (T2445)

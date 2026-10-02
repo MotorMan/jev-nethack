@@ -2224,3 +2224,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** at 10/50 HP, beside a wererat in animal form and the rats it had summoned, the bot was offered both Elbereth and a gamble prayer. The last prayer had been 144 turns earlier. Jev chose the prayer (p 0.52); it failed and the rats killed it mid-prayer.
 - **Wiki/source:** the prayer timeout after a successful prayer is rnz(350), so praying under ~200 turns later usually fails. Animal-form weres and rats respect Elbereth, and a dust Elbereth comes out legible about 72% of the time.
 - **Fix:** when Elbereth is offered and the last prayer was under 200 turns ago, the gamble prayer is removed.
+
+## 2026-10-01 — plains centaur, Dlvl 7 T5097 (run 20261001-194640)
+- **Cause:** the bot had waited on Elbereth for 40+ turns and was at 36/59 HP. The "camped" release (60% HP) allowed attacks again, so it hit a giant rat off the engraving with a plains centaur and a fire ant nearby (both speed 18). Its next Elbereth came out garbled and it went from 37 to 0 in 2 turns.
+- **Wiki:** you can rest on Elbereth until healed against monsters that respect it. Attacking from it erases it.
+- **Fix:** with any non-weaker hostile within 5 squares, the camped release now needs 85% HP (it stays at 60% otherwise).
