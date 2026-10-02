@@ -344,6 +344,8 @@ class Bot:
             if not md and self.run.get('prev', (0,))[0] == dl - 1:
                 self.run['mines_stair'] = self.run['prev']  # the main-dungeon '>' that leads here
             md.add(dl)
+        else:  # main Dlvl 4 after a visit to Mines Dlvl 4 stayed 'mines': the XL cap sent Jev 3 <-> 4 ~50 times, starved, prayed too soon, dead (T4486)
+            self.run.get('mines_dls', set()).discard(dl)
         self.log(f'overview Dlvl {dl}: mines={mines}')
         return self.observe()
 

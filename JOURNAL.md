@@ -2354,3 +2354,8 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 ## Mimic memory (user note)
 - User: you can walk away from a found mimic (speed 3), but it can follow you and hide again. The "new" item on the way back is probably the mimic.
 - Fix: each level remembers every square where a mimic was seen. Object glyphs within 2 squares of those squares go into `avoid`, so the bot does not path through them.
+
+## T4486 wererat, fainted, Dlvl 4
+- The bot went down the Mines branch to Mines Dlvl 4, came back, and later took the main '>' to main Dlvl 4. `in_mines()` only checks if the Dlvl number is in `mines_dls`, and the set only grew. So main Dlvl 4 counted as the Mines, and the Mines XL cap said "far too deep" each time. The bot went 3 <-> 4 about 50 times (the giant mimic game showed the same loop).
+- That burned the food. It prayed for hunger at T1235, T2298 and T3149. The fourth prayer, at Weak 1003 turns after the third, was too soon (pray.c p_type 0, "Thou art arrogant"). Then it fainted beside a wererat.
+- Fix: when ^O overview says that the hero is not in the Mines, remove that Dlvl from `mines_dls`.
