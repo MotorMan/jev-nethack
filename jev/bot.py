@@ -750,10 +750,7 @@ class Bot:
                 opts['downstairs'] = ('Flee down the stairs', 'Take the down staircase you are standing on to get away; only adjacent monsters may follow.', lambda: self.act_keys('>', 'went down'))
         hops = sum(h['choice'] in ('upstairs', 'flee_up', 'leave_nymph', 'downstairs') for h in self.history[-6:]) >= 4  # leave_nymph down into a weak pack, flee up, leave again: 14 round trips, then a gamble prayer angered Tyr (T8484)
         adj = [m for m in near if m['dist'] <= 1]
-        # a speed-12+ monster adjacent hits on every step of a long walk: ran 15 steps for '<' at 18/94 beside a Grey-elf (ignores Elbereth), 18 -> 8, gamble prayer, dead (T13186)
-        chased = 'upstairs' not in opts and any((MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12 for m in adj) and min((dist.get(p, 99) for p in snap.find('<')), default=99) > 3
-        # a blocked walk is a free hit: 6 'flee_up ... blocked after 1 steps' beside an Uruk-hai, 31 -> 0 (T7304)
-        if chased or any(h['choice'] == 'flee_up' and 'blocked' in h['outcome'] for h in self.history[-3:]):
+        if any(h['choice'] == 'flee_up' and 'blocked' in h['outcome'] for h in self.history[-3:]):
             opts.pop('flee_up', None)
         # a wraith, a soldier and a pony followed each trip: 7 stair hops on Dlvl 9/10, 71 -> 0 with attacks offered each time (T8105). Adjacent monsters follow: fight them
         # a panther followed 4 hops between Dlvl 7 and a crocodile on Dlvl 8's '<': 70 -> 6, prayed too soon, dead (T7861). Count 6, and Elbereth also beats a hop
@@ -1588,10 +1585,22 @@ class Bot:
                 del opts['pray']  # a hole is sure, a prayer 290 turns on is not: chose the gamble over a wand of digging at 9 HP, a little dog bit it dead mid-prayer (T3624)
         if 'flee_up' in opts and len(opts) > 1 and all(h['choice'] == 'flee_up' and 'after 1 steps' in h['outcome'] for h in self.history[-2:]):
             opts.pop('flee_up')  # 4 one-step flee_ups between an elf mummy, a Woodland-elf and soldier ants, 55 -> 0, wand of fire and 2 healing potions unused (T8671)
-        for k in [k for k in ('flee_up', 'ascend') if k in opts and len(opts) > 1]:  # 'ascend' too, and 2 steps: walked off with a panther 2 steps east at 21/73, Elbereth on offer, dead (T6730)
-          if not any(dist.get(q, 99) <= 1 for q in self.snap.find('<')) \
-                and any(m['dist'] <= 2 and m['ch'] not in '@&' and 'minotaur' not in m['name'] and (hallu or (MONSTERS.get(self.species(m)) or [0, 0])[1] > 12) for m in hostiles):  # hallucinating, the names hide the speed: fled beside soldier ants twice, 52 -> 19, a gamble prayer failed (T9456)
-            opts.pop(k)  # walked for '<' with a jaguar (speed 15, 3 attacks) adjacent: 31 -> 14 -> 8 -> 0 in two steps, Elbereth unused (T3778)
+        # One pursuit rule for every walk away (monmove.c: a monster that moves cannot also melee; mcalcmove rounds speed to whole moves, so
+        # only a faster monster gains extra moves, and each extra move beside you is an attack round). Rounds on an n-step walk from gap d:
+        # n*(v-spd)/spd - (d-1). Equal speed adjacent: bends and blocks give about n/8. Replaces one-off rules for a panther 2 steps off at 21/73 (T6730),
+        # a jaguar adjacent 31 -> 0 (T3778), a Grey-elf adjacent 18 -> 8 over 15 steps (T13186), soldier ants while hallucinating (T9456)
+        for k in [k for k in ('flee_up', 'ascend', 'leave_nymph', 'descend', 'choke') if k in opts]:
+            n = int((re.search(r'(\d+) steps', opts[k][1]) or [0, 0])[1])
+            cost = 0
+            for m in hostiles:
+                lv = MONSTERS.get(self.species(m)) or [0, 18, 0, '', '1d12']  # unknown (or hallucinated): assume fast
+                v, d = (18 if hallu else lv[1]), m['dist']
+                rounds = n * (v - spd) / spd - (d - 1) if v > spd else n / 8 if v == spd and d <= 1 else 0
+                cost += max(0, rounds) * sum(int(x) * (int(y) + 1) / 2 for x, y in re.findall(r'(\d+)d(\d+)', lv[4]))
+            if n > 1 and cost >= 0.5 * hp and len(opts) > 1:
+                opts.pop(k)
+            elif n > 1 and cost >= 1:
+                opts[k] = (opts[k][0], opts[k][1] + f' Monsters chasing you will deal about {round(cost)} damage on the way.', *opts[k][2:])
         if LOW_HP(s) and 'teleport' in opts and 'pray' not in opts and any(m['dist'] <= 1 and not m['peaceful'] for m in hostiles):
             opts.pop('flee_up', None)  # walking off at 1/74 beside a Green-elf took a hit per step: dead with 13 unread scrolls (T7362)
         if any(sum(o['name'] == m['name'] for o in hostiles) >= 3 for m in hostiles):

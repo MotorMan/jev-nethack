@@ -2743,3 +2743,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** HP was 21/73 and a panther (speed 15, 3 attacks) was 2 steps away. Jev chose 'ascend' and walked toward the far up staircase. The panther caught Jev after 1 step. The fast-monster rule removed only 'flee_up', and only for a monster that was adjacent.
 - **Prevention:** Do not walk away from a monster that is faster than you. Fight it, or engrave Elbereth.
 - **Fix:** The rule now removes 'ascend' and 'flee_up' when a fast hostile is 2 steps away or nearer and the up staircase is not adjacent.
+
+## Flight rules: one pursuit rule
+
+- **Cause:** Many deaths came from a walk away from monsters (flee_up, ascend, leave_nymph). Each fix covered one monster or one distance. The next death found a gap between the fixes.
+- **Prevention:** The 5.0 source (monmove.c, mon.c mcalcmove) shows that a monster which moves cannot also attack in that move. Only a faster monster gets extra moves, and each extra move beside you is an attack round.
+- **Fix:** One rule now applies to flee_up, ascend, leave_nymph, descend and choke. It estimates the damage from the chasers on an n-step walk: rounds = n*(v-12)/12 - (gap-1), times the average damage of the attacks. If the damage is half the HP or more, the option is removed. Otherwise the description gives the damage. The rule replaces the jaguar rule (T3778, T6730, T9456) and the Grey-elf rule (T13186).
