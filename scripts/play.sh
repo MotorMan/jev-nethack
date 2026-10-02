@@ -4,10 +4,17 @@
 #   scripts/play.sh Jeff08 8791 http://127.0.0.1:8781/v1/systemone Jeff-Qwen3.5-0.8B   # own save + runs/Jeff08/
 #   scripts/play.sh Jev 8770 http://127.0.0.1:8781/v1/systemone Jeff-Qwen3.5-0.8B    # "use X": continue Jev's game on X
 # NAME is the NetHack player name, so each instance keeps its own save file; a restart resumes it.
-cd "$(dirname "$0")/.." || exit 1
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
 
 # Load .env if present
-[ -f .env ] && . .env
+if [ -f .env ]; then
+    set -a
+    # shellcheck disable=SC1090
+    . .env
+    set +a
+fi
 
 NAME=$1 PORT=$2
 [ -n "$NAME" ] && [ -n "$PORT" ] || { sed -n 2,6p "$0"; exit 1; }
