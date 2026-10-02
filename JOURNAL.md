@@ -2234,3 +2234,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** at XL4 the bot fell down a trap door from Dlvl 5 to Dlvl 8. A plains centaur (speed 18) caught it at 41/49 HP and its Elbereth came out garbled. Because it had lost HP while engraving, it was barred from engraving for 5 turns. That left melee as the only option, and it died.
 - **Source:** mhitu.c never wipes engravings. Wipes only come from your own melee, throws and kicks, and from rare random wear. A garble is the 1/25-per-letter typo, so a retry is a fresh ~72%.
 - **Fix:** the block now applies only after a second garble within 3 decisions, so one retry is allowed first.
+
+## 2026-10-01 — hill orc band, Sokoban Dlvl 5 T3736 (run 20261001-195333)
+- **Cause:** a mountain nymph stole the +3 shield, taking AC from 5 to 9. An unknown wand zapped at it turned out to be polymorph (it became a violet fungus). The fungus panic-attacked the bot on Elbereth, so it stepped off. At 14/41, with a hill-orc band 2-4 squares away and Elbereth on offer, Jev threw darts instead. The next Elbereth, with orcs adjacent, was interrupted and the bot died.
+- **Wiki:** engrave Elbereth before a pack reaches you. In 5.0, engraving is an occupation and an adjacent attacker interrupts it.
+- **Fix:** below 40% HP, with 2+ non-passive hostiles within 4 squares and none adjacent yet, the options are narrowed to Elbereth, prayer, stairs and potions.
