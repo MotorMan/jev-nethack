@@ -372,6 +372,9 @@ function DecisionPanel({ s }: { s: State }) {
   const pickTab = (t: string) => { setTab(t); try { localStorage.setItem("tab", t) } catch { /* private mode */ } }
   const toggleWrap = () => { setWrap(!wrap); try { localStorage.setItem("wrap", wrap ? "0" : "1") } catch { /* private mode */ } }
   const io = s.jev.last
+  const lastNums = useRef({ conf: "----", lat: "-----" })  // shown muted while thinking, so the header does not blink
+  if (d && !d.pending) lastNums.current = { conf: pct(d.confidence), lat: ms(d.latency_ms) }
+  const numTone = d?.pending ? "text-muted-foreground" : "text-foreground"
   if (!d) {
     return <Panel title="jev // decision"><div className="text-sm text-muted-foreground">awaiting first decision...</div></Panel>
   }
@@ -385,11 +388,11 @@ function DecisionPanel({ s }: { s: State }) {
           <span style={{ color: tone("frost-2") }}>{(d.pending ? "thinking" : "acting").padStart(8)}</span>
           {" · "}
           <Tip tip="confidence: how decisively Jev preferred its choice over the alternatives">
-            <span>conf <span className="text-foreground">{(d.pending ? "----" : pct(d.confidence)).padStart(4)}</span></span>
+            <span>conf <span className={numTone}>{lastNums.current.conf.padStart(4)}</span></span>
           </Tip>
           {" "}
           <Tip tip="latency: time Jev took to answer">
-            <span>lat <span className="text-foreground">{(d.pending ? "-----" : ms(d.latency_ms)).padStart(5)}</span></span>
+            <span>lat <span className={numTone}>{lastNums.current.lat.padStart(5)}</span></span>
           </Tip>
         </span>
       }
