@@ -60,6 +60,10 @@ assert HIGH_FOOD.search('3 food rations') and HIGH_FOOD.search('a lembas wafer')
 assert LOW_FOOD.search('2 apples') and LOW_FOOD.search('a cream pie') and not LOW_FOOD.search('an orange potion') and not LOW_FOOD.search('a dwarvish spear')
 print('ok')
 _inv = [{'letter': c, 'text': t} for c, t in [('j', 'a +0 orcish helm (being worn)'), ('p', 'an orcish helm'), ('o', 'a helmet'), ('n', 'a wooden shield'), ('c', 'an uncursed +3 small shield (being worn)'),
-        ('O', 'a blindfold'), ('q', 'a towel'), ('t', 'a towel'), ('x', 'a polished silver shield'), ('L', 'a pair of lenses'), ('a', 'an uncursed +1 dwarvish spear (weapon in right hand)')]]
-assert sorted(it['letter'] for it in Bot.spares(_inv)) == ['L', 'O', 'n', 'o', 'p', 't'], Bot.spares(_inv)
+        ('O', 'a blindfold'), ('q', 'a towel'), ('t', 'a towel'), ('x', 'a polished silver shield'), ('a', 'an uncursed +1 dwarvish spear (weapon in right hand)')]]
+assert sorted(it['letter'] for it in Bot.spares(_inv)) == ['O', 'n', 'o', 'p', 't'], Bot.spares(_inv)
+print('ok')
+from jev.bot import NEVER_PICK
+assert all(NEVER_PICK.search(t) for t in ('a pair of lenses', 'a dented pot', '7 crossbow bolts', 'a crossbow', '12 arrows', 'a bow', 'a conical hat'))
+assert not any(NEVER_PICK.search(t) for t in ('a dagger', 'a dwarvish spear', 'a bag', 'a towel', 'a long sword'))
 print('ok')

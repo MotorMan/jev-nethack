@@ -34,7 +34,7 @@ APPEAR = re.compile(r'scrolls? labeled ([A-Z][A-Z ]*[A-Z])|\b(dark green|sky blu
 
 
 # user: the items of interest, from the ascension kit and goals in statico/nethack-tools data/checklist.json, plus the user's priority tools
-INTEREST = re.compile(r'magic resistance|reflection|life saving|versus poison|speed boots|jumping boots|levitation|gauntlets of (power|dexterity)|helm of (telepathy|opposite alignment|brilliance)|elven (mithril|leather helm|cloak)|dwarvish mithril|oilskin|cloak of (protection|displacement)|dragon scale|unicorn horn|luckstone|towel|blindfold|\bcandles?\b|bag of holding|\bsack\b|magic marker|wand of (teleportation|death|digging|secret door detection|create monster|wishing)|ring of (conflict|teleport control|free action|poison resistance|fire resistance|slow digestion|regeneration)|scrolls? of (genocide|charging|enchant armor|enchant weapon|remove curse|identify|gold detection)|potions? of (full healing|extra healing|gain level)|holy water|K-ration|C-ration|lembas|royal jelly|skeleton key|lock pick|credit card|pick-axe|grease'
+INTEREST = re.compile(r'magic resistance|reflection|life saving|versus poison|speed boots|jumping boots|levitation|gauntlets of (power|dexterity)|helm of (telepathy|opposite alignment|brilliance)|elven (mithril|leather helm|cloak)|dwarvish mithril|oilskin|cloak of (protection|displacement)|dragon scale|unicorn horn|luckstone|towel|blindfold|\bcandles?\b|bag of holding|\bsack\b|magic marker|wand of (teleportation|death|digging|secret door detection|create monster|wishing)|ring of (conflict|teleport control|free action|poison resistance|fire resistance|slow digestion|regeneration)|scrolls? of (genocide|charging|enchant armor|enchant weapon|remove curse|identify|gold detection)|potions? of (full healing|extra healing|gain level)|holy water|wolfsbane|K-ration|C-ration|lembas|royal jelly|skeleton key|lock pick|credit card|pick-axe|grease'
                       r'|tattered cape|opera cloak|ornamental cope|piece of cloth|slippery cloak|faded pall|(plumed|etched|crested|visored|crystal) helmet|(old|padded|riding|fencing) gloves|(combat|jungle|hiking|mud|buckled|riding|snow) boots')  # objects.h 5.0: the random appearances of kit cloaks, helms, gloves and boots
 
 
@@ -69,6 +69,7 @@ def quote_bases(cls, t, ch):
 JUNK = re.compile(r'\b(mail|plate|armor|shield|shoes|boots|cloak|wrapping|helm|helmet|gauntlets|gloves|short sword|long sword|broadsword|scimitar|axe|mace|club|bow|crossbow|pick-axe|morning star|flail|hammer|trident)\b')  # unworn copies: what to drop when Burdened
 SLOTS = {'boots': r'boots|shoes', 'helm': r'helm|hat|cap\b', 'cloak': r'cloak|robe|wrapping|apron', 'shield': r'shield', 'gloves': r'gloves|gauntlets', 'body': r'\bmail|plate|armor|coat'}
 HUGGERS = re.compile(r'\b(owlbear|python|rope golem|couatl|salamander|kraken|pit fiend|carnivorous ape|guardian naga)\b')  # AT_HUGS in monsters.h
+NEVER_PICK = re.compile(r'\b(lenses|dented pot|leash|saddle|tin opener|bugle|beartrap|bear trap|land mine|grappling hook|iron hook|conical hat|crossbow|crossbow bolts?|arrows?|bows?|yumi|ya|slings?|boomerangs?|shuriken|javelins?|aklys|bullwhip|rubber hose|quarterstaff|staff|lance|spiked club|aklyses|throwing stars?|flint stones?)\b')  # user: junk a Valkyrie never needs
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
 DOMESTIC = {'kitten', 'housecat', 'large cat', 'little dog', 'dog', 'large dog', 'pony', 'horse', 'warhorse'}  # M2_DOMESTIC (monsters.h)
 WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber', 'short sword', 'spear', 'mace', 'morning star', 'war hammer', 'flail', 'trident', 'dagger', 'knife', 'club']
@@ -193,6 +194,7 @@ class Bot:
                 self.level().town = True
             if re.search(r'You feel feverish|You turn into a were', text):
                 self.run['lycanthropy'] = True
+                self.run.setdefault('lyc_turn', self.snap.status.get('turn') if self.snap else None)
             if 'You feel wide awake' in text:  # eat.c: sleep resistance from a corpse; sleep biters are safe to melee after this
                 self.run['sleep_res'] = True
             if 'strange mental acuity' in text:  # telepathy (uhitm.c passive uses canseemon, which needs sight, so a blindfold still stops the floating eye)
@@ -214,6 +216,7 @@ class Bot:
                 self.run['enhance'] = True
             if re.search(r'You feel purified|You feel full of awe|affinity to \w+ disappears', text):  # prayer or holy water (potion.c peffect_water)
                 self.run['lycanthropy'] = False
+                self.run.pop('lyc_turn', None)
             if re.search(r'no gold or credit|you pay for it|Usage fee|You owe|pay before leaving|leave without paying', text):  # not 'Pardon me': bumping a shopkeeper in a doorway set debt, pay said 'You do not owe', 348 pay/bump loops while a mob gathered (T7249)
                 self.run['debt'] = self.snap.status.get('dlvl') if self.snap else True
             if re.search(r'You do not owe|You have paid|You paid|Thank you for shopping|pay .* in full', text, re.I):
@@ -1120,7 +1123,7 @@ class Bot:
             # user: with no darts, pick up daggers and knives to throw (up to 10)
             if re.search(r'\b(gems?|stones?|rocks?|glass)\b', item) and 'luckstone' not in item or WEAPON.search(item) and armed and not re.search(r'dagger|pick-axe|Mjollnir|Excalibur' + ('' if darts else r'|knife|knives'), item) or re.search(r'dagger|knife|knives', item) and daggers >= (3 if darts else 10):
                 continue
-            if any(it['letter'] == '?' for it in self.spares(self.inventory + [{'letter': '?', 'text': item}])):
+            if NEVER_PICK.search(item) or any(it['letter'] == '?' for it in self.spares(self.inventory + [{'letter': '?', 'text': item}])):  # user: lenses are junk (skip, no need to drop)
                 continue
             if shop or 'for sale' in item or 'corpse' in item and not ('lichen' in item or 'lizard' in item and not any('lizard' in it['text'] for it in self.inventory)) or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
@@ -1696,6 +1699,13 @@ class Bot:
                     d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
                     opts[f'kill_blocker_{d}'] = (f"Attack the peaceful {self.species(m)} ({DIR_NAME[d]})", 'It has blocked your only way on for many turns. Killing a peaceful costs a little alignment and maybe 1 Luck; starving here costs the game.', lambda d=d: self.act_kill_peaceful(d))
                     opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'wait', 'search'))}
+        # user: lycanthropy (feverish T7186, 52 turns after a prayer) turned Jev into a wererat at T7304: armor fell off, 13 HP, Stressed, 150 turns as a rat. Wait for prayer, don't go deeper
+        if self.run.get('lycanthropy'):
+            bane = next((it for it in self.inventory if 'wolfsbane' in it['text']), None)
+            if bane and not any(m['dist'] <= 1 for m in hostiles):  # eat.c SPRIG_OF_WOLFSBANE: you_unwere, saves the prayer
+                opts = {'eat_wolfsbane': (f"Eat {bane['text']}", 'A sprig of wolfsbane cures lycanthropy and saves the prayer.', lambda l=bane['letter']: self.act_eat(l)), **opts}
+            elif s.get('hunger') not in ('Hungry', 'Weak', 'Fainting') and (s.get('turn') or 0) < self.lyc_cure_turn():
+                opts = {k: v for k, v in opts.items() if k not in ('descend', 'downstairs')} or opts
         if 'Overloaded' in s.get('conditions', []):  # a wererat Jev tried to walk 291 times under a Valkyrie's pack  # stale inventory re-offered dropped items 20 times as a wererat, 'You don't have that object', bitten 34 -> 15 meanwhile, prayer spent, died (T5593)
             opts = {k: v for k, v in opts.items() if k == 'pray'}
             for it in self.inventory:
@@ -2543,7 +2553,7 @@ class Bot:
             group = [it for it in inv if re.search(pat, it['text']) and not ('blindfold' not in pat and (INTEREST.search(it['text']) or 'polished silver' in it['text']))]
             keep = max(group, key=lambda it: ('being worn' in it['text'] or 'weapon in' in it['text'], 'towel' in it['text'], not re.search(r'\bcursed', it['text'])), default=None)
             out += [it for it in group if it is not keep and not re.search(r'being worn|weapon in', it['text'])]
-        return out + [it for it in inv if re.search(r'\blenses\b', it['text']) and 'being worn' not in it['text']]  # user: lenses are junk
+        return out
 
     def blindfold(self):
         return None if 'Blind' in str(self.snap.status.get('conditions')) else \
@@ -2981,7 +2991,8 @@ class Bot:
             f"XL {s.get('xl')} ({s.get('exp')} exp), turn {s.get('turn')}, gold {s.get('gold')}, hunger: {s.get('hunger')}, "
             f"conditions: {', '.join(s.get('conditions') or []) or 'none'}. Str {s.get('st')} Dex {s.get('dx')} Con {s.get('co')}.\n"
             f"Last prayer: {'never' if self.run.get('prayed_turn') is None else 'turn ' + str(self.run['prayed_turn'])}.\n"
-            f"Monsters in view: {seen}.{' Something unseen is attacking you (ghost or invisible monster)!' if self.unseen_attacker() else ''}\n"
+            + (f"Affliction: lycanthropy since turn {self.run.get('lyc_turn') or '?'}. You turn into an animal at random (armor falls off, low HP). Cures: holy water, eating a sprig of wolfsbane, or prayer, which is planned from turn {self.lyc_cure_turn()} (earlier angers Tyr). Until then stay on this level and avoid hard fights.\n" if self.run.get('lycanthropy') else '')
+            + f"Monsters in view: {seen}.{' Something unseen is attacking you (ghost or invisible monster)!' if self.unseen_attacker() else ''}\n"
             f"Items on this square: {', '.join(self.here_items()) or 'none'}. Standing on: {self.standing_on() or 'floor'}.\n"
             f"Inventory: {inv}\n"
             f"Level: downstairs {'known' if snap.find('>') or self.standing_on() == '>' else 'not found yet'}; "
@@ -2991,6 +3002,11 @@ class Bot:
             f"Recent decisions:\n{hist}\n\n"
             f"Map around you (@ is you; # corridor, + or orange | - doors, < > stairs, letters are monsters):\n{snap.crop()}\n"
         )
+
+    def lyc_cure_turn(self):
+        """The prayer rule for lycanthropy bets 500 turns after the last prayer (pray.c: too soon costs Luck -3 and angers the god)."""
+        last = self.run.get('prayed_turn')
+        return 0 if last is None else last + 500
 
     def follow_guard(self):
         """Vault guard escort, scripted and Jev-free: drop the gold, then stay next to the guard until he has led us out."""

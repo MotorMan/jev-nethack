@@ -2930,3 +2930,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** Jev prayed at T4532. At T4655 Jev was at 37/89 HP, next to a Green-elf at its level. The up stairs were 6 steps away. Jev attacked. The elf hit twice in one turn, 37 -> 17. Jev drank an unknown potion (17 HP is more than 1/7 of 89, so prayer would fix nothing). At 8 HP Jev prayed 124 turns after the last prayer, and the prayer failed.
 - **Prevention:** Elves and other '@' ignore Elbereth. With no prayer in reserve and below half HP, do not stay in melee with one at your level. Go up the stairs.
 - **Fix:** If HP is below half, the last prayer was less than 500 turns ago, and an '@' or a minotaur that is not weaker is adjacent, the bot offers 'flee_up' for an up staircase up to 20 steps away. It removes attack, approach and explore.
+
+## T7186-T7458: lycanthropy (user report, run 20261002-140758)
+
+- **Cause:** A wererat bit Jev at T7186 ("You feel feverish"). The last prayer was at T7134, so a prayer was not safe. At T7304 Jev turned into a wererat. The armor and the helm fell off, HP was 13 and Jev was Stressed. Jev spent about 150 turns as a rat. A gamble prayer at 11 HP (T7458) cured it. Jev had no record of when the infection started or when the cure was due.
+- **Prevention:** Know the cure date and wait for it on a known level. Holy water and a sprig of wolfsbane cure lycanthropy without a prayer. A prayer that is too soon costs Luck -3 and angers the god (pray.c), so do not gamble for lycanthropy.
+- **Fix:** The bot records the turn of infection. The prompt shows an "Affliction" line with the cures and the planned prayer turn (500 turns after the last prayer). Until then, and while not Hungry, the bot does not descend. If the pack has a sprig of wolfsbane, the bot eats it at once. Wolfsbane is now an item of interest.
