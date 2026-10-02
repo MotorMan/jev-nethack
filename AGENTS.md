@@ -20,6 +20,7 @@ Read this file at the start of each session. It holds the instructions of the us
 - Write docs in Simplified Technical English (`/simple-english`).
 - Do not ask about `/schedule`.
 - If the sandbox blocks a command, run `nono why`.
+- Put reports and research notes in `research/`. Give each topic its own folder, with `report.md` for the result.
 - Keep the "Current status" section of `README.md` current. Update it when a game sets a new record.
 
 ## Death loop
