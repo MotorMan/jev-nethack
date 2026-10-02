@@ -2712,3 +2712,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** A black light exploded and Jev started to hallucinate. The monster names became random, so the bot did not know that the adjacent monsters were fast soldier ants. The bot offered "Run for the upstairs" two times with the ants adjacent. HP went from 52 to 19. A prayer 545 turns after the last one failed, and Jev died.
 - **Prevention:** Do not walk away from an adjacent monster that can be fast. When you hallucinate, you cannot know the speed of a monster.
 - **Fix:** When Jev hallucinates, the bot removes "Run for the upstairs" if a hostile monster is adjacent and the staircase is not adjacent.
+
+## T11891: fainted on Dlvl 5 after 6000 idle turns
+
+- **Cause:** A nymph lived on Dlvl 5. Jev went up to Dlvl 4 to get away from it, then came back down. The bot thought that Jev had "just fled up" on each of these levels. As a result, it blocked the descent and offered only "Rest and search 20 turns". Jev stayed on Dlvl 5 from T5000 to T11891. It found no food and prayed for food every 800 turns. The prayer at T11566 failed, Jev fainted, and a giant beetle killed it.
+- **Prevention:** Rest after a flight only on a level above the level that you fled from. On other levels, continue down.
+- **Fix:** `flee_up` records the level that Jev fled from. The rest rule applies only on a higher level.
