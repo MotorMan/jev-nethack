@@ -2290,8 +2290,11 @@ class Bot:
         sale = [p for (dl, p), v in self.run.get('here', {}).items() if dl == self.snap.status.get('dlvl') and any('for sale' in i for i in v)]
         # dokick.c: only a shop's own door (shop cost) or a door in Minetown (the watch) is punished. Any shop on the level vetoed every door:
         # 4400 turns on Dlvl 2 beside an unkicked locked door 15 squares from the shop, starved (T6390)
-        if self.level().town and (not sale or any(cheb(p, door) <= 3 for p in sale) or self.snap.find('{')):
-            self.level().dead.add(door)
+        # a chime outside the Mines (no watch, a fountain means nothing): 20 vetoes of the one locked door on Dlvl 2 in 9000 turns, starved (T9979); after 5, kick
+        lv = self.level()
+        if lv.town and (any(cheb(p, door) <= 3 for p in sale) or (not sale or self.snap.find('{')) and (self.in_mines() or lv.__dict__.get('vetoes', 0) < 5)):
+            lv.vetoes = lv.__dict__.get('vetoes', 0) + 1
+            lv.dead.add(door)
             return 'did not kick: shopkeepers and the watch punish broken doors'
         for i in range(6):
             if self.act_kick(d).startswith('did not'):
@@ -2307,7 +2310,7 @@ class Bot:
         raw = ' '.join(l.rstrip() for l in self.t.lines()[:3])
         self.observe()
         # the sign is dust and gets scuffed, so any writing outside a locked door counts
-        if not force and self.level().town or not force and re.search(r'written here|for inv', raw + ' '.join(m['text'] for m in self.messages[nmsg:])):
+        if not force and self.level().town and (self.in_mines() or self.level().__dict__.get('vetoes', 0) < 5) or not force and re.search(r'written here|for inv', raw + ' '.join(m['text'] for m in self.messages[nmsg:])):
             self.level().town = True
             self.level().dead.add((self.snap.me[0] + DIRS[d][0], self.snap.me[1] + DIRS[d][1]))
             return 'did not kick: a shop is closed behind this door'

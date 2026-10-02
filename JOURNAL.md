@@ -2209,3 +2209,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** the bot arrived on Dlvl 8 into soldier ants, an ogre, an elf mummy and a Woodland-elf with a wand of fire. Its flee_up was interrupted after 1 step and its Elbereth came out garbled. At 23/62, with 4 monsters adjacent, every option was filtered away, so the empty-options fallback chose "Search 10 turns" and the fire bolt killed it.
 - **Wiki:** soldier ants are the top killer. You should get out (stairs or teleport), and you should never stand idle while they are adjacent.
 - **Fix:** when the fallback is reached with adjacent hostiles, it now offers melee on them instead of searching. Not yet found: which filter emptied the options. The fallback logs a warning, so the next occurrence can be traced.
+
+## 2026-10-01 — fainted, iguana, Dlvl 2 T9979 (run 20261001-193731)
+- **Cause:** the bot spent 9000 turns on Dlvl 1-2 and never found '>'. The only way on was a locked door at (75,6). A cash-register chime had marked Dlvl 2 as "town", no for-sale item had been seen and there was a fountain on the level, so the kick was vetoed 20 times. The bot lived on prayers until one failed, then fainted and was killed.
+- **Wiki/source:** in dokick.c, breaking a door is only punished when it is the shop's own door, or anywhere in Minetown (the watch). A fountain only signals Minetown when you are in the Mines.
+- **Fix:** outside the Mines, the town veto now lapses after 5 refusals on a level, and the bot kicks. The "Closed for inventory" sign check still applies. Kicks next to a for-sale item are still refused.
