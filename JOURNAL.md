@@ -2780,3 +2780,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Prevention:** Engrave Elbereth before a hugger is adjacent, at any HP.
 - **Fix:** The hugger rule no longer needs low HP. It skips huggers that are weaker than Jev. The owlbear tip now says to engrave before contact.
 - **Open:** Jev wore a cursed -4 leather armor at Dlvl 8 (AC 11). The armor rules need a look.
+
+## T6914: gray unicorn, Dlvl 7 (kev-4b)
+
+- **Cause:** Jev stood on Elbereth at 24/59 HP and was Weak. A gray unicorn (speed 24) and a lizard were near. Weak hunger turns off the rule that holds Jev on Elbereth. The T6823 rule removed the hunger prayer because the lizard was near. Only 'flee_up' was left. The pursuit rule does not remove the last option. Jev walked off Elbereth, and the unicorn killed it.
+- **Prevention:** Do not leave a working Elbereth to walk away from a fast monster. On Elbereth, a prayer is safe.
+- **Fix:** If the pursuit rule removes the last option while Jev is on Elbereth, the bot offers 'wait' on Elbereth. The T6823 rule no longer removes the hunger prayer on Elbereth.
