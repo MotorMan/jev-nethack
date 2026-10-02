@@ -2494,3 +2494,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A wood nymph on Dlvl 4 stole from Jev six times in 240 turns. It took the darts, the shield, the sling, the spear, a scroll and the potions. The bot offered "leave this level" only when no monster was near. The nymph itself was near most of the time, so Jev waited on Elbereth 39 times. Jev went down with no weapon and AC 10, and a kitten killed it.
 - Prevention: After the first theft, leave the level at once. A nymph teleports and comes back. Elbereth only makes it run, and it returns.
 - Fix: `jev/bot.py` does not count nymphs as near monsters for "leave this level". With only a nymph near, Jev leaves at half HP or more.
+
+## T8623 pony, Dlvl 5
+
+- Cause: On the Oracle level (Dlvl 6), a peaceful gnome lord stood in the only corridor that was not explored. Jev could not pass it. It chose "explore" 2045 times, and each walk was blocked ("Pardon me, gnome lord"). Jev stayed 4400 turns and lived on five prayers. The sixth hunger came too soon after a prayer. Jev fainted and a pony killed it.
+- Prevention: A peaceful monster that blocks the only way on for many turns must go. 5.0 source (mon.c): a peaceful kill costs Luck -1 half the time, and some alignment. That is much less than the cost of starving.
+- Fix: `jev/bot.py` offers "attack the peaceful monster" after 20 of the last 30 explore walks were blocked, with a peaceful non-human adjacent and no hostile within 3 squares. Not in a town, and not when hallucinating. The option removes explore, wait and search.

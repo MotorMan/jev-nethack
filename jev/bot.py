@@ -1481,6 +1481,13 @@ class Bot:
             opts = {k: v for k, v in opts.items() if not k.startswith(('pickup_', 'wear_', 'fetch'))}
         if any(k.startswith('explore') for k in opts) and not any(re.search(r'\b(key|lock pick|credit card)\b', it['text']) for it in self.inventory):
             opts = {k: v for k, v in opts.items() if not (k.startswith('door_') and tuple(map(int, k.split('_')[1:])) in self.level().locked)}  # a scuffed "Closed for inventory" sign: kicked in Cahersiveen's door with 3 explore options open, his wand, dead (T245)
+        # a peaceful gnome lord sat in the only unexplored corridor of the Oracle level: 2045 'explore ... blocked', 4400 turns on prayers, fainted, dead to a pony (T8623). mon.c: a peaceful kill costs Luck -1 half the time
+        if sum(h['choice'].startswith('explore') and 'blocked' in h['outcome'] for h in self.history[-30:]) >= 20 and not any(m['dist'] <= 3 for m in hostiles) and not self.level().town and not hallu:
+            for m in mons:
+                if m['peaceful'] and m['dist'] == 1 and m['ch'] not in '@&' and not re.search(r'priest|watch|shopkeeper|unicorn', m['name']):
+                    d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
+                    opts[f'kill_blocker_{d}'] = (f"Attack the peaceful {self.species(m)} ({DIR_NAME[d]})", 'It has blocked your only way on for many turns. Killing a peaceful costs a little alignment and maybe 1 Luck; starving here costs the game.', lambda d=d: self.act_kill_peaceful(d))
+                    opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'wait', 'search'))}
         if 'Overloaded' in s.get('conditions', []):  # a wererat Jev tried to walk 291 times under a Valkyrie's pack  # stale inventory re-offered dropped items 20 times as a wererat, 'You don't have that object', bitten 34 -> 15 meanwhile, prayer spent, died (T5593)
             opts = {k: v for k, v in opts.items() if k == 'pray'}
             for it in self.inventory:
@@ -1896,6 +1903,14 @@ class Bot:
         if q and 'You kill' in recent and self.snap.at(*q) and self.snap.at(*q).ch in OBJECT_CHARS - {'%'} and not any(re.search(rf'You kill the [\w -]*{n}', recent) for n in self.never_eat()):
             self.level().corpses[q] = self.snap.status.get('turn') or 0  # a corpse under dropped arrows shows ')', so the '%' scan never dated it: stood on a fresh giant ant, ate 3 corpses in 8700 turns, fainted (T8693)
         return f'attacked {DIR_NAME[d]}'
+
+    def act_kill_peaceful(self, d):
+        before = self.snap
+        self.t.send('F' + d)
+        if 'Really attack' in self.t.lines()[0]:
+            self.t.send('y')
+        self.after_move(before)
+        return f'attacked the peaceful monster {DIR_NAME[d]}'
 
     def act_go(self, target, steps=40, adjacent_ok=False, stop_new=True):
         """Walk toward target one step at a time; stop on new threats, damage or arrival."""
