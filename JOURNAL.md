@@ -2548,3 +2548,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev was Weak at 19/75 HP, and the prayer at T14170 was 12 turns old. The Elbereth came out garbled. The owlbear was 4 steps away. Jev drank an unknown emerald potion. It was sleeping, and the owlbear killed Jev. This is the second death from an unknown potion of sleeping in a row (T6609).
 - Prevention: An unknown potion is a gamble. Most of the risk is sleeping. Use the gamble only when a monster already hits Jev, or when no hostile monster is near.
 - Fix: When the god cannot help, the bot offers an unknown potion only when a hostile monster is adjacent. With a hostile monster 2 to 6 steps away, Jev must engrave again, fight, or flee.
+
+## T4796 soldier ant, Dlvl 4, taking off clothes
+
+- Cause: On Dlvl 4, a soldier ant, a mountain nymph and a water nymph stayed near the up stairs. Jev prayed at 10 HP, then fled up at 76/76 HP. It rested 50 turns on Dlvl 3 and went down again. It arrived next to the same monsters. A nymph charmed Jev into taking off its splint mail (steal.c: 5 helpless turns). The soldier ant killed Jev.
+- Prevention: Monsters that stay near the stairs are still there after 50 turns. Give them time to go away.
+- Fix: After "flee_up", the bot blocks the way down for 300 turns, not 50. It does not block when Jev is Weak or Fainting.

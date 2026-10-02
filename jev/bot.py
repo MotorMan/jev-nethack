@@ -1437,14 +1437,15 @@ class Bot:
             opts['rest'] = ('Rest and search 20 turns', f"This level is cleared, but Dlvl {s.get('dlvl', 0) + 1} is too deep for experience level {s.get('xl')}. Wait here: wandering monsters bring experience, and HP recovers.", lambda: self.act_search(20))
         if any('yellow light' in m['name'] for m in hostiles):  # a 20-turn search with one 9 squares off (speed 15) never got interrupted: blinded, then a ghoul paralysed and killed Jev (T3521)
             opts.pop('rest', None)
-        if (s.get('turn') or 0) - self.run.get('fled_up', -99) < 50 or s.get('exp') is None:  # polymorphed: as a 26-HP werewolf, Weak and Stressed, 'anyway' took it down twice into a werewolf's wolves, dead praying (T3894)  # fled a warg pack upstairs, walked straight back down into it (T5161)
+        fled = (s.get('turn') or 0) - self.run.get('fled_up', -999) < 300 and s.get('hunger') not in ('Weak', 'Fainting')  # 50 turns: rested to full and walked back down into the soldier ant and 2 nymphs by '<'; a nymph charmed off the splint mail (5 helpless turns), dead (T4796)
+        if fled or s.get('exp') is None:  # polymorphed: as a 26-HP werewolf, Weak and Stressed, 'anyway' took it down twice into a werewolf's wolves, dead praying (T3894)  # fled a warg pack upstairs, walked straight back down into it (T5161)
             opts = {k: v for k, v in opts.items() if k not in ('descend', 'dig_down', 'leave_nymph')}
             downs = []
         if self.soko() and not self.run.get('soko_done'):  # a fresh replan offers no push that decision: 'anyway' walked out 3 times and burned every replan (T6359)
             downs = []
         if not opts and downs and not any(h['choice'] == 'ascend' for h in self.history[-8:]):  # ascend/'anyway' ping-ponged Minetown <-> Dlvl 7 for 300 Hungry turns, fainted, killed (T5236)  # the pace gate is advice; idle-searching a cleared level only burns food (one run searched 400+ turns in a corridor)
             opts['descend'] = ('Take the downstairs anyway', f"Nothing else is reachable on this level. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
-        if not opts and (s.get('turn') or 0) - self.run.get('fled_up', -99) < 50:  # '>' blocked after fleeing up, level done: 3500 random 'feel around' steps beside the stairs (T11530)
+        if not opts and fled:  # '>' blocked after fleeing up, level done: 3500 random 'feel around' steps beside the stairs (T11530)
             opts['rest'] = ('Rest and search 20 turns', 'You just fled up from danger below and this level is done: rest here before going back down.', lambda: self.act_search(20))
         rec = self.run.get('recent', [])
         trap_i = max((i for i, t in enumerate(rec) if re.search(r'bear trap closes on your|caught in a bear trap', t)), default=-1)
