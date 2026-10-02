@@ -2366,3 +2366,8 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Watch: lock.c/monmove.c watch_on_duty counts any unlocking tool on a locked town door as picking. The bot already leaves watched town doors shut.
 - Level notes: a vault sound (sounds.c: counting gold coins, guard footsteps, Ebenezer Scrooge), a known altar, or a stash adds a note. The bot writes the notes with `#annotate`.
 - Not done yet: the vault raid with a pick-axe, hunting cross-aligned unicorns, BUC tests with a pet, and selling weapons for gold.
+
+## T10457 chameleon (as a Grey-elf), Dlvl 10
+- XL 8, AC 2, 84 max HP. A quasit, an elf zombie and a chameleon that looked like a Grey-elf (an @ ignores Elbereth) attacked together. Elbereth did not protect it. 'flee_up' toward a '<' a few steps away stopped twice with "a monster came into view". The bot then fought three monsters, 25 -> 0.
+- Fix: 'flee_up' does not stop for monsters that come into view.
+- Also: this game prayed 7 times in 10457 turns, most of them for hunger. Food stays the main weakness.
