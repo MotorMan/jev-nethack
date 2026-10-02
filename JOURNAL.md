@@ -2948,3 +2948,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: a floating eye and a nymph stood on the only path to the square behind the next boulder. The walk stopped after 1 step, 1500 times. The forced push removed every other option, so the bot could not remove the eye.
 - Prevention: when the walk to the push square is blocked, deal with the monster first.
 - Fix: after a blocked walk, the bot does not offer the push for 40 turns. The other options (throw at the eye, fight) come back.
+
+## Sleeping nymph on the path, T6940-T7106 (Dlvl 4)
+
+- Cause: a sleeping water nymph stood on the only path out of a Sokoban pocket. The bot marks a sleeping nymph as not hostile, so it walked into her square ("You move right into the water nymph") and every walk was blocked.
+- Prevention: a sleeping thief is not a threat, but it must not block the path.
+- Fix: when 5 of the last 8 walks fail and a sleeping nymph or leprechaun is adjacent, the only option is to kill it.

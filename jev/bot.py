@@ -1421,8 +1421,10 @@ class Bot:
                                                 lambda q=q: self.act_go(q) if self.snap.me != q else 'lined up')
                     elif m['ch'] == 'e' and rk and not self.blindfold():
                         opts['kill_blocker'] = ('Pick up the rocks here to throw at the eye', 'Rocks thrown at the floating eye hurt it without touching it; melee risks paralysis.', lambda rk=rk: self.act_pickup(rk))
-        stuck = sum(re.search(r'came into view|no path', h['outcome']) is not None for h in self.history[-8:]) >= 5
+        stuck = sum(re.search(r'came into view|no path|blocked after', h['outcome']) is not None for h in self.history[-8:]) >= 5
         blob = next((m for m in hostiles if m['passive'] and m['dist'] <= 1 and m['ch'] != 'e' and 'gas spore' not in m['name']), None)
+        # a sleeping water nymph on the only path out of a Sokoban pocket: 'You move right into the water nymph', every walk blocked (T6940-T7106)
+        blob = blob or next((m for m in mons if m.get('asleep') and not m['peaceful'] and m['dist'] <= 1 and re.search(r'nymph|leprechaun', m['name'])), None)
         if stuck and blob and hp >= 0.5 * hpmax and not any(not m['passive'] and m['dist'] <= 3 for m in hostiles):
             # an acid blob in the corridor to Sokoban's stairs: 'came into view' and 'no path' flip-flopped enter_sokoban and explore 40+ times (T5480-T5510)
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat')} | {'kill_blocker': (f"Kill the {blob['name']}", f"The {blob['name']} {blob['where']} keeps blocking your walk. It is much weaker than you; hitting it hurts you a little at most.", lambda m=blob: self.act_kill_blocker(m['pos']))}
