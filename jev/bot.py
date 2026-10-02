@@ -625,7 +625,7 @@ class Bot:
                 if m['name'] == "unknown '@'" and (lv.town or any(o['peaceful'] and o['ch'] == '@' for o in mons) or (s.get('turn') or 0) - self.run.get('hit_turn', -99) > 1):  # hit in the Mines dark by two farlook-failed Woodland-elves, explored instead of fighting: 67 -> 0 (T3567)
                     continue  # unidentified @ can be a shopkeeper or watchman: Jev hit Sarnen beside a mimic in her shop, wand of striking, dead (T5361)
                 low = re.compile(r'shrieker|brown pudding|black pudding|grid bug|newt|lichen')  # swatted a grid bug at 29/84 beside an ape: 29 -> 20 -> 0 (T6191)
-                if low.search(m['name']) and any(o['dist'] == 1 and not low.search(o['name']) for o in hostiles):
+                if low.search(m['name']) and any(o['dist'] == 1 and not low.search(o['name']) and not o['passive'] for o in hostiles):  # a floating eye beside a shrieker in the shop door: neither hit, starved (T20238)
                     continue  # no attacks: Jev hit a shrieker 3 turns while a werejackal and iguana killed it (T1402); hit a brown pudding 4 times (iron splits it, uhitm.c) while an owlbear crushed it 53 -> 8, dead (T5320)
                 if 'gelatinous cube' in m['name'] and any(o['dist'] <= 3 and o is not m and not o['passive'] for o in hostiles):
                     continue  # hitting one paralyzes you (passive AD_PLYS, no free action): frozen, an elf mummy and the cube took 67 -> 0 (T9389)
@@ -827,10 +827,10 @@ class Bot:
         fatal = [c for c in s.get('conditions', []) if c in ('FoodPois', 'Fpois', 'Poi', 'TermIll', 'Ill', 'Stone', 'Ston', 'Sto', 'Slime', 'Slim', 'Slm', 'Strngl', 'Stngl', 'Str', 'InLava', 'Lav')]  # kill in a few turns; prayer cures
         lyc = self.run.get('lycanthropy') and not any(m['dist'] <= 2 for m in hostiles)  # 'cure it mid-fight at 60%+ HP' spent the prayer at 24/32 beside a wererat, dead at 7/32 (T1231): reverted  # not mid-fight: curing it at 18/46 beside the wererat spent the prayer, dead 5 turns later (T3790); slow, and each were bite re-infects: it follows the normal timeout (two runs prayed every 4 turns into "Then die, mortal!")
         me = self.snap.me
-        walled = me and all((g := self.snap.at(me[0] + dx, me[1] + dy)) is None or g.ch in ' |-0' and not self.snap.is_door(me[0] + dx, me[1] + dy) for dx, dy in DIRS.values())  # pray.c stuck_in_wall: 8 rock/wall/boulder neighbours is major trouble; a monster's scroll of earth boxed Jev in Sokoban, 2000 turns searching, starved (T7613)
+        entombed = me and all((g := self.snap.at(me[0] + dx, me[1] + dy)) is None or g.ch in ' |-0' and not self.snap.is_door(me[0] + dx, me[1] + dy) for dx, dy in DIRS.values())  # pray.c stuck_in_wall: 8 rock/wall/boulder neighbours is major trouble; a monster's scroll of earth boxed Jev in Sokoban, 2000 turns searching, starved (T7613)
         # pray.c TROUBLE_CURSED_LEVITATION is major trouble: cursed levitation boots, 1400 turns of 'take it off' (fails) and no prayer, starved (T3026)
         stuck_lev = any(re.search(r'\bcursed\b.*levitation.*being worn', it['text']) for it in self.inventory)
-        trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting') or fatal or lyc or walled or stuck_lev
+        trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting') or fatal or lyc or entombed or stuck_lev
         last = self.run.get('prayed_turn')
         if last is not None and last > (s.get('turn') or 0):
             last = self.run['prayed_turn'] = None
@@ -858,7 +858,7 @@ class Bot:
         # starving is certain death, so hunger bets earlier (1000 let a Weak Jev faint to death 640 turns after praying; 600 did it again at 524, T5771)
         if trouble and not self.run.get('god_angry') and (fatal or starving or (turn - last >= {'Weak': 1000 if not any(m['dist'] <= 1 for m in hostiles) and turn - self.run.get('hit_turn', -99) > 2
                                                                                       and not all('tripe' in it['text'] for it in self.inventory if FOOD.search(it['text'])) else 500 if any(FOOD.search(it['text']) for it in self.inventory) else 300, 'Fainting': 300}.get(s.get('hunger'), 500) if last is not None else turn >= 110)):
-            opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else 'boxed in by boulders and walls with no way out' if walled and s.get('hunger') not in ('Weak', 'Fainting') else 'lycanthropy: you will turn into a jackal' if lyc and s.get('hunger') not in ('Weak', 'Fainting') else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
+            opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else 'boxed in by boulders and walls with no way out' if entombed and s.get('hunger') not in ('Weak', 'Fainting') else 'lycanthropy: you will turn into a jackal' if lyc and s.get('hunger') not in ('Weak', 'Fainting') else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
         # a fresh Elbereth beats a coin-flip prayer: 176 turns after praying, the forced gamble at 10/54 on a new Elbereth angered Tyr, dead to an Uruk-hai (T4295)
         elif not self.run.get('god_angry') and s.get('exp') is not None and (LOW_HP(s) or s.get('hunger') == 'Fainting' and any(m['dist'] <= 3 and not m['passive'] for m in hostiles)) and (any(m['dist'] <= 7 for m in hostiles) or self.unseen_attacker() or turn - self.run.get('hit_turn', -99) <= 3) and last is not None and turn - last >= 100 \
                 and not (self.engraved_here() and s.get('hp', 1) > 5 and not shot and turn - self.run.get('hit_turn', -99) > 3 and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in hostiles if m['dist'] <= 7)):  # stung on Elbereth (a cornered scared monster panic-attacks, monmove.c) at 7/60 171 turns after praying: no gamble, the soldier ant finished it (T6021)  # exp None: polymorphed, 0 HP only reverts form; gambled at 3/3 HD2 and angered Tyr (T8484)  # a quasit's wand took 29 -> 0 from range; 3/54 HP 243 turns after a prayer, no gamble offered, dead (T5218). rnz(350)<=200+t is ~50% at t=100; failing angers Tyr, but death was certain
@@ -1183,10 +1183,11 @@ class Bot:
             opts['dead_end'] = ('Jump into the hole', f"The only way out is a hole/trap door at {hole[0]}. Step into it and fall to a lower level.", lambda h=hole: self.act_hole(*h))
         if 'dead_end' in opts and not near:
             opts = {k: v for k, v in opts.items() if k in ('dead_end', 'pray') or k.startswith(('eat_', 'pickup_'))}  # pickups: stood on a wand and a scroll, both dropped by this filter, starved (T6672)
+        if fr or downs:  # the eye check above needs 3 squares or less: an eye in a shop door blocked Jev in the shop 16000 turns, starved (T20238)
+            self.run['walled'] = s.get('turn') or 0
         if not fr and not downs:
-            if not walled: self.run['walled'] = s.get('turn') or 0
             # boxed in by Minetown's peaceful gnomes, meleed the eye at once: frozen, killed by an imp (T7290). Wait them out first.
-            long_walled = walled and (s.get('turn') or 0) - self.run.setdefault('walled', s.get('turn') or 0) > 200
+            long_walled = (s.get('turn') or 0) - self.run.setdefault('walled', s.get('turn') or 0) > 200
             if walled and not long_walled:
                 opts['wait_eye'] = ('Search 10 turns and let it drift off', 'A monster you must not melee boxes you in. Floating eyes drift and peacefuls wander off; waiting is safe, hitting it risks long paralysis.', lambda: self.act_search(10) if self.engraved_here() else self.act_elbereth())  # hostile eyes keep approaching: 3 sat in a corridor 4000 turns, starved (T12136); Elbereth makes them flee (monmove.c onscary)
             molds = [m for m in hostiles if m['pos'] in self.avoid and (long_walled or self.blindfold() or ('floating eye' not in m['name'] and not (m['ch'] == 'e' and m['fg'] == 'blue')))

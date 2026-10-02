@@ -2620,3 +2620,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev was blind at 67/73 HP, beside a Green-elf. The emergency filter for low HP kept only Elbereth, pray, stairs and quaff. The blind rule then removed Elbereth. As a result, the only options were "rest" and "quaff". Jev rested from 67 to 0 HP while the elf hit it. An elf ignores Elbereth.
 - Prevention: Against a monster that ignores Elbereth (@ humans and elves, minotaurs), fight back.
 - Fix: The emergency filter keeps the attack options when an adjacent monster ignores Elbereth. The blind check for "being attacked" also matches monster names with a capital letter now, for example "The Green-elf hits!".
+
+## T20238 starvation, Dlvl 2
+
+- Cause: A floating eye stopped in the only door of a shop while Jev was in the shop. Later a shrieker took the door. Jev searched for hidden passages for 16000 turns. It lived on prayers and then starved. The "kill the blocker" option never came. The variable `walled` had two definitions in `build_options`. The second definition (stuck in rock) replaced the first (boxed in by a floating eye). Also, the first definition needs 3 reachable squares or less, and the shop had more. The shrieker was not attacked because the bot counted the adjacent floating eye as a stronger monster.
+- Prevention: If a passive monster blocks the only exit for 200 turns, kill it. Throw things at a floating eye if possible.
+- Fix: The stuck-in-rock variable is now `entombed`. The 200-turn timer starts when the level has no unexplored edge and no known downstairs. A passive monster no longer stops an attack on a shrieker.
