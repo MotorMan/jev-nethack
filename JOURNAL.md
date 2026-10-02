@@ -2560,3 +2560,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev was at 52/58 HP and AC 8, with no body armor. A soldier ant came next to it. The bot offered "attack" and "soko_push", and Jev pushed. The push failed, and the ant hit for a full round. At 28 HP, Elbereth was the only option, and the ant interrupted it. Jev was dead in 2 turns.
 - Prevention: Do not do a slow task next to a hostile monster. Fight it or escape first. AC 8 at Dlvl 6 is still the open problem.
 - Fix: The bot does not offer "soko_push" when a hostile monster that attacks is adjacent.
+
+## T3571 orc zombie, Dlvl 5, fainted
+
+- Cause: Jev was Hungry and had no food. It killed a shrieker 1 step north and the shrieker left a fresh corpse. Jev stood on an old pony corpse. The bot did not offer "goto_corpse" when any corpse was under Jev, even a corpse that was too old to eat. Jev went on to explore. The prayer at T3269 came too soon after the prayer at T2426 and failed. Jev became Weak, then Fainting, and an orc zombie killed it.
+- Prevention: A corpse that Jev cannot eat must not stop the bot from offering a fresh corpse nearby.
+- Fix: The bot blocks "goto_corpse" only when the corpse under Jev is less than 50 turns old (that is, when "eat_corpse" is offered).
