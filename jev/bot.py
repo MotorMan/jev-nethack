@@ -192,6 +192,7 @@ class Bot:
             if re.search(r"[Ww]elcome (again )?to \w", text) and self.snap:
                 self.run['welcome'] = (self.snap.status.get('dlvl'), self.snap.status.get('turn') or 0)
             self.run['recent'].append(text)
+            self.run['msg_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
             del self.run['recent'][:-12]
 
     def _load_runs(self):
@@ -2319,6 +2320,8 @@ class Bot:
         return tuple(n for n in NEVER_EAT if not (n in ('kobold', 'bat', 'dog', 'cat', 'kitten', 'acid blob') + POISONOUS and n not in BAD_EFFECT and self.run.get('desperate')))  # bat only stuns, pets only aggravate (eat.c): Weak with no prayer, explored off a 50-turn giant bat corpse, fainted, dead (T1956)
 
     def unseen_attacker(self):
+        if self.snap and (self.snap.status.get('turn') or 0) - self.run.get('msg_turn', 0) > 2:
+            return False  # recent only changes on a new message: a stale 'The lizard bites!' kept find_unseen going 3600 turns at full HP, 20 hunger prayers, fainted (T20037)
         # wiki (Ghost): speed 3, a 1d1 touch, AC -5: not a threat, lure it off; treated as an unseen attacker it pinned Jev to find_unseen/Elbereth on its own bones level (T6700-7000)
         return any(re.search(r"\bIt (hits|bites|touches|stings|butts|kicks|misses)|feel an unseen monster|You hear a nearby zap|The bolt of \w+ hits you", m) for m in self.run['recent'][-2:]) \
             or self.snap.me and not any(cheb(q, self.snap.me) <= 1 for q in self.hostile_glyphs()) and any(re.search(r"\bThe [\w -]+ (hits|bites|stings|butts|kicks|touches|misses)!", m) and 'ghost' not in m for m in self.run['recent'][-1:])  # a named fire ant bit from a square the map never showed: 'rest' was the only option, 33 -> 0 (T5586)

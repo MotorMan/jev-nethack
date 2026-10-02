@@ -2169,3 +2169,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: the bot had no packed food and had prayed 7 times, mostly for hunger. At T8379 it killed a carnivorous ape that had been holding it, and was left Hungry at 38/93 HP. The new goto_corpse HP gate (from the hill orc death) dropped the step onto the fresh corpse one square away, and the bot rested instead. The corpse went stale. At T8455 it prayed while Fainting, 449 turns after its last prayer, and Tyr was displeased. It fainted repeatedly, and a mountain centaur killed it.
 - Wiki/source: a corpse is safe below 50 turns old (eat.c rotted = age/(10+rn2(20))). The bot's own kill is the only reliable food source.
 - Fix: the HP and recent-hit gate on goto_corpse no longer applies when a fresh corpse is 2 or fewer steps away; one step costs nothing. Still open: when the bot turned Weak at T8395 no corpse walk was offered at all (cause not found from the log).
+
+## Killer bee while fainting after 20 hunger prayers (run 20261001-181729, Dlvl 6-7, T20037)
+- Cause: run['recent'] only changes when a new message arrives. A stale "The lizard bites!" (or "It bites!") therefore kept unseen_attacker() true with no monster in view and HP rising. find_unseen was chosen about 3600 times on one Mines level, so the bot made no progress and burned food. It prayed 20 times for hunger in 20000 turns, then fainted beside a killer bee.
+- Wiki: an invisible attacker reveals itself by attacking; searching once marks it with an I. With no new hit, nothing is there.
+- Fix: record the turn of the last message (msg_turn). unseen_attacker() is false when the last message is more than 2 turns old. Covered by a test in test_corpse.py.

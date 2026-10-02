@@ -37,3 +37,10 @@ for desperate, corpse, banned in [(False, 'giant beetle corpse', True), (True, '
                                   (True, 'acid blob corpse', False), (True, 'yellow mold corpse', True), (False, 'floating eye corpse', False)]:
     _f = _F(); _f.run = {'desperate': desperate}
     assert any(n in corpse for n in Bot.never_eat(_f)) == banned, (desperate, corpse)
+
+# a stale bite message is not an unseen attacker (T20037: 3600 turns of find_unseen at full HP)
+_f = _F(); _f.run = {'recent': ['It bites!'], 'msg_turn': 100}; _f.snap = NS(status={'turn': 101}, me=None)
+assert Bot.unseen_attacker(_f)
+_f.snap.status['turn'] = 110
+assert not Bot.unseen_attacker(_f)
+print('ok')
