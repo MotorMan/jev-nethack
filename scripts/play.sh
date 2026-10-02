@@ -11,8 +11,7 @@ cd "$REPO_ROOT" || exit 1
 # Load .env if present
 if [ -f .env ]; then
     set -a
-    # shellcheck disable=SC1090
-    . .env
+    . "$REPO_ROOT/.env"
     set +a
 fi
 
