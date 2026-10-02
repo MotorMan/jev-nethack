@@ -161,7 +161,7 @@ class Bot:
                 self.run['dropped'] = (self.snap.status.get('dlvl'), self.snap.me)
             if re.search(r'is displeased|Thou durst call upon me|Then die, mortal|voice of \w+ (booms|rings out|thunders)|relearn thy lessons|Thou hast angered me', text) and 'desecrate my altar' not in text:  # pray.c altar_wrath: engraving on your own altar costs 1 Wis and 1 alignment, not anger; flagged angry, no prayer offered at 7/56 888 turns on, dead (T5954)  # prayed too soon: god angry, Luck -3 (the quote after 'booms:' can be lost: wrath of Tyr killed T5998), praying again only makes it worse
                 self.run['god_angry'] = True
-            if re.search(r'grabs you|You are being choked|cannot escape from|swings itself around you', text) and self.snap:
+            if re.search(r'grabs you|You are being choked|You are being held|cannot escape from|swings itself around you', text) and self.snap:
                 self.run['held'] = self.snap.status.get('turn') or 0
             if re.search(r'nymph stole|nymph steals|She stole|He stole|stole .* from you|gladly hand over|gladly start removing', text) and self.snap:
                 self.run['nymph_lvl'] = self.snap.status.get('dlvl')
@@ -1224,8 +1224,8 @@ class Bot:
         if tw and 'teleport' not in opts and 'pray' not in opts and not self.soko() and (s.get('hp', 1) * 2 < s.get('hpmax', 1) and (near or self.unseen_attacker()) or s.get('hp', 1) < 0.7 * s.get('hpmax', 1) and any(m['dist'] <= 1 and 'stronger' in self.threat(m) for m in near)):  # a known wand of teleportation sat unused while a Green-elf and a soldier ant took 43 -> 0 at XL 5 (T3107); wiki (Escape items): zap yourself
             opts['teleport'] = (f"Zap {tw['text']} at yourself", 'Teleports you to a random spot on this level, away from everything hurting you.', lambda l=tw['letter']: (self.act_keys('z' + l + '.', 'teleported'), self.read_inventory())[0])
         dig = next((it for it in self.inventory if 'wand of digging' in it['text'] and not re.search(r':0\)', it['text'])), None)
-        if dig and s.get('hp', 1) * 2 < s.get('hpmax', 1) and any(m['dist'] <= 1 for m in near) and not self.soko() and self.standing_on() not in ('<', '>', '_', '\\', '{'):  # a hill orc pack, a wand of digging unused, gamble prayer failed, dead (T2926)
-            opts['dig_down'] = (f"Zap {dig['text']} down", 'Dig a hole through the floor and fall to the level below, leaving every monster here behind.', lambda l=dig['letter']: (self.act_keys('z' + l + '>', 'dug down'), self.read_inventory())[0])
+        if dig and (s.get('turn') or 0) - self.run.get('held', -99) > 1 and s.get('hp', 1) * 2 < s.get('hpmax', 1) and any(m['dist'] <= 1 for m in near) and not self.soko() and self.standing_on() not in ('<', '>', '_', '\\', '{'):  # a hill orc pack, a wand of digging unused, gamble prayer failed, dead (T2926)
+            opts['dig_down'] = (f"Zap {dig['text']} down", 'Dig a hole through the floor and fall to the level below, leaving every monster here behind.', lambda l=dig['letter']: (self.act_keys('z' + l + '>', 'dug down'), self.read_inventory())[0])  # held: "You are being held, and cannot go down" x12 while a rope golem choked 47 -> 0 (T14075)
         if 'pray' not in opts and s.get('hp', 1) * 3 < s.get('hpmax', 1) and any(k.startswith(('zap_', 'teleport', 'dig_down')) for k in opts):  # an unknown wand sat unzapped while a Woodland-elf meleed 30 -> 2, prayer 90 turns old (T5409)
             opts = {k: v for k, v in opts.items() if k.startswith(('zap_', 'quaff_', 'flee')) or k in ('elbereth', 'upstairs', 'ascend', 'teleport', 'dig_down')}
         if self.unseen_attacker():  # a fire ant bit from a square the map showed empty; 3 x 15-turn searches and explores, 47 -> 8, prayed too soon (T3879)

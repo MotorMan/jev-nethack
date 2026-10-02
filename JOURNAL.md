@@ -2118,3 +2118,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Wiki (Web): walking in gets you stuck for a few turns; strong characters tear it apart. Not a wall.
 - Fix: '"' is walkable at trap cost (20), like '^'.
 - Follow-up: '>' still unreachable. The bot stood in an unlit area whose neighbors render blank, so no path existed from its square. The fallback 'wait' looped about 2000 turns, with 2 prayers spent on hunger. Fix: after 3 of 5 waits with no hostiles in view, step into a random blank/walkable neighbor to reveal the dark.
+
+## Rope golem, dig_down while held (run 172609, Dlvl 7, T14075)
+- Cause: a rope golem grabbed Jev. At HP < 50% the bot zapped the wand of digging down 12 times, and each zap failed with "You are being held, and cannot go down"; choked 47 -> 0. Prayer had been used at T13996 on hunger during the 2000-turn dark-spot wait loop (fixed above).
+- Wiki (Rope golem): held, you can't move away or go down; kill it (AC 8, weak) or teleport; Elbereth works while grabbed.
+- Fix: no dig_down offer while held; "You are being held" now also sets held, so only attack/Elbereth/pray/quaff/zap remain.
