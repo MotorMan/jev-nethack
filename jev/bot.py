@@ -769,9 +769,10 @@ class Bot:
         # operator: Elbereth is for emergencies; the default is back into a corridor and fight one at a time (was hp < 0.7 or any pack: 30-140 engravings a game, mostly forced)
         # monmove.c: scared with no square to flee to (MMOVE_NOMOVES) sets panicattk, so Elbereth cannot stop a boxed monster; engrave/attack alternation
         # against a scorpion in a dead-end corridor gave it a free turn each engraving, 33/78 -> 6, a too-soon prayer, dead (T12125)
+        # only when the boxed ones are all that is near: a crowd boxes its own members, the rest still flee; jackals, a giant ant and Mordor orcs, no Elbereth offered, 17 -> 0 on attacks only (T5086 werejackal)
         # AT_HUGS (monsters.h): once held, engrave.c can_reach_floor is FALSE and you cannot step away, so engrave before contact: an owlbear took 51/94 to 0 in 4 turns, Elbereth refused 'cannot reach the floor' (T9944)
         hugger = (s.get('turn') or 0) - self.run.get('held', -99) > 2 and hp < 0.75 * hpmax and any(m['dist'] <= 3 and HUGGERS.search(m['name']) for m in hostiles)
-        if (near and hp < 0.45 * hpmax or hugger or dread or pack and open_n(me) > 2 and 'choke' not in opts and hp < 0.6 * hpmax or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (boxed and not walled) and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
+        if (near and hp < 0.45 * hpmax or hugger or dread or pack and open_n(me) > 2 and 'choke' not in opts and hp < 0.6 * hpmax or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (boxed and not walled and len(near) <= len(boxed)) and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & ({'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} | (set() if big_hit else {'Hallu', 'Hal', 'Hl'})) \
                 and sum(h['choice'] == 'elbereth' and 'interrupted' in h['outcome'] for h in self.history[-4:]) < 2 \
                 and (s.get('turn') or 0) - self.run.get('no_engrave', -99) > 5 \

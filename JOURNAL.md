@@ -2371,3 +2371,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - XL 8, AC 2, 84 max HP. A quasit, an elf zombie and a chameleon that looked like a Grey-elf (an @ ignores Elbereth) attacked together. Elbereth did not protect it. 'flee_up' toward a '<' a few steps away stopped twice with "a monster came into view". The bot then fought three monsters, 25 -> 0.
 - Fix: 'flee_up' does not stop for monsters that come into view.
 - Also: this game prayed 7 times in 10457 turns, most of them for hunger. Food stays the main weakness.
+
+## T5086 werejackal, while praying, Dlvl 5
+
+- Cause: A werejackal, its jackals, a giant ant and Mordor orcs mobbed Jev in a doorway at 27/76 HP. From 17 HP, Jev got only attack options. The scorpion fix (T12125) removed Elbereth when an adjacent monster was "boxed". In a crowd, the other monsters box each adjacent monster, so Elbereth was never offered. At 3 HP, a prayer 101 turns after the last one failed.
+- Prevention: Elbereth scares the monsters that can flee. When they flee, they open squares for the boxed one.
+- Fix: `jev/bot.py` removes the Elbereth option for a boxed monster only when the boxed monsters are all the monsters that are near.
