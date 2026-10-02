@@ -45,6 +45,20 @@ def sell_price(base, ch, sur):
 
 def price_bases(cls, price, ch):
     return {b for b in BASES[cls] for sur in (0, 1) if sell_price(b, ch, sur) == price}
+
+
+def quote_bases(cls, t, ch):
+    """objnam.c price_quotes: ' {buy 26-35 sell 10}' (per unit) -> the bases that fit. shk.c set_cost: an offer is base/2, or 3/8 when shk m_id % 4 == 0;
+    only the highest offer counts (a short-funded shk offers less, credit is 9/10)."""
+    q = re.search(r'\{(?:buy (\d+)(?:-(\d+))?)? ?(?:sell (?:\d+-)?(\d+))?\}', t)
+    if not q or not any(q.groups()):
+        return None
+    bases = set(BASES[cls])
+    for p in filter(None, q.groups()[:2]):
+        bases &= price_bases(cls, int(p), ch)
+    if q[3]:
+        bases &= {b for b in BASES[cls] for m, d in ((1, 2), (3, 8)) if (b * m * 10 // d + 5) // 10 == int(q[3])}
+    return bases or None
 JUNK = re.compile(r'\b(mail|plate|armor|shield|shoes|boots|cloak|wrapping|helm|helmet|gauntlets|gloves|short sword|long sword|broadsword|scimitar|axe|mace|club|bow|crossbow|pick-axe|morning star|flail|hammer|trident)\b')  # unworn copies: what to drop when Burdened
 SLOTS = {'boots': r'boots|shoes', 'helm': r'helm|hat|cap\b', 'cloak': r'cloak|robe|wrapping|apron', 'shield': r'shield', 'gloves': r'gloves|gauntlets', 'body': r'\bmail|plate|armor|coat'}
 HUGGERS = re.compile(r'\b(owlbear|python|rope golem|couatl|salamander|kraken|pit fiend|carnivorous ape|guardian naga)\b')  # AT_HUGS in monsters.h
@@ -554,6 +568,10 @@ class Bot:
                 seen.add(it['letter']); uniq.append(it)
         for it in uniq:  # price-ID'd types read like named ones to the rest of the bot ('healing' in text is already trusted)
             look = appearance(it['text'])
+            quoted = quote_bases(look[0], it['text'], self.snap.status.get('ch') or 11) if look else None
+            if quoted:  # price_quotes keeps every price seen for this type
+                old = self.run.setdefault('prices', {}).get(look)
+                self.run['prices'][look] = quoted & old if old and quoted & old else quoted
             tag = {('potion', 20): 'healing', ('scroll', 20): 'identify', ('scroll', 80): 'enchant armor or remove curse'}.get((look[0], min(self.run.get('prices', {}).get(look) or {0})) if look and len(self.run.get('prices', {}).get(look) or ()) == 1 else None)
             if tag:
                 it['text'] += f' (priced as {tag})'
@@ -1126,12 +1144,18 @@ class Bot:
             if food:
                 q = min(food, key=dist.get)
                 opts['shop_food'] = (f"Go look at the food for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the '%' item and its price. You have {s.get('gold')} gold and {packed} food items packed.", lambda q=q: self.act_shop_go(q))
-        if not near and s.get('gold', 0) >= 20 and 'shop_food' not in opts:  # armor (AC), scrolls, potions: stepping on each shows its price, which identifies some by type
-            wares = [q for c in '[?!' for q in snap.find(c) if q in dist and 0 < dist[q] <= 20 and (s.get('dlvl'), q) not in self.run['here']
+        if not near and 'shop_food' not in opts:  # armor (AC), scrolls, potions, rings: stepping on each shows its price, which identifies some by type (user: walk past, no gold needed)
+            wares = [q for c in '[?!=' for q in snap.find(c) if q in dist and 0 < dist[q] <= 20 and (s.get('dlvl'), q) not in self.run['here']
                      and sum(cheb(q, o) <= 3 for c2 in ')[%?/=!("' for o in snap.find(c2)) >= 6]
             if wares:
                 q = min(wares, key=dist.get)
-                opts['shop_look'] = (f"Go look at the {snap.at(*q).ch} for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the item and its price (you have {s.get('gold')} gold). Armor lowers AC; a price can identify a scroll or potion.", lambda q=q: self.act_shop_go(q))
+                opts['shop_look'] = (f"Go look at the {snap.at(*q).ch} for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the item and its price (you have {s.get('gold')} gold). Armor lowers AC; a price can identify a scroll, potion or ring.", lambda q=q: self.act_shop_go(q))
+        if not near and any('for sale' in i for i in self.here_items()):  # user: drop what you hold to hear the sell offer, say no, pick it back up
+            for it in self.inventory:
+                look = appearance(it['text'])
+                if look and 'sell' not in it['text'] and len(self.run.get('prices', {}).get(look) or ()) != 1 and (s.get('dlvl'), look) not in self.run.setdefault('quoted', set()) and 'being worn' not in it['text']:
+                    opts[f"quote_{it['letter']}"] = (f"Get a price for {it['text']}", 'Drop it here, hear what the shopkeeper offers, say no, and pick it back up. The offer narrows down what an unknown scroll, potion or ring is (a scroll offered 10 is identify).', lambda it=it: self.act_quote(it))
+                    break
         gold, xl = s.get('gold', 0), s.get('xl') or 1
         if not near and not shop and gold < 4000:  # user: gold buys protection, then keep 2000-4000 for shopping; fetch's 15-step radius left games at 13-533 gold
             coins = [q for q in snap.find('$') if q in dist and dist[q] > 0 and (s.get('dlvl'), q) not in self.run['here'] and self.run.setdefault('gold_miss', {}).get((s.get('dlvl'), q), 0) < 3 and sum(cheb(q, o) <= 3 for c in ')[%?/=!("' for o in snap.find(c)) < 6]
@@ -1821,8 +1845,8 @@ class Bot:
             lines = self.t.lines()
             kind, _ = top_prompt(lines)
             if kind == 'menu':
-                items = [m.groups() for l in lines for m in [re.search(r'(?:^|\s)([a-zA-Z]) - (.*)', l)] if m]  # the menu lists only unidentified things
-                rank = lambda x: next((i for i, w in enumerate(('wand', 'amulet', 'ring', 'armor|mail|cloak|boots|gloves|helm|shield|pall|cape|robe|apron|tunic', 'potion', 'scroll', 'spellbook')) if re.search(w, x[1])), 9 if re.search(r'gem|stone|glass|rock', x[1]) else 8)
+                items = [m.groups() for l in lines for m in [re.search(r'(?:^|\s)([a-zA-Z]) - (.*)', l)] if m]  # the menu lists only unidentified things. User: scrolls, then rings, then potions
+                rank = lambda x: next((i for i, w in enumerate(('scroll', 'ring', 'potion', 'wand', 'amulet', 'armor|mail|cloak|boots|gloves|helm|shield|pall|cape|robe|apron|tunic', 'spellbook')) if re.search(w, x[1])), 9 if re.search(r'gem|stone|glass|rock', x[1]) else 8)
                 pick = min(items, key=rank)[0] if items else None  # gems last: an identify spent on a black gem leaves the wands unknown
                 self.t.send((pick or '') + '\r')
             elif kind == 'more':
@@ -2443,6 +2467,31 @@ class Bot:
             tested |= adj
             return self.act_keys('s', 'searched for shop mimics')
         return self.act_go(q, steps=1)
+
+    def act_quote(self, it):
+        """shk.c sellobj: the offer is recorded for price_quotes even when refused; a refused item stays ours ('no charge')."""
+        cls, look = appearance(it['text'])
+        self.run.setdefault('quoted', set()).add((self.snap.status.get('dlvl'), (cls, look)))
+        self.t.send('d' + it['letter'])
+        for _ in range(4):
+            kind, _ = top_prompt(self.t.lines())
+            if kind in ('yn', 'ask'):
+                self.t.send('n')
+            elif kind == 'more':
+                self.t.send('\r')
+            else:
+                break
+        self.t.send(',')
+        lines = self.t.lines()
+        if top_prompt(lines)[0] == 'menu':
+            for l in lines:
+                m = re.search(r'([a-zA-Z]) - (.+)$', l)
+                if m and look in m[2] and cls in m[2] and 'for sale' not in m[2]:
+                    self.t.send(m[1])
+            self.t.send('\r')
+        self.observe()
+        self.read_inventory()
+        return 'dropped it for a price quote, picked it back up' if any(appearance(i['text']) == (cls, look) for i in self.inventory) else 'dropped it for a price quote; it is still on the floor'
 
     def act_goto_corpse(self, p):
         r = self.act_go(p)

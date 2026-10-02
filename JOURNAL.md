@@ -2839,3 +2839,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** A raven blinded the Valkyrie at 35/57 HP. While blind, the bot felt the raven on the square to the west, but its only options were Elbereth and "wait". The raven bit through both Elbereths. At 8 HP the bot prayed 589 turns after its last prayer, and the raven killed it during the prayer.
 - **Prevention:** A raven is a weak monster for an XL 6 Valkyrie. When you are blind and feel the attacker next to you, attack its square. Elbereth is for emergencies. Prayer is the last resort.
 - **Fix:** When blind, the bot can now attack a felt monster next to it at 1/3 HP or more. Before, it could attack only after an interrupted engraving. Weak hunger with food in the pack no longer offers a prayer: the bot eats. Prayer at low HP and for fatal trouble did not change.
+
+## Shop price identification
+
+- **Cause:** The bot reached Dlvl 6 and 7 with eight unknown scrolls and no identify. It looked at shop prices only with 20 or more gold, and it never got sell offers for the items that it carried.
+- **Prevention:** The 5.0 option `price_quotes` adds each price seen to the item name, for example `{buy 26 sell 10}`. A walk past shop items gives buy prices. To drop an item in a shop gives a sell offer. Say no to the offer, then pick the item up again.
+- **Fix:** `price_quotes` is on in `jev/nethackrc`. The bot reads the quotes and finds the possible base prices (buy: charisma and the 4/3 surcharge; sell: base/2 or base 3/8, from `shk.c` and nethack-tools). The shop walk now needs no gold and includes rings. On a shop square, the bot can drop an unknown scroll, potion or ring for a quote, say no, and pick it up again. A scroll of identify now identifies scrolls first, then rings, then potions.
