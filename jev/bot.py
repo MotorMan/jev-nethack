@@ -2418,6 +2418,8 @@ class Bot:
     def act_throw(self, letter, d, key='t'):
         self.run['elbereth'].discard((self.snap.status.get('dlvl'), self.snap.me))  # firing from Elbereth erases it
         self.run['fired_turn'] = self.snap.status.get('turn') or 0
+        me = self.snap.me
+        target = next((q for k in range(1, 9) for q in [(me[0] + DIRS[d][0] * k, me[1] + DIRS[d][1] * k)] if self.snap.is_monster(*q)), None) if me and d in DIRS else None
         self.t.send(key)
         if re.search(r'throw|zap', self.t.lines()[0].lower()):
             self.t.send(letter)
@@ -2429,6 +2431,9 @@ class Bot:
             self.t.send('\x1b')
         self.observe()
         self.read_inventory()
+        recent = ' '.join(self.run['recent'][-2:])
+        if target and 'You kill' in recent and self.snap.at(*target) and self.snap.at(*target).ch in OBJECT_CHARS - {'%'} and not any(re.search(rf'You kill the [\w -]*{n}', recent) for n in self.never_eat()):
+            self.level().corpses[target] = self.snap.status.get('turn') or 0  # the dagger lies on the corpse and shows ')': walked over a fresh floating eye corpse (telepathy) twice, never offered (T3363)
         return f"{'zapped' if key == 'z' else 'threw'} item {letter} {DIR_NAME[d]}"
 
     def wish(self):

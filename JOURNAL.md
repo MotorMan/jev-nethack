@@ -2845,3 +2845,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The bot reached Dlvl 6 and 7 with eight unknown scrolls and no identify. It looked at shop prices only with 20 or more gold, and it never got sell offers for the items that it carried.
 - **Prevention:** The 5.0 option `price_quotes` adds each price seen to the item name, for example `{buy 26 sell 10}`. A walk past shop items gives buy prices. To drop an item in a shop gives a sell offer. Say no to the offer, then pick the item up again.
 - **Fix:** `price_quotes` is on in `jev/nethackrc`. The bot reads the quotes and finds the possible base prices (buy: charisma and the 4/3 surcharge; sell: base/2 or base 3/8, from `shk.c` and nethack-tools). The shop walk now needs no gold and includes rings. On a shop square, the bot can drop an unknown scroll, potion or ring for a quote, say no, and pick it up again. A scroll of identify now identifies scrolls first, then rings, then potions.
+
+## T3363 floating eye corpse not eaten
+
+- **Cause:** The bot killed a floating eye with a thrown dagger. The dagger fell on the corpse, so the square showed `)`, not `%`. The corpse scan never gave the corpse a date, and the bot walked over a fresh floating eye corpse two times without an offer to eat it.
+- **Prevention:** A floating eye corpse gives telepathy. Eat each safe fresh corpse.
+- **Fix:** After a throw that kills, the bot dates the square of the target monster when an object shows there. The melee attack already did this for corpses under arrows.
