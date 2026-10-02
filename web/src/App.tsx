@@ -653,6 +653,7 @@ function LevelInfo({ s }: { s: State }) {
         <Tag t={l.downstairs ? "green" : "muted"}>&gt; down {l.downstairs ? "known" : "unknown"}</Tag>
         <Tag t={l.upstairs ? "green" : "muted"}>&lt; up {l.upstairs ? "known" : "unknown"}</Tag>
       </div>
+      {!!l.notes?.length && <div className="border-t border-border mt-2 pt-1.5" title="notes the bot keeps for each level it has seen: altars, shops, vaults, stashes, gear left behind"><Label>level notes</Label></div>}
       {l.notes?.map(([k, n]) => (
         <div key={String(k)} className="flex gap-2 text-ui truncate mt-1" title={`Level notes for ${typeof k === "number" ? "Dlvl " + k : k}: ${n}`}>
           <span className="text-primary shrink-0 w-14">{typeof k === "number" ? `Dlvl ${k}` : k}</span>
