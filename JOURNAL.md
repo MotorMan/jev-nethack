@@ -2112,3 +2112,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Earlier deaths carried an unused "wand of speed monster" (the attack-wand picker rightly skips it).
 - Source (apply.c do_break_wand): breaking it is a rnd(4*charges) magic explosion, then the speed effect hits every adjacent square.
 - Fix: with no hostiles in view and HP ≥ max(35, 70%): zap self ('.'), zap an adjacent pet, then break it (when the pet is adjacent or there's no pet).
+
+## Web sealed the stairs room (run 171431, Dlvl 7, T9000-11400)
+- Cause: the only door into the '>' room (and a corridor) held a web, shown as '"'. nh.py walkable() didn't include '"' (neither trap nor object), so '>' was unreachable. The bot searched for a hidden path; once the ghost fix ruled out search spots near the ghost, it waited ("Nothing else is possible").
+- Wiki (Web): walking in gets you stuck for a few turns; strong characters tear it apart. Not a wall.
+- Fix: '"' is walkable at trap cost (20), like '^'.

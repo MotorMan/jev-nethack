@@ -85,13 +85,13 @@ class Snapshot:
             return g.fg not in ('green', 'cyan')  # trees, iron bars
         if c in '|-+':
             return self.is_door(x, y)
-        if c in '^0':
+        if c in '^0"':  # '"' is a web (or an amulet): unwalkable, it sealed the only door to '>' on Dlvl 7 and Jev waited 2000 turns (T11000)
             return True  # traps and boulders (pushable): allowed but expensive (see cost())
         return False
 
     def cost(self, x, y):
         g = self.at(x, y)
-        if g.ch == '^':
+        if g.ch in '^"':
             return 20
         if g.ch == '0':
             return 8
