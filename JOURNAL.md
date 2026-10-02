@@ -2688,3 +2688,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A housecat and a panther came near, so the bot chose "fight from a corridor". The walk to the corridor does not stop when new monsters come into view. It went 11 steps to the doorway, and two Woodland-elves came out of that corridor. Jev fought two elves, the housecat and the panther together. It drank four potions of healing, but each heal was less than one turn of damage. The prayer had been used 53 turns before, for hunger.
 - Prevention: Before you walk to a corridor, look at what comes from that corridor. Stop when a new kind of monster appears.
 - Fix: Every walk stops when a monster with a new glyph comes within 7 squares. The corridor walk still ignores more monsters of a kind that is already in view.
+
+## T4988 mumak, Dlvl 7
+
+- Cause: A raven blinded Jev, and a mumak walked up while Jev was blind. When Jev could see again, the mumak was adjacent. The bot rated the mumak "stronger", not "much stronger", so Elbereth was not offered at 64/72 HP. The only option was "attack". One butt and one bite took Jev to 29 HP. Jev then engraved Elbereth, but the mumak killed Jev on the next turn.
+- Prevention: Below XL 10, do not melee a mumak. Its butt does 4d12. Stand on Elbereth or walk away (it has speed 9).
+- Fix: A mumak within 3 squares below XL 10 counts as dread, so Elbereth is offered at any HP.
