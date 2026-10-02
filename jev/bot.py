@@ -945,9 +945,10 @@ class Bot:
             if price and (FOOD.search(item) and 'corpse' not in item or why) and int(price[1]) <= s.get('gold', 0) and not self.run.get('debt'):
                 opts[f'buy_{i}'] = (f"Buy {item}", f"Pick up {item} and pay {price[1]} of your {s.get('gold')} gold. " + (why or 'Packed food prevents fainting from hunger.'), lambda item=item: (self.act_pickup(item), self.act_pay())[1])
                 continue
+            armed = any(WEAPON.search(it['text']) for it in self.inventory)  # a nymph took the spear; the filter left 2 scimitars on the floor, bare-handed vs hill orcs, dead (T2578)
             daggers = sum(int(n[1]) if (n := re.match(r'(\d+) ', it['text'])) else 1 for it in self.inventory if 'dagger' in it['text'])
             # user: no gems (not playing for score; a gray stone can be a loadstone), no random weapons: the spear stays until Mjollnir; 2-3 daggers pry boxes and get thrown
-            if re.search(r'\b(gems?|stones?|rocks?|glass)\b', item) and 'luckstone' not in item or WEAPON.search(item) and not re.search(r'dagger|pick-axe|Mjollnir|Excalibur', item) or 'dagger' in item and daggers >= 3:
+            if re.search(r'\b(gems?|stones?|rocks?|glass)\b', item) and 'luckstone' not in item or WEAPON.search(item) and armed and not re.search(r'dagger|pick-axe|Mjollnir|Excalibur', item) or 'dagger' in item and daggers >= 3:
                 continue
             if shop or 'for sale' in item or 'corpse' in item and not ('lichen' in item or 'lizard' in item and not any('lizard' in it['text'] for it in self.inventory)) or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
@@ -1620,7 +1621,7 @@ class Bot:
         rid = next((k for k, v in opts.items() if k.startswith('read_') and 'identify' in v[0]), None)  # operator: read identify as soon as anything major is unknown
         if rid and not hostiles and any(re.search(r'\b(wand|ring|amulet)\b(?! of| mail)|scrolls? labeled|potions?\b(?! of)', it['text']) and not re.search(r'\bcalled\b|\bnamed\b', it['text']) for it in self.inventory if it['letter'] != rid[5:]):
             opts = {rid: opts[rid]}
-        prio = next((k for k, v in opts.items() if k.startswith(('pickup_', 'buy_')) and (UNLOCKER.search(v[0]) or 'unicorn horn' in v[0])), None)
+        prio = next((k for k, v in opts.items() if k.startswith(('pickup_', 'buy_')) and (UNLOCKER.search(v[0]) or 'unicorn horn' in v[0] or WEAPON.search(v[0]) and not any(WEAPON.search(it['text']) for it in self.inventory))), None)
         if prio and not hostiles:  # user: a key/lock pick and a unicorn horn are priority items
             opts = {prio: opts[prio]}
         eid = next((k for k in opts if k.startswith('engrave_id_')), None)
