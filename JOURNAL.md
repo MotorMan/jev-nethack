@@ -2833,3 +2833,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** In 10 games the bot ate about 10 corpses each, and it prayed 5 to 8 times each for hunger. 25 of those prayers came at Weak with no food on offer. The corpse offer was dropped when any monster was within 6 squares (a newt was enough), below 50% HP, or within 10 turns of a hit.
 - **Prevention:** The user asked: if you are not Satiated and the corpse is safe, eat it. Eating keeps the bot fed and saves the prayer for emergencies. Floating eyes give telepathy, and elves give sleep resistance to a dwarf.
 - **Fix:** Only a monster stronger than "much weaker", within 6 squares, now blocks a meal. The HP limit is now 1/3, and the recent-hit limit is 5 turns. Nymph and leprechaun corpses are now never eaten (teleportitis, from the wiki). The other rules stay: kills younger than 50 turns only, no undead, no dwarves (cannibalism), no cats or dogs, no poisonous corpses unless the bot is desperate.
+
+## T5971 raven, Dlvl 7
+
+- **Cause:** A raven blinded the Valkyrie at 35/57 HP. While blind, the bot felt the raven on the square to the west, but its only options were Elbereth and "wait". The raven bit through both Elbereths. At 8 HP the bot prayed 589 turns after its last prayer, and the raven killed it during the prayer.
+- **Prevention:** A raven is a weak monster for an XL 6 Valkyrie. When you are blind and feel the attacker next to you, attack its square. Elbereth is for emergencies. Prayer is the last resort.
+- **Fix:** When blind, the bot can now attack a felt monster next to it at 1/3 HP or more. Before, it could attack only after an interrupted engraving. Weak hunger with food in the pack no longer offers a prayer: the bot eats. Prayer at low HP and for fatal trouble did not change.

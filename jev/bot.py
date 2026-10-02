@@ -872,8 +872,8 @@ class Bot:
         # eat.c newuhs: Weak is uhunger 1-50 and the step to Fainting faints at once (u.uhs <= WEAK), so 'Fainting' is only seen after the first faint;
         # Weak with no food in the pack bets at 300 like Fainting: Weak 357 turns after praying, fainted beside a jaguar, dead (T10134)
         # starving is certain death, so hunger bets earlier (1000 let a Weak Jev faint to death 640 turns after praying; 600 did it again at 524, T5771)
-        if trouble and not self.run.get('god_angry') and (fatal or starving or (turn - last >= {'Weak': 1000 if not any(m['dist'] <= 1 for m in hostiles) and turn - self.run.get('hit_turn', -99) > 2
-                                                                                      and not all('tripe' in it['text'] for it in self.inventory if FOOD.search(it['text'])) else 500 if any(FOOD.search(it['text']) for it in self.inventory) else 300, 'Fainting': 300}.get(s.get('hunger'), 500) if last is not None else turn >= 110)):
+        if trouble and not self.run.get('god_angry') and (fatal or starving or (turn - last >= {'Weak': 10**9 if not all('tripe' in it['text'] for it in self.inventory if FOOD.search(it['text']))  # user: prayer is the last resort; Weak with food in the pack eats it
+                                                                                      else 500 if any(FOOD.search(it['text']) for it in self.inventory) else 300, 'Fainting': 300}.get(None if LOW_HP(s) else s.get('hunger'), 500) if last is not None else turn >= 110)):
             opts['pray'] = ('Pray to Tyr', f"You are in trouble ({fatal[0] + ': fatal within a few turns unless cured' if fatal else 'low HP' if LOW_HP(s) else 'boxed in by boulders and walls with no way out' if entombed and s.get('hunger') not in ('Weak', 'Fainting') else 'lycanthropy: you will turn into a jackal' if lyc and s.get('hunger') not in ('Weak', 'Fainting') else s.get('hunger')}). Last prayer: {'never' if last is None else 'turn ' + str(last)}. Current turn {s.get('turn')}. A successful prayer fully heals.", self.act_pray)
         if 'pray' in opts and s.get('hunger') == 'Weak' and not fatal and not starving and not LOW_HP(s) and not self.engraved_here() and any(m['dist'] <= 3 and not m['passive'] for m in hostiles):
             opts.pop('pray')  # pray.c: the 3 prayer turns are safe only if it works. Weak at 60 HP with a werewolf 2 steps off: prayed, "Thou art arrogant", wolves summoned, 60 -> 0 (T6823). Fight first, Weak can wait
@@ -1554,7 +1554,7 @@ class Bot:
                 if not self.engraved_here() and not (be[:2] == (s.get('dlvl'), me) and self.run.get('hit_turn', -99) > be[2] and turn - be[2] <= 30):  # hit through a blind Elbereth: 3 more engravings while a raven bit, never swung (T6804)
                     fight['elbereth'] = ('Engrave Elbereth', 'You are blind and something unseen is biting you. Engraving works blind and scares most monsters off.', self.act_elbereth)
             felt = [m for m in hostiles if m['dist'] == 1 and 'unseen' in m['name']]
-            if felt and not shop and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5:  # blind, 5 Elbereths in a row "interrupted" by unseen fire ants, never swung back: 36 -> 0 (T5164)
+            if felt and not shop and ((s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5 or s.get('hp', 1) >= s.get('hpmax', 1) / 3):  # blinded by a raven at 35/57, its 'I' felt west: only Elbereth, then wait (bitten through both), then a 589-turn gamble prayer, dead (T5971). User: fight, Elbereth is for emergencies  # blind, 5 Elbereths in a row "interrupted" by unseen fire ants, never swung back: 36 -> 0 (T5164)
                 fight.pop('elbereth', None)
                 for m in felt:
                     d = DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]
