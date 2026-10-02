@@ -41,7 +41,8 @@ export interface State {
   history: HistoryEntry[]
   messages: { turn: number; text: string }[]
   log: { at: string; level: "info" | "warn" | "error"; text: string }[]
-  jev: { calls: number; errors: number; cost_usd: number; avg_latency_ms: number; last_model: string | null; budget_usd: number }
+  jev: { calls: number; errors: number; cost_usd: number; avg_latency_ms: number; last_model: string | null; budget_usd: number
+    last?: { request: { state: string; model: string; questions: unknown }; response: unknown } | null }
   run: { id: string; started: string; character: string; max_dlvl: number; decisions: number; engine?: string; models?: string[] }
   runs: RunSummary[]
   inventory: { letter: string; text: string }[]

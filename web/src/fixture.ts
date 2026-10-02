@@ -59,6 +59,8 @@ const iso = (msAgo: number) => new Date(now - msAgo).toISOString()
 const labels = ["explore: travel to unexplored", "fight: attack newt", "move: go east", "eat: gnome corpse",
   "pickup: scroll", "search here", "descend stairs", "move: go north", "pray", "wield: long sword"]
 
+const STATE = MAP.join("\n") + "\n\nInventory:\na - a +1 long sword (weapon in hand)\nb - a +0 dagger\nc - an uncursed +3 small shield (being worn)\nd - 2 food rations\ne - a scroll labeled ELBIB YLOH"
+
 export const FIXTURE: State = {
   mode: "local",
   paused: false,
@@ -82,7 +84,7 @@ export const FIXTURE: State = {
       { id: "descend", label: "Travel to > and descend", detail: "downstairs known on this level", p: 0.05 },
     ],
     choice: "eat_ration", confidence: 0.61, latency_ms: 1840,
-    state_text: MAP.join("\n") + "\n\nInventory:\na - a +1 long sword (weapon in hand)\nb - a +0 dagger\nc - an uncursed +3 small shield (being worn)\nd - 2 food rations\ne - a scroll labeled ELBIB YLOH",
+    state_text: STATE,
   },
   history: Array.from({ length: 60 }, (_, i) => {
     const conf = 0.35 + 0.6 * Math.abs(Math.sin(i * 1.7))
@@ -106,7 +108,11 @@ export const FIXTURE: State = {
     { at: iso(8000), level: "error", text: "jev call failed (timeout); retrying" },
     { at: iso(2000), level: "info", text: "decision #318 -> eat_ration (p=0.61)" },
   ],
-  jev: { calls: 318, errors: 2, cost_usd: 0.4127, avg_latency_ms: 1620, last_model: "jev-1", budget_usd: 5 },
+  jev: { calls: 318, errors: 2, cost_usd: 0.4127, avg_latency_ms: 1620, last_model: "jev-1", budget_usd: 5,
+    last: {
+      request: { state: STATE, model: "jev-latest", questions: { action: { type: "choice", instructions: "Choose the next high-level action.", criteria: { eat_ration: "Eat a food ration (inventory d). takes 5 turns", fight_newt: "Fight the newt. F: newt (:) at +4,+2" } } } },
+      response: { model: "jev-1", answers: { action: { choice: "eat_ration", probabilities: { eat_ration: 0.76, fight_newt: 0.24 }, confidence: 0.61 }, danger: { noul: 0.12 } }, usage: { input_tokens: 1432 } },
+    } },
   run: { id: "r-0007", started: iso(3600_000), character: "Val-Hum-Fem-Law", max_dlvl: 3, decisions: 318 },
   runs: [
     { id: "r-0006", started: iso(9000_000), ended: iso(7200_000), character: "Val-Dwa-Fem-Law", turns: 4211, max_dlvl: 6, death: "killed by a soldier ant", score: 3120 },

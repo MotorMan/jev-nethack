@@ -1,8 +1,9 @@
 import { Children, useEffect, useRef, useState, type ReactNode } from "react"
 import {
-  Activity, ChevronRight, Cpu, Footprints, Map as MapIcon, LayoutPanelLeft, Moon, Package, Pause, Play, RotateCcw,
-  Send, StepForward, Sun, Swords, Wifi, WifiOff,
+  Activity, ChevronRight, Cpu, Footprints, Map as MapIcon, LayoutPanelLeft, Maximize2, Moon, Package, Pause, Play, RotateCcw,
+  Send, StepForward, Sun, Swords, Wifi, WifiOff, WrapText, X,
 } from "lucide-react"
+import { Dialog } from "radix-ui"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -99,6 +100,33 @@ function Label({ children, className }: { children: ReactNode; className?: strin
   return <span className={cn("text-label text-muted-foreground tracking-[1.5px] uppercase block", className)}>{children}</span>
 }
 
+// maximize button: shows `children` again, enlarged, in a fixed overlay (Esc / backdrop / close button dismiss)
+function Max({ title, right, bodyClass, children }: { title: ReactNode; right?: ReactNode; bodyClass?: string; children: ReactNode }) {
+  return (
+    <Dialog.Root>
+      <Tip tip="maximize">
+        <Dialog.Trigger asChild>
+          <Button size="icon" variant="ghost" className="size-4 text-muted-foreground" aria-label="maximize"><Maximize2 className="size-3" /></Button>
+        </Dialog.Trigger>
+      </Tip>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60" />
+        <Dialog.Content aria-describedby={undefined} onCloseAutoFocus={(e) => e.preventDefault()}
+          className="fixed inset-4 z-50 bg-card text-card-foreground border flex flex-col card-glow outline-none">
+          <div className="flex items-center justify-between py-1.5 px-2.5 border-b border-border">
+            <Dialog.Title className="text-xs text-muted-foreground tracking-[1.5px] uppercase font-normal flex items-center gap-2">{title}</Dialog.Title>
+            <div className="text-xs text-muted-foreground flex items-center gap-2">
+              {right}
+              <Dialog.Close asChild><Button size="icon" variant="ghost" className="size-4 text-muted-foreground" aria-label="close"><X className="size-3" /></Button></Dialog.Close>
+            </div>
+          </div>
+          <div className={cn("p-2.5 flex-1 min-h-0 flex flex-col overflow-auto", bodyClass)}>{children}</div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+
 function Panel({ title, right, children, className, bodyClass }: {
   title: ReactNode; right?: ReactNode; children: ReactNode; className?: string; bodyClass?: string
 }) {
@@ -108,11 +136,31 @@ function Panel({ title, right, children, className, bodyClass }: {
         <CardTitle className="text-xs text-muted-foreground tracking-[1.5px] uppercase font-normal flex items-center gap-2">
           {title}
         </CardTitle>
-        {right && <CardDescription className="text-xs text-muted-foreground flex items-center gap-2">{right}</CardDescription>}
+        <CardDescription className="text-xs text-muted-foreground flex items-center gap-2">
+          {right}
+          <Max title={title} right={right} bodyClass={bodyClass}>{children}</Max>
+        </CardDescription>
       </CardHeader>
       <CardContent className={cn("p-2.5", bodyClass)}>{children}</CardContent>
     </Card>
   )
+}
+
+// JSON pretty-printer with smui-palette highlighting: keys, strings, numbers, true/false/null, punctuation
+const JSON_TOKEN = /("(?:\\.|[^"\\])*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false|null)\b|([{}[\],:])/g
+function Json({ v, wrap }: { v: unknown; wrap: boolean }) {
+  const src = JSON.stringify(v, null, 2) ?? "null"
+  const out: ReactNode[] = []
+  let last = 0
+  for (const m of src.matchAll(JSON_TOKEN)) {
+    out.push(src.slice(last, m.index))
+    const c: Tone = m[1] ? (m[2] ? "frost-2" : "green") : m[3] ? "purple" : m[4] ? "orange" : "muted"
+    out.push(<span key={m.index} style={{ color: tone(c) }}>{m[1] ?? m[0]}</span>)
+    if (m[2]) out.push(<span key={m.index + "c"} style={{ color: tone("muted") }}>{m[2]}</span>)
+    last = m.index + m[0].length
+  }
+  out.push(src.slice(last))
+  return <pre className={cn("text-xs bg-background border border-border p-2 overflow-auto", wrap ? "whitespace-pre-wrap break-all" : "whitespace-pre")}>{out}</pre>
 }
 
 function Bar({ value, t, className }: { value: number; t: Tone; className?: string }) {
@@ -295,6 +343,9 @@ function Vitals({ s }: { s: State }) {
 
 function DecisionPanel({ s }: { s: State }) {
   const d = s.decision
+  const [wrap, setWrap] = useState(() => { try { return localStorage.getItem("wrap") === "1" } catch { return false } })
+  const toggleWrap = () => { setWrap(!wrap); try { localStorage.setItem("wrap", wrap ? "0" : "1") } catch { /* private mode */ } }
+  const io = s.jev.last
   if (!d) {
     return <Panel title="jev // decision"><div className="text-sm text-muted-foreground">awaiting first decision...</div></Panel>
   }
@@ -316,6 +367,10 @@ function DecisionPanel({ s }: { s: State }) {
           <TabsTrigger value="options" className="flex-none" title="the actions the bot offered, with Jev's probability for each">options ({d.options.length})</TabsTrigger>
           <TabsTrigger value="question" className="flex-none" title="the question asked of Jev">instructions</TabsTrigger>
           <TabsTrigger value="state" className="flex-none" title="the game state as text, as Jev read it">state text</TabsTrigger>
+          <TabsTrigger value="request" className="flex-none" title="the raw JSON sent to Jev and its reply">request</TabsTrigger>
+          <Tip tip="wrap long lines in state text and request">
+            <Button size="xs" variant="ghost" className="ml-auto text-muted-foreground" onClick={toggleWrap}><WrapText /> wrap {wrap ? "on" : "off"}</Button>
+          </Tip>
         </TabsList>
         <TabsContent value="options" className="space-y-1">
           <div className="text-sm text-muted-foreground mb-2 line-clamp-3" title={d.question}>{d.question}</div>
@@ -355,7 +410,17 @@ function DecisionPanel({ s }: { s: State }) {
           <pre className="text-xs whitespace-pre-wrap bg-background border border-border p-2 overflow-auto">{d.question}</pre>
         </TabsContent>
         <TabsContent value="state">
-          <pre className="text-xs whitespace-pre bg-background border border-border p-2 overflow-auto">{d.state_text}</pre>
+          <pre className={cn("text-xs bg-background border border-border p-2 overflow-auto", wrap ? "whitespace-pre-wrap break-all" : "whitespace-pre")}>{d.state_text}</pre>
+        </TabsContent>
+        <TabsContent value="request" className="space-y-2">
+          {!io ? <div className="text-sm text-muted-foreground">no request sent yet</div> : <>
+            {io.request.state !== d.state_text && <div className="text-xs text-muted-foreground">
+              {d.pending ? "waiting for Jev; showing the previous call" : "this decision had one option, so Jev was not asked; showing the previous call"}</div>}
+            <Label>request</Label>
+            <Json v={io.request} wrap={wrap} />
+            <Label>response</Label>
+            <Json v={io.response} wrap={wrap} />
+          </>}
         </TabsContent>
       </Tabs>
     </Panel>
@@ -437,9 +502,16 @@ function Timeline({ s }: { s: State }) {
 // ---------- feeds ----------
 
 function Feeds({ s }: { s: State }) {
-  const lvl: Record<string, Tone> = { info: "frost-3", warn: "yellow", error: "red" }
   return (
     <Card className="card-glow min-w-0 flex-1 min-h-0">
+      <FeedTabs s={s} max={<Max title="feeds" bodyClass="p-0"><FeedTabs s={s} /></Max>} />
+    </Card>
+  )
+}
+
+function FeedTabs({ s, max }: { s: State; max?: ReactNode }) {
+  const lvl: Record<string, Tone> = { info: "frost-3", warn: "yellow", error: "red" }
+  return (
       <Tabs defaultValue="messages" className="gap-0 flex-1 min-h-0">
         <TabsList variant="line" className="w-full justify-start px-1.5 h-9 shrink-0">
           <TabsTrigger value="messages" className="flex-none">game messages</TabsTrigger>
@@ -447,6 +519,7 @@ function Feeds({ s }: { s: State }) {
             harness log {s.log.some((l) => l.level === "error") && <Dot t="red" />}
           </TabsTrigger>
           <TabsTrigger value="runs" className="flex-none">runs ({s.runs.length})</TabsTrigger>
+          {max && <span className="ml-auto pr-1.5 flex">{max}</span>}
         </TabsList>
         <TabsContent value="messages" className="p-0 min-h-0 overflow-auto">
           <div className="p-2 space-y-0.5">
@@ -471,7 +544,6 @@ function Feeds({ s }: { s: State }) {
         </TabsContent>
         <TabsContent value="runs" className="p-0 min-h-0 overflow-auto"><Runs s={s} /></TabsContent>
       </Tabs>
-    </Card>
   )
 }
 

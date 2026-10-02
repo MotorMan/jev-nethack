@@ -59,7 +59,8 @@ class Jev:
         if self.stats['cost_usd'] >= self.budget and not self.local:
             raise RuntimeError(f'Jev budget ${self.budget} exhausted (see {self.ledger})')
         timeout = timeout or (120 if self.local else 8)  # a local model's first call loads weights; Gemma on MPS is slow
-        body = json.dumps(dict(state=state, model=self.model, questions=questions)).encode()
+        req = dict(state=state, model=self.model, questions=questions)
+        body = json.dumps(req).encode()
         url = urllib.parse.urlsplit(self.endpoint)
         t0 = time.time()
         for attempt in range(4):
@@ -83,6 +84,7 @@ class Jev:
                         raise RuntimeError(f'Jev HTTP {r.status}: {raw[:300]!r}')
                     raise OSError(f'HTTP {r.status}')
                 resp = json.loads(raw)
+                self.last = dict(request=req, response=resp)  # shown in the dashboard's request tab
                 break
             except (OSError, ValueError, http.client.HTTPException) as e:
                 self.stats['errors'] += 1
@@ -110,4 +112,5 @@ class Jev:
     def summary(self):
         s = self.stats
         return dict(calls=s['calls'], errors=s['errors'], cost_usd=round(s['cost_usd'], 6), budget_usd=self.budget,
-                    avg_latency_ms=round(s['latency_total_ms'] / s['calls']) if s['calls'] else 0, last_model=s['last_model'])
+                    avg_latency_ms=round(s['latency_total_ms'] / s['calls']) if s['calls'] else 0, last_model=s['last_model'],
+                    last=getattr(self, 'last', None))
