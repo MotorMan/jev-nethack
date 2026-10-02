@@ -1145,6 +1145,10 @@ class Bot:
             unk = [it for it in self.inventory if UNKNOWN_BUC(it['text']) and it['text'] not in self.run.setdefault('buc_done', set())]
             if here_alt and unk:
                 opts['buc'] = ('Drop your unknown items on the altar to learn if they are cursed', f"Drop {len(unk)} item(s) whose curse status is unknown and pick them back up: a black flash means cursed, amber blessed. Then you can safely wear the armor.", lambda unk=unk: self.act_buc(unk))
+            known = [p for (dl, p), a in altars.items() if dl == s.get('dlvl') and p in dist and p != me]
+            if unk and not here_alt and known:  # user: BUC-test every untested item on any altar; before, 'buc' showed only while standing on one, so a known altar never got a second visit
+                q = min(known, key=dist.get)
+                opts['buc'] = (f"Take {len(unk)} untested item(s) to the altar {compass(me, q)}", f"Walk {dist[q]} steps to the altar, drop the items whose curse status is unknown and pick them back up: a black flash means cursed, amber blessed.", lambda q=q, unk=unk: self.act_buc(unk) if self.act_go(q) and self.snap.me == q else 'heading for the altar')
             lawful = [p for (dl, p), a in altars.items() if dl == s.get('dlvl') and a == 'lawful' and (p in dist or p == me)]
             carried = next((it for it in self.inventory if 'corpse' in it['text'] and not any(n in it['text'] for n in NEVER_OFFER)), None)
             if lawful and carried and s.get('turn', 0) - self.run.get('carry_turn', -99) < 45:
@@ -2705,7 +2709,7 @@ class Bot:
                 break
         self.observe()
         self.read_inventory()
-        self.run['buc_done'] |= {it['text'] for it in unk} | {it['text'] for it in self.inventory}
+        self.run['buc_done'] |= {it['text'] for it in self.inventory if UNKNOWN_BUC(it['text'])}  # only the ones the altar did not reveal: a later 'emerald potion' with the same text was skipped forever
         self.run['here'][(self.snap.status.get('dlvl'), self.snap.me)] = self.look_here()
         return 'BUC-tested: ' + ' '.join(m['text'] for m in self.messages[nmsg:])[:200]
 
