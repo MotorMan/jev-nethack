@@ -2312,3 +2312,6 @@ Each change below was checked against the 5.0 source:
 - **Cause:** Jev was Weak with no food, 357 turns after a low-HP prayer, and kept walking toward stairs for leave_nymph. The Weak prayer threshold was 1000 turns. In eat.c newuhs, Weak covers uhunger 1-50, and moving from Weak to Fainting faints at once (`u.uhs <= WEAK`), so the Fainting threshold (300) only applies after the first faint. Jev fainted mid-fight with a jaguar and died.
 - **Fix:** Weak with no food in the pack now prays at 300 turns, like Fainting (P ≈ .66 that the timeout is under 200).
 - **Pattern:** 3 of the top 5 scores died "while fainted from lack of food". The food supply is the main thing still wrong.
+
+## T6106 goblin, fainted (Dlvl 4)
+Out of food, Weak at T5669: prayed 828 turns after the last one ("Tyr is displeased"), then picked "search for hidden passages" over a locked door 2 steps away ~30 times (51/49 split) while Fainting, with a **wand of digging** in the pack. The wand was only offered as an HP emergency. Fix: with no food and Hungry or worse, the wand's dig-down is offered whenever no downstairs is known and nothing is near; searching/resting is dropped whenever a door, kick, explore or dig option exists. A new level means new corpses.
