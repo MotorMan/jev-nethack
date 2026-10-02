@@ -7,6 +7,8 @@ from . import sokoban
 from .nh import (DIRS, DIR_OF, DIR_NAME, MAP_TOP, MAP_BOT, OBJECT_CHARS, Snapshot, top_prompt, messages_from)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+HIGH_FOOD = re.compile(r'food rations?|lembas wafers?|cram rations?|[KC]-rations?')  # objects.h: 800 / 800 / 600 / 400 / 300 nutrition
+LOW_FOOD = re.compile(r'\b(apple|orange|banana|melon|carrot|pear|kelp frond|slime mold|fortune cookie|candy bar|cream pie|pancake)s?\b(?! (gem|potion|spellbook|glass))')  # 5-200 nutrition: not worth the weight
 FOOD = re.compile(r'\b(?:food ration|cram|lembas|biscuit|pancake|apple|orange(?! gem)|banana|melon|carrot|egg|tins?|fortune|candy|K-ration|C-ration|kelp|slime mold|tripe|meatball|corpse|wolfsbane|garlic|royal jelly|cookie|cream pie|pear|lichen)e?s?\b')  # word-bounded: 'dwarvish spear' is not a pear
 MONSTERS = json.load(open(os.path.join(os.path.dirname(__file__), 'monsters.json')))  # name -> [difficulty, speed], from monsters.h
 
@@ -1121,6 +1123,17 @@ class Bot:
             if shop or 'for sale' in item or 'corpse' in item and not ('lichen' in item or 'lizard' in item and not any('lizard' in it['text'] for it in self.inventory)) or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
+        if not near and not shop and 'Burdened' not in s.get('conditions', []):  # user: keep 7-10 high-nutrition foods; eat low-nutrition food where it lies unless Satiated
+            high = sum(int(n[1]) if (n := re.match(r'(\d+) ', it['text'])) else 1 for it in self.inventory if HIGH_FOOD.search(it['text']))
+            for item in self.here_items():
+                if 'for sale' in item or 'corpse' in item or not (HIGH_FOOD.search(item) and high < 10 or LOW_FOOD.search(item) and s.get('hunger') != 'Satiated'):
+                    continue
+                opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat_')}
+                if HIGH_FOOD.search(item):
+                    opts['pickup_food'] = (f"Pick up {item}", f"High-nutrition food that keeps well; you carry {high} such items (keep up to 10).", lambda item=item: self.act_pickup(item))
+                else:
+                    opts['eat_floor'] = (f"Eat {item} here", "Low-nutrition food is not worth carrying: eat it now while you are not Satiated.", lambda item=item: self.act_eat_floor(item))
+                break
         box = next((i for i in self.here_items() if re.search(r'\b(chest|large box)\b', i) and 'for sale' not in i), None)
         if box and not shop and not any(m['dist'] <= 6 for m in hostiles) and self.run.setdefault('looted', {}).get((s.get('dlvl'), me), 0) < 2:  # 5.0 mklev.c: 2/3 of levels above the Oracle get a box, half with healing potions; the Mines entry level's always has food
             opts['loot'] = (f"Open {box} and take what is inside", 'Boxes on early levels often hold potions of healing, enchant scrolls or food. If it is locked: unlock it with a key or lock pick, else pry it with a dagger, else kick it open.', self.act_loot)
@@ -2476,6 +2489,21 @@ class Bot:
             self.run.setdefault('inedible', set()).add(text)
             return f'could not eat {text}'
         return 'ate'
+
+    def act_eat_floor(self, item):
+        name = LOW_FOOD.search(item)[1]
+        self.t.send('e')
+        for _ in range(8):  # eat.c floorfood: "There is an apple here; eat it?" for each floor item, then the pack prompt
+            top = self.t.lines()[0]
+            if not re.search(r'here; eat (it|one)\?', top):
+                self.t.send('\x1b')
+                break
+            self.t.send('y' if name in top else 'n')
+            if name in top:
+                break
+        self.observe()
+        self.run['here'][(self.snap.status.get('dlvl'), self.snap.me)] = self.look_here()
+        return f'ate {name}'
 
     def act_eat_corpse(self):
         if not self.engraved_here() and self.snap.status.get('hunger') != 'Fainting':

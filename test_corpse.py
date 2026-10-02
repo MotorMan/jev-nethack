@@ -28,6 +28,9 @@ step({5: ' ' * 10 + '@%' + ' ' * 5 + 'h'}, 120)  # a hobbit crosses the old corp
 step({5: ' ' * 10 + '@%' + ' ' * 4 + 'h%'}, 121)
 step({5: ' ' * 10 + '@%' + ' ' * 4 + '%%'}, 122, 'You kill the hobbit!')
 assert b.level().corpses[(17, 5)] < 0, b.level().corpses  # still old (T2090)
+from jev.bot import HIGH_FOOD, LOW_FOOD
+assert HIGH_FOOD.search('3 food rations') and HIGH_FOOD.search('a lembas wafer') and not HIGH_FOOD.search('an apple')
+assert LOW_FOOD.search('2 apples') and LOW_FOOD.search('a cream pie') and not LOW_FOOD.search('an orange potion') and not LOW_FOOD.search('a dwarvish spear')
 print('ok')
 
 # 5.0 corpse rules: poisonous only when desperate, bad-effect corpses never
@@ -44,9 +47,15 @@ _f = _F(); _f.run = {'recent': ['It bites!'], 'msg_turn': 100}; _f.snap = NS(sta
 assert Bot.unseen_attacker(_f)
 _f.snap.status['turn'] = 110
 assert not Bot.unseen_attacker(_f)
+from jev.bot import HIGH_FOOD, LOW_FOOD
+assert HIGH_FOOD.search('3 food rations') and HIGH_FOOD.search('a lembas wafer') and not HIGH_FOOD.search('an apple')
+assert LOW_FOOD.search('2 apples') and LOW_FOOD.search('a cream pie') and not LOW_FOOD.search('an orange potion') and not LOW_FOOD.search('a dwarvish spear')
 print('ok')
 _f = _F(); _f.run = {'calm': True}
 assert not any(n in 'giant bat corpse' for n in Bot.never_eat(_f)) and any(n in 'vampire bat corpse' for n in Bot.never_eat(_f))
 _f.run = {'calm': False}
 assert any(n in 'giant bat corpse' for n in Bot.never_eat(_f))
+from jev.bot import HIGH_FOOD, LOW_FOOD
+assert HIGH_FOOD.search('3 food rations') and HIGH_FOOD.search('a lembas wafer') and not HIGH_FOOD.search('an apple')
+assert LOW_FOOD.search('2 apples') and LOW_FOOD.search('a cream pie') and not LOW_FOOD.search('an orange potion') and not LOW_FOOD.search('a dwarvish spear')
 print('ok')
