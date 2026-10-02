@@ -1151,7 +1151,7 @@ class Bot:
         if 'Burdened' in s.get('conditions', []) or 'Stressed' in s.get('conditions', []):
             for it in self.inventory:
                 if (HEAVY.search(it['text']) or JUNK.search(it['text'])) and not re.search(r'weapon in|being worn|alternate weapon|mithril|at the ready|quiver|pick-axe|mattock', it['text']):
-                    opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", f"You are {'Burdened' if 'Burdened' in s['conditions'] else 'Stressed'}: slower, and you can't fight or flee well. {it['text']} is heavy and of little use.", lambda l=it['letter']: (self.act_keys('d' + l, 'dropped it'), self.read_inventory())[0])
+                    opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", f"You are {'Burdened' if 'Burdened' in s['conditions'] else 'Stressed'}: slower, and you can't fight or flee well. {it['text']} is heavy and of little use.", lambda l=it['letter']: (self.run.update(dropped=(s.get('dlvl'), me)), self.act_keys('d' + l, 'dropped it'), self.read_inventory())[1])  # Overloaded as a wererat, dropped the spear, darts, shield and wands, never fetched them back: AC 9, dead (T7225-T7712)
             spots = [] if near or self.soko() else [q for u in snap.find('<') for dx, dy in DIRS.values() if (q := (u[0] + dx, u[1] + dy)) in dist and dist[q] <= 40 and snap.at(*q).ch in '.' + ''.join(')[%?/=!("$')]
             if spots:  # wiki Stash: leave spares next to the up stairs (not on '>': they fall down), monsters don't act while you're off-level
                 q = min(spots, key=dist.get)
@@ -1250,7 +1250,7 @@ class Bot:
             opts[f'door_{door[0]}_{door[1]}'] = (f"Go through the {what} {compass(me, door)}", f"Walk {dist[q]} steps to the {what} {compass(me, door)}, open it (kicking it if locked). What lies behind is unexplored.", lambda q=q, door=door: self.act_kick_door(q, door))
         if (not near or s.get('hunger') in ('Weak', 'Fainting')) and not shop:  # starving beats a hovering monster; only stepped-on items were ever picked up; Jev fainted twice with food lying in view
             objs = [q for c in ')[%?/=!("$' for q in snap.find(c)]
-            if self.run.get('dropped') == (s.get('dlvl'), me) or not (s.get('title') or '').startswith('Were') and self.run.get('dropped', (0,))[0] != s.get('dlvl'):
+            if not (s.get('title') or '').startswith('Were') and (self.run.get('dropped') == (s.get('dlvl'), me) or self.run.get('dropped', (0,))[0] != s.get('dlvl')):  # a rat standing on its shed pile cleared the spot; back in @ form it never went back (T7237)
                 self.run.pop('dropped', None)
             loot = [q for q in objs if q in dist and 0 < dist[q] <= (80 if s.get('hunger') in ('Weak', 'Fainting') and snap.at(*q).ch == '%' else 15) and ((s.get('dlvl'), q) not in self.run['here'] or self.run.get('dropped') == (s.get('dlvl'), q)) and lv.corpses.get(q, -1) < 0
                     and sum(cheb(q, o) <= 3 for o in objs) < 6]  # a dense cluster is a shop
@@ -1397,8 +1397,14 @@ class Bot:
                            else "It hurts you passively when you hit it; the fight stops if HP gets low")
                     opts['kill_blocker'] = (f"Kill the {m['name']} blocking the way", f"The {m['name']} {m['where']} blocks the only way out: you are stuck here until it dies. Walk next to it and fight it. {why}.", lambda m=m: self.act_kill_blocker(m['pos']))
                     rk = next((i for i in self.here_items() if re.search(r'\brocks?\b', i) and 'for sale' not in i), None)
+                    # an eye off the 8 lines got no throw, so Jev meleed it with 10 darts in the pack: frozen, turned wererat, dropped all gear, died at AC 9 (T7218-T7712)
+                    line = [q for q in dist if 2 <= cheb(q, m['pos']) <= 4 and (q[0] == m['pos'][0] or q[1] == m['pos'][1] or abs(q[0] - m['pos'][0]) == abs(q[1] - m['pos'][1])) and self.clear_line(q, m['pos'])]
                     if m['ch'] == 'e' and any(k.startswith(('throw_', 'zap_')) for k in opts):
                         del opts['kill_blocker']  # throw at it instead: melee paralyses for up to 127 turns
+                    elif m['ch'] == 'e' and (missiles or arrows) and line and not self.blindfold():
+                        q = min(line, key=lambda q: dist[q])
+                        opts['kill_blocker'] = (f"Line up a throw at the {m['name']}", f"Walk {dist[q]} steps to a square in line with the {m['name']}, then throw at it. Melee risks long paralysis.",
+                                                lambda q=q: self.act_go(q) if self.snap.me != q else 'lined up')
                     elif m['ch'] == 'e' and rk and not self.blindfold():
                         opts['kill_blocker'] = ('Pick up the rocks here to throw at the eye', 'Rocks thrown at the floating eye hurt it without touching it; melee risks paralysis.', lambda rk=rk: self.act_pickup(rk))
         stuck = sum(re.search(r'came into view|no path', h['outcome']) is not None for h in self.history[-8:]) >= 5
@@ -1563,7 +1569,7 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray', 'upstairs', 'dig_down') or k == 'flee_up' and (outrun or any(dist.get(p, 99) <= 3 for p in snap.find('<'))) or k.startswith('quaff_') or deaf and k.startswith('attack_')}  # '<' 3 steps: a magic trap blinded Jev and summoned hill orcs, a pony and a wolf beside it; only Elbereth, interrupted, 48 -> 0 (T5706)  # upstairs: arrived on '<' into ~10 monsters, only Elbereth left, 67 -> 8 -> prayed -> dead (T8603)
         g = self.run.get('gear_at')
         if g and g[0] == s.get('dlvl') and s.get('exp') is not None and not any(m['dist'] <= 1 for m in near):  # 'not near': a speed-3 rock mole stayed in view 230 turns, the shield never recovered, dead at AC 10 (T3665)
-            if me == g[1]:
+            if me == g[1] and not (s.get('title') or '').startswith('Were'):
                 pile = [q for c in ')[' for q in snap.find(c) if 0 < cheb(me, q) <= 3 and q in dist]
                 self.run['gear_at'] = None if self.here_items() or not pile else (g[0], min(pile, key=dist.get))  # the pickup and wear options take it from here; the spot was recorded a step off, empty square cleared it and Jev descended with no spear or shield, AC 9, dead to a werejackal (T6987)
             elif g[1] in dist:
@@ -1715,7 +1721,7 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k == 'pray'}
             for it in self.inventory:
                 if not re.search(r'weapon in|being worn|gold piece', it['text']):
-                    opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", 'You are Overloaded and cannot move at all. Drop heavy things (armor, weapons, rations, tools) first.', lambda l=it['letter']: (self.act_keys('d' + l, 'dropped it'), self.read_inventory())[0])
+                    opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", 'You are Overloaded and cannot move at all. Drop heavy things (armor, weapons, rations, tools) first.', lambda l=it['letter']: (self.run.update(dropped=(s.get('dlvl'), me)), self.act_keys('d' + l, 'dropped it'), self.read_inventory())[1])  # Overloaded as a wererat, dropped the spear, darts, shield and wands, never fetched them back: AC 9, dead (T7225-T7712)
         if not near and any(k.startswith('sell_') for k in opts):  # Jev chose "explore" into Chicoutimi 3000 times instead
             opts = {k: v for k, v in opts.items() if k.startswith('sell_')}
         if set(s.get('conditions', [])) & {'Conf', 'Cnf', 'Stun', 'Stn'} and (not near or any(m['peaceful'] and m['dist'] <= 1 for m in mons)):  # hack.c: Stunned always, Confusion 1 in 5 confdir()s the move or attack: a stunned swing at a mimic hit Izchak, dead (T2680)  # a confused bump into a shopkeeper attacks him
