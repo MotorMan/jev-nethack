@@ -745,12 +745,12 @@ export default function App() {
     <main className="h-screen flex flex-col overflow-hidden">
       <Header s={s} conn={conn} />
       <Split id="cols" row init={[520, 640, 340]} className="flex-1 p-1.5">
-        <Split id="left">
+        <Split id="left" init={[48, 52]}>
           <Panel
             title={<>terminal // {s.status.name ?? "agent"}</>}
             right={<><span>dlvl {s.status.dlvl ?? "--"}</span><span>t:{s.status.turn ?? "--"}</span></>}
-            bodyClass="p-0"
-            className={cn("shrink-0", s.phase === "dead" && "border-[hsl(var(--smui-red)/0.6)]")}
+            bodyClass="p-0 flex-1 min-h-0 flex flex-col"
+            className={cn(s.phase === "dead" && "border-[hsl(var(--smui-red)/0.6)]")}
           >
             <Terminal screen={s.screen} />
           </Panel>
