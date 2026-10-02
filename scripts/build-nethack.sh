@@ -1,6 +1,7 @@
 #!/bin/sh
 # Build Hardfought's NetHack 5.0.0 tree (k21971/NetHack50) locally.
-# Works on macOS and Linux. Fixes the known path-doubling install bug.
+# Works on macOS and Linux. Skips the broken install target entirely
+# and assembles the correct layout from build artifacts.
 set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 SRC="$ROOT/build/NetHack50"
@@ -22,59 +23,47 @@ esac
 } > sys/unix/hints/local-hardfrequent
 sh sys/unix/setup.sh sys/unix/hints/local-hardfrequent
 make fetch-lua
+
+# Build everything but DO NOT run make install (it has the path-doubling bug)
 make PREFIX="$PREFIX" HACKDIR="$PREFIX/lib" WANT_WIN_TTY=1 WANT_DEFAULT=tty all
-make PREFIX="$PREFIX" HACKDIR="$PREFIX/lib" WANT_WIN_TTY=1 WANT_DEFAULT=tty install
+make -C dat all
+make -C util recover dlb
 
 # ---------------------------------------------------------------------------
-# Fix the path-doubling bug in NetHack50's install target.
-#
-# The Makefile installs files under $PREFIX/home/$USER/$PREFIX/lib
-# instead of $PREFIX/lib. Detect where the binary actually landed
-# and flatten everything back to the correct layout.
+# Assemble the correct layout manually from build artifacts.
 # ---------------------------------------------------------------------------
 
-# Remove any leftover doubled tree from a previous run
-rm -rf "$PREFIX/home" 2>/dev/null || true
+# Remove any previous broken install
+rm -rf "$PREFIX"
 
-# Find the actual nethack binary location after make install
-ACTUAL_BIN=$(find "$PREFIX" -name nethack -type f 2>/dev/null | head -1)
-if [ -z "$ACTUAL_BIN" ]; then
-    echo "error: nethack binary not found after install" >&2
-    exit 1
-fi
-ACTUAL_DIR=$(dirname "$ACTUAL_BIN")
+# Create the expected directory structure
+mkdir -p "$PREFIX/lib" "$PREFIX/lib/var" "$PREFIX/lib/var/save" "$PREFIX/lib/var/whereis" "$PREFIX/bin" "$PREFIX/dumplog"
 
-# Copy everything from wherever it landed into $PREFIX/lib/
-mkdir -p "$PREFIX/lib"
-cp -a "$ACTUAL_DIR"/. "$PREFIX/lib/" 2>/dev/null || true
+# Copy the binary and utilities
+cp -a src/nethack "$PREFIX/lib/nethack"
+cp -a util/recover "$PREFIX/lib/recover"
 
-# Create the expected bin/ layout and symlink the binary
-mkdir -p "$PREFIX/bin"
-if [ ! -e "$PREFIX/bin/nethack" ]; then
-    ln -sf ../lib/nethack "$PREFIX/bin/nethack"
-fi
+# Copy data files
+cp -a dat/nhdat "$PREFIX/lib/nhdat"
+cp -a dat/symbols "$PREFIX/lib/symbols"
+cp -a license "$PREFIX/lib/license"
+cp -a doc/NHdump.css "$PREFIX/lib/NHdump.css" 2>/dev/null || true
 
-# NetHack expects var/ files directly under HACKDIR. Flatten any
-# nested var/ from a previous broken install.
-if [ -d "$PREFIX/lib/var/var" ]; then
-    cp -a "$PREFIX/lib/var/var/." "$PREFIX/lib/var/" 2>/dev/null || true
-    rm -rf "$PREFIX/lib/var/var"
-fi
+# Create the expected bin/ symlink
+ln -sf ../lib/nethack "$PREFIX/bin/nethack"
 
-# Fix permissions on state files.
+# Create required var/ state files
 for f in perm record logfile xlogfile livelog; do
-    if [ -e "$PREFIX/lib/var/$f" ]; then
-        chmod 0600 "$PREFIX/lib/var/$f"
-    fi
+    touch "$PREFIX/lib/var/$f"
+    chmod 0600 "$PREFIX/lib/var/$f"
 done
-chmod 0700 "$PREFIX/lib/var" "$PREFIX/lib/var/save" "$PREFIX/lib/var/whereis" 2>/dev/null || true
+chmod 0700 "$PREFIX/lib/var" "$PREFIX/lib/var/save" "$PREFIX/lib/var/whereis"
 
-# Hardfought sysconf, with local paths.
+# Generate sysconf with local paths
 sed -e "s;/dgldir/userdata/%N/%n/nethack/dumplog;$PREFIX/dumplog;" \
     -e 's;^WIZARDS=.*;WIZARDS=*;' \
     -e 's;^GDBPATH=.*;#GDBPATH=;' -e 's;^PANICTRACE_GDB=1;PANICTRACE_GDB=0;' \
     -e 's;^GREPPATH=.*;GREPPATH=/usr/bin/grep;' \
     "$SRC/sys/unix/sysconf" > "$PREFIX/lib/sysconf"
-mkdir -p "$PREFIX/dumplog"
 
 echo "built: $PREFIX/bin/nethack -> $PREFIX/lib/nethack"
