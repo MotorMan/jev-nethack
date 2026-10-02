@@ -1128,6 +1128,9 @@ class Bot:
             if shop or 'for sale' in item or 'corpse' in item and not ('lichen' in item or 'lizard' in item and not any('lizard' in it['text'] for it in self.inventory)) or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
+        magic = [k for k, v in opts.items() if k.startswith('pickup_') and re.search(r'\b(potions?|scrolls?|rings?|amulets?|wands?)\b', v[0])]
+        if magic and not near and not shop and not {'Burdened', 'Stressed'} & set(s.get('conditions', [])):  # user: always take potions, scrolls, rings (amulets, wands): identify them, or sell them
+            opts = {k: v for k, v in opts.items() if k == magic[0] or k == 'pray' or k.startswith('eat_')}
         if not near and not shop and 'Burdened' not in s.get('conditions', []):  # user: keep 7-10 high-nutrition foods; eat low-nutrition food where it lies unless Satiated
             high = sum(int(n[1]) if (n := re.match(r'(\d+) ', it['text'])) else 1 for it in self.inventory if HIGH_FOOD.search(it['text']))
             for item in self.here_items():
@@ -1253,10 +1256,12 @@ class Bot:
                     and sum(cheb(q, o) <= 3 for o in objs) < 6]  # a dense cluster is a shop
             if loot:
                 starving = s.get('hunger') in ('Weak', 'Fainting')
-                q = min(loot, key=lambda q: (not (starving and snap.at(*q).ch == '%'), dist[q]))  # starving: food first
+                q = min(loot, key=lambda q: (not (starving and snap.at(*q).ch == '%'), snap.at(*q).ch not in '!?="/', dist[q]))  # starving: food first; then magic items (user)
                 g = snap.at(*q).ch
                 what = {'%': 'food', '$': 'gold', '[': 'armor', ')': 'a weapon', '!': 'a potion', '?': 'a scroll', '/': 'a wand', '=': 'a ring', '"': 'an amulet', '(': 'a tool'}[g]
                 opts['fetch'] = (f"Go look at the item {compass(me, q)} ({what}?)", f"Walk {dist[q]} steps {compass(me, q)} to the '{g}' on the floor and see what it is; food keeps you from fainting, armor lowers AC.", lambda q=q: self.act_go(q))
+                if g in '!?="/' and not near and not {'Burdened', 'Stressed'} & set(s.get('conditions', [])):  # user: always collect potions, scrolls, rings to identify or sell
+                    opts = {k: v for k, v in opts.items() if k in ('fetch', 'pray') or k.startswith(('eat_', 'pickup_'))}
         for (dl, q), items in list(self.run.get('stashes', {}).items()):  # armor stolen by a nymph / lost to a were-change: the spare is in the stash
             if dl != s.get('dlvl') or near or 'Burdened' in s.get('conditions', []) or self.soko():
                 continue
