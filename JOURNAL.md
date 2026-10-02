@@ -2047,3 +2047,21 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** pace again: XL 5 on Dlvl 7. A Woodland-elf, which ignores Elbereth, hit for 7–11 a turn, 47 → 11. Prayer was never used, but 11/47 is above major trouble (under 1/7 or ≤5), and the next hit killed it. Its five unknown potion types were never offered with only one monster adjacent.
 - **Wiki:** Woodland-elf: avoid below XL 6 unless at a choke point, go upstairs. When one more hit kills you, an unknown potion beats a swing.
 - **Fix:** below 1/4 HP, unknown potions are offered if any adjacent hostile isn't "weaker" (previously required two adjacent).
+
+## Mines cap and Sokoban first (operator request)
+- **Why:** 33 of 78 Hosted deaths were in the Mines, mostly on Dlvl 6–8 at an average XL of 5.5.
+- **Fix:**
+  - On every new Dlvl, ^O (dungeon overview) shows whether we are in the Gnomish Mines.
+  - Mines levels get their own memory key, and the main-dungeon '>' that leads to the Mines is remembered.
+  - Below XL 6 (`MINES_XL`), the Mines are left until Sokoban is done, and the bot never goes past Minetown (Mines level 3+). The Mines '>' on the branch level is skipped while the main '>' is unfound (up to 500 turns of searching).
+  - This sends early games through the main dungeon to the Oracle and Sokoban.
+- **Operator tip:** with no pick-axe and a pet nearby, follow a dwarf (up to 40 decisions per level) so the pet kills it. A pick-axe on the floor is always picked up.
+
+## Run 20261001-165519 — killed by a snake while praying (T4589, Mines Dlvl 7, XL 6)
+- **Cause:** a Mines level past Minetown. Elbereth was garbled 3 times, 3 striking zaps hit nothing, and the prayer came 797 turns after the last one.
+- **Fix:** the Mines cap above.
+
+## Run 20261001-165928 — fainted, killed by a giant bat (T5360, Dlvl 4)
+- **Cause:** at Fainting with an imp adjacent, a gamble prayer 109 turns after the last one angered Tyr. After that the bot had no food and no prayer. It searched a Dlvl 4 whose '>' was never found, beside two locked doors, while carrying a key. "Unlock it with your key?" was answered with ESC, so keys never opened anything.
+- **Wiki:** a locked door opens with an unlocking tool (key, lock pick, credit card). A closed shop can be unlocked and used as normal; only breaking its door angers the shopkeeper. Minetown's watch punishes lockpicking.
+- **Fix:** the bot answers `y` to "Unlock it" outside town, and tries an unlocking tool on a locked door before kicking it.

@@ -1,5 +1,5 @@
 """Watch Jev play in a terminal: python -m jev.watch [URL ...]   (default: ports 8770-8772; keys 1-9, tab or arrows switch games, q quits)"""
-import json, select, shutil, sys, termios, time, tty, urllib.request
+import datetime, json, select, shutil, sys, termios, time, tty, urllib.request
 
 URLS = [u.rstrip('/') + '/api/state' for u in sys.argv[1:]] or [f'http://127.0.0.1:{p}/api/state' for p in (8770, 8771, 8772)]
 FG = {'black': 30, 'red': 31, 'green': 32, 'brown': 33, 'yellow': 93, 'blue': 34, 'magenta': 35, 'cyan': 36, 'white': 37,
@@ -31,7 +31,9 @@ def frame(s, tabs=''):
     st, d, j, run = s['status'], s['decision'], s['jev'], s['run']
     model = (run.get('models') or [run.get('engine') or j.get('last_model') or 'Jev'])[-1]  # the version the engine reports (jev-1.13.0, a Jeff checkpoint...)
     recent = [h['latency_ms'] for h in s['history'] if h.get('latency_ms')][-10:]  # single-option turns skip the engine: 0 ms
-    lines = [f"{BOLD}{st.get('name') or 'Jev'} plays NetHack{RST} on {BOLD}\x1b[96m{model}{RST}{f' {sum(recent) // len(recent)}ms' if recent else ''}  {DIM}{s['mode']} · run {run['id']} · {s['phase']}{' · PAUSED' if s['paused'] else ''}{RST}",
+    secs = time.time() - datetime.datetime.fromisoformat(run['started'].replace('Z', '+00:00')).timestamp()
+    tps = f"{BOLD}\x1b[93m{(st.get('turn') or 0) / secs:.2f} turns/s{RST}  " if secs > 0 else ''  # average since the run started
+    lines = [f"{tps}{BOLD}{st.get('name') or 'Jev'} plays NetHack{RST} on {BOLD}\x1b[96m{model}{RST}{f' {sum(recent) // len(recent)}ms' if recent else ''}  {DIM}{s['mode']} · run {run['id']} · {s['phase']}{' · PAUSED' if s['paused'] else ''}{RST}",
              tabs or f"{DIM}{'─' * min(w, 80)}{RST}"]
     lines += screen(s['screen']['rows'])
     lines.append(f"{DIM}{'─' * min(w, 80)}{RST}")

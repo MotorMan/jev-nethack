@@ -43,6 +43,7 @@ WEAPON = re.compile(r'\b(' + '|'.join(WEAPON_RANK) + r')s?\b(?! corpse)')
 # pray.c: never offer own race (dwarf), a former pet, a co-aligned (white) unicorn; touching a cockatrice bare-handed stones you
 NEVER_OFFER = ('cockatrice', 'chickatrice', 'dwarf', 'kitten', 'housecat', 'large cat', 'little dog', 'large dog', 'dog corpse', 'pony', 'horse', 'white unicorn', 'Medusa', 'Death', 'Pestilence', 'Famine', 'were')
 UNKNOWN_BUC = lambda t: not re.search(r'\b(cursed|uncursed|blessed)\b|being worn|weapon in|gold piece|corpse', t)
+MINES_XL = 6  # 33 of 78 deaths were in the Mines, mostly Dlvl 6-8 at avg XL 5.5: below this, Mines only after Sokoban and never past Minetown
 POISONOUS = ('killer bee', 'soldier ant', 'giant beetle', 'queen bee', 'homunculus', 'rabid rat', 'giant spider', 'scorpion', 'snake', 'water moccasin', 'pit viper', 'cobra', 'gremlin', 'xan', 'jellyfish', 'salamander', 'guardian naga', 'green dragon')  # monsters.h M1_POIS, eat.c 5.0: 4 in 5 cost rnd(4) Str + rnd(15) HP without poison res (dwarven Valks have none); a homunculus and a giant beetle took Str 17 -> 5 (T6625)
 # eat.c 5.0 cpostfx: polymorph (chameleon, doppelganger, genetic engineer), helpless 20-50 turns as gold (mimics), stun 60+ (stalker), speed toggle (quantum mechanic),
 # random intrinsic loss (disenchanter), 200 turns hallucination (violet fungus, yellow mold, which is poisonous too)
@@ -244,6 +245,8 @@ class Bot:
             if bad:
                 self.refused_trap = bad.group(0).lower()
             return 'n' if bad else 'y'
+        if 'Unlock it' in q:  # was ESC: a key never opened a door; starved beside two locked doors on a level whose '>' was behind one (T5360). Minetown's watch punishes lockpicking
+            return 'n' if self.snap and self.run and self.level().town else 'y'
         for pat, ans in rules:
             if pat.lower() in q.lower():
                 if pat == 'Really attack' and self.snap:
@@ -282,6 +285,8 @@ class Bot:
                 if MAP_TOP <= pos[1] <= MAP_BOT:
                     self.snap.me = pos
         s = self.snap.status
+        if self.run is not None and s.get('dlvl') and self.run.get('ov_dl') != s['dlvl'] and top_prompt(self.snap.lines)[0] is None:
+            return self.overview()
         if self.snap.me and s.get('dlvl'):
             lv = self.level()
             x, y = self.snap.me
@@ -301,14 +306,40 @@ class Bot:
                     if self.snap.is_monster(x, y):
                         mon_seen[(x, y)] = turn  # no pct_seen reset here: a hobbit crossing a 180-turn-old rothe corpse made it 'new', eaten, poisoned (T2090)
             if self.run is not None:
+                self.run['prev'] = (s['dlvl'], self.snap.me)  # on a level change: the stair we left by
                 self.run['max_dlvl'] = max(self.run['max_dlvl'], s['dlvl'])
                 self.run['turns'] = s.get('turn') or self.run['turns']
         self.touch()
         return self.snap
 
+    def overview(self):
+        """^O on each new Dlvl: the heading above '<- You are here' says which branch we are in (dungeon.c print_dungeon)."""
+        dl = self.run['ov_dl'] = self.snap.status['dlvl']
+        self.t.send('\x0f'); self.t.pump(1.0)
+        head, mines = None, False
+        for _ in range(6):
+            for l in self.t.lines():
+                h = re.search(r"(The [A-Z][\w' ]+|Sokoban|Fort Ludios|Vlad's Tower)(:| levels? \d)", l)
+                head = h[1] if h else head
+                mines = mines or 'You are here' in l and head == 'The Gnomish Mines'
+            if not re.search(r'--More--|\(\d+ of \d+\)', '\n'.join(self.t.lines())):
+                break
+            self.t.send(' '); self.t.pump(1.0)
+        self.t.send('\x1b'); self.settle()
+        if mines:
+            md = self.run.setdefault('mines_dls', set())
+            if not md and self.run.get('prev', (0,))[0] == dl - 1:
+                self.run['mines_stair'] = self.run['prev']  # the main-dungeon '>' that leads here
+            md.add(dl)
+        self.log(f'overview Dlvl {dl}: mines={mines}')
+        return self.observe()
+
+    def in_mines(self):
+        return self.snap.status.get('dlvl') in self.run.get('mines_dls', ())
+
     def level(self):
         dl = self.snap.status.get('dlvl', 0)
-        lv = self.run['levels'].setdefault(('soko', dl) if self.soko() else dl, Level())  # Sokoban shares Dlvl numbers with the main dungeon
+        lv = self.run['levels'].setdefault(('soko', dl) if self.soko() else ('mines', dl) if self.in_mines() else dl, Level())  # Sokoban and the Mines share Dlvl numbers with the main dungeon  # Sokoban shares Dlvl numbers with the main dungeon
         lv.arrival = lv.arrival or self.snap.me
         return lv
 
@@ -976,26 +1007,33 @@ class Bot:
             # Minetown hid its '>' under a rock pile: 260 turns of explore/search with "no unexplored edges left"
             lv.terrain_turn = s.get('turn', 0)
             lv.stairs |= set(self.terrain_find('>'))
+        xl_low = (s.get('xl') or 1) < MINES_XL
         bad = {q for (dl, q), t0 in self.run.setdefault('bad_down', {}).items() if dl == s.get('dlvl') and s.get('turn', 0) - t0 < 3000}
         downs = [p for p in snap.find('>') + sorted(lv.stairs) if p in dist or p == me]
         # a bad '>' is skipped only when another way down exists: otherwise the level above dead-ends too and Jev cascades up to Dlvl 1 (starved, T7223)
         downs = [p for p in downs if p not in bad] or downs
-        too_deep = s.get('dlvl', 1) >= (s.get('xl') or 1) + 2  # pace: Dlvl <= XL+1 (XL+2 still lost most runs on Dlvl 4-5 before T2000)
+        ms = self.run.get('mines_stair')
+        if ms and ms[0] == s.get('dlvl') and xl_low and sum(lv.searched.values()) < 500:
+            downs = [p for p in downs if p != ms[1]]  # main dungeon first: Oracle, Sokoban, XP
+        md = self.run.get('mines_dls') or {0}
+        stuck_main = ms and sum(self.run['levels'].get(ms[0], Level()).searched.values()) >= 500  # main '>' never found: the Mines are the only way on
+        mcap = self.in_mines() and xl_low and (not self.run.get('soko_done') and not stuck_main or lv.town or s.get('dlvl', 1) >= min(md) + 3)
+        too_deep = mcap or s.get('dlvl', 1) >= (s.get('xl') or 1) + 2  # pace: Dlvl <= XL+1 (XL+2 still lost most runs on Dlvl 4-5 before T2000)
         ups = [p for p in snap.find('<') if p in dist]
         above = self.run['levels'].get(s.get('dlvl', 1) - 1)
-        if too_deep and ups and self.standing_on() != '<' and not (above and sum(above.searched.values()) >= 800) and (dist[ups[0]] <= 2 or not any(m['dist'] <= 1 for m in hostiles)):  # walked for '<' 50 steps off with Mordor orcs and a snake adjacent: 7 tries, 44 -> 0, dead praying (T3746)  # the level above already waited out its pace cap: going back just ping-pongs (4 <-> 5 25 times in 100 turns, T4478)  # XL5 on Dlvl 7 died to a winter wolf; XL+3 was too late
+        if too_deep and ups and (self.standing_on() != '<' or mcap) and (mcap or not (above and sum(above.searched.values()) >= 800)) and (dist[ups[0]] <= 2 or not any(m['dist'] <= 1 for m in hostiles)):  # walked for '<' 50 steps off with Mordor orcs and a snake adjacent: 7 tries, 44 -> 0, dead praying (T3746)  # the level above already waited out its pace cap: going back just ping-pongs (4 <-> 5 25 times in 100 turns, T4478)  # XL5 on Dlvl 7 died to a winter wolf; XL+3 was too late
             opts['ascend'] = ('Head back upstairs', f"This level is far too deep for experience level {s.get('xl')}. Walk to the up staircase ({dist[ups[0]]} steps {compass(me, ups[0])}) and climb to Dlvl {s.get('dlvl', 0) - 1}.", lambda p=ups[0]: self.act_descend(p, '<'))
         if len(snap.find('{')) >= 4:  # the Oracle's four fountains: Sokoban's entrance is the second '<' one level down
             self.run['oracle'] = s.get('dlvl')
         soko_hunt = s.get('dlvl') == (self.run.get('oracle') or -9) + 1 and len(snap.find('<')) < 2 and not self.run.get('soko_done') and self.frontiers(dist)
-        if soko_hunt or s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 and not (s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts) or s.get('hp', 1) < 0.8 * s.get('hpmax', 1) or s.get('ac', 0) >= 9 and s.get('dlvl', 1) >= 4:  # stripped by nymphs to AC 10, Jev went down to Dlvl 7 and died to a Woodland-elf (T6265)  # Weak with no prayer: a new level has corpses, staying only starves (searched Weak -> Fainting beside '>', T2566)  # rest first; fleeing downward from a fight at this depth is how the pony and giant ant runs ended
+        if soko_hunt or mcap or s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 and not (s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts) or s.get('hp', 1) < 0.8 * s.get('hpmax', 1) or s.get('ac', 0) >= 9 and s.get('dlvl', 1) >= 4:  # stripped by nymphs to AC 10, Jev went down to Dlvl 7 and died to a Woodland-elf (T6265)  # Weak with no prayer: a new level has corpses, staying only starves (searched Weak -> Fainting beside '>', T2566)  # rest first; fleeing downward from a fight at this depth is how the pony and giant ant runs ended
             pass
         elif self.standing_on() == '>':
             opts['descend'] = ('Go down the stairs', f"You are on the down staircase to Dlvl {s.get('dlvl', 0) + 1}.", lambda: self.act_keys('>', 'descended'))
         elif downs:
             opts['descend'] = ('Head for the downstairs', f"Walk to the known down staircase ({dist[downs[0]]} steps {compass(me, downs[0])}) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
         pick = next((it for it in self.inventory if re.search(r'pick-axe|dwarvish mattock', it['text'])), None)
-        if pick and not near and s.get('dlvl', 1) < (s.get('xl') or 1) + 1 and not soko_hunt and self.standing_on() not in ('<', '>', '_', '{'):
+        if pick and not near and s.get('dlvl', 1) < (s.get('xl') or 1) + 1 and not soko_hunt and not mcap and self.standing_on() not in ('<', '>', '_', '{'):
             # same pace as the stairs: 'not too_deep' let XL5 dig 6 -> 7 and XL6 7 -> 8, dead to a giant spider (T4825)
             opts['dig_down'] = ('Dig down with the pick-axe', f"Apply {pick['text']} downward to dig a hole to Dlvl {s.get('dlvl', 0) + 1} (takes several turns; skips the rest of this level).", lambda l=pick['letter']: self.act_dig(l))
         # resting at full HP was Jev's favourite way to do nothing (537 of 650 choices in one game); searching has its own option
@@ -1336,6 +1374,18 @@ class Bot:
             opts = {'pray': opts['pray']}
         if opts.get('pray', ('',))[0] == 'Pray to Tyr':  # a safe prayer fixes hunger with no 1-in-2 tripe vomiting (T3736)
             opts = {k: v for k, v in opts.items() if not (k.startswith('eat_') and 'tripe' in v[0])} or opts
+        if not any(re.search(r'pick-axe|dwarvish mattock', it['text']) for it in self.inventory) and not any(m['dist'] <= 5 and not m['passive'] for m in hostiles) and s.get('hp', 1) >= 0.6 * s.get('hpmax', 1):
+            pk = next((k for k, v in opts.items() if k.startswith('pickup_') and re.search(r'pick-axe|dwarvish mattock', v[0])), None)
+            dw = next((m for m in mons if re.search(r'\bdwarf\b(?! zombie| mummy)', m['name'] or '')), None)
+            if pk:
+                opts = {pk: opts[pk]}
+            elif dw and any(m['pet'] and m['dist'] <= 6 for m in mons) and lv.__dict__.setdefault('shadowed', 0) < 40:
+                # operator tip: a pet kills a (peaceful) mining dwarf for us, and its pick-axe drops for the taking
+                q = min((q for q in dist if cheb(q, dw['pos']) == 1), key=dist.get, default=None)
+                if q is not None:
+                    lv.shadowed += 1
+                    opts = {'shadow_dwarf': (f"Follow the {dw['name']} and let your pet kill it", f"No pick-axe yet: stay beside the {dw['name']} {dw['where']} so your pet attacks it; dwarves often carry a pick-axe.",
+                                             lambda q=q: self.act_go(q, steps=3) if q != me else self.act_keys('s', 'waited for the pet'))}
         rid = next((k for k, v in opts.items() if k.startswith('read_') and 'identify' in v[0]), None)  # operator: read identify as soon as anything major is unknown
         if rid and not hostiles and any(re.search(r'\b(wand|ring|amulet)\b(?! of| mail)|scrolls? labeled|potions?\b(?! of)', it['text']) and not re.search(r'\bcalled\b|\bnamed\b', it['text']) for it in self.inventory if it['letter'] != rid[5:]):
             opts = {rid: opts[rid]}
@@ -2093,6 +2143,10 @@ class Bot:
         if self.snap.me != spot:
             return 'going to the locked door: ' + r
         d = DIR_OF[(door[0] - spot[0], door[1] - spot[1])]
+        if door in self.level().locked and not self.level().town and any(re.search(r'\b(key|lock pick|credit card)\b', it['text']) for it in self.inventory):
+            self.act_go(door, steps=1)  # autounlock: 'Unlock it with your key?' -> y (answer_yn)
+            if any('succeed in unlocking' in m['text'] for m in self.messages[-8:]):
+                self.level().locked.discard(door)
         if door not in self.level().locked:
             self.level().blocked.discard(door)
             self.level().dead.discard(door)

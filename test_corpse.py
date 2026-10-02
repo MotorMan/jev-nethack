@@ -10,7 +10,7 @@ def screen(rows, turn):
     return lines
 b = object.__new__(Bot)
 b.settle = lambda: None; b.touch = lambda: None; b.soko = lambda: False
-b.run = {'levels': {}, 'recent': [], 'max_dlvl': 1, 'turns': 0}
+b.run = {'levels': {}, 'recent': [], 'max_dlvl': 1, 'turns': 0, 'ov_dl': 1}
 b.snap = None
 cur = {}
 b.t = NS(lines=lambda: cur['l'], cursor=lambda: cur['c'], cell=lambda x, y: NS(data=cur['l'][y][x], fg='default', bold=False, reverse=False))

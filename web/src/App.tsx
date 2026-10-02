@@ -56,6 +56,11 @@ const tone = (t: Tone) => (t === "muted" ? "var(--muted-foreground)" : `hsl(var(
 const pct = (x: number | null | undefined, d = 0) => (x == null ? "--" : `${(x * 100).toFixed(d)}%`)
 const ms = (x: number | null | undefined) => (x == null ? "--" : x >= 1000 ? `${(x / 1000).toFixed(2)}s` : `${Math.round(x)}ms`)
 const num = (x: number | undefined) => (x == null ? "--" : x.toLocaleString())
+// average game turns per wall-clock second since the run started
+const tps = (turns: number | undefined, started?: string, ended?: string | null) => {
+  const secs = ((ended ? Date.parse(ended) : Date.now()) - Date.parse(started ?? "")) / 1000
+  return turns && secs > 0 ? (turns / secs).toFixed(2) : "--"
+}
 const hhmmss = (iso: string) => new Date(iso).toLocaleTimeString([], { hour12: false })
 const fracTone = (f: number): Tone => (f > 0.66 ? "green" : f > 0.4 ? "yellow" : f > 0.2 ? "orange" : "red")
 
@@ -538,6 +543,7 @@ function Runs({ s }: { s: State }) {
               <TableHead>character</TableHead>
               <TableHead>engine</TableHead>
               <TableHead className="text-right">turns</TableHead>
+              <TableHead className="text-right">t/s</TableHead>
               <TableHead className="text-right">dlvl</TableHead>
               <TableHead>fate</TableHead>
               <TableHead className="text-right">score</TableHead>
@@ -548,6 +554,7 @@ function Runs({ s }: { s: State }) {
               <TableCell className="text-primary">{s.run.character}</TableCell>
               <TableCell className="text-muted-foreground">{engine(s.run)}</TableCell>
               <TableCell className="text-right tabular-nums">{num(s.status.turn)}</TableCell>
+              <TableCell className="text-right tabular-nums text-muted-foreground">{tps(s.status.turn, s.run.started)}</TableCell>
               <TableCell className="text-right tabular-nums">{s.run.max_dlvl}</TableCell>
               <TableCell><Badge variant="outline" className="text-[hsl(var(--smui-green))] border-[hsl(var(--smui-green)/0.3)]">live</Badge></TableCell>
               <TableCell className="text-right text-muted-foreground">{s.run.decisions} dec</TableCell>
@@ -557,6 +564,7 @@ function Runs({ s }: { s: State }) {
                 <TableCell>{r.character}</TableCell>
                 <TableCell className="text-muted-foreground">{engine(r)}</TableCell>
                 <TableCell className="text-right tabular-nums">{num(r.turns)}</TableCell>
+                <TableCell className="text-right tabular-nums text-muted-foreground">{tps(r.turns, r.started, r.ended)}</TableCell>
                 <TableCell className="text-right tabular-nums">{r.max_dlvl}</TableCell>
                 <TableCell className="max-w-[220px] truncate" title={r.death ?? ""}>
                   <span className={r.death ? "text-[hsl(var(--smui-red))]" : "text-muted-foreground"}>{r.death ?? (r.ended ? "ended" : "--")}</span>
