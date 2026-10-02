@@ -6,8 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'JetBrains Mono', monospace;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: var(--font-narrow);
+  --font-mono: var(--font-narrow);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -74,6 +74,8 @@
 
 /* SpaceMolt theme -- Light mode (Nord Snow Storm) */
 :root {
+  --font-narrow: 'Iosevka', 'Iosevka Term', 'Iosevka Fixed', 'PragmataPro', 'Input Mono Condensed', 'JetBrains Mono', ui-monospace, monospace;
+  --ch: 0.5; /* terminal char advance in em (Iosevka) */
   --radius: 0rem;
   --background: hsl(218 27% 94%);
   --foreground: hsl(220 16% 22%);
@@ -230,6 +232,32 @@
 }
 .pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
 
+/* new message/log rows fade in quickly; per-decision panels deliberately don't animate (flickery) */
+@keyframes fade-in { from { opacity: 0; } }
+.fade-in { animation: fade-in 120ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } }
+
+/* scrollbars in theme colors (Firefox / standard, then WebKit) */
+* { scrollbar-width: thin; scrollbar-color: hsl(var(--smui-surface-3)) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--smui-surface-3)); }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--smui-border-hover)); }
+
+/* optional CRT mode (header toggle): original font, glow, scanlines */
+html.crt {
+  --font-narrow: 'JetBrains Mono', monospace;
+  --ch: 0.6;
+}
+.crt .term pre { text-shadow: 0 0 4px color-mix(in srgb, currentColor 40%, transparent); }
+.crt .term::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgb(0 0 0 / 0.18) 2px 3px);
+}
+
 .term {
   background: #0f1216;
   position: relative;
@@ -238,16 +266,7 @@
 .term pre {
   margin: 0;
   white-space: pre;
-  font-family: 'JetBrains Mono', monospace;
-  text-shadow: 0 0 4px color-mix(in srgb, currentColor 40%, transparent);
+  font-family: var(--font-narrow);
   font-variant-ligatures: none;
-}
-/* scanlines */
-.term::after {
-  content: "";
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(to bottom, transparent 0 2px, rgb(0 0 0 / 0.18) 2px 3px);
 }
 .term-cursor { animation: blink 1s step-end infinite; }

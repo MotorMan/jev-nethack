@@ -35,9 +35,9 @@ export const Terminal = memo(function Terminal({ screen }: { screen: State["scre
   // ponytail: assumes cursor is [col, row] (pyte cursor.x, cursor.y).
   const [cx, cy] = screen.cursor
   return (
-    // container query units scale the grid to the panel width: cols * 0.6em (JetBrains Mono advance) = 100cqw
-    <div className="term p-3" style={{ containerType: "inline-size" }}>
-      <div style={{ fontSize: `calc(100cqw / ${cols * 0.6 + 0.5})`, lineHeight: 1.2 }} className="relative">
+    // container query units scale the grid to the panel width: cols * --ch em = 100cqw (--ch is the font advance, set per mode in index.css)
+    <div className="term p-2" style={{ containerType: "inline-size" }}>
+      <div style={{ fontSize: `calc(100cqw / (${cols} * var(--ch) + 0.5))`, lineHeight: 1.2 }} className="relative">
         <pre>
           {Array.from({ length: lines }, (_, y) => (
             <div key={y} style={{ height: "1.2em" }}>
@@ -49,7 +49,7 @@ export const Terminal = memo(function Terminal({ screen }: { screen: State["scre
         </pre>
         <span
           className="term-cursor absolute bg-[#88c0d0]/70"
-          style={{ left: `${cx * 0.6}em`, top: `${cy * 1.2}em`, width: "0.6em", height: "1.2em" }}
+          style={{ left: `calc(${cx}em * var(--ch))`, top: `${cy * 1.2}em`, width: "calc(1em * var(--ch))", height: "1.2em" }}
         />
       </div>
     </div>

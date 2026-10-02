@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react"
 import {
   Activity, ChevronRight, Cpu, Footprints, Map as MapIcon, Moon, Package, Pause, Play, RotateCcw,
-  Send, StepForward, Sun, Swords, Wifi, WifiOff,
+  Send, StepForward, Sun, Swords, Tv, Wifi, WifiOff,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -62,6 +62,11 @@ const tps = (turns: number | undefined, started?: string, ended?: string | null)
   return turns && secs > 0 ? (turns / secs).toFixed(2) : "--"
 }
 const hhmmss = (iso: string) => new Date(iso).toLocaleTimeString([], { hour12: false })
+// stable React keys for append-only feeds (dupes numbered oldest-first) so only new rows mount and fade in
+function keyed<T>(xs: T[], f: (x: T) => string): [T, string][] {
+  const seen: Record<string, number> = {}
+  return xs.map((x) => { const k = f(x); seen[k] = (seen[k] ?? 0) + 1; return [x, `${k}#${seen[k]}`] })
+}
 const fracTone = (f: number): Tone => (f > 0.66 ? "green" : f > 0.4 ? "yellow" : f > 0.2 ? "orange" : "red")
 
 function Dot({ t, pulse }: { t: Tone; pulse?: boolean }) {
@@ -94,13 +99,13 @@ function Panel({ title, right, children, className, bodyClass }: {
 }) {
   return (
     <Card className={cn("card-glow min-w-0", className)}>
-      <CardHeader className="flex flex-row items-center justify-between py-2.5 px-3.5">
+      <CardHeader className="flex flex-row items-center justify-between py-1.5 px-2.5">
         <CardTitle className="text-xs text-muted-foreground tracking-[1.5px] uppercase font-normal flex items-center gap-2">
           {title}
         </CardTitle>
         {right && <CardDescription className="text-xs text-muted-foreground flex items-center gap-2">{right}</CardDescription>}
       </CardHeader>
-      <CardContent className={bodyClass}>{children}</CardContent>
+      <CardContent className={cn("p-2.5", bodyClass)}>{children}</CardContent>
     </Card>
   )
 }
@@ -130,12 +135,17 @@ function Header({ s, conn }: { s: State; conn: Conn }) {
   const delay = drag ?? s.delay_ms
   const [dark, setDark] = useState(true)
   useEffect(() => { document.documentElement.classList.toggle("dark", dark) }, [dark])
+  const [crt, setCrt] = useState(() => { try { return localStorage.getItem("crt") === "1" } catch { return false } })
+  useEffect(() => {
+    document.documentElement.classList.toggle("crt", crt)
+    try { localStorage.setItem("crt", crt ? "1" : "0") } catch { /* storage blocked */ }
+  }, [crt])
 
   const connTone: Tone = conn === "live" ? "green" : conn === "offline" ? "red" : conn === "demo" ? "purple" : "yellow"
   const connText = conn === "offline" ? "offline // sample data" : conn
   return (
     <nav className="sticky top-0 z-50 bg-card border-b border-border">
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2 min-h-12">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 px-3 py-1 min-h-10">
         <div className="flex items-center gap-2">
           <Swords className="size-4 text-primary" />
           <span className="text-sm font-semibold tracking-[3px] uppercase">
@@ -174,6 +184,12 @@ function Header({ s, conn }: { s: State; conn: Conn }) {
               onValueCommit={([v]) => { setDrag(null); control({ action: "speed", delay_ms: v }) }}
             />
           </div>
+          <Button
+            size="icon" variant="ghost" className={cn("size-8", crt && "text-primary")}
+            onClick={() => setCrt(!crt)} aria-label="toggle CRT mode" title="CRT mode"
+          >
+            <Tv />
+          </Button>
           <Button size="icon" variant="ghost" className="size-8" onClick={() => setDark(!dark)} aria-label="toggle theme">
             {dark ? <Sun /> : <Moon />}
           </Button>
@@ -188,9 +204,9 @@ function Header({ s, conn }: { s: State; conn: Conn }) {
 
 function Stat({ label, value, t }: { label: string; value: ReactNode; t?: Tone }) {
   return (
-    <div className="bg-background border border-border px-2.5 py-2 min-w-0">
+    <div className="bg-background border border-border px-2 py-1 min-w-0">
       <Label>{label}</Label>
-      <div className="text-stat font-medium tracking-tight leading-tight truncate" style={t ? { color: tone(t) } : undefined}>
+      <div className="text-lg font-medium tracking-tight leading-tight truncate" style={t ? { color: tone(t) } : undefined}>
         {value}
       </div>
     </div>
@@ -231,7 +247,7 @@ function Vitals({ s }: { s: State }) {
       title={<><Activity className="size-3.5" /> vitals</>}
       right={<span className="normal-case tracking-normal truncate max-w-[220px]">{st.name} {st.title}</span>}
     >
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Meter label="hp" cur={st.hp} max={st.hpmax} />
         <Meter label="pw" cur={st.pw} max={st.pwmax} />
         <div className="grid grid-cols-3 gap-1.5">
@@ -244,7 +260,7 @@ function Vitals({ s }: { s: State }) {
         </div>
         <div className="grid grid-cols-6 border border-border">
           {attrs.map(([k, v]) => (
-            <div key={k} className="text-center py-1.5 border-r border-border last:border-r-0">
+            <div key={k} className="text-center py-0.5 border-r border-border last:border-r-0">
               <Label>{k}</Label>
               <div className="text-sm font-medium">{v ?? "--"}</div>
             </div>
@@ -269,6 +285,7 @@ function DecisionPanel({ s }: { s: State }) {
   }
   return (
     <Panel
+      className="min-h-0" bodyClass="min-h-0 overflow-auto"
       title={<><Cpu className="size-3.5" /> jev // decision #{d.id}</>}
       right={
         d.pending
@@ -280,20 +297,20 @@ function DecisionPanel({ s }: { s: State }) {
       }
     >
       <Tabs defaultValue="options">
-        <TabsList variant="line" className="w-full justify-start mb-3">
+        <TabsList variant="line" className="w-full justify-start mb-2">
           <TabsTrigger value="options" className="flex-none">options ({d.options.length})</TabsTrigger>
           <TabsTrigger value="question" className="flex-none">instructions</TabsTrigger>
           <TabsTrigger value="state" className="flex-none">state text</TabsTrigger>
         </TabsList>
         <TabsContent value="options" className="space-y-1">
-          <div className="text-sm text-muted-foreground mb-3 line-clamp-3" title={d.question}>{d.question}</div>
+          <div className="text-sm text-muted-foreground mb-2 line-clamp-3" title={d.question}>{d.question}</div>
           {d.options.map((o) => {
             const chosen = o.id === d.choice
             return (
               <div
                 key={o.id}
                 className={cn(
-                  "grid grid-cols-[14px_minmax(0,1fr)_minmax(80px,32%)_48px] items-center gap-2 px-2 py-1.5 border-l-2",
+                  "grid grid-cols-[14px_minmax(0,1fr)_minmax(80px,32%)_48px] items-center gap-2 px-2 py-1 border-l-2",
                   chosen ? "border-primary bg-[hsl(var(--smui-frost-2)/0.07)]" : "border-transparent",
                 )}
               >
@@ -308,7 +325,7 @@ function DecisionPanel({ s }: { s: State }) {
                   {d.pending || o.p == null
                     ? <div className="skeleton absolute inset-0" />
                     : <div
-                        className={cn("h-full transition-[width] duration-300", chosen ? "bg-primary" : "bg-[hsl(var(--smui-frost-4))]")}
+                        className={cn("h-full", chosen ? "bg-primary" : "bg-[hsl(var(--smui-frost-4))]")}
                         style={{ width: `${o.p * 100}%` }}
                       />}
                 </div>
@@ -320,10 +337,10 @@ function DecisionPanel({ s }: { s: State }) {
           })}
         </TabsContent>
         <TabsContent value="question">
-          <pre className="text-xs whitespace-pre-wrap bg-background border border-border p-2.5 max-h-[360px] overflow-auto">{d.question}</pre>
+          <pre className="text-xs whitespace-pre-wrap bg-background border border-border p-2 overflow-auto">{d.question}</pre>
         </TabsContent>
         <TabsContent value="state">
-          <pre className="text-xs whitespace-pre bg-background border border-border p-2.5 max-h-[360px] overflow-auto">{d.state_text}</pre>
+          <pre className="text-xs whitespace-pre bg-background border border-border p-2 overflow-auto">{d.state_text}</pre>
         </TabsContent>
       </Tabs>
     </Panel>
@@ -344,7 +361,7 @@ function Sparkline({ s }: { s: State }) {
         <Label className="flex items-center gap-1.5"><span className="inline-block w-2 h-2 bg-primary/70" /> confidence</Label>
         <Label className="flex items-center gap-1.5"><span className="inline-block w-3 h-px bg-[hsl(var(--smui-yellow))]" /> latency (max {ms(maxLat)})</Label>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-14 bg-background border border-border">
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-10 bg-background border border-border">
         {h.map((x, i) => (
           <rect
             key={x.id} x={i * bw + 0.5} width={bw - 1} y={H - x.confidence * H} height={x.confidence * H}
@@ -362,9 +379,12 @@ function Sparkline({ s }: { s: State }) {
 function Timeline({ s }: { s: State }) {
   const rows = [...s.history].reverse()
   return (
-    <Panel title={<><Footprints className="size-3.5" /> decision timeline</>} right={<span>{s.history.length} logged</span>}>
+    <Panel
+      title={<><Footprints className="size-3.5" /> decision timeline</>} right={<span>{s.history.length} logged</span>}
+      className="flex-1 min-h-[180px]" bodyClass="flex-1 min-h-0 flex flex-col"
+    >
       <Sparkline s={s} />
-      <div className="mt-3 max-h-[330px] overflow-auto border border-border">
+      <div className="mt-2 flex-1 min-h-0 overflow-auto border border-border">
         <table className="w-full text-ui">
           <thead className="sticky top-0 bg-card">
             <tr className="text-label text-muted-foreground uppercase tracking-wider text-left">
@@ -404,28 +424,29 @@ function Timeline({ s }: { s: State }) {
 function Feeds({ s }: { s: State }) {
   const lvl: Record<string, Tone> = { info: "frost-3", warn: "yellow", error: "red" }
   return (
-    <Card className="card-glow min-w-0">
-      <Tabs defaultValue="messages" className="gap-0">
-        <TabsList variant="line" className="w-full justify-start px-1.5 h-10">
+    <Card className="card-glow min-w-0 flex-1 min-h-0">
+      <Tabs defaultValue="messages" className="gap-0 flex-1 min-h-0">
+        <TabsList variant="line" className="w-full justify-start px-1.5 h-9 shrink-0">
           <TabsTrigger value="messages" className="flex-none">game messages</TabsTrigger>
           <TabsTrigger value="log" className="flex-none">
             harness log {s.log.some((l) => l.level === "error") && <Dot t="red" />}
           </TabsTrigger>
+          <TabsTrigger value="runs" className="flex-none">runs ({s.runs.length})</TabsTrigger>
         </TabsList>
-        <TabsContent value="messages" className="p-0">
-          <div className="h-[300px] overflow-auto p-3 space-y-1">
-            {[...s.messages].reverse().map((m, i) => (
-              <div key={i} className={cn("text-ui flex gap-3", i === 0 ? "text-foreground" : "text-muted-foreground")}>
+        <TabsContent value="messages" className="p-0 min-h-0 overflow-auto">
+          <div className="p-2 space-y-0.5">
+            {keyed(s.messages, (m) => `${m.turn}:${m.text}`).reverse().map(([m, k], i) => (
+              <div key={k} className={cn("fade-in text-ui flex gap-3", i === 0 ? "text-foreground" : "text-muted-foreground")}>
                 <span className="text-label text-muted-foreground tabular-nums w-12 shrink-0 pt-px">T:{m.turn}</span>
                 <span>{m.text}</span>
               </div>
             ))}
           </div>
         </TabsContent>
-        <TabsContent value="log" className="p-0">
-          <div className="h-[300px] overflow-auto p-3 space-y-1">
-            {[...s.log].reverse().map((l, i) => (
-              <div key={i} className="text-ui flex gap-3">
+        <TabsContent value="log" className="p-0 min-h-0 overflow-auto">
+          <div className="p-2 space-y-0.5">
+            {keyed(s.log, (l) => l.at + l.text).reverse().map(([l, k]) => (
+              <div key={k} className="fade-in text-ui flex gap-3">
                 <span className="text-label text-muted-foreground tabular-nums shrink-0 pt-px">{hhmmss(l.at)}</span>
                 <span className="text-label uppercase w-10 shrink-0 pt-px" style={{ color: tone(lvl[l.level] ?? "muted") }}>{l.level}</span>
                 <span className="text-muted-foreground break-words min-w-0">{l.text}</span>
@@ -433,6 +454,7 @@ function Feeds({ s }: { s: State }) {
             ))}
           </div>
         </TabsContent>
+        <TabsContent value="runs" className="p-0 min-h-0 overflow-auto"><Runs s={s} /></TabsContent>
       </Tabs>
     </Card>
   )
@@ -453,7 +475,7 @@ function Orders({ s }: { s: State }) {
   return (
     <Panel title={<><Send className="size-3.5" /> standing orders</>} right={draft != null && <Tag t="yellow">unsent</Tag>}>
       <Label className="mb-1">current</Label>
-      <div className="text-xs text-primary px-2 py-1.5 bg-background border border-border mb-3 whitespace-pre-wrap">
+      <div className="text-xs text-primary px-2 py-1 bg-background border border-border mb-2 whitespace-pre-wrap max-h-16 overflow-auto">
         {s.order || <span className="text-muted-foreground">none</span>}
       </div>
       <Label className="mb-1">new order</Label>
@@ -462,9 +484,9 @@ function Orders({ s }: { s: State }) {
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send() }}
         placeholder="e.g. prioritize finding the downstairs"
-        className="text-xs min-h-[72px]"
+        className="text-xs min-h-[48px]"
       />
-      <div className="flex items-center justify-between mt-2">
+      <div className="flex items-center justify-between mt-1.5">
         <span className="text-label text-muted-foreground tracking-wider">ctrl+enter to send</span>
         <Button size="sm" onClick={send} disabled={draft == null}>
           <Send /> {sent ? "sent" : "transmit"}
@@ -482,9 +504,9 @@ function Telemetry({ s }: { s: State }) {
       <div className="grid grid-cols-3 gap-1.5">
         <Stat label="calls" value={num(j.calls)} />
         <Stat label="errors" value={num(j.errors)} t={j.errors ? "red" : undefined} />
-        <Stat label="avg lat" value={<span className="text-xl">{ms(j.avg_latency_ms)}</span>} />
+        <Stat label="avg lat" value={ms(j.avg_latency_ms)} />
       </div>
-      <div className="mt-3">
+      <div className="mt-2">
         <div className="flex items-baseline justify-between mb-1">
           <Label>cost // budget</Label>
           <span className="text-sm tabular-nums">
@@ -503,7 +525,7 @@ function LevelInfo({ s }: { s: State }) {
   return (
     <Panel title={<><MapIcon className="size-3.5" /> level {l.dlvl}</>} right={<span>{pct(l.explored)} explored</span>}>
       <Bar value={l.explored} t="frost-2" />
-      <div className="flex gap-1.5 mt-3">
+      <div className="flex gap-1.5 mt-2">
         <Tag t={l.downstairs ? "green" : "muted"}>&gt; down {l.downstairs ? "known" : "unknown"}</Tag>
         <Tag t={l.upstairs ? "green" : "muted"}>&lt; up {l.upstairs ? "known" : "unknown"}</Tag>
       </div>
@@ -513,10 +535,13 @@ function LevelInfo({ s }: { s: State }) {
 
 function Inventory({ s }: { s: State }) {
   return (
-    <Panel title={<><Package className="size-3.5" /> inventory</>} right={<span>{s.inventory.length} items</span>}>
-      <div className="max-h-[260px] overflow-auto">
+    <Panel
+      title={<><Package className="size-3.5" /> inventory</>} right={<span>{s.inventory.length} items</span>}
+      className="flex-1 min-h-0" bodyClass="flex-1 min-h-0 overflow-auto"
+    >
+      <div>
         {s.inventory.map((it) => (
-          <div key={it.letter} className="flex items-center gap-2.5 py-1 border-b border-border/50 last:border-b-0 text-ui">
+          <div key={it.letter} className="flex items-center gap-2.5 py-0.5 border-b border-border/50 last:border-b-0 text-ui">
             <span className="w-5 h-5 flex items-center justify-center border border-border bg-background text-primary text-xs shrink-0">
               {it.letter}
             </span>
@@ -531,12 +556,7 @@ function Inventory({ s }: { s: State }) {
 
 function Runs({ s }: { s: State }) {
   return (
-    <Card className="card-glow min-w-0">
-      <CardHeader className="flex flex-row items-center justify-between py-2.5 px-3.5">
-        <CardTitle className="text-xs text-muted-foreground tracking-[1.5px] uppercase font-normal">runs</CardTitle>
-        <CardDescription className="text-xs">{s.runs.length} completed</CardDescription>
-      </CardHeader>
-      <div className="max-h-[300px] overflow-auto">
+      <div>
         <Table>
           <TableHeader>
             <TableRow>
@@ -575,7 +595,6 @@ function Runs({ s }: { s: State }) {
           </TableBody>
         </Table>
       </div>
-    </Card>
   )
 }
 
@@ -587,28 +606,28 @@ const engine = (r: { engine?: string; models?: string[] }) => r.models?.length ?
 export default function App() {
   const [s, conn] = useJevState()
   return (
-    <main className="min-h-screen">
+    // fills the viewport (sized for a 1512x780 laptop window); long lists scroll inside their panels
+    <main className="h-screen flex flex-col overflow-hidden">
       <Header s={s} conn={conn} />
-      <div className="p-2 grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_400px] gap-2 max-w-[1800px] mx-auto">
-        <div className="flex flex-col gap-2 min-w-0">
+      <div className="flex-1 min-h-0 p-1.5 grid grid-cols-[520px_minmax(0,1fr)_340px] gap-1.5">
+        <div className="flex flex-col gap-1.5 min-h-0 min-w-0">
           <Panel
             title={<>terminal // {s.status.name ?? "agent"}</>}
             right={<><span>dlvl {s.status.dlvl ?? "--"}</span><span>t:{s.status.turn ?? "--"}</span></>}
             bodyClass="p-0"
-            className={cn(s.phase === "dead" && "border-[hsl(var(--smui-red)/0.6)]")}
+            className={cn("shrink-0", s.phase === "dead" && "border-[hsl(var(--smui-red)/0.6)]")}
           >
             <Terminal screen={s.screen} />
           </Panel>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-            <DecisionPanel s={s} />
-            <Timeline s={s} />
-            <Feeds s={s} />
-            <Runs s={s} />
-          </div>
+          <Feeds s={s} />
         </div>
-        <div className="flex flex-col gap-2 min-w-0">
-          <Vitals s={s} />
+        <div className="flex flex-col gap-1.5 min-h-0 min-w-0">
+          <DecisionPanel s={s} />
+          <Timeline s={s} />
           <Orders s={s} />
+        </div>
+        <div className="flex flex-col gap-1.5 min-h-0 min-w-0">
+          <Vitals s={s} />
           <Telemetry s={s} />
           <LevelInfo s={s} />
           <Inventory s={s} />
