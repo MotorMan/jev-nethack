@@ -2199,3 +2199,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: on Elbereth at 37/84 the bot was offered a charge at the plains centaur shooting at it (the "kill a weak shooter" rule), while an ape and a fire ant were within 3 squares. It stepped off and took hits. It then swung at a grid bug with the ape adjacent, quaffed an unknown potion (object detection), charged again at 20/84, and died.
 - Wiki (Elbereth): stepping off gives every nearby monster free hits; a shooter is worth charging only when it is alone.
 - Fix: the shooter charge at low HP is offered only when no other non-passive hostile is within 3 squares. Grid bugs, newts and lichens join the "don't swing at it while something real is adjacent" list.
+
+## Gargoyle (run 20261001-191837, Dlvl 5, T12980)
+- Cause: at 52/103 a gargoyle (AC -4, three attacks for up to 28 a turn) was offered as an 'approach' target, because the approach gate only blocks 'stronger' monsters and HP below half. The bot alternated approach and retreat 4 times, then took 53 -> 27 in one turn. Elbereth came out garbled, and two unknown potions and an unknown wand didn't save it.
+- Wiki (Gargoyle): its hits are hard and its AC is very low; only fight it healthy, and Elbereth stops it.
+- Fix: no approach toward an 'about your level' monster below 2/3 HP, which is the same threshold the monster's own fight rule gives. The bot waits and lets it come, keeping its Elbereth/retreat options.
