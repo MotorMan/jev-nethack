@@ -25,30 +25,58 @@ make fetch-lua
 make PREFIX="$PREFIX" HACKDIR="$PREFIX/lib" WANT_WIN_TTY=1 WANT_DEFAULT=tty all
 make PREFIX="$PREFIX" HACKDIR="$PREFIX/lib" WANT_WIN_TTY=1 WANT_DEFAULT=tty install
 
-# The NetHack50 Makefile has a path-doubling bug in its install target:
-# it drops files under $PREFIX/home/$USER/$PREFIX/lib instead of $PREFIX/lib.
-# Detect that and move everything to the correct layout.
-ACTUAL_LIB=$(find "$PREFIX" -type f -name nethack -exec dirname {} \; | head -1)
-if [ -n "$ACTUAL_LIB" ] && [ "$ACTUAL_LIB" != "$PREFIX/lib" ]; then
-    mkdir -p "$PREFIX/lib"
-    cp -a "$ACTUAL_LIB"/* "$PREFIX/lib/" 2>/dev/null || true
-    rm -rf "$(dirname "$ACTUAL_LIB")"
+# ---------------------------------------------------------------------------
+# Fix the path-doubling bug in NetHack50's install target.
+#
+# The Makefile has a bug where it installs files under:
+#   $PREFIX/home/$USER/$PREFIX/lib
+# instead of:
+#   $PREFIX/lib
+#
+# We detect that doubled path and relocate everything to the correct layout.
+# ---------------------------------------------------------------------------
+
+# Clean any previous broken install first
+rm -rf "$PREFIX/home" 2>/dev/null || true
+
+# The doubled path looks like: $PREFIX/home/$USER/$PREFIX/lib
+# Find it and flatten it back to $PREFIX/
+if [ -d "$PREFIX/home" ]; then
+    mkdir -p "$PREFIX/lib" "$PREFIX/bin"
+    # Find all files under the doubled home/ tree and copy them to the
+    # correct relative location under $PREFIX/, stripping the home/$USER/ part.
+    find "$PREFIX/home" -type f | while IFS= read -r f; do
+        # Strip everything up to and including "home/$USER/"
+        rel="${f#*"$PREFIX/home/"}"
+        rel="${rel#*/}"  # strip the username component too
+        dest="$PREFIX/$rel"
+        mkdir -p "$(dirname "$dest")"
+        cp -a "$f" "$dest" 2>/dev/null || true
+    done
+    # Remove the doubled tree
+    rm -rf "$PREFIX/home"
 fi
 
 # Ensure the expected layout: binary in bin/, data in lib/, state in lib/var/.
 mkdir -p "$PREFIX/bin" "$PREFIX/lib/var" "$PREFIX/lib/var/save" "$PREFIX/lib/var/whereis"
-ln -sf ../lib/nethack "$PREFIX/bin/nethack"
+if [ ! -e "$PREFIX/bin/nethack" ] && [ -e "$PREFIX/lib/nethack" ]; then
+    ln -sf ../lib/nethack "$PREFIX/bin/nethack"
+fi
 
 # NetHack expects var/ files directly under HACKDIR, not nested.
-# Move any stray var/ up if it ended up inside lib/.
+# Flatten any stray nested var/ from a previous broken install.
 if [ -d "$PREFIX/lib/var/var" ]; then
     cp -a "$PREFIX/lib/var/var/." "$PREFIX/lib/var/" 2>/dev/null || true
     rm -rf "$PREFIX/lib/var/var"
 fi
 
 # Fix permissions on state files.
-chmod 0600 "$PREFIX/lib/var/perm" "$PREFIX/lib/var/record" "$PREFIX/lib/var/logfile" "$PREFIX/lib/var/xlogfile" "$PREFIX/lib/var/livelog" 2>/dev/null || true
-chmod 0700 "$PREFIX/lib/var" "$PREFIX/lib/var/save" "$PREFIX/lib/var/whereis"
+for f in perm record logfile xlogfile livelog; do
+    if [ -e "$PREFIX/lib/var/$f" ]; then
+        chmod 0600 "$PREFIX/lib/var/$f"
+    fi
+done
+chmod 0700 "$PREFIX/lib/var" "$PREFIX/lib/var/save" "$PREFIX/lib/var/whereis" 2>/dev/null || true
 
 # Hardfought sysconf, with local paths.
 sed -e "s;/dgldir/userdata/%N/%n/nethack/dumplog;$PREFIX/dumplog;" \
@@ -57,4 +85,5 @@ sed -e "s;/dgldir/userdata/%N/%n/nethack/dumplog;$PREFIX/dumplog;" \
     -e 's;^GREPPATH=.*;GREPPATH=/usr/bin/grep;' \
     "$SRC/sys/unix/sysconf" > "$PREFIX/lib/sysconf"
 mkdir -p "$PREFIX/dumplog"
-echo "built: $(ls "$PREFIX"/lib/nethack* "$PREFIX"/bin/* 2>/dev/null)"
+
+echo "built: $(ls "$PREFIX"/lib/nethack "$PREFIX"/bin/nethack 2>/dev/null)"
