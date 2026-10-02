@@ -264,8 +264,6 @@ class Bot:
             return 'n' if self.snap and self.run and self.level().town else 'y'
         for pat, ans in rules:
             if pat.lower() in q.lower():
-                if pat == 'Really attack' and self.snap:
-                    self.peaceful_hint = True
                 return ans
         return '\x1b'
 
@@ -576,7 +574,6 @@ class Bot:
         snap, s, lv = self.snap, self.snap.status, self.level()
         me = snap.me
         mons = self.monsters()
-        self.visible = mons
         hostiles = [m for m in mons if m['hostile']]
         self.avoid = {m['pos'] for m in hostiles if m['passive'] and 'shrieker' not in m['name']}
         # a gas spore's blast next to a shopkeeper has killed two runs: leave those alone entirely
@@ -684,7 +681,7 @@ class Bot:
             if step and snap.at(me[0] + DIRS[step][0], me[1] + DIRS[step][1]).ch == '^':
                 continue  # it comes to us: left an Elbereth doorway onto a known trap toward a jaguar, fell asleep, an owlbear killed Jev at 66/88 (T10632)
             if m['dist'] > 1 and m['pos'] in dist and not re.search(r'unicorn|yellow light|nymph|rope golem|owlbear|mumak', m['name']) and 'stronger' not in self.threat(m) and not (self.standing_on() in ('<', '>') and 'weaker' not in self.threat(m)) and not ('your level' in self.threat(m) and hp < 0.67 * hpmax):  # approach/retreat 4 times at 53/103 with a gargoyle ('fight if over 2/3 HP'): 53 -> 27 -> 0 (T12980)  # stepped off '>' toward a tiger at its level, a leocrotta joined, 56 -> 0 a step from the stairs (T8476)  # polymorphed weak, left Elbereth to close on a giant ant with a giant spider near: dead (T5835); let them come, first hit is ours  # nymph: stepping up to one cost a shield and a helm in one game, AC 10, dead (T6402); throw or let her come  # yellow light: its explosion blinds 10d20 turns, 5 of 6 blind deaths; throw instead (wiki). unicorn: speed 24, keeps its distance, butt+kick took 24 HP in one turn
-                opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}." + (' It is shooting you and Elbereth does not stop that: kill it.' if shot and m['name'] == self.run.get('shooter') else ''), lambda m=m: self.act_go(m['pos'], dist_prev=None, steps=1, adjacent_ok=True))
+                opts[f"approach_{m['pos'][0]}_{m['pos'][1]}"] = (f"Close in on {m['name']}", f"Step toward {m['name']} {m['where']}." + (' It is shooting you and Elbereth does not stop that: kill it.' if shot and m['name'] == self.run.get('shooter') else ''), lambda m=m: self.act_go(m['pos'], steps=1, adjacent_ok=True))
                 if shot and m['name'] == self.run.get('shooter') and (danger or hp * 2 < hpmax):
                     charge = f"approach_{m['pos'][0]}_{m['pos'][1]}"
         strong = False
@@ -1816,7 +1813,7 @@ class Bot:
             self.level().corpses[q] = self.snap.status.get('turn') or 0  # a corpse under dropped arrows shows ')', so the '%' scan never dated it: stood on a fresh giant ant, ate 3 corpses in 8700 turns, fainted (T8693)
         return f'attacked {DIR_NAME[d]}'
 
-    def act_go(self, target, dist_prev=None, steps=40, adjacent_ok=False, stop_new=True):
+    def act_go(self, target, steps=40, adjacent_ok=False, stop_new=True):
         """Walk toward target one step at a time; stop on new threats, damage or arrival."""
         taken = 0
         n_seen = len(self.hostile_glyphs())
@@ -1880,7 +1877,6 @@ class Bot:
         """Walk to the chosen edge, then keep taking the nearest new edge until something happens."""
         total, r = 0, ''
         while budget > 0:
-            n0 = self.snap.status.get('turn') or 0
             r = self.act_go(p, steps=budget)
             if self.snap.me == p or r.startswith('no path'):
                 self.level().dead.add(p)
