@@ -2338,6 +2338,6 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - The bot stood in a doorway on Elbereth at 66/88 HP. A jaguar and an owlbear fled from it. It then picked "close in on jaguar", and from the doorway the only step south was a known '^' trap. The trap put it to sleep and the owlbear killed it.
 - Fix: no approach option whose first step lands on a known trap. The monster comes to us anyway.
 
-## 2026-10-01 — Killed by a scorpion while praying, T12125, Dlvl 10
+## T12125 scorpion, while praying, Dlvl 10
 - Cause: a scorpion stood next to Jev in a dead-end corridor. monmove.c: a scared monster with no square to flee to sets `panicattk` and attacks anyway, so Elbereth did not stop it. Jev alternated "engrave" and "attack". Each attack erased the engraving, and each engraving gave the scorpion free stings (33 -> 16 -> 6 HP). Then Jev prayed 310 turns after the last prayer (too soon) and died.
 - Fix: do not offer Elbereth when an adjacent hostile is boxed in (floating eyes excepted). Jev fights or retreats instead.
