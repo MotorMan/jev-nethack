@@ -10,8 +10,14 @@ cd "$REPO_ROOT" || exit 1
 
 # Load .env if present
 if [ -f .env ]; then
-    # shellcheck disable=SC1090
-    . .env
+    while IFS='=' read -r key value; do
+        case "$key" in
+            ''|\#*) continue ;;
+        esac
+        # strip surrounding quotes
+        value=$(printf '%s' "$value" | sed 's/^"\(.*\)"$/\1/; s/^'\''\(.*\)'\''$/\1/')
+        export "$key=$value"
+    done < .env
 fi
 
 NAME=$1 PORT=$2

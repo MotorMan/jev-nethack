@@ -2721,6 +2721,17 @@ class Bot:
         self._role = title
         return title
 
+    def update_character(self):
+        if not self.snap or not self.snap.status:
+            return
+        role = self.role()
+        align = (self.snap.status or {}).get('align', 'lawful')
+        character = f"{align.lower()} {role}"
+        if character != self.run.get('character'):
+            self.run['character'] = character
+            self.runs[-1]['character'] = character
+            self._save_runs()
+
     def state_text(self, mons):
         s, snap = self.snap.status, self.snap
         role = self.role()
@@ -2852,10 +2863,8 @@ class Bot:
         rid = datetime.now().strftime('%Y%m%d-%H%M%S')
         self.run_dir = os.path.join(self.home, rid)
         os.makedirs(self.run_dir, exist_ok=True)
-        role = getattr(self, '_role', None) or 'Valkyrie'
-        align = (self.snap.status or {}).get('align', 'lawful') if self.snap else 'lawful'
-        character = f"{align.lower()} {role}"
-        self.run = dict(id=rid, started=now(), ended=None, character=character, turns=0, max_dlvl=1, death=None, score=None,
+        self._role = None
+        self.run = dict(id=rid, started=now(), ended=None, character=None, turns=0, max_dlvl=1, death=None, score=None,
                         engine='jev' if not self.jev.local else os.environ.get('JEV_LABEL') or self.jev.model, models=[], decisions=0, levels={}, under={}, here={}, elbereth=set(), prayed_turn=None, recent=[], death_msgs=[])
         self.history.clear()
         self.runs.append({k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score', 'engine', 'models')})
@@ -2886,6 +2895,7 @@ class Bot:
             self.t = self.launcher()
             self.t.pump(3)
             self.observe()
+            self.update_character()
             if any('welcome back' in l for l in self.snap.lines + [m['text'] for m in self.messages[-5:]]):  # restored save: keep the prayer clock
                 try:
                     t = json.load(open(os.path.join(self.home, 'prayer.json')))['prayed_turn']
