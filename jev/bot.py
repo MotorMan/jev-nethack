@@ -1120,6 +1120,8 @@ class Bot:
             # user: with no darts, pick up daggers and knives to throw (up to 10)
             if re.search(r'\b(gems?|stones?|rocks?|glass)\b', item) and 'luckstone' not in item or WEAPON.search(item) and armed and not re.search(r'dagger|pick-axe|Mjollnir|Excalibur' + ('' if darts else r'|knife|knives'), item) or re.search(r'dagger|knife|knives', item) and daggers >= (3 if darts else 10):
                 continue
+            if any(it['letter'] == '?' for it in self.spares(self.inventory + [{'letter': '?', 'text': item}])):
+                continue
             if shop or 'for sale' in item or 'corpse' in item and not ('lichen' in item or 'lizard' in item and not any('lizard' in it['text'] for it in self.inventory)) or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
@@ -1134,6 +1136,9 @@ class Bot:
                 else:
                     opts['eat_floor'] = (f"Eat {item} here", "Low-nutrition food is not worth carrying: eat it now while you are not Satiated.", lambda item=item: self.act_eat_floor(item))
                 break
+        if not near and (spare := self.spares(self.inventory)):  # user: one shield and one helmet (heavy), one towel or blindfold; 6 orcish helms and 2 shields were carried
+            opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat_')}
+            opts['drop_spare'] = (f"Drop {spare[0]['text']}", "A spare you do not need: you keep one shield, one helmet and one towel or blindfold. Extra weight slows you.", lambda l=spare[0]['letter']: (self.act_keys('d' + l, 'dropped it'), self.read_inventory())[0])
         box = next((i for i in self.here_items() if re.search(r'\b(chest|large box)\b', i) and 'for sale' not in i), None)
         if box and not shop and not any(m['dist'] <= 6 for m in hostiles) and self.run.setdefault('looted', {}).get((s.get('dlvl'), me), 0) < 2:  # 5.0 mklev.c: 2/3 of levels above the Oracle get a box, half with healing potions; the Mines entry level's always has food
             opts['loot'] = (f"Open {box} and take what is inside", 'Boxes on early levels often hold potions of healing, enchant scrolls or food. If it is locked: unlock it with a key or lock pick, else pry it with a dagger, else kick it open.', self.act_loot)
@@ -2529,6 +2534,16 @@ class Bot:
         if (self.snap.status.get('turn') or 0) <= turn and self.snap.me:
             self.level().corpses[self.snap.me] = -10**6  # refused: do not offer it again
         return 'ate corpse' if (self.snap.status.get('turn') or 0) > turn else 'did not eat: no corpse here is a fresh kill'  # 'ate corpse' 18 times with no turn passing (T7680)
+
+    @staticmethod
+    def spares(inv):
+        """user: only one shield and one helmet (heavy), one eye cover (a towel beats a blindfold). The worn one stays; reflection and unknown polished silver shields stay."""
+        out = []
+        for pat in (r'\bshield\b|buckler', r'\b(helm|helmet|hat|cap|fedora)\b', r'\b(towel|blindfold)\b'):
+            group = [it for it in inv if re.search(pat, it['text']) and not ('blindfold' not in pat and (INTEREST.search(it['text']) or 'polished silver' in it['text']))]
+            keep = max(group, key=lambda it: ('being worn' in it['text'] or 'weapon in' in it['text'], 'towel' in it['text'], not re.search(r'\bcursed', it['text'])), default=None)
+            out += [it for it in group if it is not keep and not re.search(r'being worn|weapon in', it['text'])]
+        return out
 
     def blindfold(self):
         return None if 'Blind' in str(self.snap.status.get('conditions')) else \
