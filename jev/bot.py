@@ -1219,6 +1219,14 @@ class Bot:
             if food:
                 q = min(food, key=dist.get)
                 opts['shop_food'] = (f"Go look at the food for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the '%' item and its price. You have {s.get('gold')} gold and {packed} food items packed.", lambda q=q: self.act_shop_go(q))
+        if not near and packed < 2 and not self.run.get('debt'):  # user: always buy 1-2 food rations in a shop when the pack has no food
+            rations = [(q, i) for (dl, q), v in self.run.get('here', {}).items() if dl == s.get('dlvl') and (q in dist or q == me) for i in v
+                       if (pr := re.search(r'food rations?\b.*for sale, (\d+) zorkmid', i)) and int((re.match(r'(\d+) ', i) or [0, 1])[1]) <= 2 and int((re.match(r'(\d+) ', i) or [0, 1])[1]) * int(pr[1]) <= s.get('gold', 0)]
+            if rations:
+                q, item = min(rations, key=lambda r: dist.get(r[0], 0))
+                opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat')}
+                opts['buy_ration'] = (f"Buy {item}", f"Walk {dist.get(q, 0)} steps {compass(me, q)}, pick it up and pay: a food ration is 800 nutrition and you carry {packed} food items.",
+                                      lambda q=q, item=item: (self.act_pickup(item), self.act_pay())[1] if self.snap.me == q or (self.act_go(q), self.snap.me == q)[1] else 'heading for the food ration')
         if not near and 'shop_food' not in opts:  # armor (AC), scrolls, potions, rings: stepping on each shows its price, which identifies some by type (user: walk past, no gold needed)
             wares = [q for c in '[?!=' for q in snap.find(c) if q in dist and 0 < dist[q] <= 20 and (s.get('dlvl'), q) not in self.run['here']
                      and sum(cheb(q, o) <= 3 for c2 in ')[%?/=!("' for o in snap.find(c2)) >= 6]
