@@ -744,7 +744,11 @@ class Bot:
                 opts['downstairs'] = ('Flee down the stairs', 'Take the down staircase you are standing on to get away; only adjacent monsters may follow.', lambda: self.act_keys('>', 'went down'))
         hops = sum(h['choice'] in ('upstairs', 'flee_up', 'leave_nymph', 'downstairs') for h in self.history[-6:]) >= 4  # leave_nymph down into a weak pack, flee up, leave again: 14 round trips, then a gamble prayer angered Tyr (T8484)
         adj = [m for m in near if m['dist'] <= 1]
-        if (strong or pack) and not hops and ({'flee_up', 'upstairs', 'downstairs'} & opts.keys()) and not ('upstairs' not in opts and adj and all('weaker' in self.threat(m) for m in adj)):  # walked 4 steps to '<' with a werejackal and its jackals adjacent (all weaker): 14 -> 0 in free hits (T2336)  # a werewolf's summoned wolves (no M2_STALK: can't follow) took 34 -> 6 in a turn, '<' one step away (T5826)
+        # a speed-12+ monster adjacent hits on every step of a long walk: ran 15 steps for '<' at 18/94 beside a Grey-elf (ignores Elbereth), 18 -> 8, gamble prayer, dead (T13186)
+        chased = 'upstairs' not in opts and any((MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12 for m in adj) and min((dist.get(p, 99) for p in snap.find('<')), default=99) > 3
+        if chased:
+            opts.pop('flee_up', None)
+        if (strong or pack) and not hops and ({'flee_up', 'upstairs', 'downstairs'} & opts.keys()) and not ('upstairs' not in opts and adj and (chased or all('weaker' in self.threat(m) for m in adj))):  # walked 4 steps to '<' with a werejackal and its jackals adjacent (all weaker): 14 -> 0 in free hits (T2336)  # a werewolf's summoned wolves (no M2_STALK: can't follow) took 34 -> 6 in a turn, '<' one step away (T5826)
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'explore'))}
             if 'upstairs' in opts and sum(m['dist'] <= 1 for m in near) >= 3:  # arrived on Dlvl 4 into 3 wolves, a Woodland-elf and a rothe: zapped striking 3 times on '<', 23 -> 6, prayed too soon (T9414)
                 opts = {k: v for k, v in opts.items() if k in ('upstairs', 'pray')}

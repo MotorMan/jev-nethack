@@ -2377,3 +2377,10 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A werejackal, its jackals, a giant ant and Mordor orcs mobbed Jev in a doorway at 27/76 HP. From 17 HP, Jev got only attack options. The scorpion fix (T12125) removed Elbereth when an adjacent monster was "boxed". In a crowd, the other monsters box each adjacent monster, so Elbereth was never offered. At 3 HP, a prayer 101 turns after the last one failed.
 - Prevention: Elbereth scares the monsters that can flee. When they flee, they open squares for the boxed one.
 - Fix: `jev/bot.py` removes the Elbereth option for a boxed monster only when the boxed monsters are all the monsters that are near.
+
+## T13186 Grey-elf, while praying, Dlvl 8
+
+- Cause: A leocrotta took Jev from 94 to 15 HP in 3 turns. A potion and Elbereth brought it to 18 HP. Then a Grey-elf came adjacent. A Grey-elf ignores Elbereth. Jev got only two options: zap an unknown wand, or walk 15 steps to `<`. It walked. The Grey-elf (speed 12) hit it on each step, 18 -> 8. The prayer failed because Jev prayed for hunger 350 turns before.
+- Prevention: Do not walk away from an adjacent monster that is as fast as you. It gets a free hit on each step. Fight it, or use an item.
+- Fix: `jev/bot.py` removes `flee_up` when an adjacent monster has speed 12 or more and `<` is more than 3 steps away. The attack options stay.
+- Open problem: Jev prayed for Weak hunger 5 times in this game, so prayer was never ready for low HP.
