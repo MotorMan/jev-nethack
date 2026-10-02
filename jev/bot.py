@@ -821,8 +821,8 @@ class Bot:
             opts[f"engrave_id_{ew['letter']}"] = ((f"Engrave-test {ew['text']}", 'Nothing hostile in view: engrave with the unknown wand to learn what it is (digging is an escape hole).', lambda it=ew: self.act_engrave_id(it)))
         if 'eat_corpse' in opts and not near:  # taken 15 of 98 offers (explore won), and hunger is the top killer: eat it
             opts = {k: v for k, v in opts.items() if k in ('eat_corpse', 'pray')}
-        if 'goto_corpse' in opts and s.get('hunger') not in ('Weak', 'Fainting') and (hp < 0.6 * hpmax or (s.get('turn') or 0) - self.run.get('hit_turn', -99) <= 10):
-            del opts['goto_corpse']  # forced at 24/45 just after a hill orc fight: the next orc hit 24 -> 13 -> 3, prayed 158 turns on, dead (T4402)
+        if 'goto_corpse' in opts and s.get('hunger') not in ('Weak', 'Fainting') and min((dist[p] for p, t0 in lv.corpses.items() if p in dist and s.get('turn', 0) - t0 < 35), default=99) > 2 and (hp < 0.6 * hpmax or (s.get('turn') or 0) - self.run.get('hit_turn', -99) <= 10):
+            del opts['goto_corpse']  # a fresh ape 1 step off at 38/93 Hungry was skipped by this, went stale, no food, fainted, mountain centaur (T8599)  # forced at 24/45 just after a hill orc fight: the next orc hit 24 -> 13 -> 3, prayed 158 turns on, dead (T4402)
         if 'goto_corpse' in opts and not near:  # passed up for explore/rest ~60% of the time; one Jev prayed 6 times for food in 7700 turns
             opts = {k: v for k, v in opts.items() if k in ('goto_corpse', 'pray')}
         if any(m['dist'] <= 1 for m in near):  # Weak, walked for a corpse through a bugbear + hobgoblin gang: free hits, dead (T4496)
