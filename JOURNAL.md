@@ -2773,3 +2773,10 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The user saw a homunculus put Jev to sleep. The T1953 fix offered Elbereth only below 75% HP, and melee stayed open.
 - **Prevention:** Treat a monster with a sleep attack (homunculus, beholder, orange dragon, Nazgul) like a were or a floating eye. Do not melee it.
 - **Fix:** Elbereth is offered at any HP when a sleep biter is 2 steps away or nearer. Melee is removed when Elbereth is offered or engraved. "You feel wide awake" (sleep resistance) turns the rule off. The homunculus tip now says "Never melee it".
+
+## T7095: owlbear, Dlvl 8 (kev-4b)
+
+- **Cause:** Jev had 69/69 HP and AC 11, from a cursed -4 leather armor. An owlbear came into view 3 steps away. The hugger rule offered Elbereth only below 75% HP, so the options were wait and explore. The owlbear held Jev, and Elbereth failed with "cannot reach the floor". HP went from 69 to 0 in 4 turns.
+- **Prevention:** Engrave Elbereth before a hugger is adjacent, at any HP.
+- **Fix:** The hugger rule no longer needs low HP. It skips huggers that are weaker than Jev. The owlbear tip now says to engrave before contact.
+- **Open:** Jev wore a cursed -4 leather armor at Dlvl 8 (AC 11). The armor rules need a look.

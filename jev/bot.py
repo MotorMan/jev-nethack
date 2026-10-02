@@ -802,7 +802,7 @@ class Bot:
         # against a scorpion in a dead-end corridor gave it a free turn each engraving, 33/78 -> 6, a too-soon prayer, dead (T12125)
         # only when the boxed ones are all that is near: a crowd boxes its own members, the rest still flee; jackals, a giant ant and Mordor orcs, no Elbereth offered, 17 -> 0 on attacks only (T5086 werejackal)
         # AT_HUGS (monsters.h): once held, engrave.c can_reach_floor is FALSE and you cannot step away, so engrave before contact: an owlbear took 51/94 to 0 in 4 turns, Elbereth refused 'cannot reach the floor' (T9944)
-        hugger = (s.get('turn') or 0) - self.run.get('held', -99) > 2 and hp < 0.75 * hpmax and any(m['dist'] <= 3 and HUGGERS.search(m['name']) for m in hostiles)
+        hugger = (s.get('turn') or 0) - self.run.get('held', -99) > 2 and any(m['dist'] <= 3 and HUGGERS.search(m['name']) and 'weaker' not in self.threat(m) for m in hostiles)  # any HP: an owlbear 3 steps off at 69/69 and AC 11 got wait/explore, held, 69 -> 0 in 4 turns (T7095)
         # a fire ant (speed 18, stronger) at XL4: fought 42 -> 24, then 2 garbled Elbereths, 24 -> 2, dead praying (T4204): engrave while there are HP for retries
         fastbig = hp < 0.8 * hpmax and any(m['dist'] <= 2 and 'stronger' in self.threat(m) and (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 15 for m in hostiles)
         # Elbereth was offered only below 45% HP, so the no-melee-beside-a-were rule below had nothing else: bit at 41/45, feverish, a too-soon prayer, fainted (T2761)
