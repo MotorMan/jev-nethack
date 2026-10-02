@@ -537,17 +537,20 @@ function Timeline({ s }: { s: State }) {
 // ---------- feeds ----------
 
 function Feeds({ s }: { s: State }) {
+  // one tab state for the pane and its maximized copy (user: maximizing kept losing the tab)
+  const [tab, setTab] = useState(() => { try { return localStorage.getItem("feedTab") ?? "messages" } catch { return "messages" } })
+  const pick = (t: string) => { setTab(t); try { localStorage.setItem("feedTab", t) } catch { /* private mode */ } }
   return (
     <Card className="card-glow min-w-0 flex-1 min-h-0">
-      <FeedTabs s={s} max={<Max title="feeds" bodyClass="p-0"><FeedTabs s={s} /></Max>} />
+      <FeedTabs s={s} tab={tab} pick={pick} max={<Max title="feeds" bodyClass="p-0"><FeedTabs s={s} tab={tab} pick={pick} /></Max>} />
     </Card>
   )
 }
 
-function FeedTabs({ s, max }: { s: State; max?: ReactNode }) {
+function FeedTabs({ s, tab, pick, max }: { s: State; tab: string; pick: (t: string) => void; max?: ReactNode }) {
   const lvl: Record<string, Tone> = { info: "frost-3", warn: "yellow", error: "red" }
   return (
-      <Tabs defaultValue="messages" className="gap-0 flex-1 min-h-0">
+      <Tabs value={tab} onValueChange={pick} className="gap-0 flex-1 min-h-0">
         <TabsList variant="line" className="w-full justify-start px-1.5 h-9 shrink-0">
           <TabsTrigger value="messages" className="flex-none">game messages</TabsTrigger>
           <TabsTrigger value="log" className="flex-none">
