@@ -2329,3 +2329,7 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 ## T9944 owlbear, Dlvl 9
 - Met an owlbear in melee at 51/94. Its claws plus hug took 6, 13 and 18 HP. Once held, Elbereth failed with "cannot reach the floor": in 5.0 engrave.c, can_reach_floor is FALSE when stuck to an AT_HUGS monster. Escape was impossible too. At 14/94 the bot was not in prayer trouble (14×7 > 94), so it quaffed an unknown potion and died.
 - Fix: when an AT_HUGS monster (owlbear, python, rope golem, couatl, salamander, kraken, pit fiend, carnivorous ape, guardian naga) is within 3 squares, HP is below 75%, and the bot is not already held, it offers Elbereth before contact and drops attack, approach, wait and rest.
+
+## T9310 barrow wight, fainted, Dlvl 9
+- A nymph stole on Dlvl 10, where the downstairs was unknown. leave_nymph went up '<'. On Dlvl 9 the pace rule (dlvl ≤ XL) sent it straight back down, and the loop ran for about 400 turns while the bot was Hungry with no food. It prayed while Weak 852 turns after the previous prayer: "Tyr is displeased" (p_type 0, too soon). It fainted beside a barrow wight.
+- Fix: never leave a nymph level by '<'. When the downstairs is unknown, the existing branch explores for '>' instead.
