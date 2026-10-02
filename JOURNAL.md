@@ -2488,3 +2488,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Prevention: Do not close in on a group of monsters at your level or above. Let them come to a corridor, or leave by the stairs. Elves ignore Elbereth.
 - Fix: `jev/bot.py` does not offer "close in" on a monster that is not weaker when two or more such monsters are within 8 squares.
 - Open problem: AC 5 at T8500. Jev needs a way to get body armor (shops, kills of armored monsters).
+
+## T3361 kitten, Dlvl 5
+
+- Cause: A wood nymph on Dlvl 4 stole from Jev six times in 240 turns. It took the darts, the shield, the sling, the spear, a scroll and the potions. The bot offered "leave this level" only when no monster was near. The nymph itself was near most of the time, so Jev waited on Elbereth 39 times. Jev went down with no weapon and AC 10, and a kitten killed it.
+- Prevention: After the first theft, leave the level at once. A nymph teleports and comes back. Elbereth only makes it run, and it returns.
+- Fix: `jev/bot.py` does not count nymphs as near monsters for "leave this level". With only a nymph near, Jev leaves at half HP or more.
