@@ -634,10 +634,41 @@ class Bot:
                 self.t.send('\x15' + name + '\r')  # docall getlin 'Call a clear potion:'; ^U clears a prefill
                 self.settle()
                 self.log(f"called {look[1]} {look[0]} '{name}'")
+        for it in uniq:  # user: know what is in each bag. Cached by name; objnam.c adds ' containing N items' once looked at
+            if re.search(r'\b(bag|sack)\b', it['text']) and 'tricks' not in it['text']:
+                k = re.sub(r' containing \d+ items?', '', it['text'])
+                if k not in self.run.setdefault('bags', {}):
+                    self.run['bags'][k] = self.look_in_bag(it['letter'])
+                it['contents'] = self.run['bags'][k]
         if not uniq and self.inventory:  # an empty read lost the blindfold beside a yellow light: forced melee, missed, blinded, dead (T3177)
             return self.inventory
         self.inventory = uniq
         return uniq
+
+    def look_in_bag(self, letter):
+        """Apply a bag, ':' looks inside (pickup.c use_container; end.c container_contents lists items under 'Contents of', 2 spaces in)."""
+        out, looked = [], False
+        self.t.send('a' + letter)
+        for _ in range(10):
+            lines = self.t.lines()
+            head = next((l for l in lines if 'Contents of' in l), None)
+            if head:
+                c = head.index('Contents of')
+                out += [l[c + 2:].strip() for l in lines[lines.index(head) + 1:] if l[c:c + 2] == '  ' and l[c + 2:].strip() and not re.search(r'\(end\)|--More--|\(\d+ of \d+\)', l)]
+                pg = next((m for l in lines if (m := re.search(r'\((\d+) of (\d+)\)', l))), None)
+                self.t.send('>' if pg and pg[1] != pg[2] else '\r')
+                continue
+            kind, text = top_prompt(lines)
+            if 'Do what with' in text and not looked and 'is empty' not in text:
+                looked = True
+                self.t.send(':')
+            elif kind == 'more':
+                self.t.send('\r')
+            else:
+                break
+        self.t.send('\x1b')
+        self.settle()
+        return out
 
     def look_here(self):
         """':' look, free action. Returns item descriptions on this square."""

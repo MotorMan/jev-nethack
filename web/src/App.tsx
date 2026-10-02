@@ -1,4 +1,4 @@
-import { Children, useEffect, useRef, useState, type ReactNode } from "react"
+import { Children, Fragment, useEffect, useRef, useState, type ReactNode } from "react"
 import {
   Activity, Check, ChevronRight, Copy as CopyIcon, Cpu, Footprints, Map as MapIcon, LayoutPanelLeft, Maximize2, Moon, Package, Pause, Play, RotateCcw,
   Send, StepForward, Sun, Swords, Wifi, WifiOff, WrapText, X,
@@ -659,12 +659,17 @@ function Inventory({ s }: { s: State }) {
     >
       <div>
         {s.inventory.map((it) => (
-          <div key={it.letter} className="flex items-center gap-2.5 py-0.5 border-b border-border/50 last:border-b-0 text-ui">
+          <Fragment key={it.letter}>
+          <div className="flex items-center gap-2.5 py-0.5 border-b border-border/50 last:border-b-0 text-ui">
             <span className="w-5 h-5 flex items-center justify-center border border-border bg-background text-primary text-xs shrink-0">
               {it.letter}
             </span>
             <span className="truncate" title={it.text}>{it.text}</span>
           </div>
+          {it.contents?.map((c, i) => (
+            <div key={i} className="pl-7.5 py-0.5 text-ui text-muted-foreground truncate" title={`Inside ${it.letter}: ${c}`}>└ {c}</div>
+          ))}
+          </Fragment>
         ))}
         {s.inventory.length === 0 && <div className="text-sm text-muted-foreground">empty</div>}
       </div>

@@ -45,6 +45,6 @@ export interface State {
     last?: { request: { state: string; model: string; questions: unknown }; response: unknown } | null }
   run: { id: string; started: string; character: string; max_dlvl: number; decisions: number; engine?: string; models?: string[] }
   runs: RunSummary[]
-  inventory: { letter: string; text: string }[]
+  inventory: { letter: string; text: string; contents?: string[] }[]
   level: { dlvl: number; explored: number; downstairs: boolean; upstairs: boolean }
 }
