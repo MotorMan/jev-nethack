@@ -31,6 +31,11 @@ BASES = {'scroll': (20, 50, 60, 80, 100, 200, 300), 'potion': (20, 50, 100, 150,
 APPEAR = re.compile(r'scrolls? labeled ([A-Z][A-Z ]*[A-Z])|\b(dark green|sky blue|brilliant blue|[\w-]+) potions?\b(?! of| called)|\b(tiger eye|black onyx|[\w-]+) rings?\b(?! of| called)')
 
 
+# user: the items of interest, from the ascension kit and goals in statico/nethack-tools data/checklist.json, plus the user's priority tools
+INTEREST = re.compile(r'magic resistance|reflection|life saving|versus poison|speed boots|jumping boots|levitation|gauntlets of (power|dexterity)|helm of (telepathy|opposite alignment|brilliance)|elven (mithril|leather helm|cloak)|dwarvish mithril|oilskin|cloak of (protection|displacement)|dragon scale|unicorn horn|luckstone|towel|blindfold|\bcandles?\b|bag of holding|\bsack\b|magic marker|wand of (teleportation|death|digging|secret door detection|create monster|wishing)|ring of (conflict|teleport control|free action|poison resistance|fire resistance|slow digestion|regeneration)|scrolls? of (genocide|charging|enchant armor|enchant weapon|remove curse|identify|gold detection)|potions? of (full healing|extra healing|gain level)|holy water|K-ration|C-ration|lembas|royal jelly|skeleton key|lock pick|credit card|pick-axe|grease'
+                      r'|tattered cape|opera cloak|ornamental cope|piece of cloth|slippery cloak|faded pall|(plumed|etched|crested|visored|crystal) helmet|(old|padded|riding|fencing) gloves|(combat|jungle|hiking|mud|buckled|riding|snow) boots')  # objects.h 5.0: the random appearances of kit cloaks, helms, gloves and boots
+
+
 def appearance(t):
     m = APPEAR.search(t)
     return m and (('scroll', m[1]) if m[1] else ('potion', m[2]) if m[2] else ('ring', m[3]))
@@ -132,6 +137,8 @@ class Level:
         self.town = False      # a peaceful @ lives here (Izchak killed a run over a kicked shop door; the cash-register chime means a shopkeeper: a wiped "Closed for inventory" sign let Jev kick in Kinojevis' door, zapped dead T972)
         self.notes = set()     # user: annotate levels (vault, altar, stash): #annotate shows them in the ^O overview
         self.noted = ''
+        self.shops = {}        # user: shop type -> [door, items seen, items of interest], kept for a return with gold
+        self.loose = set()     # user: kit items seen on the floor here and left behind (notes)
         self.arrival = None    # where we first stood here: the other '<' on the Oracle+1 level leads to Sokoban
         self.stairs = set()    # '>' found under objects by #terrain
         self.terrain_turn = -999
@@ -230,6 +237,8 @@ class Bot:
                 self.run['engulfer'] = (re.findall(r'The ([a-z ]+?) (?:engulfs|swallows) you', text) or [self.run.get('engulfer')])[-1]
             if re.search(r"[Ww]elcome (again )?to \w", text) and self.snap:
                 self.run['welcome'] = (self.snap.status.get('dlvl'), self.snap.status.get('turn') or 0)
+                if (k := re.search(r"[Ww]elcome (?:again )?to [^!]*?'s? ([a-z -]+)!", text)):
+                    self.run['shop_kind'] = k[1]
             self.run['recent'].append(text)
             self.run['msg_turn'] = self.snap.status.get('turn') or 0 if self.snap else 0
             del self.run['recent'][:-12]
@@ -331,6 +340,8 @@ class Bot:
         s = self.snap.status
         if self.run is not None and s.get('dlvl') and self.run.get('ov_dl') != s['dlvl'] and top_prompt(self.snap.lines)[0] is None:
             return self.overview()
+        if self.run is not None and s.get('dlvl') and self.snap.me:
+            self.note_shops()
         if self.run is not None and s.get('dlvl') and top_prompt(self.snap.lines)[0] is None and (lv := self.level()).notes and lv.noted != (note := ', '.join(sorted(lv.notes))):
             lv.noted = note
             self.t.send('#annotate\r'); self.t.pump(0.5)
@@ -361,6 +372,34 @@ class Bot:
                 self.run['turns'] = s.get('turn') or self.run['turns']
         self.touch()
         return self.snap
+
+    def note_shops(self):
+        """User: remember each shop's type, size and best wares, and kit items left on the floor, as level notes for a later visit."""
+        lv, rooms = self.level(), set()
+        if (kind := self.run.pop('shop_kind', None)):
+            lv.shops.setdefault(kind, [self.snap.me, 0, set()])
+        for kind, shop in lv.shops.items():
+            room, todo = set(), [shop[0]]  # flood fill from the door; walls, doors' corridors and unseen squares stop it
+            while todo and len(room) < 400:
+                x, y = todo.pop()
+                if (x, y) in room or not MAP_TOP <= y <= MAP_BOT or not 0 <= x < 80 or (x, y) != shop[0] and self.snap.at(x, y).ch in ' #|-+':
+                    continue
+                room.add((x, y))
+                todo += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+            rooms |= room
+            n = sum(self.snap.at(*q).ch in OBJECT_CHARS - {'$'} for q in room - {shop[0], self.snap.me})
+            for q in room:
+                for i in self.run.get('here', {}).get((self.snap.status.get('dlvl'), q), []):
+                    look = appearance(i)
+                    if INTEREST.search(i) or look and min(self.run.get('prices', {}).get(look) or {0}) >= (200 if look[0] == 'ring' else 300):
+                        zm = self.run.get('prices', {}).get(look) if look else None
+                        shop[2].add(re.sub(r'^(an?|the|\d+) | [({].*$', '', i) + (f" ({'/'.join(map(str, sorted(zm)))}zm)" if zm else ''))
+            shop[1] = max(shop[1], n)  # max, not the latest count: a monster on an item changed it and re-annotated each turn
+            best = sorted(shop[2])[:4] + ([f'+{len(shop[2]) - 4}'] if len(shop[2]) > 4 else [])  # the #annotate line has a length limit
+            lv.notes = {t for t in lv.notes if not t.startswith(kind + ' (')} | {f"{kind} ({shop[1]} items{', ' if best else ''}{', '.join(best)})"}
+        dl = self.snap.status.get('dlvl')
+        loose = set(sorted({re.sub(r'^(an?|the|\d+) | [({].*$', '', i) for (d, q), v in self.run.get('here', {}).items() if d == dl and q not in rooms for i in v if INTEREST.search(i) and 'for sale' not in i})[:4])
+        lv.notes, lv.loose = (lv.notes - lv.loose) | loose, loose
 
     def overview(self):
         """^O on each new Dlvl: the heading above '<- You are here' says which branch we are in (dungeon.c print_dungeon)."""
@@ -577,6 +616,20 @@ class Bot:
                 it['text'] += f' (priced as {tag})'
             if it['text'] in self.run.get('empty_wands', ()):
                 it['text'] += ' (empty, x:0)'
+        for it in uniq:  # user: #call what is certain (objects.h: clear is always water; base 20 scroll identify, 20 potion healing, 60 labeled scroll enchant weapon)
+            look = appearance(it['text'])
+            bases = look and self.run.setdefault('prices', {}).get(look) or ()
+            name = 'water' if look == ('potion', 'clear') else {('potion', 20): 'healing', ('scroll', 20): 'identify', ('scroll', 60): 'enchant weapon'}.get((look[0], min(bases))) if look and len(bases) == 1 else None
+            if name and look not in self.run.setdefault('called', set()):
+                self.run['called'].add(look)
+                self.t.send('C'); self.t.send('o'); self.t.send(it['letter'])
+                if not any(l.startswith('Call ') for l in self.t.lines()[:2]):  # the name typed as commands would be 'w'ield, 'a'pply...
+                    self.t.send('\x1b\x1b'); self.settle()
+                    self.log(f'no call prompt for {it["text"]}', 'warn')
+                    continue
+                self.t.send('\x15' + name + '\r')  # docall getlin 'Call a clear potion:'; ^U clears a prefill
+                self.settle()
+                self.log(f"called {look[1]} {look[0]} '{name}'")
         if not uniq and self.inventory:  # an empty read lost the blindfold beside a yellow light: forced melee, missed, blinded, dead (T3177)
             return self.inventory
         self.inventory = uniq
@@ -743,6 +796,8 @@ class Bot:
         pack_near = [m for m in near if m['dist'] <= 5]
         gap = min((m['dist'] for m in pack_near), default=0)
         spd = 20 if any(re.search(r'speed boots.*being worn', it['text']) for it in self.inventory) else 12  # 'very fast' boots: 12 * 5/3
+        if any((MONSTERS.get(self.species(m)) or [0, 0])[1] > spd and 'weaker' not in self.threat(m) for m in hostiles):
+            self.run['fast_turn'] = s.get('turn') or 0
         outrun = near and all((MONSTERS.get(self.species(m)) or [0, 99])[1] * 1.5 <= spd for m in near)
         if near:
             if self.engraved_here() and (not shot or any(m['dist'] <= 1 and m['name'] != self.run.get('shooter') for m in near)):  # shot, but a rothe adjacent: Elbereth still stops its 3 bites (T2445)  # Elbereth only stops melee (wiki); stepping off to 'retreat' threw away fresh Elbereths in two rothe deaths
@@ -815,6 +870,14 @@ class Bot:
             opts = {'unihorn': (f"Apply {horn['text']}", f"A unicorn horn cures {', '.join(sorted(ills))}: apply it (may take a couple of tries).", lambda l=horn['letter']: self.act_keys('a' + l, 'applied the unicorn horn')),
                     **{k: v for k, v in opts.items() if k != 'wait'}}
         big_hit = bool(self.history) and (self.history[-1]['hp'] or 0) - hp >= hp and any(m['dist'] <= 1 for m in hostiles)  # one more turn like the last one kills
+        # a dwarf king took 38 -> 6 in one turn; after the prayer (49/49) Jev meleed it again over 'descend' and 'retreat' (it has speed 6, Jev 12): 49 -> 34 -> 4, dead (T3820). Remember each species' worst turn
+        hits = self.run.setdefault('worst_hit', {})
+        if self.history and (loss := (self.history[-1]['hp'] or 0) - hp) > 0:
+            for m in hostiles:
+                if m['dist'] <= 1:
+                    hits[m['name']] = max(hits.get(m['name'], 0), loss)
+        heavy = [m for m in hostiles if m['dist'] <= 1 and 2 * hits.get(m['name'], 0) >= hp]
+        big_hit = big_hit or bool(heavy)
         # operator: Elbereth is for emergencies; the default is back into a corridor and fight one at a time (was hp < 0.7 or any pack: 30-140 engravings a game, mostly forced)
         # monmove.c: scared with no square to flee to (MMOVE_NOMOVES) sets panicattk, so Elbereth cannot stop a boxed monster; engrave/attack alternation
         # against a scorpion in a dead-end corridor gave it a free turn each engraving, 33/78 -> 6, a too-soon prayer, dead (T12125)
@@ -826,15 +889,17 @@ class Bot:
         # user: treat sleep biters as dangerous at any HP, like weres and floating eyes. mhitu.c AD_SLEE: 1 hit in 5 sleeps you for up to 10 turns of free bites: a homunculus took 34 -> 19 in one sleep, Elbereth came only below 45%, slept again at 14, dead (T1953)
         sleeper = not self.run.get('sleep_res') and any(m['dist'] <= 2 and 'sleep' in (MONSTERS.get(self.species(m)) or [0, 0, 0, '', ''])[4] for m in hostiles)
         # user: "I HARDLY EVER USE ELBERETH ... it's typically better to fight". 15-40 engravings and 50-200 forced waits a game (kev-4b, 10 games): emergencies only, below a third HP
-        if (near and hp < hpmax / 3 or were or hugger or sleeper or dread or walled or self.unseen_attacker() and hp < 0.5 * hpmax) and not self.engraved_here() and not (boxed and not walled and len(near) <= len(boxed)) and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
+        # wiki/monmove.c NOTONL: a unicorn only stays in melee while it is next to you, and it butts and kicks twice a turn (speed 24): meleed a gray unicorn 45 -> 13 in 3 turns, prayer used, a werewolf finished Jev (T7245)
+        unicorn = (s.get('xl') or 1) < 10 and any(m['dist'] <= 1 and 'unicorn' in m['name'] for m in hostiles)
+        if (near and hp < hpmax / 3 or were or hugger or unicorn or sleeper or dread or walled or self.unseen_attacker() and hp < 0.5 * hpmax) and not self.engraved_here() and not (boxed and not walled and len(near) <= len(boxed)) and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & ({'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} | (set() if big_hit else {'Hallu', 'Hal', 'Hl'})) \
                 and sum(h['choice'] == 'elbereth' and 'interrupted' in h['outcome'] for h in self.history[-4:]) < 2 \
                 and (s.get('turn') or 0) - self.run.get('no_engrave', -99) > 5 \
                 and not (any(m['dist'] == 1 and m['name'] in self.run.get('e_blockers', ()) for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # count: unseen biters left adj_names empty, 16 interrupted engravings in a row while Hungry turned Weak, then Fainting (T5312)  # @ ignore it (monmove.c onscary: S_HUMAN); 2 Elbereths at 9/49 beside a Woodland-elf, a rock mole also near, dead (T2543); engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
-        if hugger and 'elbereth' in opts:
+        if (hugger or unicorn) and 'elbereth' in opts:
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_')) and k not in ('rest', 'wait')}
-        if big_hit and {'elbereth', 'retreat', 'flee_up', 'upstairs'} & opts.keys():  # hallucinating, a 'shrieker' was a dwarf king: 35 -> 14 in a turn, threw a dart, dead (T4026)
+        if big_hit and ({'elbereth', 'retreat', 'flee_up', 'upstairs'} | ({'descend', 'downstairs'} if heavy and all((MONSTERS.get(self.species(m)) or [0, 99])[1] < 12 for m in heavy) else set())) & opts.keys():  # hallucinating, a 'shrieker' was a dwarf king: 35 -> 14 in a turn, threw a dart, dead (T4026)
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'throw_', 'approach_')) and k not in ('rest', 'wait')}
         if hp < 0.2 * hpmax and ('elbereth' in opts or self.engraved_here()):  # choke <-> Elbereth alternation at 21/68 -> 10: each step off wasted the engraving (T5005)
             opts.pop('choke', None)
@@ -1007,9 +1072,11 @@ class Bot:
                 opts[f'buy_{i}'] = (f"Buy {item}", f"Pick up {item} and pay {price[1]} of your {s.get('gold')} gold. " + (why or 'Packed food prevents fainting from hunger.'), lambda item=item: (self.act_pickup(item), self.act_pay())[1])
                 continue
             armed = any(WEAPON.search(it['text']) for it in self.inventory)  # a nymph took the spear; the filter left 2 scimitars on the floor, bare-handed vs hill orcs, dead (T2578)
-            daggers = sum(int(n[1]) if (n := re.match(r'(\d+) ', it['text'])) else 1 for it in self.inventory if 'dagger' in it['text'])
+            daggers = sum(int(n[1]) if (n := re.match(r'(\d+) ', it['text'])) else 1 for it in self.inventory if re.search(r'dagger|knife|knives', it['text']))
+            darts = any(re.search(r'\bdarts?\b', it['text']) for it in self.inventory)
             # user: no gems (not playing for score; a gray stone can be a loadstone), no random weapons: the spear stays until Mjollnir; 2-3 daggers pry boxes and get thrown
-            if re.search(r'\b(gems?|stones?|rocks?|glass)\b', item) and 'luckstone' not in item or WEAPON.search(item) and armed and not re.search(r'dagger|pick-axe|Mjollnir|Excalibur', item) or 'dagger' in item and daggers >= 3:
+            # user: with no darts, pick up daggers and knives to throw (up to 10)
+            if re.search(r'\b(gems?|stones?|rocks?|glass)\b', item) and 'luckstone' not in item or WEAPON.search(item) and armed and not re.search(r'dagger|pick-axe|Mjollnir|Excalibur' + ('' if darts else r'|knife|knives'), item) or re.search(r'dagger|knife|knives', item) and daggers >= (3 if darts else 10):
                 continue
             if shop or 'for sale' in item or 'corpse' in item and not ('lichen' in item or 'lizard' in item and not any('lizard' in it['text'] for it in self.inventory)) or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
@@ -1274,13 +1341,14 @@ class Bot:
                 m = min(fs, key=lambda m: d2[m['pos']])
                 opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat')}
                 opts['kill_blocker'] = (f"Kill the {m['name']}", f"No experience gained in {(s.get('turn') or 0) - self.run['exp_turn']} turns: the {m['name']} {m['where']} sits in the way. It cannot move or attack; hitting it hurts you a little. The fight stops if HP gets low.", lambda m=m: self.act_kill_blocker(m['pos']))
-        if not fr and not downs and not near and sum(lv.searched.values()) >= 300 * (lv.resets + 1):
-            # searched a long time for nothing: level memory may be hiding real exits (a starved run had an open doorway in view)
-            lv.resets += 1
-            lv.blocked.clear(); lv.dead.clear(); lv.near.clear()
+        if not fr and not downs and not near and (lv.blocked - lv.locked or lv.dead) and s.get('turn', 0) - lv.__dict__.get('unblock_turn', -99) >= 30:
+            # one failed step into a doorway marked it blocked for good: 300 turns of search_hidden on each level, then a full memory reset re-walked every corridor (T27-T362, T604-T976, T1105-T1451). Forget bumps, keep what we have seen
+            lv.unblock_turn = s.get('turn', 0)
+            lv.blocked &= lv.locked; lv.dead.clear()
+            dist, _ = self.dijkstra()
             fr = self.frontiers(dist)
             if fr:
-                opts['explore_again'] = ('Re-explore this level', f"Searching found nothing, but there are unexplored edges again ({len(fr)} of them, nearest {fr[0][0]} steps {compass(me, fr[0][1])}).", lambda p=fr[0][1]: self.act_explore(p))
+                opts['explore_again'] = ('Re-explore this level', f"An exit that looked blocked may be open: unexplored edge {fr[0][0]} steps {compass(me, fr[0][1])}.", lambda p=fr[0][1]: self.act_explore(p))
         if not fr and not downs and not near and 'kill_blocker' not in opts and 'dead_end' not in opts:  # walled in: searching finds nothing  # search_hidden won 123 of 125 dead_end offers: 5000 turns on one Dlvl 3, starved (T6672)
             spot = self.search_spot(dist) or self.search_spot(dist, ghost=False)  # its own ghost kept touching Jev: every spot was 'near the ghost', no options, memory reset, explore into a stuck boulder 2700 turns, starved (T9746)
             if spot:
@@ -1483,6 +1551,10 @@ class Bot:
                     opts.pop(c, None)
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting') and not any(FOOD.search(it['text']) for it in self.inventory) and any(k == 'dig_down' or k.startswith(('door_', 'kick_', 'explore')) for k in opts):  # no food: searching walls only starves (picked search over a locked door 2 steps away while Fainting, T6106)
             opts = {k: v for k, v in opts.items() if k not in ('search_hidden', 'rest')}
+        if self.engraved_here() and hp < 0.5 * hpmax and (s.get('turn') or 0) - self.run.get('fast_turn', -99) <= 30 and s.get('hunger') != 'Fainting' and not any(m['dist'] <= 1 for m in hostiles):
+            # a giant spider (speed 15) fled Elbereth out of view at 15/62: Jev stepped off to look at an item, then walked 5 steps to '<', bitten 15 -> 0 (T6845-T6852). A faster monster catches you: heal on Elbereth first
+            opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'goto', 'fetch', 'pickup', 'door_', 'search', 'ascend', 'flee_up', 'descend', 'approach_', 'choke'))}
+            opts['wait'] = ('Stay on Elbereth one turn', 'A monster faster than you was here and you are below half HP: it would catch you off Elbereth. Heal here first.', self.act_wait_elbereth)
         if downs or 'search_hidden' in opts and sum(lv.searched.values()) < 200:  # no stairs yet: search first; Asidonhopo's scuffed-sign shop door kicked at XL1 with search_hidden on offer, wand of striking (T596)  # a locked door can be a shop closed for inventory whose sign got scuffed: kicked one in, Mr. Kipawa killed Jev (runs before the empty guards: filtering after them left no options, 1100 turns searched)
             opts = {k: v for k, v in opts.items() if not (k.startswith('kick_') or 'locked door' in v[0])}
         if not opts and downs and s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 and s.get('hunger') not in ('Hungry', 'Weak', 'Fainting') \
@@ -1808,12 +1880,12 @@ class Bot:
                 continue  # mkroom.c: a shop has exactly one door, so its walls hide nothing; 317 searches mostly inside one, starved (T6390)
             walls = sum(1 for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy) and (g := snap.at(p[0] + dx, p[1] + dy)) is not None and g.ch in ' |-')
             exits = sum(1 for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy) and snap.walkable(p[0] + dx, p[1] + dy))
-            if walls < 3:
-                continue
+            if walls < 3 or (snap.at(*p).ch == '#' and exits > 1) or snap.at(*p).ch != '#' and not any((g := snap.at(p[0] + dx, p[1] + dy)) is not None and g.ch in '|-' and not snap.is_door(p[0] + dx, p[1] + dy) for dx, dy in DIRS.values()):
+                continue  # user: a hidden spot is at a corridor's dead end or in a room wall, never mid-hallway
             g = getattr(lv, 'ghost', None)
             if ghost and g and (snap.status.get('turn') or 0) - g[1] < 300 and cheb(p, g[0]) <= 8:
                 continue  # speed 3 vs 12: searching 8+ squares away buys ~30 uninterrupted turns before it drifts back
-            score = lv.searched.get(p, 0) * 2 + d / 4 - (8 if snap.at(*p).ch == '#' and exits <= 1 else 0) - walls - blank(*p) / 12
+            score = max(lv.searched.get((p[0] + dx, p[1] + dy), 0) for dx in (-1, 0, 1) for dy in (-1, 0, 1)) // 30 * 40 + d / 4 - (8 if snap.at(*p).ch == '#' and exits <= 1 else 0) - walls - blank(*p) / 12  # 30 turns finds ~99% of adjacent hidden spots (rnl(7)); hopping after 15 turns walked the level back and forth (300 turns a level)
             if best is None or score < best[0]:
                 best = (score, p)
         return best and best[1]
@@ -2213,7 +2285,7 @@ class Bot:
         burn = None
         if 'write with' in self.t.lines()[0]:  # engrave.c: burned (fire/lightning) or dug Elbereth has no typos and never smudges when you're hit; only attacking from it erases it
             burn = next((it for it in self.inventory if re.search(r'\bwand of (fire|digging)\b', it['text']) and not re.search(r':0\)', it['text'])), None)
-            self.t.send(burn['letter'] if burn else ' ')
+            self.t.send(burn['letter'] if burn else '-')
         for _ in range(6):
             top = self.t.lines()[0]
             if 'add to the current engraving' in top:
@@ -2801,16 +2873,16 @@ class Bot:
     def role(self):
         if getattr(self, '_role', None):
             return self._role
-        title = (self.snap.status or {}).get('title')
-        if title:
-            self._role = title
-            return title
         for m in self.messages[-10:]:
             text = m.get('text', '')
             x = re.search(r'You are a (?:lawful|neutral|chaotic) (\w+) (\w+)', text)
             if x:
                 self._role = x.group(2)
                 return self._role
+        title = (self.snap.status or {}).get('title')
+        if title:
+            self._role = title
+            return title
         return 'Valkyrie'
 
     def update_character(self):
@@ -2826,7 +2898,6 @@ class Bot:
 
     def state_text(self, mons):
         s, snap = self.snap.status, self.snap
-        role = self.role()
         lv = self.level()
         inv = '; '.join(f"{i['letter']} - {i['text']}" for i in self.inventory) or 'unknown'
         seen = '; '.join(f"{m['name']}{self.threat(m)} {m['where']}" + (' (pet)' if m['pet'] else ' (peaceful)' if m['peaceful'] else '') for m in mons[:8]) or 'none'
@@ -2845,6 +2916,7 @@ class Bot:
             f"Inventory: {inv}\n"
             f"Level: downstairs {'known' if snap.find('>') or self.standing_on() == '>' else 'not found yet'}; "
             f"deepest level reached this game {self.run['max_dlvl']}.\n"
+            f"Level notes: {'; '.join(f'{k if isinstance(k, int) else k[0] + chr(32) + str(k[1])}: ' + ', '.join(sorted(v.notes)) for k, v in sorted(self.run['levels'].items(), key=str) if v.notes) or 'none'}.\n"
             f"Recent game messages: {recent}\n"
             f"Recent decisions:\n{hist}\n\n"
             f"Map around you (@ is you; # corridor, + or orange | - doors, < > stairs, letters are monsters):\n{snap.crop()}\n"
@@ -3048,16 +3120,13 @@ class Bot:
     def state(self):
         t, snap = self.t, self.snap
         with self.lock:
-            role = self.role() if snap else None
-            align = (snap.status or {}).get('align') if snap else None
-            character = f"{align.lower()} {role}" if role and align else self.run.get('character')
             return dict(
                 mode=self.mode, paused=self.paused, phase=self.phase, delay_ms=self.delay_ms, order=self.order,
                 screen=dict(rows=t.runs() if t else [], cursor=list(t.cursor()) if t else [0, 0], cols=80, lines=24),
                 status=snap.status if snap else {'conditions': []},
                 decision=self.decision, history=list(self.history), messages=list(self.messages), log=list(self.logs),
                 jev=self.jev.summary(),
-                run=dict(id=self.run['id'], started=self.run['started'], character=character,
+                run=dict(id=self.run['id'], started=self.run['started'], character=self.run['character'],
                          max_dlvl=self.run['max_dlvl'], decisions=self.run['decisions'], engine=self.run['engine'], models=self.run['models']) if self.run else None,
                 runs=list(self.runs), inventory=list(self.inventory),
                 level=dict(dlvl=snap.status.get('dlvl', 0), explored=min(1.0, sum(1 for l in snap.lines[MAP_TOP:MAP_BOT + 1] for c in l if c != ' ') / 700),  # ponytail: ~700 drawn cells is a typical fully seen level
