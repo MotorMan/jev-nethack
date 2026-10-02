@@ -2524,3 +2524,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Dlvl 5 was a bones level from run 20261002-005508. Its shopkeeper, Kediri, killed that Jev and stayed angry. Farlook showed only "Kediri". The bot did not know the species, so it showed no threat. Jev threw 3 daggers at Kediri and walked to it. Kediri hit for 33 in one turn.
 - Prevention: A shopkeeper is level 12 and hits two times for 4d4. Do not fight one at XL 4.
 - Fix: An `@` with a capitalized name that is not a known species is a "shopkeeper" for the threat check. It is "much stronger" now.
+
+## T10294 kobold lady, Dlvl 3 (Mines), fainted
+
+- Cause: On Dlvl 2, the only known `>` went to the Gnomish Mines. The main `>` was hidden. Below XL 10 the bot does not stay in the Mines before Sokoban, so Jev went back up. It arrived on the Mines `>`, and the bot offered "descend" there again. Jev went between Dlvl 2 and 3 for 8000 turns. It did not search Dlvl 2 for the main `>`. It ran out of food and fainted.
+- Prevention: When the bot skips the Mines stair, it must not offer that stair in any other way.
+- Fix: The "descend" option from the stair under the hero is not offered when that stair is the skipped Mines stair. Jev now explores and searches Dlvl 2. After 1500 searches, the Mines are allowed again.

@@ -1137,8 +1137,9 @@ class Bot:
         ms = self.run.get('mines_stair')
         if self.in_mines() and s.get('dlvl', 1) >= min(self.run.get('mines_dls') or {0}) + 2 and sum(m['ch'] == 'o' and not m['peaceful'] for m in mons) >= 5:
             self.run['orctown'] = True  # minetn-1.lua Orcish Town: dozens of orcs, no temple or shops; nothing there is worth the fight
-        if ms and ms[0] == s.get('dlvl') and (xl_low or self.run.get('orctown')) and sum(lv.searched.values()) < 1500:
-            downs = [p for p in downs if p != ms[1]]  # main dungeon first: Oracle, Sokoban, XP
+        skip_ms = ms and ms[0] == s.get('dlvl') and (xl_low or self.run.get('orctown')) and sum(lv.searched.values()) < 1500
+        if skip_ms:
+            downs = [p for p in downs if p != tuple(ms[1])]  # main dungeon first: Oracle, Sokoban, XP
         md = self.run.get('mines_dls') or {0}
         stuck_main = ms and sum(self.run['levels'].get(ms[0], Level()).searched.values()) >= 1500  # main '>' never found: the Mines are the only way on (500 sent an XL5 into Mines Dlvl 5 ~30 times, killed by a rothe T3492)
         mcap = self.in_mines() and self.run.get('orctown') or self.in_mines() and xl_low and (not self.run.get('soko_done') and not stuck_main or lv.town or s.get('dlvl', 1) >= min(md) + 3)
@@ -1155,7 +1156,7 @@ class Bot:
         soko_hunt = s.get('dlvl') == (self.run.get('oracle') or -9) + 1 and len(snap.find('<')) < 2 and not self.run.get('soko_done') and self.frontiers(dist)
         if soko_hunt or mcap or s.get('dlvl', 1) >= (s.get('xl') or 1) + 1 and not (s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts) or s.get('hp', 1) < 0.8 * s.get('hpmax', 1) or s.get('ac', 0) >= 9 and s.get('dlvl', 1) >= 4:  # stripped by nymphs to AC 10, Jev went down to Dlvl 7 and died to a Woodland-elf (T6265)  # Weak with no prayer: a new level has corpses, staying only starves (searched Weak -> Fainting beside '>', T2566)  # rest first; fleeing downward from a fight at this depth is how the pony and giant ant runs ended
             pass
-        elif self.standing_on() == '>':
+        elif self.standing_on() == '>' and not (skip_ms and me == tuple(ms[1])):  # back up from the Mines, it stood on their '>' and took it again: Dlvl 2 <-> 3 for 8000 turns, main '>' never searched for, starved (T10294)
             opts['descend'] = ('Go down the stairs', f"You are on the down staircase to Dlvl {s.get('dlvl', 0) + 1}.", lambda: self.act_keys('>', 'descended'))
         elif downs:
             opts['descend'] = ('Head for the downstairs', f"Walk to the known down staircase ({dist[downs[0]]} steps {compass(me, downs[0])}) and descend to Dlvl {s.get('dlvl', 0) + 1}.", lambda p=downs[0]: self.act_descend(p))
