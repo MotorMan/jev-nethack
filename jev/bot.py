@@ -1761,6 +1761,22 @@ class Bot:
                     opts = rest or opts
         if 'upstairs' in opts and (s.get('turn') or 0) - self.run.get('held', -99) > 2 and any(m['dist'] <= 3 and HUGGERS.search(m['name']) for m in hostiles):
             opts = {'upstairs': opts['upstairs']}  # on '<' with an owlbear 2 squares off: wait, then 'choke' walked off the stairs, hugged, crushed 65 -> 0 (T4640)
+        # user: no Elbereth on stairs. Fight from them; when hurt, take the stairs, rest on the other side, come back, repeat.
+        # Sokoban killer-bee zoo: 150 turns of Elbereth down to 3/47 HP, a '>' under it the whole time (T4093-T4250)
+        on, dance, turn = self.standing_on(), self.run.get('stair_dance'), s.get('turn') or 0
+        hop = on if on == '>' or on == '<' and s.get('dlvl', 1) > 1 else None
+        if hop and any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and not self.run.get('engulfed') and not any(h['choice'] == 'stair_hop' for h in self.history[-2:]):
+            opts = {k: v for k, v in opts.items() if k not in ('elbereth', 'downstairs', 'upstairs', 'flee_up') and not v[0].startswith('Stay on Elbereth')}
+            if s.get('hp', 1) < 0.4 * s.get('hpmax', 1) or not any(k.startswith('attack_') for k in opts):
+                opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0]} | {'stair_hop': (
+                    f"Go {'down' if hop == '>' else 'up'} the stairs to rest", 'You stand on stairs and are hurt: take them. Only adjacent monsters follow, one at a time. Rest on the other side, then come back and fight again.',
+                    lambda hop=hop: (self.run.__setitem__('stair_dance', (s.get('dlvl'), turn, hop)), self.act_keys(hop, 'took the stairs to rest'))[1])}
+        elif dance and dance[0] != s.get('dlvl') and turn - dance[1] < 500 and on == {'>': '<', '<': '>'}[dance[2]] and not any(m['dist'] <= 5 and not m['passive'] for m in hostiles) and s.get('hunger') not in ('Weak', 'Fainting'):
+            if s.get('hp', 1) < 0.85 * s.get('hpmax', 1):
+                opts = {'rest': ('Rest on the stairs', 'You came here to heal. Rest on the stairs; if a monster comes, fight it or take the stairs.', lambda: self.act_search(15))}
+            else:
+                opts = {'stair_back': ('Go back and fight', f"You have healed to {s.get('hp')}/{s.get('hpmax')}. Go back to Dlvl {dance[0]} and fight from the stairs again.",
+                                       lambda: (self.run.pop('stair_dance', None), self.act_keys(on, 'went back to fight'))[1])}
         recent = self.history[-12:]
         if sum(h['choice'] == 'elbereth' for h in recent) >= 4 and len(recent) == 12 and s.get('hp', 0) <= recent[0].get('hp', 0):  # user: 'stop using elbereth so much': 100+ turns of re-engraving in a room corner while HP fell 61 -> 21 (T11430)
             rest = {k: v for k, v in opts.items() if k != 'elbereth' and not v[0].startswith('Stay on Elbereth')}

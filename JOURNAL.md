@@ -2851,3 +2851,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The bot killed a floating eye with a thrown dagger. The dagger fell on the corpse, so the square showed `)`, not `%`. The corpse scan never gave the corpse a date, and the bot walked over a fresh floating eye corpse two times without an offer to eat it.
 - **Prevention:** A floating eye corpse gives telepathy. Eat each safe fresh corpse.
 - **Fix:** After a throw that kills, the bot dates the square of the target monster when an object shows there. The melee attack already did this for corpses under arrows.
+
+## T4093-T4250 Sokoban killer bees: Elbereth on the stairs
+
+- **Cause:** Killer bees in Sokoban took the Valkyrie to 3/47 HP. The bot then spent about 150 turns on Elbereth. For part of that time it stood on the down stairs, and it engraved Elbereth there.
+- **Prevention:** The user said: do not engrave Elbereth on stairs. Fight from the stairs and kill one target. When you need HP, go down the stairs and rest, then come back and fight again. Only adjacent monsters follow you on the stairs, so they come one at a time.
+- **Fix:** On stairs with a hostile next to it, the bot gets no Elbereth option. At 40% HP or more, it fights. Below 40% HP, or with no attack option, it takes the stairs. On the other side, it rests on the stairs until it has 85% HP, and then it goes back. If a monster comes near, the normal fight rules apply.
