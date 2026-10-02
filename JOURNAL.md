@@ -2143,3 +2143,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: Jev fainted from hunger and prayed (T7501), and a soldier ant arrived. Elbereth made it flee and hover nearby (speed 18). Jev left the square to open doors at 69/69 (bitten to 45). At 49/69, just above the 70% wait threshold, it left again to kick a door: booby-trapped, stunned, the ant returned. Elbereth garbled, 34 -> 5 in one turn, dead.
 - Wiki (Soldier ant): you can't outrun it; Elbereth works; never leave Elbereth while it is around unless you can kill it.
 - Fix: a stronger hostile with speed ≥ 15 nearby → stay on Elbereth (wait offered at any HP, explore/goto/fetch/pickup dropped) until camped (40 of 50 waits at ≥60% HP), so fights still happen eventually.
+
+## Werejackal after a nymph strip (run 174612, Dlvl 5, XL4, T3162)
+- Cause: a wood nymph on Dlvl 4 stole 12 items over 2000 turns (shield T888, spear T2928, rings, potions, wand). leave_nymph required Dlvl ≤ XL, and Jev was XL3 on Dlvl 4, so it never fired until XL4. Then the walk to '>' stopped at every monster coming into view (~100 turns to leave). On Dlvl 5, with an empty pack at AC 10 and bare-handed, a werejackal pack killed it.
+- Wiki (Nymph): she teleports away after each theft and comes back; leave the level (she only follows if adjacent) or kill her on sight.
+- Fix: leave_nymph uses '<' when '>' would break the pace rule, and walks without stopping for newly seen monsters.

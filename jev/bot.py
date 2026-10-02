@@ -1166,10 +1166,11 @@ class Bot:
             p = max(ups, key=lambda u: cheb(u, lv.arrival or me))
             opts = {k2: v for k2, v in opts.items() if k2 == 'pray' or k2.startswith('eat_')}
             opts['enter_sokoban'] = ('Go up into Sokoban', f"This level has a second up staircase ({dist[p]} steps {compass(me, p)}): it leads to Sokoban, four puzzle levels with a known solution, safe food, rings, wands and a bag of holding or amulet of reflection at the top.", lambda p=p: self.act_descend(p, '<'))
-        if self.run.get('nymph_lvl') == s.get('dlvl') and not hops and downs and s.get('dlvl', 1) <= (s.get('xl') or 1) and not near and not m and s.get('hp', 1) >= 0.8 * s.get('hpmax', 1):  # left at 38/55 into a Woodland-elf + Mordor orc: 38 -> 7 in 2 turns (T5934)
+        nexit = (downs[0], '>') if downs and s.get('dlvl', 1) <= (s.get('xl') or 1) else (ups[0], '<') if ups and s.get('dlvl', 1) > 1 else None  # XL3 on Dlvl 4: '>' was past pace, so Jev stayed 2000 turns while one wood nymph took 12 items incl. shield and spear, then died bare-handed (T3162)
+        if self.run.get('nymph_lvl') == s.get('dlvl') and not hops and nexit and not near and not m and s.get('hp', 1) >= 0.8 * s.get('hpmax', 1):  # left at 38/55 into a Woodland-elf + Mordor orc: 38 -> 7 in 2 turns (T5934)
             # a nymph teleports back for more: one wood nymph took shield, spear, bag, ration and egg over 500 turns
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('eat_')}
-            opts['leave_nymph'] = ('Leave this level (a nymph lives here)', f"A nymph on this level keeps coming back to steal your things. Walk to the down staircase ({dist.get(downs[0], 0)} steps) and descend.", lambda p=downs[0]: self.act_descend(p))
+            opts['leave_nymph'] = ('Leave this level (a nymph lives here)', f"A nymph on this level keeps coming back to steal your things. Walk to the staircase ({dist.get(nexit[0], 0)} steps) and leave.", lambda e=nexit: self.act_descend(e[0], e[1], stop_new=False))
         elif self.run.get('nymph_lvl') == s.get('dlvl') and not downs and not near:  # downstairs unknown: 1000 turns on a nymph level, five thefts (shield, mithril, shield, helm, daggers), AC 10, killed by a wolf (T4895)
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'explore', 'door_', 'search')) or k == 'rest' and s.get('hp', 1) * 2 < s.get('hpmax', 1)} or opts  # rest: at 6/51 this sent Jev exploring into a fire ant (T3848)
         if were_throw in opts and not any(m['dist'] <= 1 for m in hostiles):
@@ -1775,8 +1776,8 @@ class Bot:
             self.jump_hole = False
         return f'jumped into the hole (Dlvl {dl} -> {self.snap.status.get("dlvl")})'
 
-    def act_descend(self, p, key='>'):
-        r = self.act_go(p)
+    def act_descend(self, p, key='>', stop_new=True):
+        r = self.act_go(p, stop_new=stop_new)
         if self.snap.me == p:
             dl = self.snap.status.get('dlvl')
             self.act_keys(key, '')
