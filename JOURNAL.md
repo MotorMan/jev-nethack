@@ -2761,3 +2761,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** Jev fought a homunculus at XL 3 and missed 10 of 12 attacks. One bite put Jev to sleep, and the free bites took HP from 34 to 19. The bot offered Elbereth only below 45% HP. Jev was put to sleep again at 14 HP and died.
 - **Prevention:** A sleep bite (mhitu.c AD_SLEE) puts you to sleep for up to 10 turns. Do not fight a sleep biter when hurt. Elbereth works against it.
 - **Fix:** Elbereth is offered when a monster with a sleep attack is 2 steps away or nearer and HP is below 75%.
+
+## T6087: troll, Dlvl 5 (kev-4b)
+
+- **Cause:** Jev was blind and fought an unseen troll. The troll came back to life after each kill. Jev engraved Elbereth 4 times, and the message "You write in the dust with your fingertip" came each time. A blind hero cannot sense a dust engraving (engrave.c read_engr_at), so the read-back was empty. The bot logged each engraving as "interrupted" and then blocked Elbereth. Jev attacked from the engraved square, which erased it. HP went from 44 to 0.
+- **Prevention:** When blind, trust the "write in the dust" message. Do not attack from Elbereth.
+- **Fix:** When blind and the message is seen, the result is "engraved". The bot counts the square as Elbereth for 5 turns.

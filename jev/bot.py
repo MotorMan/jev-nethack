@@ -1769,7 +1769,8 @@ class Bot:
 
     def engraved_here(self):
         if 'Blind' in self.snap.status.get('conditions', []):
-            return False  # cannot read it back, and a rothe pack chewed a blind Jev from 48 to 0 HP 'on Elbereth'
+            be = self.run.get('blind_e') or (0, 0, -99)  # a fresh blind engraving counts for 5 turns (T6087)
+            return be[:2] == (self.snap.status.get('dlvl'), self.snap.me) and (self.snap.status.get('turn') or 0) - be[2] <= 5  # cannot read it back, and a rothe pack chewed a blind Jev from 48 to 0 HP 'on Elbereth'
         return (self.snap.status.get('dlvl'), self.snap.me) in self.run.setdefault('elbereth', set())
 
     # ---------- motors ----------
@@ -2175,6 +2176,9 @@ class Bot:
             if 'written' not in self.last_read and self.snap.status.get('turn') == t0:  # no time passed: this form can't engrave (a wererat Jev), not an attack; blaming the rothe blocked Elbereth once back in dwarf form, 30 -> 0 (T7388)
                 self.run['no_engrave'] = self.snap.status.get('turn') or 0  # in a spiked pit 'You can't reach the floor': offered and refused 3 times a turn while golems choked Jev (T5699)
                 return 'could not engrave in this form'
+            if 'Blind' in self.snap.status.get('conditions', []) and any('write in the dust' in m for m in self.run['recent'][-4:]):  # engrave.c read_engr_at: blind, dust is not sensed, so read-back is empty: 4 good Elbereths logged 'interrupted', then blocked, a troll 44 -> 0 (T6087)
+                self.run['blind_e'] = (self.snap.status.get('dlvl'), self.snap.me, self.snap.status.get('turn') or 0)
+                return 'engraved Elbereth (blind: cannot read it back)'
             if 'written' not in self.last_read:  # 5.0 engraving is an occupation: a fast attacker interrupts it before any letter lands
                 self.run['e_blockers'] = self.run.get('adj_names', ())  # a newt's hit blocked Elbereth against the rothe that came next: 19 -> 5, dead praying (T2568)
                 self.run['engrave_interrupted'] = self.snap.status.get('turn') or 0
