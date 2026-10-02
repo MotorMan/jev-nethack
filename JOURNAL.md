@@ -2439,3 +2439,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A band of 6 hill orcs came down a narrow room. One zapped a wand of striking. Jev closed in, 46 -> 29 -> 12. At 12/62 it engraved Elbereth instead of zapping its own unknown wand. The orc hit it during the engraving, and the next zap killed it.
 - Prevention: Elbereth does not stop a wand. A scared monster steps away and zaps from range (monmove.c m_move, mhitu.c find_offensive).
 - Fix: `jev/bot.py` removes `elbereth` at low HP when a monster zapped a wand in the last 3 messages and a zap, teleport or dig-down option is on offer.
+
+## T4657 poisoned orcish arrow, Dlvl 6
+
+- Cause: An Uruk-hai shot volleys of 2 poisoned arrows. When the second arrow of a volley misses, the game prints "It misses.", and the bot took this as an unseen attacker. Jev chose `find_unseen` 5 times. Later, beside the Uruk-hai on Elbereth, Jev engraved again at 16 HP instead of hitting it. The scared Uruk-hai shot again, and the poison killed Jev.
+- Prevention: "It misses." after "shoots" or "throws" is a missile, not a monster. Elbereth does not stop arrows. Hit an adjacent archer.
+- Fix: `jev/bot.py` ignores "It hits/misses" after a volley in `unseen_attacker`. It removes `elbereth` when the shooter is adjacent, it shot in the last 3 messages, and an attack is on offer.

@@ -1367,6 +1367,9 @@ class Bot:
             opts = {k: v for k, v in opts.items() if k.startswith(('zap_', 'quaff_', 'flee')) or k in ('elbereth', 'upstairs', 'ascend', 'teleport', 'dig_down')}
             if any(re.search(r'zaps (a|an) [\w ]*wand', r) for r in self.run['recent'][-3:]) and any(k.startswith(('zap_', 'teleport', 'dig_down')) for k in opts):
                 opts.pop('elbereth', None)  # monmove.c m_move then mhitu.c find_offensive: a scared monster steps off and zaps from range; engraved beside a hill orc with a wand of striking at 12/62 over its own wand, dead (T6827)
+        shooter_adj = [m for m in hostiles if m['dist'] == 1 and m['name'] == self.run.get('shooter')]
+        if shooter_adj and any(re.search(r'\b(shoots|throws|zaps)\b', r) for r in self.run['recent'][-3:]) and any(k.startswith('attack_') for k in opts):
+            opts.pop('elbereth', None)  # a scared Uruk-hai beside the Elbereth square kept shooting poisoned arrows: engraved instead of hitting it at 16 HP, dead (T4657)
         if self.unseen_attacker():  # a fire ant bit from a square the map showed empty; 3 x 15-turn searches and explores, 47 -> 8, prayed too soon (T3879)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'search', 'rest', 'door_', 'goto_', 'choke'))} or opts
             if not any(m['dist'] <= 1 for m in hostiles) and 'Blind' not in s.get('conditions', []):  # detect.c: searching maps an adjacent invisible monster as 'I', which gets an attack option
@@ -2600,7 +2603,8 @@ class Bot:
         if self.snap and (self.snap.status.get('turn') or 0) - self.run.get('msg_turn', 0) > 2:
             return False  # recent only changes on a new message: a stale 'The lizard bites!' kept find_unseen going 3600 turns at full HP, 20 hunger prayers, fainted (T20037)
         # wiki (Ghost): speed 3, a 1d1 touch, AC -5: not a threat, lure it off; treated as an unseen attacker it pinned Jev to find_unseen/Elbereth on its own bones level (T6700-7000)
-        return any(re.search(r"\bIt (hits|bites|touches|stings|butts|kicks|misses)|feel an unseen monster|You hear a nearby zap|The bolt of \w+ hits you", m) for m in self.run['recent'][-2:]) \
+        volley = any(re.search(r'\b(shoots|throws)\b', m) for m in self.run['recent'][-3:])  # mthrowu.c: a multishot volley's 2nd arrow prints 'It misses.': find_unseen 5 times while an Uruk-hai shot, 33 -> 0 (T4657)
+        return any(re.search(r"\bIt (bites|touches|stings|butts|kicks)|feel an unseen monster|You hear a nearby zap|The bolt of \w+ hits you", m) or not volley and re.search(r"\bIt (hits|misses)", m) for m in self.run['recent'][-2:]) \
             or self.snap.me and not any(cheb(q, self.snap.me) <= 1 for q in self.hostile_glyphs()) and any(re.search(r"\bThe [\w -]+ (hits|bites|stings|butts|kicks|touches|misses)!", m) and 'ghost' not in m for m in self.run['recent'][-1:])  # a named fire ant bit from a square the map never showed: 'rest' was the only option, 33 -> 0 (T5586)
 
     # ---------- Jev ----------
