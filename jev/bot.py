@@ -779,6 +779,8 @@ class Bot:
         if (missiles or arrows) and not on_e:
             for m in hostiles:
                 dx, dy = m['pos'][0] - me[0], m['pos'][1] - me[1]
+                if not (m['passive'] or m['ch'] == 'e' or re.search(r'nymph|leprechaun|cockatrice|chickatrice', m['name']) or 'were' in m['name'] and m['ch'] != '@'):
+                    continue  # user: save missiles for monsters that are worse up close (eyes, spheres, thieves, weres); thrown at everything they get lost
                 if (missiles or m['passive']) and not (last_resort and 'floating eye' not in m['name']) and not ('unidentified' in m['name'] and self.level().town) and (1 if m['passive'] and 'gas spore' not in m['name'] else 2) <= m['dist'] <= 6 and (dx == 0 or dy == 0 or abs(dx) == abs(dy)) and self.clear_line(me, m['pos']):
                     d = DIR_OF[((dx > 0) - (dx < 0), (dy > 0) - (dy < 0))]
                     it = (missiles or arrows)[0]
