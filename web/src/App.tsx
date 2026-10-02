@@ -1,6 +1,6 @@
 import { Children, useEffect, useRef, useState, type ReactNode } from "react"
 import {
-  Activity, ChevronRight, Cpu, Footprints, Map as MapIcon, LayoutPanelLeft, Maximize2, Moon, Package, Pause, Play, RotateCcw,
+  Activity, Check, ChevronRight, Copy as CopyIcon, Cpu, Footprints, Map as MapIcon, LayoutPanelLeft, Maximize2, Moon, Package, Pause, Play, RotateCcw,
   Send, StepForward, Sun, Swords, Wifi, WifiOff, WrapText, X,
 } from "lucide-react"
 import { Dialog } from "radix-ui"
@@ -93,6 +93,30 @@ function Tip({ tip, children }: { tip?: ReactNode; children: ReactNode }) {
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent className="max-w-xs">{tip}</TooltipContent>
     </Tooltip>
+  )
+}
+
+// copy button: navigator.clipboard needs a secure context (localhost or https); over plain http on the LAN fall back to execCommand
+function Copy({ text, tip }: { text: string; tip: string }) {
+  const [done, setDone] = useState(false)
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      const t = document.createElement("textarea")
+      t.value = text
+      document.body.appendChild(t)
+      t.select()
+      document.execCommand("copy")
+      t.remove()
+    }
+    setDone(true)
+    setTimeout(() => setDone(false), 1200)
+  }
+  return (
+    <Tip tip={tip}>
+      <Button size="xs" variant="ghost" className="text-muted-foreground" onClick={copy}>{done ? <Check /> : <CopyIcon />} {done ? "copied" : "copy"}</Button>
+    </Tip>
   )
 }
 
@@ -415,6 +439,7 @@ function DecisionPanel({ s }: { s: State }) {
           <pre className="text-xs whitespace-pre-wrap bg-background border border-border p-2 overflow-auto">{d.question}</pre>
         </TabsContent>
         <TabsContent value="state">
+          <div className="flex justify-end"><Copy text={d.state_text} tip="copy the state text to the clipboard" /></div>
           <pre className={cn("text-xs bg-background border border-border p-2 overflow-auto", wrap ? "whitespace-pre-wrap break-all" : "whitespace-pre")}>{d.state_text}</pre>
         </TabsContent>
         <TabsContent value="request" className="space-y-2">
@@ -423,9 +448,9 @@ function DecisionPanel({ s }: { s: State }) {
             <div className="text-xs text-muted-foreground truncate">
               {io.request.state === d.state_text ? "the call for this decision"
                 : d.pending ? "waiting for Jev; showing the previous call" : "one option, Jev not asked; showing the previous call"}</div>
-            <Label>request</Label>
+            <div className="flex items-center justify-between"><Label>request</Label><Copy text={JSON.stringify(io.request, null, 2)} tip="copy the request JSON to the clipboard" /></div>
             <Json v={io.request} wrap={wrap} />
-            <Label>response</Label>
+            <div className="flex items-center justify-between"><Label>response</Label><Copy text={JSON.stringify(io.response, null, 2)} tip="copy the response JSON to the clipboard" /></div>
             <Json v={io.response} wrap={wrap} />
           </>}
         </TabsContent>
