@@ -44,3 +44,8 @@ assert Bot.unseen_attacker(_f)
 _f.snap.status['turn'] = 110
 assert not Bot.unseen_attacker(_f)
 print('ok')
+_f = _F(); _f.run = {'calm': True}
+assert not any(n in 'giant bat corpse' for n in Bot.never_eat(_f)) and any(n in 'vampire bat corpse' for n in Bot.never_eat(_f))
+_f.run = {'calm': False}
+assert any(n in 'giant bat corpse' for n in Bot.never_eat(_f))
+print('ok')

@@ -2174,3 +2174,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: run['recent'] only changes when a new message arrives. A stale "The lizard bites!" (or "It bites!") therefore kept unseen_attacker() true with no monster in view and HP rising. find_unseen was chosen about 3600 times on one Mines level, so the bot made no progress and burned food. It prayed 20 times for hunger in 20000 turns, then fainted beside a killer bee.
 - Wiki: an invisible attacker reveals itself by attacking; searching once marks it with an I. With no new hit, nothing is there.
 - Fix: record the turn of the last message (msg_turn). unseen_attacker() is false when the last message is more than 2 turns old. Covered by a test in test_corpse.py.
+
+## Dingo while fainting (run 20261001-185114, Dlvl 7, T7450)
+- Cause: chronically short of food. The bot carried no food at all by T7000 and had prayed for hunger 5 times. The fifth prayer, while Weak at T7042 and 936 turns after the last one, drew "Thou art arrogant" (the timeout had not expired: rnz(350) is heavy-tailed, roughly a 6% chance). The bot lost a level, fainted, and a dingo killed it. Meanwhile it had killed 33 giant bats and eaten none, because 'bat' is in NEVER_EAT.
+- Source: eat.c makes a bat corpse stun you for 30 turns and a giant bat for 60. There is no poison and no other harm.
+- Fix: bat corpses are now edible (run['calm']) when the bot is Hungry or worse and nothing hostile is in view; stun handling already makes it rest in place. Bat kills are now dated as fresh corpses. Vampire bats are still banned through 'vampire'.

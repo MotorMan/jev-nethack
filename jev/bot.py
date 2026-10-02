@@ -299,7 +299,7 @@ class Bot:
             x, y = self.snap.me
             lv.near.update((x + dx, y + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1))
             recent = ' '.join(self.run['recent'][-3:]) if self.run else ''
-            fresh = 'You kill' in recent and 'You destroy' not in recent and not any(re.search(rf'You kill the [\w -]*{n}', recent) for n in self.never_eat())  # walked to giant bat and acid blob corpses only to skip them
+            fresh = 'You kill' in recent and 'You destroy' not in recent and not any(re.search(rf'You kill the [\w -]*{n}', recent) for n in self.never_eat() if n != 'bat')  # bats are dated: edible once calm  # walked to giant bat and acid blob corpses only to skip them
             turn = s.get('turn') or 0
             mon_seen, pct_seen = lv.__dict__.setdefault('mon_seen', {}), lv.__dict__.setdefault('pct_seen', {})
             for p in self.snap.find('%'):  # 7 for this turn's kill: thrown-dagger kills left uncounted corpses; ~40 kills, 4 eaten, fainted (T3625)
@@ -789,6 +789,7 @@ class Bot:
         if shop:  # an unknown wand zapped at a brown mold in Sipaliwini's store angered her: dead to her wand (T1314)
             opts = {k: v for k, v in opts.items() if not k.startswith(('zap_', 'throw_'))}
         # eat.c: a poisonous corpse costs rnd(15) HP and maybe Str without poison resistance; fainting with no prayer, kobolds beat starving (killed 10, ate none, fainted to a kitten T3459)
+        self.run['calm'] = not hostiles and s.get('hunger') in ('Hungry', 'Weak', 'Fainting')  # eat.c: a bat stuns 30 turns, a giant bat 60: bearable with nothing in view, and only when food matters
         self.run['desperate'] = s.get('hunger') in ('Weak', 'Fainting') and 'pray' not in opts and s.get('hp', 1) > 15
         if s.get('hunger') in ('Hungry', 'Weak', 'Fainting'):
             for it in self.inventory:
@@ -2317,7 +2318,7 @@ class Bot:
         return 'going to search: ' + r
 
     def never_eat(self):
-        return tuple(n for n in NEVER_EAT if not (n in ('kobold', 'bat', 'dog', 'cat', 'kitten', 'acid blob') + POISONOUS and n not in BAD_EFFECT and self.run.get('desperate')))  # bat only stuns, pets only aggravate (eat.c): Weak with no prayer, explored off a 50-turn giant bat corpse, fainted, dead (T1956)
+        return tuple(n for n in NEVER_EAT if not (n in ('kobold', 'bat', 'dog', 'cat', 'kitten', 'acid blob') + POISONOUS and n not in BAD_EFFECT and self.run.get('desperate') or n == 'bat' and self.run.get('calm')))  # calm: 33 giant bats killed, none eaten, 5 hunger prayers, the 5th angered Tyr, fainted (T7450)  # bat only stuns, pets only aggravate (eat.c): Weak with no prayer, explored off a 50-turn giant bat corpse, fainted, dead (T1956)
 
     def unseen_attacker(self):
         if self.snap and (self.snap.status.get('turn') or 0) - self.run.get('msg_turn', 0) > 2:
