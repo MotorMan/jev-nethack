@@ -162,12 +162,22 @@ function Header({ s, conn }: { s: State; conn: Conn }) {
               onValueCommit={([v]) => { setDrag(null); control({ action: "speed", delay_ms: v }) }}
             />
           </div>
-          <Button size="icon" variant="ghost" className="size-8" onClick={() => dispatchEvent(new Event("split-reset"))} aria-label="reset panes" title="reset panes">
-            <LayoutPanelLeft />
-          </Button>
-          <Button size="icon" variant="ghost" className="size-8" onClick={() => setDark(!dark)} aria-label="toggle theme">
-            {dark ? <Sun /> : <Moon />}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" variant="ghost" className="size-8" onClick={() => dispatchEvent(new Event("split-reset"))} aria-label="reset panes">
+                <LayoutPanelLeft />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>reset panes to default sizes</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" variant="ghost" className="size-8" onClick={() => setDark(!dark)} aria-label="toggle theme">
+                {dark ? <Sun /> : <Moon />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{dark ? "light theme" : "dark theme"}</TooltipContent>
+          </Tooltip>
         </div>
       </div>
       <div className="h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />

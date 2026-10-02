@@ -2672,6 +2672,7 @@ class Bot:
                     self.t.send('\x12')  # ^R: repaints if our emulated screen drifted (e.g. scrolled)
                     time.sleep(0.2)
                     continue
+                self.t.gap = max(self.delay_ms, 0 if self.mode == 'local' else 250) / 1000  # per action, not per decision; HF/NAO: at most 4 actions/sec
                 try:
                     self.decide()
                 except RuntimeError as e:
@@ -2681,7 +2682,6 @@ class Bot:
                     self.enhance()
                 if self.run['decisions'] % 25 == 0 or self.run.pop('inv_stale', False):
                     self.read_inventory()
-                time.sleep(self.delay_ms / 1000)
             self.phase = 'dead'
             self.t.close()
             if self.fresh and self.mode == 'local':  # else SELF_RECOVER resumes the old game from its level/save files

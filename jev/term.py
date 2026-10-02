@@ -7,6 +7,7 @@ COLS, LINES = 80, 24
 
 class Term:
     def __init__(self, argv, env=None, idle=0.04):
+        self.gap, self.last = 0.0, 0.0  # minimum seconds between sends (the UI delay / server rate limit); thinking time counts toward it
         self.idle = idle  # seconds of silence that mean "the game is waiting for input"
         self.screen = pyte.Screen(COLS, LINES)
         self.stream = pyte.ByteStream(self.screen)
@@ -43,6 +44,8 @@ class Term:
             keys = keys.encode()
         if not self.alive:
             return 0
+        time.sleep(max(0.0, self.last + self.gap - time.time()))
+        self.last = time.time()
         try:
             os.write(self.fd, keys)
         except OSError:
