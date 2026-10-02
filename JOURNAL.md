@@ -2463,3 +2463,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev kicked a locked door. No sign was in the dust, but the door was a closed shop. The shopkeeper zapped a wand of striking and killed Jev. Three explore options were open at that time.
 - Prevention: A locked door can be a closed shop with a scuffed sign. Kick a locked door only when nothing else is left to explore.
 - Fix: `jev/bot.py` stops when it finds a door locked and decides again. It removes locked-door options while explore options exist and Jev has no key or lock pick.
+
+## T8105 soldier, Dlvl 9
+
+- Cause: A wraith, a soldier and a pony were next to Jev on the stairs. Jev went up and down the stairs 7 times. The adjacent monsters followed on each trip and hit Jev. HP went from 71 to 0. Attack options were open each time.
+- Prevention: Adjacent monsters follow you up and down the stairs. After two stair trips that did not shake them off, fight.
+- Fix: `jev/bot.py` removes the stair options when a hostile monster is adjacent, attacks are open, and 2 of the last 3 decisions were stair trips.
