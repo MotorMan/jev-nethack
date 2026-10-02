@@ -41,9 +41,9 @@ You need Python 3, Node.js, and a Jev API key.
 
 ```sh
 scripts/build-nethack.sh                    # builds Hardfought's NetHack50 fork into ./nethack
-/opt/homebrew/bin/python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 (cd web && npm install && npm run build)    # builds the dashboard into web/dist
-echo 'JEV_API_KEY=...' > .env
+cp .env.template .env                       # edit JEV_ENDPOINT, JEV_MODEL, JEV_API_KEY
 .venv/bin/python -m jev.server              # http://127.0.0.1:8770
 ```
 
@@ -52,11 +52,22 @@ Open http://127.0.0.1:8770 to see the dashboard. The dashboard shows:
 - The live game screen
 - The options for this turn, with the probability that Jev gave each one
 - The history of decisions and the money spent
-- The records of past games
+- The records of past games, including NetHack score
 
 From the dashboard, you can pause the game, step one turn, change the speed, and start a new game. You can also give Jev a standing order.
 
 The default spend limit is $5. To change it, set `JEV_BUDGET_USD` in `.env`. Each game writes its decisions to `runs/<id>/decisions.jsonl`.
+
+### Character selection
+
+By default the bot plays a dwarven Valkyrie. Use `--char` to choose another character, or `--char random` for a random valid combination:
+
+```sh
+.venv/bin/python -m jev.server --char random
+.venv/bin/python -m jev.server --char "Wizard:elf:male:chaotic"
+```
+
+Format: `role:race:gender:align`. Valid roles: Archeologist, Barbarian, Caveman, Healer, Knight, Monk, Priest, Ranger, Rogue, Samurai, Tourist, Valkyrie, Wizard.
 
 ## Play on Hardfought
 

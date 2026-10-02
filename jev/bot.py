@@ -2870,6 +2870,7 @@ class Bot:
             x = dict(f.split('=', 1) for f in [l for l in open(os.path.join(ROOT, 'nethack', 'lib', 'xlogfile')).read().splitlines() if f'\tname={self.name}\t' in l][-1].split('\t') if '=' in f)
             if self.mode == 'local' and abs(int(x.get('turns', -1)) - (self.run.get('turns') or 0)) <= 200:  # the last screen we read can lag the death by ~50 turns
                 self.run['death'] = x['death'] + (f", {x['while']}" if x.get('while') else '')
+                self.run['score'] = int(x.get('score', 0)) if 'score' in x else None
         except (OSError, IndexError, KeyError, ValueError):
             pass
         self.run['ended'] = now()
