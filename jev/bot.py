@@ -1400,7 +1400,10 @@ class Bot:
         if 'pray' in opts and 'fatal within' in opts['pray'][1]:  # FoodPois with prayer ready: Jev rested and walked for corpses until it died (T2090)
             opts = {'pray': opts['pray']}
         if opts.get('pray', ('',))[0] == 'Pray to Tyr':  # a safe prayer fixes hunger with no 1-in-2 tripe vomiting (T3736)
-            opts = {k: v for k, v in opts.items() if not (k.startswith('eat_') and 'tripe' in v[0])} or opts
+            if s.get('hunger') == 'Weak' and not fatal and not LOW_HP(s) and not hostiles and any(k.startswith('eat_') for k in opts):
+                del opts['pray']  # prayed Weak with a tripe ration and nothing in view; 131 turns on, blind, a rabid rat at 11/38, no prayer left: dead (T4302)
+            else:
+                opts = {k: v for k, v in opts.items() if not (k.startswith('eat_') and 'tripe' in v[0])} or opts
         if any(re.search(r'pick-axe|dwarvish mattock', it['text']) for it in self.inventory):  # operator: never a second one (heavy: 100/120 wt)
             opts = {k: v for k, v in opts.items() if not (k.startswith(('pickup_', 'buy_')) and re.search(r'pick-axe|dwarvish mattock', v[0]))}
         elif not any(m['dist'] <= 5 and not m['passive'] for m in hostiles) and s.get('hp', 1) >= 0.6 * s.get('hpmax', 1):

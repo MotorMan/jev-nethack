@@ -2159,3 +2159,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: just after a hill orc band fight, at 24/45, goto_corpse was forced (it overrides rest) and the walk met the next orc: 24 -> 13, Elbereth garbled, 3 HP, prayed only 158 turns after the last. The previous fix (dating corpses under items) makes more corpses eligible, which made this path more likely.
 - Wiki: corpses keep for ~50 turns; heal first.
 - Fix: no goto_corpse below 60% HP or within 10 turns of being hit, unless Weak/Fainting.
+
+## Rabid rat, blind and helpless (run 20261001-180329, Dlvl 6, T4302)
+- Cause: Weak at T4171, carrying only a tripe ration, nothing in view. The bot prayed, because the T3736 rule strips tripe whenever a safe prayer is on offer. At T4189 it killed a yellow light and was blinded. At T4297 an unseen rabid rat started biting: 38 -> 11 HP. Prayer was only 131 turns old, so the bot drank an unknown black potion and was left helpless.
+- Wiki/source: tripe makes a non-orc vomit 1 time in 2 (eat.c), and the confusion and stun only arrive near the end of the vomiting countdown. With nothing in view that costs little. A prayer costs a timeout of about 350 turns or more.
+- Fix: when Weak, not in fatal trouble or at low HP, with no hostiles in view and any food (including tripe) on offer, drop the hunger prayer and eat, keeping the prayer for emergencies.
