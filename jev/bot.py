@@ -1123,12 +1123,12 @@ class Bot:
             # user: with no darts, pick up daggers and knives to throw (up to 10)
             if re.search(r'\b(gems?|stones?|rocks?|glass)\b', item) and 'luckstone' not in item or WEAPON.search(item) and armed and not re.search(r'dagger|pick-axe|Mjollnir|Excalibur' + ('' if darts else r'|knife|knives'), item) or re.search(r'dagger|knife|knives', item) and daggers >= (3 if darts else 10):
                 continue
-            if NEVER_PICK.search(item) or any(it['letter'] == '?' for it in self.spares(self.inventory + [{'letter': '?', 'text': item}])):  # user: lenses are junk (skip, no need to drop)
+            if NEVER_PICK.search(item) or 'spellbook' in item and {'Burdened', 'Stressed'} & set(s.get('conditions', [])) or any(it['letter'] == '?' for it in self.spares(self.inventory + [{'letter': '?', 'text': item}])):  # user: lenses are junk (skip, no need to drop)
                 continue
             if shop or 'for sale' in item or 'corpse' in item and not ('lichen' in item or 'lizard' in item and not any('lizard' in it['text'] for it in self.inventory)) or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
             opts[f'pickup_{i}'] = (f"Pick up {item}", f"Pick up {item} from this square.", lambda item=item: self.act_pickup(item))
-        magic = [k for k, v in opts.items() if k.startswith('pickup_') and re.search(r'\b(potions?|scrolls?|rings?|amulets?|wands?)\b', v[0])]
+        magic = [k for k, v in opts.items() if k.startswith('pickup_') and re.search(r'\b(potions?|scrolls?|rings?|amulets?|wands?|spellbooks?)\b', v[0])]
         if magic and not near and not shop and not {'Burdened', 'Stressed'} & set(s.get('conditions', [])):  # user: always take potions, scrolls, rings (amulets, wands): identify them, or sell them
             opts = {k: v for k, v in opts.items() if k == magic[0] or k == 'pray' or k.startswith('eat_')}
         if not near and not shop and 'Burdened' not in s.get('conditions', []):  # user: keep 7-10 high-nutrition foods; eat low-nutrition food where it lies unless Satiated
@@ -1151,8 +1151,11 @@ class Bot:
         if 'Burdened' in s.get('conditions', []) or 'Stressed' in s.get('conditions', []):
             for it in self.inventory:
                 if (HEAVY.search(it['text']) or JUNK.search(it['text'])) and not re.search(r'weapon in|being worn|alternate weapon|mithril|at the ready|quiver|pick-axe|mattock', it['text']):
-                    opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", f"You are {'Burdened' if 'Burdened' in s['conditions'] else 'Stressed'}: slower, and you can't fight or flee well. {it['text']} is heavy and of little use.", lambda l=it['letter']: (self.run.update(dropped=(s.get('dlvl'), me)), self.act_keys('d' + l, 'dropped it'), self.read_inventory())[1])  # Overloaded as a wererat, dropped the spear, darts, shield and wands, never fetched them back: AC 9, dead (T7225-T7712)
-            spots = [] if near or self.soko() else [q for u in snap.find('<') for dx, dy in DIRS.values() if (q := (u[0] + dx, u[1] + dy)) in dist and dist[q] <= 40 and snap.at(*q).ch in '.' + ''.join(')[%?/=!("$')]
+                    opts[f"drop_{it['letter']}"] = (f"Drop {it['text']}", f"You are {'Burdened' if 'Burdened' in s['conditions'] else 'Stressed'}: slower, and you can't fight or flee well. {it['text']} is heavy and of little use.", lambda l=it['letter']: (self.act_keys('d' + l, 'dropped it'), self.read_inventory())[0])
+            book = next((it for it in self.inventory if 'spellbook' in it['text']), None)  # user: Valkyries do not cast; a book (50 wt) is only sale goods, drop it first
+            if book:
+                opts = {k: v for k, v in opts.items() if not k.startswith('drop_')} | {f"drop_{book['letter']}": (f"Drop {book['text']}", 'You carry too much. A Valkyrie does not cast spells: a spellbook is only worth gold in a shop, and it is heavy.', lambda l=book['letter']: (self.act_keys('d' + l, 'dropped it'), self.read_inventory())[0])}
+            spots = [] if near or self.soko() or book else [q for u in snap.find('<') for dx, dy in DIRS.values() if (q := (u[0] + dx, u[1] + dy)) in dist and dist[q] <= 40 and snap.at(*q).ch in '.' + ''.join(')[%?/=!("$')]
             if spots:  # wiki Stash: leave spares next to the up stairs (not on '>': they fall down), monsters don't act while you're off-level
                 q = min(spots, key=dist.get)
                 for k in [k for k in opts if k.startswith('drop_')]:
@@ -1295,6 +1298,9 @@ class Bot:
             if wares:
                 q = min(wares, key=dist.get)
                 opts['shop_look'] = (f"Go look at the {snap.at(*q).ch} for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the item and its price (you have {s.get('gold')} gold). Armor lowers AC; a price can identify a scroll, potion or ring.", lambda q=q: self.act_shop_go(q))
+        book = next((it for it in self.inventory if 'spellbook' in it['text']), None)
+        if book and not near and not self.run.get('debt') and any('for sale' in i for i in self.here_items()) and s.get('dlvl') not in self.run.setdefault('book_tried', set()):
+            opts['sell_book'] = (f"Sell {book['text']}", 'A Valkyrie does not cast spells: a spellbook is only worth its sale price. Drop it here and accept the offer.', lambda it=book: self.act_sell(it))
         if not near and any('for sale' in i for i in self.here_items()):  # user: drop what you hold to hear the sell offer, say no, pick it back up
             for it in self.inventory:
                 look = appearance(it['text'])
@@ -2689,6 +2695,22 @@ class Bot:
             tested |= adj
             return self.act_keys('s', 'searched for shop mimics')
         return self.act_go(q, steps=1)
+
+    def act_sell(self, it):
+        # ponytail: one try per level; a second shop on the level that buys books is skipped
+        self.run.setdefault('book_tried', set()).add(self.snap.status.get('dlvl'))
+        self.t.send('d' + it['letter'])
+        for _ in range(4):
+            kind, _ = top_prompt(self.t.lines())
+            if kind in ('yn', 'ask'):
+                self.t.send('y')
+            elif kind == 'more':
+                self.t.send('\r')
+            else:
+                break
+        self.observe()
+        self.read_inventory()
+        return 'sold it' if not any(i['letter'] == it['letter'] and 'spellbook' in i['text'] for i in self.inventory) else 'the shopkeeper did not buy it'
 
     def act_quote(self, it):
         """shk.c sellobj: the offer is recorded for price_quotes even when refused; a refused item stays ours ('no charge')."""
