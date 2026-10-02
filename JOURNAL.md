@@ -2857,3 +2857,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** Killer bees in Sokoban took the Valkyrie to 3/47 HP. The bot then spent about 150 turns on Elbereth. For part of that time it stood on the down stairs, and it engraved Elbereth there.
 - **Prevention:** The user said: do not engrave Elbereth on stairs. Fight from the stairs and kill one target. When you need HP, go down the stairs and rest, then come back and fight again. Only adjacent monsters follow you on the stairs, so they come one at a time.
 - **Fix:** On stairs with a hostile next to it, the bot gets no Elbereth option. At 40% HP or more, it fights. Below 40% HP, or with no attack option, it takes the stairs. On the other side, it rests on the stairs until it has 85% HP, and then it goes back. If a monster comes near, the normal fight rules apply.
+
+## T5480-T5510 acid blob blocks the way to Sokoban
+
+- **Cause:** An acid blob sat in the corridor to the Sokoban up stairs. Each walk stopped after one step with "a monster came into view" or "no path". The bot changed between "Go up into Sokoban" and "explore" more than 40 times. The bot never attacked the blob, because the blocker rule ran only when no exploration was left.
+- **Prevention:** A slow passive monster in the way is weak. Kill it and continue.
+- **Fix:** If 5 of the last 8 walks stopped this way and a passive monster (not a floating eye, not a gas spore) is next to the bot, the only option is to kill it. The bot must have 50% HP or more, with no active hostile within 3 squares.
