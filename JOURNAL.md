@@ -2341,3 +2341,8 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 ## T12125 scorpion, while praying, Dlvl 10
 - Cause: a scorpion stood next to Jev in a dead-end corridor. monmove.c: a scared monster with no square to flee to sets `panicattk` and attacks anyway, so Elbereth did not stop it. Jev alternated "engrave" and "attack". Each attack erased the engraving, and each engraving gave the scorpion free stings (33 -> 16 -> 6 HP). Then Jev prayed 310 turns after the last prayer (too soon) and died.
 - Fix: do not offer Elbereth when an adjacent hostile is boxed in (floating eyes excepted). Jev fights or retreats instead.
+
+## T4379 giant mimic, Dlvl 4
+- A giant mimic in a shop stuck to the bot ("You cannot escape from the giant mimic!"). The "walk away from the slow monster" rule replaced all options with 'retreat'. The bot tried to retreat 6 times and did not move, 62 -> 0 HP.
+- monmove.c: monflee() calls release_hero(), so a mimic that Elbereth scares lets go.
+- Fix: while held, the slow-monster rule does not apply, and no retreat or flee option is offered. Elbereth and attack stay.
