@@ -5,6 +5,10 @@
 #   scripts/play.sh Jev 8770 http://127.0.0.1:8781/v1/systemone Jeff-Qwen3.5-0.8B    # "use X": continue Jev's game on X
 # NAME is the NetHack player name, so each instance keeps its own save file; a restart resumes it.
 cd "$(dirname "$0")/.." || exit 1
+
+# Load .env if present
+[ -f .env ] && . .env
+
 NAME=$1 PORT=$2
 [ -n "$NAME" ] && [ -n "$PORT" ] || { sed -n 2,6p "$0"; exit 1; }
 LOG=runs/server.log; [ "$NAME" = Jev ] || { mkdir -p "runs/$NAME"; LOG=runs/$NAME/server.log; }
