@@ -2682,3 +2682,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A yellow light came next to Jev. The bot put on the blindfold. Blindfolded, Jev could not see the light, so the bot took the blindfold off one turn later. The light came back. That turn, the inventory read came back empty, so the bot did not find the blindfold and forced an attack. The attack missed, and the light exploded and blinded Jev. Blind, Jev fought an unseen zombie from 56 to 14 HP. Then it drank two unknown potions. The second froze it, and the zombie killed it.
 - Prevention: Keep the blindfold on while a yellow light can be near. You cannot see the light while you are blind.
 - Fix: The blindfold stays on for at least 30 turns. An empty inventory read keeps the last known inventory.
+
+## T5540 panther, Dlvl 8 (Oracle)
+
+- Cause: A housecat and a panther came near, so the bot chose "fight from a corridor". The walk to the corridor does not stop when new monsters come into view. It went 11 steps to the doorway, and two Woodland-elves came out of that corridor. Jev fought two elves, the housecat and the panther together. It drank four potions of healing, but each heal was less than one turn of damage. The prayer had been used 53 turns before, for hunger.
+- Prevention: Before you walk to a corridor, look at what comes from that corridor. Stop when a new kind of monster appears.
+- Fix: Every walk stops when a monster with a new glyph comes within 7 squares. The corridor walk still ignores more monsters of a kind that is already in view.

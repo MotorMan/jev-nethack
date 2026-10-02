@@ -1993,7 +1993,7 @@ class Bot:
                 return f'lost sight of yourself after {taken} steps'
             # monsters move, so compare counts rather than positions
             near = [q for q in self.hostile_glyphs() if cheb(q, snap.me) <= 7]  # by count alone, Izchak and a watchman leaving view hid a rope golem and a nymph arriving: walked into both, choked (T5445)
-            if stop_new and near and (len(self.hostile_glyphs()) > n_seen or any(snap.at(*q).ch not in chs for q in near)):
+            if near and (stop_new and len(self.hostile_glyphs()) > n_seen or any(snap.at(*q).ch not in chs for q in near)):  # a new kind stops even the choke walk: it went 11 steps into 2 Woodland-elves, then a panther, dead (T5540)
                 return f'stopped after {taken} steps: a monster came into view'
             if any(re.search(r'You (see|feel) here|There are (several|many) objects|trap|You fall|stairs', m) for m in news):
                 return f'stopped after {taken} steps: {news[-1]}'
