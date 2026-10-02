@@ -2863,3 +2863,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** An acid blob sat in the corridor to the Sokoban up stairs. Each walk stopped after one step with "a monster came into view" or "no path". The bot changed between "Go up into Sokoban" and "explore" more than 40 times. The bot never attacked the blob, because the blocker rule ran only when no exploration was left.
 - **Prevention:** A slow passive monster in the way is weak. Kill it and continue.
 - **Fix:** If 5 of the last 8 walks stopped this way and a passive monster (not a floating eye, not a gas spore) is next to the bot, the only option is to kill it. The bot must have 50% HP or more, with no active hostile within 3 squares.
+
+## T5608-T5619: stair hop to a square beside the stairs
+
+- **Cause:** Jev went down the stairs to rest, and a homunculus followed. The homunculus took the up stairs. In 5.0, `u_collide_m` (`do.c`) then moves the hero to a square next to the stairs half of the time. The bot recorded `<` under the hero anyway. Each `stair_hop` then gave "You can't go up here", and Jev waited on Elbereth at 20/57 HP.
+- **Prevention:** After a level change, make sure that the arrival stairs are under the hero before you trust them.
+- **Fix:** `act_keys` does not record the arrival stairs when that stair glyph shows on a square next to the hero. A "You can't go up/down here" message removes the stair memory for that square.

@@ -1986,7 +1986,11 @@ class Bot:
         self.t.send(keys)
         self.after_move(before)
         if keys in ('<', '>') and self.snap.status.get('dlvl') != before.status.get('dlvl') and self.snap.me:  # arrived on Dlvl 7 by '>' into fire ants: standing_on() was None, so no 'upstairs' was offered, attacked 71 -> 0 (T8343)
-            self.run['under'][(self.snap.status.get('dlvl'), self.snap.me)] = '<' if keys == '>' else '>'
+            g, (x, y) = '<' if keys == '>' else '>', self.snap.me
+            if not any(self.snap.at(x + dx, y + dy) and self.snap.at(x + dx, y + dy).ch == g for dx in (-1, 0, 1) for dy in (-1, 0, 1) if dx or dy):  # 5.0 u_collide_m: a homunculus followed onto the '<', the hero landed beside it, 'stair_hop' then said "You can't go up here" and Jev waited on Elbereth at 20/57 HP (T5608-5619)
+                self.run['under'][(self.snap.status.get('dlvl'), self.snap.me)] = g
+        if keys in ('<', '>') and re.search(r"can't go (up|down) here", ' '.join(self.run['recent'][-2:])):
+            self.run['under'].pop((self.snap.status.get('dlvl'), self.snap.me), None)
         if keys[:1] == 'z' and keys[1:2] in inv and any(re.search(r'(?<!Unfortunately, n)Nothing happens|Are you waiting to get hit', m) for m in self.run['recent'][-3:]):  # 'z E .' in one send: '.' (rest) prints over 'Nothing happens', 3 more empty zaps beside a winter wolf cub, dead (T7978)
             self.run.setdefault('empty_wands', set()).add(inv[keys[1]])  # zap.c dozap: !zappable -> "Nothing happens": 5 zaps of an empty wand of teleportation beside a jaguar, dead (T7489)
         return what
