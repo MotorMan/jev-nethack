@@ -1911,6 +1911,8 @@ class Bot:
         inv = {i['letter']: i['text'] for i in self.inventory}
         self.t.send(keys)
         self.after_move(before)
+        if keys in ('<', '>') and self.snap.status.get('dlvl') != before.status.get('dlvl') and self.snap.me:  # arrived on Dlvl 7 by '>' into fire ants: standing_on() was None, so no 'upstairs' was offered, attacked 71 -> 0 (T8343)
+            self.run['under'][(self.snap.status.get('dlvl'), self.snap.me)] = '<' if keys == '>' else '>'
         if keys[:1] == 'z' and keys[1:2] in inv and any(re.search(r'(?<!Unfortunately, n)Nothing happens|Are you waiting to get hit', m) for m in self.run['recent'][-3:]):  # 'z E .' in one send: '.' (rest) prints over 'Nothing happens', 3 more empty zaps beside a winter wolf cub, dead (T7978)
             self.run.setdefault('empty_wands', set()).add(inv[keys[1]])  # zap.c dozap: !zappable -> "Nothing happens": 5 zaps of an empty wand of teleportation beside a jaguar, dead (T7489)
         return what

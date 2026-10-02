@@ -2700,3 +2700,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev stood on Elbereth at 80/80 HP, and a soldier ant fled from it. The bot offered "throw" together with "stay on Elbereth". Jev threw a dart and then a dagger, and both missed. In 5.0, a throw wipes 2 characters of a dust engraving (dothrow.c `u_wipe_engr(2)`). The ant came back, and two new engravings were garbled. HP went from 80 to 22. An unknown wand was create monster. Jev then prayed 241 turns after the last prayer, and the ant killed it during the prayer.
 - Prevention: Do not throw or attack from Elbereth while it protects you.
 - Fix: When the bot offers "stay on Elbereth", it removes the throw options.
+
+## T8343: fire ants on arrival at Dlvl 7
+
+- **Cause:** Jev went down the stairs into a group: 2 fire ants, an orc zombie, an Uruk-hai and a dwarf. The bot did not record the up staircase under the arrival square. `standing_on()` gave None, so the bot did not offer "Flee up the stairs". Jev attacked from 71 HP to 0.
+- **Prevention:** When a level is dangerous on arrival, go back up the stairs at once. Only adjacent monsters follow.
+- **Fix:** `act_keys` records `<` under the hero after a descent by `>`, and `>` after a climb by `<`.
