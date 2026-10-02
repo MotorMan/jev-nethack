@@ -1597,10 +1597,10 @@ class Bot:
             n = int((re.search(r'(\d+) steps', opts[k][1]) or [0, 0])[1])
             cost = 0
             for m in hostiles:
-                lv = MONSTERS.get(self.species(m)) or [0, 18, 0, '', '1d12']  # unknown (or hallucinated): assume fast
-                v, d = (18 if hallu else lv[1]), m['dist']
+                ml = MONSTERS.get(self.species(m)) or [0, 18, 0, '', '1d12']  # unknown (or hallucinated): assume fast
+                v, d = (18 if hallu else ml[1]), m['dist']
                 rounds = n * (v - spd) / spd - (d - 1) if v > spd else n / 8 if v == spd and d <= 1 else 0
-                cost += max(0, rounds) * sum(int(x) * (int(y) + 1) / 2 for x, y in re.findall(r'(\d+)d(\d+)', lv[4]))
+                cost += max(0, rounds) * sum(int(x) * (int(y) + 1) / 2 for x, y in re.findall(r'(\d+)d(\d+)', ml[4]))
             if n > 1 and cost >= 0.5 * hp and len(opts) > 1:
                 opts.pop(k)
             elif n > 1 and cost >= 1:
