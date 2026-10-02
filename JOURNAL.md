@@ -2133,3 +2133,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: a plains centaur (speed 18, weapon+kick) kept hitting and running. At 15/47, on a fresh Elbereth the centaur fled from, the only options were explore_*. Its square (3 steps NE, across a wall corner) wasn't in the path map, so it didn't count as 'near', and the stay-on-Elbereth wait wasn't offered. Jev explored off and died. It had prayed at T7835 (1 HP).
 - Wiki (Plains centaur): fast; Elbereth works on it; don't let it get free hits while you wander.
 - Fix: hostiles with speed ≥ 15 within 6 count as near even when their square isn't reachable, so Elbereth waits, retreat and flee_up apply to them.
+
+## Black unicorn in Sokoban (run 173635, Dlvl 5, XL5, T3549)
+- Cause: a hostile black unicorn in Sokoban. Jev waited ~20 turns near it, then walked toward it for a boulder push. Sokoban levels block teleporting ("A mysterious force prevents the black unicorn from teleporting!"), so the cornered unicorn (speed 24, butt 1d12 + kick 1d6) fought: 46 -> 27 in one turn. Elbereth garbled, 4 potions, and prayer was spent at T3472.
+- Wiki (Unicorn): it keeps out of line with you and flees; cornered, it is one of the deadliest early melee monsters. Don't chase or corner it.
+- Fix: in Sokoban, a hostile unicorn 2-6 squares away → leave by '>' (only pray/quaff stay open) and don't re-enter Sokoban for 300 turns.

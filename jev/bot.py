@@ -1154,7 +1154,13 @@ class Bot:
             elif ups and not near and not self.run.get('soko_done'):  # gave up on the level above: soko_up/descend ping-ponged 1400 times, 13000 turns (T20758)
                 opts = {k2: v for k2, v in opts.items() if k2 == 'pray' or k2.startswith('eat_')}
                 opts['soko_up'] = ('Sokoban: climb to the next puzzle level', 'This level is solved. The next Sokoban level is up these stairs.', lambda p=ups[0]: self.act_descend(p, '<'))
-        elif not m and len(ups) >= 2 and not self.run.get('soko_done') and not near and hp >= 0.7 * hpmax:
+        uni = [u for u in hostiles if 'unicorn' in u['name'] and 1 < u['dist'] <= 6]
+        dn = [p for p in snap.find('>') if p in dist]
+        if m and uni and dn:  # Sokoban is no-teleport: a black unicorn there gets cornered and fights (speed 24, 1d12+1d6): 46 -> 0 beside a boulder push (T3549)
+            self.run['unicorn_left'] = s.get('turn') or 0
+            opts = {k2: v for k2, v in opts.items() if k2 == 'pray' or k2.startswith('quaff_')}
+            opts['leave_unicorn'] = ('Leave Sokoban for now', f"A hostile {uni[0]['name']} is {uni[0]['dist']} steps away. In Sokoban it cannot teleport off, so it fights when cornered: go back down and return later.", lambda p=dn[0]: self.act_descend(p))
+        elif not m and len(ups) >= 2 and not self.run.get('soko_done') and not near and hp >= 0.7 * hpmax and (s.get('turn') or 0) - self.run.get('unicorn_left', -999) > 300:
             p = max(ups, key=lambda u: cheb(u, lv.arrival or me))
             opts = {k2: v for k2, v in opts.items() if k2 == 'pray' or k2.startswith('eat_')}
             opts['enter_sokoban'] = ('Go up into Sokoban', f"This level has a second up staircase ({dist[p]} steps {compass(me, p)}): it leads to Sokoban, four puzzle levels with a known solution, safe food, rings, wands and a bag of holding or amulet of reflection at the top.", lambda p=p: self.act_descend(p, '<'))
