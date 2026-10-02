@@ -1617,7 +1617,8 @@ class Bot:
                 if q is not None and tries.get(trap, 0) < 15:
                     opts = {'untrap_darts': (f"Disarm the dart trap {compass(me, trap)} for darts", f"You carry {darts} darts. Stand beside the dart trap and #untrap it: success leaves a stack of darts to throw.", lambda trap=trap, q=q: self.act_untrap_darts(trap, q))}
                     break
-        if 'fetch_gold' in opts and not any(not m['passive'] for m in hostiles) and s.get('hp', 1) >= 0.5 * s.get('hpmax', 1) and s.get('hunger') not in ('Weak', 'Fainting'):
+        # 0.75 while rest is on offer: forced to the gold at 10/18 (XL1) after a rolling boulder, a second trap on the way, dead (T363)
+        if 'fetch_gold' in opts and not any(not m['passive'] for m in hostiles) and s.get('hp', 1) >= (0.75 if 'rest' in opts else 0.5) * s.get('hpmax', 1) and s.get('hunger') not in ('Weak', 'Fainting'):
             opts = {'fetch_gold': opts['fetch_gold']}  # operator: gold buys priest protection, then 2000-4000 for shops; offered 45 times, taken 14, games ended at 16-160 gold
         rid = next((k for k, v in opts.items() if k.startswith('read_') and 'identify' in v[0]), None)  # operator: read identify as soon as anything major is unknown
         if rid and not hostiles and any(re.search(r'\b(wand|ring|amulet)\b(?! of| mail)|scrolls? labeled|potions?\b(?! of)', it['text']) and not re.search(r'\bcalled\b|\bnamed\b', it['text']) for it in self.inventory if it['letter'] != rid[5:]):

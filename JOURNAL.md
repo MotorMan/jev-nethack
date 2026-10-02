@@ -2403,3 +2403,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Jev waited on Elbereth at 22/53 HP. A soldier ant (speed 18) fled out of view. After 10 turns with no monster in view, the Elbereth wait stopped, and Jev chose a 15-turn rest. The ant came back and took 22 -> 11 in one turn. An engraving try was interrupted, and the ant killed Jev.
 - Prevention: A fast monster comes back faster than HP comes back. Stay on Elbereth until HP is high, also when the fast monster is out of view.
 - Fix: `jev/bot.py` sets `scary_turn` for a monster with speed 15 or more that is not weaker than Jev. The Elbereth wait then continues for 20 turns after the monster goes out of view.
+
+## T363 boulder, Dlvl 2
+
+- Cause: At XL 1, a rolling boulder trap took Jev from 18 to 6 HP. Jev rested to 10/18. Then the gold rule made "fetch the gold" the only option, because HP was more than half. On the way, a second rolling boulder trap killed Jev.
+- Prevention: With a low maximum HP, one trap or one hit can kill. Rest to 3/4 HP before you walk for an item that is not necessary.
+- Fix: `jev/bot.py` forces `fetch_gold` only at 3/4 HP or more when `rest` is on offer.
