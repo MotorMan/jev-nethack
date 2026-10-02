@@ -792,7 +792,9 @@ class Bot:
         hugger = (s.get('turn') or 0) - self.run.get('held', -99) > 2 and hp < 0.75 * hpmax and any(m['dist'] <= 3 and HUGGERS.search(m['name']) for m in hostiles)
         # a fire ant (speed 18, stronger) at XL4: fought 42 -> 24, then 2 garbled Elbereths, 24 -> 2, dead praying (T4204): engrave while there are HP for retries
         fastbig = hp < 0.8 * hpmax and any(m['dist'] <= 2 and 'stronger' in self.threat(m) and (MONSTERS.get(self.species(m)) or [0, 0])[1] >= 15 for m in hostiles)
-        if (near and hp < 0.45 * hpmax or fastbig or hugger or dread or pack and open_n(me) > 2 and 'choke' not in opts and hp < 0.6 * hpmax or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (boxed and not walled and len(near) <= len(boxed)) and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
+        # Elbereth was offered only below 45% HP, so the no-melee-beside-a-were rule below had nothing else: bit at 41/45, feverish, a too-soon prayer, fainted (T2761)
+        were = not self.run.get('lycanthropy') and any(m['dist'] <= 1 and 'were' in m['name'] and m['ch'] != '@' for m in hostiles)
+        if (near and hp < 0.45 * hpmax or were or fastbig or hugger or dread or pack and open_n(me) > 2 and 'choke' not in opts and hp < 0.6 * hpmax or walled or self.unseen_attacker() or 'Blind' in s.get('conditions', []) and hp < 0.7 * hpmax) and not self.engraved_here() and not (boxed and not walled and len(near) <= len(boxed)) and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & ({'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} | (set() if big_hit else {'Hallu', 'Hal', 'Hl'})) \
                 and sum(h['choice'] == 'elbereth' and 'interrupted' in h['outcome'] for h in self.history[-4:]) < 2 \
                 and (s.get('turn') or 0) - self.run.get('no_engrave', -99) > 5 \

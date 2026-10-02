@@ -2657,3 +2657,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Prevention: A monster that zaps or shoots at you must be killed. Elbereth does not stop it. A stolen item costs less than death.
 - Fix: The bot can close in on a nymph if she is the monster that shot at Jev.
 - Second fault: The bot offered "break the wand of speed monster" at Str 9. In 5.0 (apply.c `do_break_wand`), you need Str 10 to break a wand. The action failed 30 times and no turn passed. The offer now requires Str 10.
+
+## T2761 kitten while fainted, Dlvl 4 (lycanthropy)
+
+- Cause: A wererat in rat form fought Jev at 41/45 HP. The bot offered Elbereth only below 45% HP. The rule "do not melee an animal-form were" removes attacks only when Elbereth is an option, so the bot offered only "attack". The wererat bit Jev, and Jev got lycanthropy on T1978. Jev prayed for the cure 509 turns after the last prayer. That was too soon: "Tyr is displeased" (pray.c `p_type 0`: Luck -3, longer timeout, angry god). Without prayer and without food, Jev fainted and a kitten killed it.
+- Prevention: Do not melee a were-creature in animal form. Elbereth scares it.
+- Fix: The bot offers Elbereth when a were-creature in animal form is adjacent, at any HP.
