@@ -2881,3 +2881,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** Jev used its prayer at T7228 against Uruk-hai. At T7242, a gray unicorn came next to Jev in a corridor. Melee was the only option, and the unicorn label said "weaker than you". The unicorn butts and kicks twice a turn (speed 24). HP went from 45 to 13 in 3 turns. With no prayer, Jev could not recover past 22 HP. A werewolf and a lizard then killed it.
 - **Prevention:** Below XL 10, do not melee a unicorn. A unicorn does not move next to you on its own (monmove.c NOTONL). Step away, or engrave Elbereth, and let it go. In 5.0, a thrown rock is an attack on a unicorn (dothrow.c), so rocks do not make it peaceful.
 - **Fix:** An adjacent hostile unicorn below XL 10 now offers Elbereth and removes the attack options. The three unicorns in `jev/monsters.json` have danger 2 and a tip.
+
+## Daggers and knives as missiles
+
+- **Cause:** The pickup filter treated knives as random weapons, and it stopped at 3 daggers. A Valkyrie with no darts then had nothing to throw.
+- **Prevention:** The user rule: if you have no darts, pick up daggers and knives to throw.
+- **Fix:** With no darts in the pack, the bot offers to pick up daggers and knives, up to 10 in total. With darts, the old limit of 3 daggers stays.

@@ -1042,9 +1042,11 @@ class Bot:
                 opts[f'buy_{i}'] = (f"Buy {item}", f"Pick up {item} and pay {price[1]} of your {s.get('gold')} gold. " + (why or 'Packed food prevents fainting from hunger.'), lambda item=item: (self.act_pickup(item), self.act_pay())[1])
                 continue
             armed = any(WEAPON.search(it['text']) for it in self.inventory)  # a nymph took the spear; the filter left 2 scimitars on the floor, bare-handed vs hill orcs, dead (T2578)
-            daggers = sum(int(n[1]) if (n := re.match(r'(\d+) ', it['text'])) else 1 for it in self.inventory if 'dagger' in it['text'])
+            daggers = sum(int(n[1]) if (n := re.match(r'(\d+) ', it['text'])) else 1 for it in self.inventory if re.search(r'dagger|knife|knives', it['text']))
+            darts = any(re.search(r'\bdarts?\b', it['text']) for it in self.inventory)
             # user: no gems (not playing for score; a gray stone can be a loadstone), no random weapons: the spear stays until Mjollnir; 2-3 daggers pry boxes and get thrown
-            if re.search(r'\b(gems?|stones?|rocks?|glass)\b', item) and 'luckstone' not in item or WEAPON.search(item) and armed and not re.search(r'dagger|pick-axe|Mjollnir|Excalibur', item) or 'dagger' in item and daggers >= 3:
+            # user: with no darts, pick up daggers and knives to throw (up to 10)
+            if re.search(r'\b(gems?|stones?|rocks?|glass)\b', item) and 'luckstone' not in item or WEAPON.search(item) and armed and not re.search(r'dagger|pick-axe|Mjollnir|Excalibur' + ('' if darts else r'|knife|knives'), item) or re.search(r'dagger|knife|knives', item) and daggers >= (3 if darts else 10):
                 continue
             if shop or 'for sale' in item or 'corpse' in item and not ('lichen' in item or 'lizard' in item and not any('lizard' in it['text'] for it in self.inventory)) or HEAVY.search(item) or item in self.run.get('heavy', ()):
                 continue
