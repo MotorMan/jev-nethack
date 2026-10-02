@@ -420,8 +420,10 @@ function DecisionPanel({ s }: { s: State }) {
         </TabsContent>
         <TabsContent value="request" className="space-y-2">
           {!io ? <div className="text-sm text-muted-foreground">no request sent yet</div> : <>
-            {io.request.state !== d.state_text && <div className="text-xs text-muted-foreground">
-              {d.pending ? "waiting for Jev; showing the previous call" : "this decision had one option, so Jev was not asked; showing the previous call"}</div>}
+            {/* always one line of text, so the JSON boxes below never shift */}
+            <div className="text-xs text-muted-foreground truncate">
+              {io.request.state === d.state_text ? "the call for this decision"
+                : d.pending ? "waiting for Jev; showing the previous call" : "one option, Jev not asked; showing the previous call"}</div>
             <Label>request</Label>
             <Json v={io.request} wrap={wrap} />
             <Label>response</Label>
