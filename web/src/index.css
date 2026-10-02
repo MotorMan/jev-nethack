@@ -195,17 +195,6 @@
   border-color: hsl(var(--smui-border-hover));
 }
 
-/* Skeleton shimmer */
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-.skeleton {
-  background: linear-gradient(90deg, hsl(var(--smui-surface-2)) 25%, hsl(var(--smui-surface-3)) 50%, hsl(var(--smui-surface-2)) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
 /* Typing cursor blink */
 @keyframes blink {
   0%, 100% { opacity: 1; }
@@ -232,10 +221,8 @@
 }
 .pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
 
-/* new message/log rows fade in quickly; per-decision panels deliberately don't animate (flickery) */
-@keyframes fade-in { from { opacity: 0; } }
-.fade-in { animation: fade-in 120ms ease-out; }
-@media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } }
+/* no transitions or animations anywhere: live updates every decision made them flicker */
+*, *::before, *::after { transition: none !important; animation: none !important; }
 
 /* scrollbars in theme colors (Firefox / standard, then WebKit) */
 * { scrollbar-width: thin; scrollbar-color: hsl(var(--smui-surface-3)) transparent; }
@@ -244,13 +231,9 @@
 ::-webkit-scrollbar-thumb { background: hsl(var(--smui-surface-3)); }
 ::-webkit-scrollbar-thumb:hover { background: hsl(var(--smui-border-hover)); }
 
-/* optional CRT mode (header toggle): original font, glow, scanlines */
-html.crt {
-  --font-narrow: 'JetBrains Mono', monospace;
-  --ch: 0.6;
-}
-.crt .term pre { text-shadow: 0 0 4px color-mix(in srgb, currentColor 40%, transparent); }
-.crt .term::after {
+/* CRT look: glow + scanline overlay (neither affects layout, so 80 cols still fit) */
+.term pre { text-shadow: 0 0 4px color-mix(in srgb, currentColor 40%, transparent); }
+.term::after {
   content: "";
   pointer-events: none;
   position: absolute;

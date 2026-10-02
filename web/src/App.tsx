@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react"
 import {
   Activity, ChevronRight, Cpu, Footprints, Map as MapIcon, Moon, Package, Pause, Play, RotateCcw,
-  Send, StepForward, Sun, Swords, Tv, Wifi, WifiOff,
+  Send, StepForward, Sun, Swords, Wifi, WifiOff,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -62,11 +62,6 @@ const tps = (turns: number | undefined, started?: string, ended?: string | null)
   return turns && secs > 0 ? (turns / secs).toFixed(2) : "--"
 }
 const hhmmss = (iso: string) => new Date(iso).toLocaleTimeString([], { hour12: false })
-// stable React keys for append-only feeds (dupes numbered oldest-first) so only new rows mount and fade in
-function keyed<T>(xs: T[], f: (x: T) => string): [T, string][] {
-  const seen: Record<string, number> = {}
-  return xs.map((x) => { const k = f(x); seen[k] = (seen[k] ?? 0) + 1; return [x, `${k}#${seen[k]}`] })
-}
 const fracTone = (f: number): Tone => (f > 0.66 ? "green" : f > 0.4 ? "yellow" : f > 0.2 ? "orange" : "red")
 
 function Dot({ t, pulse }: { t: Tone; pulse?: boolean }) {
@@ -135,11 +130,6 @@ function Header({ s, conn }: { s: State; conn: Conn }) {
   const delay = drag ?? s.delay_ms
   const [dark, setDark] = useState(true)
   useEffect(() => { document.documentElement.classList.toggle("dark", dark) }, [dark])
-  const [crt, setCrt] = useState(() => { try { return localStorage.getItem("crt") === "1" } catch { return false } })
-  useEffect(() => {
-    document.documentElement.classList.toggle("crt", crt)
-    try { localStorage.setItem("crt", crt ? "1" : "0") } catch { /* storage blocked */ }
-  }, [crt])
 
   const connTone: Tone = conn === "live" ? "green" : conn === "offline" ? "red" : conn === "demo" ? "purple" : "yellow"
   const connText = conn === "offline" ? "offline // sample data" : conn
@@ -184,12 +174,6 @@ function Header({ s, conn }: { s: State; conn: Conn }) {
               onValueCommit={([v]) => { setDrag(null); control({ action: "speed", delay_ms: v }) }}
             />
           </div>
-          <Button
-            size="icon" variant="ghost" className={cn("size-8", crt && "text-primary")}
-            onClick={() => setCrt(!crt)} aria-label="toggle CRT mode" title="CRT mode"
-          >
-            <Tv />
-          </Button>
           <Button size="icon" variant="ghost" className="size-8" onClick={() => setDark(!dark)} aria-label="toggle theme">
             {dark ? <Sun /> : <Moon />}
           </Button>
@@ -323,7 +307,7 @@ function DecisionPanel({ s }: { s: State }) {
                 </div>
                 <div className="h-2 bg-background border border-border relative overflow-hidden">
                   {d.pending || o.p == null
-                    ? <div className="skeleton absolute inset-0" />
+                    ? <div className="absolute inset-0 bg-[hsl(var(--smui-surface-2))]" />
                     : <div
                         className={cn("h-full", chosen ? "bg-primary" : "bg-[hsl(var(--smui-frost-4))]")}
                         style={{ width: `${o.p * 100}%` }}
@@ -435,8 +419,8 @@ function Feeds({ s }: { s: State }) {
         </TabsList>
         <TabsContent value="messages" className="p-0 min-h-0 overflow-auto">
           <div className="p-2 space-y-0.5">
-            {keyed(s.messages, (m) => `${m.turn}:${m.text}`).reverse().map(([m, k], i) => (
-              <div key={k} className={cn("fade-in text-ui flex gap-3", i === 0 ? "text-foreground" : "text-muted-foreground")}>
+            {[...s.messages].reverse().map((m, i) => (
+              <div key={i} className={cn("text-ui flex gap-3", i === 0 ? "text-foreground" : "text-muted-foreground")}>
                 <span className="text-label text-muted-foreground tabular-nums w-12 shrink-0 pt-px">T:{m.turn}</span>
                 <span>{m.text}</span>
               </div>
@@ -445,8 +429,8 @@ function Feeds({ s }: { s: State }) {
         </TabsContent>
         <TabsContent value="log" className="p-0 min-h-0 overflow-auto">
           <div className="p-2 space-y-0.5">
-            {keyed(s.log, (l) => l.at + l.text).reverse().map(([l, k]) => (
-              <div key={k} className="fade-in text-ui flex gap-3">
+            {[...s.log].reverse().map((l, i) => (
+              <div key={i} className="text-ui flex gap-3">
                 <span className="text-label text-muted-foreground tabular-nums shrink-0 pt-px">{hhmmss(l.at)}</span>
                 <span className="text-label uppercase w-10 shrink-0 pt-px" style={{ color: tone(lvl[l.level] ?? "muted") }}>{l.level}</span>
                 <span className="text-muted-foreground break-words min-w-0">{l.text}</span>
