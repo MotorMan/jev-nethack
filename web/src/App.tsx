@@ -672,9 +672,35 @@ function Inventory({ s }: { s: State }) {
   )
 }
 
+// max Dlvl of each finished game (restarts of one game share the death), with a 10-game moving average to show the trend
+function DlvlTrend({ runs }: { runs: State["runs"] }) {
+  const g = runs.filter((r) => r.death)
+  if (g.length < 2) return null
+  const W = 300, H = 40, top = Math.max(...g.map((r) => r.max_dlvl)), bw = W / g.length
+  const y = (d: number) => H - (d / top) * (H - 2)
+  const avg = g.map((_, i) => { const w = g.slice(Math.max(0, i - 9), i + 1); return w.reduce((a, r) => a + r.max_dlvl, 0) / w.length })
+  return (
+    <div className="px-2 pt-1">
+      <div className="flex justify-between mb-0.5">
+        <Tip tip="max dungeon level of each finished game, oldest on the left"><Label className="flex items-center gap-1.5"><span className="inline-block w-2 h-2 bg-primary/70" /> max dlvl ({g.length} games, best {top})</Label></Tip>
+        <Tip tip="average max dlvl of the last 10 games: a rising line means the bot improves"><Label className="flex items-center gap-1.5"><span className="inline-block w-3 h-px bg-[hsl(var(--smui-yellow))]" /> 10-game avg {avg[avg.length - 1].toFixed(1)}</Label></Tip>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-10 bg-background border border-border">
+        {g.map((r, i) => (
+          <rect key={r.id} x={i * bw} width={Math.max(bw - 0.3, 0.3)} y={y(r.max_dlvl)} height={H - y(r.max_dlvl)} fill={tone("frost-2")} opacity={0.6}>
+            <title>{`${r.id} Dlvl ${r.max_dlvl} T:${r.turns} ${r.death}`}</title>
+          </rect>
+        ))}
+        <polyline points={avg.map((a, i) => `${(i + 0.5) * bw},${y(a)}`).join(" ")} fill="none" stroke={tone("yellow")} strokeWidth={1.25} vectorEffect="non-scaling-stroke" />
+      </svg>
+    </div>
+  )
+}
+
 function Runs({ s }: { s: State }) {
   return (
       <div>
+        <DlvlTrend runs={s.runs} />
         <Table>
           <TableHeader>
             <TableRow>
