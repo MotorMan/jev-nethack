@@ -859,13 +859,15 @@ class Bot:
         # user: treat sleep biters as dangerous at any HP, like weres and floating eyes. mhitu.c AD_SLEE: 1 hit in 5 sleeps you for up to 10 turns of free bites: a homunculus took 34 -> 19 in one sleep, Elbereth came only below 45%, slept again at 14, dead (T1953)
         sleeper = not self.run.get('sleep_res') and any(m['dist'] <= 2 and 'sleep' in (MONSTERS.get(self.species(m)) or [0, 0, 0, '', ''])[4] for m in hostiles)
         # user: "I HARDLY EVER USE ELBERETH ... it's typically better to fight". 15-40 engravings and 50-200 forced waits a game (kev-4b, 10 games): emergencies only, below a third HP
-        if (near and hp < hpmax / 3 or were or hugger or sleeper or dread or walled or self.unseen_attacker() and hp < 0.5 * hpmax) and not self.engraved_here() and not (boxed and not walled and len(near) <= len(boxed)) and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
+        # wiki/monmove.c NOTONL: a unicorn only stays in melee while it is next to you, and it butts and kicks twice a turn (speed 24): meleed a gray unicorn 45 -> 13 in 3 turns, prayer used, a werewolf finished Jev (T7245)
+        unicorn = (s.get('xl') or 1) < 10 and any(m['dist'] <= 1 and 'unicorn' in m['name'] for m in hostiles)
+        if (near and hp < hpmax / 3 or were or hugger or unicorn or sleeper or dread or walled or self.unseen_attacker() and hp < 0.5 * hpmax) and not self.engraved_here() and not (boxed and not walled and len(near) <= len(boxed)) and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & ({'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} | (set() if big_hit else {'Hallu', 'Hal', 'Hl'})) \
                 and sum(h['choice'] == 'elbereth' and 'interrupted' in h['outcome'] for h in self.history[-4:]) < 2 \
                 and (s.get('turn') or 0) - self.run.get('no_engrave', -99) > 5 \
                 and not (any(m['dist'] == 1 and m['name'] in self.run.get('e_blockers', ()) for m in hostiles) and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5):  # count: unseen biters left adj_names empty, 16 interrupted engravings in a row while Hungry turned Weak, then Fainting (T5312)  # @ ignore it (monmove.c onscary: S_HUMAN); 2 Elbereths at 9/49 beside a Woodland-elf, a rock mole also near, dead (T2543); engrave.c scrambles writing
             opts['elbereth'] = ('Engrave Elbereth', 'Write Elbereth in the dust here with a finger (1 turn). Most monsters will not melee you while you stand on it; attacking from it erases it.' + (' The best move when badly hurt.' if danger else '') + (' Scared monsters flee, so this can drive off the ones boxing you in.' if walled else ''), self.act_elbereth)
-        if hugger and 'elbereth' in opts:
+        if (hugger or unicorn) and 'elbereth' in opts:
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_')) and k not in ('rest', 'wait')}
         if big_hit and {'elbereth', 'retreat', 'flee_up', 'upstairs'} & opts.keys():  # hallucinating, a 'shrieker' was a dwarf king: 35 -> 14 in a turn, threw a dart, dead (T4026)
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'throw_', 'approach_')) and k not in ('rest', 'wait')}

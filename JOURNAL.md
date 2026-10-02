@@ -2875,3 +2875,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The bot saw shops when it had no gold, and then it forgot them. It could not plan a return to a good shop.
 - **Prevention:** Record each shop as a level note: the shop type, the number of items and the items of interest. The items of interest come from the goals and the ascension kit in statico/nethack-tools `data/checklist.json`, plus keys, lock picks and pick-axes.
 - **Fix:** The welcome message gives the shop type. A flood fill from the shop door counts the items on the floor. Here-items in the shop that match `INTEREST`, and unknown scrolls (300 zm) or rings (200 zm or more) by price, become part of the note. `#annotate` writes the note into the ^O overview. The state text for Jev now has a "Level notes" line for all levels.
+
+## T7242-T7301: gray unicorn melee, then a werewolf (killed by a werewolf, Dlvl 7)
+
+- **Cause:** Jev used its prayer at T7228 against Uruk-hai. At T7242, a gray unicorn came next to Jev in a corridor. Melee was the only option, and the unicorn label said "weaker than you". The unicorn butts and kicks twice a turn (speed 24). HP went from 45 to 13 in 3 turns. With no prayer, Jev could not recover past 22 HP. A werewolf and a lizard then killed it.
+- **Prevention:** Below XL 10, do not melee a unicorn. A unicorn does not move next to you on its own (monmove.c NOTONL). Step away, or engrave Elbereth, and let it go. In 5.0, a thrown rock is an attack on a unicorn (dothrow.c), so rocks do not make it peaceful.
+- **Fix:** An adjacent hostile unicorn below XL 10 now offers Elbereth and removes the attack options. The three unicorns in `jev/monsters.json` have danger 2 and a tip.
