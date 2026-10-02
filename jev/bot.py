@@ -2213,7 +2213,7 @@ class Bot:
         burn = None
         if 'write with' in self.t.lines()[0]:  # engrave.c: burned (fire/lightning) or dug Elbereth has no typos and never smudges when you're hit; only attacking from it erases it
             burn = next((it for it in self.inventory if re.search(r'\bwand of (fire|digging)\b', it['text']) and not re.search(r':0\)', it['text'])), None)
-            self.t.send(burn['letter'] if burn else '-')
+            self.t.send(burn['letter'] if burn else ' ')
         for _ in range(6):
             top = self.t.lines()[0]
             if 'add to the current engraving' in top:
@@ -2799,11 +2799,10 @@ class Bot:
 
     # ---------- Jev ----------
     def role(self):
-        if getattr(self, '_role', None):
-            return self._role
-        title = (self.snap.status or {}).get('title') or 'Valkyrie'
-        self._role = title
-        return title
+        title = (self.snap.status or {}).get('title')
+        if title:
+            self._role = title
+        return getattr(self, '_role', None) or 'Valkyrie'
 
     def update_character(self):
         if not self.snap or not self.snap.status:

@@ -9,7 +9,7 @@ OBJECT_CHARS = set(')[%?/=!("*$`')
 MONSTER_CHARS = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@&;:\'~')
 DOOR_COLORS = ('brown', 'yellow')
 
-STATUS1 = re.compile(r'^(?P<name>.+?) the (?P<title>.+?)\s+St:(?P<st>\S+) Dx:(?P<dx>\d+) Co:(?P<co>\d+) In:(?P<in>\d+) Wi:(?P<wi>\d+) Ch:(?P<ch>\d+)\s+(?P<align>\w+)')
+STATUS1 = re.compile(r'^\[?(?P<name>.+?) the (?P<title>.+?)\s*\]?\s+St:(?P<st>\S+) Dx:(?P<dx>\d+) Co:(?P<co>\d+) In:(?P<in>\d+) Wi:(?P<wi>\d+) Ch:(?P<ch>\d+)\s+(?P<align>\w+)')
 STATUS2 = re.compile(r'Dlvl:(?P<dlvl>\d+).*?\$:(?P<gold>\d+)\s+HP:(?P<hp>-?\d+)\((?P<hpmax>\d+)\)\s+Pw:(?P<pw>\d+)\((?P<pwmax>\d+)\)\s+AC:(?P<ac>-?\d+)\s+(?:Xp|HD):(?P<xl>\d+)(?:/(?P<exp>\d+))?(?:\s+T:(?P<turn>\d+))?(?P<rest>.*)$')
 HUNGER = ('Satiated', 'Hungry', 'Weak', 'Fainting', 'Fainted', 'Starved')
 MENU_END = re.compile(r'\((end|\d+ of \d+)\)\s*$')
