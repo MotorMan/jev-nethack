@@ -2596,3 +2596,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A crocodile and an orc-captain waited at the up stairs of Dlvl 8. A panther was at the down stairs of Dlvl 7. Jev went up and down the stairs 4 times. The panther was adjacent, so it followed Jev each time. Jev went from 70 to 6 HP. It prayed 203 turns after the last prayer, and the crocodile killed it.
 - Prevention: An adjacent monster follows Jev on the stairs. After two stair trips with a monster adjacent, fight or engrave Elbereth.
 - Fix: The stair guard counts the last 6 decisions (it was 3) and counts "dead_end" too. It also applies when no attack is offered. The bot removes the stair options when something else remains.
+
+## T17532 hill orc, Dlvl 3, fainted
+
+- Cause: Dlvl 3 had an open shop and a room with the up stairs. The only other exit was a locked door 15 squares from the shop. The level was marked as a "town" because of the shop sounds. The kick code allows 5 refusals ("vetoes") before it kicks, but `act_kick` refused without counting. Jev did not kick the door for 15,000 turns. It searched 919 times, prayed for food many times, fainted, and a hill orc killed it.
+- Prevention: Every refusal to kick must count, so the limit of 5 can end the loop.
+- Fix: `act_kick` now adds 1 to the veto count each time that it refuses a door on a "town" level.

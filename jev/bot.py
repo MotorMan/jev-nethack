@@ -2625,6 +2625,7 @@ class Bot:
         sign = re.search(r'for inv', seen) or re.search(r'written here', seen) and not (said and all(len(t) < 12 for t in said))
         if not force and self.level().town and (self.in_mines() or self.level().__dict__.get('vetoes', 0) < 5) or not force and sign:
             self.level().town = True
+            self.level().vetoes = self.level().__dict__.get('vetoes', 0) + 1  # counted only by the caller's veto: this one vetoed the '<' room's only door 100+ times, 15000 turns on Dlvl 3, fainted, dead (T17532)
             self.level().dead.add((self.snap.me[0] + DIRS[d][0], self.snap.me[1] + DIRS[d][1]))
             return 'did not kick: a shop is closed behind this door'
         self.t.send('\x04' + d)
