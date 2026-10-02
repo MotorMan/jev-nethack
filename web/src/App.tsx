@@ -403,6 +403,7 @@ function DecisionPanel({ s }: { s: State }) {
           <Tip tip="wrap long lines in state text and request">
             <Button size="xs" variant="ghost" className="ml-auto text-muted-foreground" onClick={toggleWrap}><WrapText /> wrap {wrap ? "on" : "off"}</Button>
           </Tip>
+          {tab === "state" && <Copy text={d.state_text} tip="copy the state text to the clipboard" />}
         </TabsList>
         <TabsContent value="options" className="space-y-1">
           <div className="text-sm text-muted-foreground mb-2 line-clamp-3" title={d.question}>{d.question}</div>
@@ -439,7 +440,6 @@ function DecisionPanel({ s }: { s: State }) {
           <pre className="text-xs whitespace-pre-wrap bg-background border border-border p-2 overflow-auto">{d.question}</pre>
         </TabsContent>
         <TabsContent value="state">
-          <div className="flex justify-end"><Copy text={d.state_text} tip="copy the state text to the clipboard" /></div>
           <pre className={cn("text-xs bg-background border border-border p-2 overflow-auto", wrap ? "whitespace-pre-wrap break-all" : "whitespace-pre")}>{d.state_text}</pre>
         </TabsContent>
         <TabsContent value="request" className="space-y-2">
