@@ -2299,3 +2299,7 @@ Each change below was checked against the 5.0 source:
 ## 2026-10-01 — quasit's wand of fire, Dlvl 10 T15223 (run 20261001-205205)
 - **Cause:** a quasit with a wand of fire waited near the Dlvl 10 upstairs. Jev fled up at T15174 and rested, then came back down 50 turns later. Standing on '<' in the quasit's line, it took 'find_unseen' (search) twice at 55/x instead of the offered 'dodge' or 'upstairs', since the quasit flickers invisible. It went 55 -> 33 -> 0.
 - **Fix:** a visible zapper in line now narrows the options to dodge, upstairs, pray, quaff, zap and attack at any HP, not only below 50%.
+
+## 2026-10-01 — fainted beside a floating eye, Minetown Dlvl 6 T7682 (run 20261001-210301)
+- **Cause:** Jev stood in the corridor outside Minetown's NW wall. A floating eye in the 1-wide corridor south blocked the only way back to '>', and Jev held 16 darts. It still searched for hidden passages for 1300 turns, Hungry → Weak → Fainting, living on prayers until a hill orc killed it. Throwing at the eye was offered once. Every other time, the `shop` flag removed all throw and zap options, because shop squares it had stood on earlier were within Chebyshev 7 *through the town wall*.
+- **Fix:** shop proximity now uses walking distance (dijkstra ≤ 7), not Chebyshev distance.
