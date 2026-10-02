@@ -192,6 +192,7 @@ class Bot:
             ev = re.findall(r'(engulfs you|swallows you|The exit\?|laden with moisture|enveloped in a cloud of steam)|get expelled|regurgitates you|expels you|You (?:destroy|kill) (?:it|the)|dissipates|thin air|You get released', text)
             if ev:  # last event wins: "You kill the newt!  The fog cloud engulfs you!" is one message
                 self.run['engulfed'] = bool(ev[-1])
+                self.run['engulfer'] = (re.findall(r'The ([a-z ]+?) (?:engulfs|swallows) you', text) or [self.run.get('engulfer')])[-1]
             if re.search(r"[Ww]elcome (again )?to \w", text) and self.snap:
                 self.run['welcome'] = (self.snap.status.get('dlvl'), self.snap.status.get('turn') or 0)
             self.run['recent'].append(text)
@@ -1157,6 +1158,16 @@ class Bot:
                 opts['search_hidden'] = ('Search for hidden passages', f"No unexplored edges or downstairs are known. Walk {dist[spot]} steps {compass(me, spot)} to a likely spot (dead end or wall) and search there.", lambda: self.act_search_at(spot))
             # never read unknown scrolls (only known or price-ID'd identify): ZLORFIK read here 'to find the stairs' was punishment, ball and chain, dead to a pony (T3251)
         m = self.soko()
+        if m and m[0].startswith('soko1'):  # 5.0 premaps Sokoban's boulders on arrival; a '0' that shows up later is one of soko1's two giant mimics (dat/soko1-*.lua appear_as boulder)
+            real = self.level().__dict__.setdefault('soko_boulders', set(snap.find('0')))
+            fake = set(snap.find('0')) - real
+            if fake and self.run.get('fake_log') != len(fake):
+                self.run['fake_log'] = len(fake)
+                self.log(f"sokoban: boulder(s) at {sorted(fake)} were not premapped: giant mimics", 'warn')
+            for q in fake:  # giant mimic: 2x 3d6 claws and sticky (monsters.h); only worth a fight when strong and healthy
+                d = next((k2 for k2, (dx, dy) in DIRS.items() if (me[0] + dx, me[1] + dy) == q), None)
+                if d and (s.get('xl') or 0) >= 10 and hp >= 0.8 * hpmax and not near:
+                    opts[f'mimic_{d}'] = ('Attack the fake boulder (giant mimic)', 'This boulder was not on the premapped Sokoban level, so it is a giant mimic. Hit it first while it pretends, at full HP.', lambda d=d: self.act_fight(d))
         if m and not self.run.get('soko_done'):
             i = self.run.setdefault('soko_step', {}).get(m[0], 0)
             plan = self.run.setdefault('soko_plan', {}).get(m[0])
@@ -1174,7 +1185,7 @@ class Bot:
                     # off-plan (a boulder rolled, or the plan walled us into a pocket: starved 30000 turns there): solve from the screen
                     tries = self.run.setdefault('soko_replans', {})
                     tries[m[0]] = tries.get(m[0], 0) + 1
-                    new = sokoban.replan(m, me, set(snap.find('0')), set(snap.find('^'))) if tries[m[0]] <= 3 else None
+                    new = sokoban.replan(m, me, set(snap.find('0')) - (set(snap.find('0')) - self.level().__dict__.get('soko_boulders', set(snap.find('0')))), set(snap.find('^'))) if tries[m[0]] <= 3 else None
                     self.log(f"sokoban {m[0]}: push {i + 1} off-plan; replan -> {len(new) if new else 'no solution, leaving'}", 'warn')
                     if new:
                         self.run['soko_plan'][m[0]] = new
@@ -1187,7 +1198,7 @@ class Bot:
             elif not ups and not m[0].startswith('soko1'):  # plan 'done' but '<' unreachable: the step count ran past a 166-push plan, soko_up/descend ping-ponged 11000 turns, starved (T17559)
                 tries = self.run.setdefault('soko_replans', {})
                 tries[m[0]] = tries.get(m[0], 0) + 1
-                new = sokoban.replan(m, me, set(snap.find('0')), set(snap.find('^'))) if tries[m[0]] <= 3 else None
+                new = sokoban.replan(m, me, set(snap.find('0')) - (set(snap.find('0')) - self.level().__dict__.get('soko_boulders', set(snap.find('0')))), set(snap.find('^'))) if tries[m[0]] <= 3 else None
                 if new:
                     self.run.setdefault('soko_plan', {})[m[0]] = new
                 else:
@@ -1380,6 +1391,9 @@ class Bot:
         if self.run.get('engulfed'):  # a flag: 'laden with moisture' spam pushed 'engulfs you' out of a 3-message window, Jev searched inside a fog cloud for 20 turns (T5756)
             # inside a vortex (shown as Blind) Jev chose 'wait until you can see' twice: 51 -> 13 HP, dead (T8226). Any hit lands on the engulfer.
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {'attack_k': ('Attack the monster engulfing you', 'You are engulfed: every attack hits the engulfer, and killing it or hurting it enough frees you. Waiting only lets it digest or burn you.', lambda: self.act_fight('k'))}
+            dart = next((it for it in self.inventory if re.search(r'\b(daggers?|knives|darts?|shuriken)\b', it['text']) and 'weapon in' not in it['text']), None)
+            if dart and self.run.get('engulfer') in ('energy vortex', 'fire vortex'):  # monsters.h: passive AT_NONE (lvl+1)d4 shock/fire on every melee hit; thrown missiles skip passive() (transcripts: a Valkyrie with Mjollnir died meleeing one)
+                opts['attack_k'] = (f"Throw {dart['text']} at the {self.run['engulfer']}", 'Meleeing it zaps you back for 7-28 each hit; a thrown missile always hits the engulfer and takes no passive damage.', lambda it=dart: self.act_throw(it['letter'], 'k'))
         elif 'Blind' in s.get('conditions', []):  # a blind step into an unseen watchman angered the whole Minetown watch
             fight = {k: v for k, v in opts.items() if k in ('pray', 'elbereth') or k.startswith(('quaff_', 'attack_', 'eat', 'wield_', 'zap_'))}  # zaps point at the monster biting you: a blind Jev with a wand of cold only had 'swing', 62 -> 8, died praying (T5509)  # weaponless, opts was just 'wield': this dropped it and a blind Jev waited while a dog bit 37 -> 0 (T4631)  # blind engraving still scares: invisible quasits drained a blind Jev who could only swing
             # 'You feel an unseen monster' is just sensing: swung at it blind in Aklavik's store, and she zapped Jev dead (T3012)
@@ -1541,6 +1555,10 @@ class Bot:
         eid = next((k for k in opts if k.startswith('engrave_id_')), None)
         if eid and not hostiles:  # offered 39 times, explore always won: a balsa wand rode unknown to a fainting death (T7765)
             opts = {eid: opts[eid]}
+        recent = self.history[-12:]
+        if sum(h['choice'] == 'elbereth' for h in recent) >= 4 and len(recent) == 12 and s.get('hp', 0) <= recent[0].get('hp', 0):  # user: 'stop using elbereth so much': 100+ turns of re-engraving in a room corner while HP fell 61 -> 21 (T11430)
+            rest = {k: v for k, v in opts.items() if k != 'elbereth' and not v[0].startswith('Stay on Elbereth')}
+            opts = rest if any(k.startswith(('attack_', 'choke', 'upstairs', 'flee', 'retreat', 'zap_', 'throw_', 'quaff_', 'pray')) for k in rest) else opts  # it isn't working: fight, move or use an item instead
         return opts, mons
 
     def search_spot(self, dist):
@@ -1894,6 +1912,11 @@ class Bot:
         news = ' | '.join(x['text'] for x in self.messages[nmsg:])
         if self.snap.me == b or 'roll' in news or self.snap.at(*b).ch != '0':  # we stepped into its square, or it left it (fell in / rolled away)
             self.run['soko_step'][m[0]] = self.run['soko_step'].get(m[0], 0) + 1
+            real = self.level().__dict__.get('soko_boulders')
+            if real is not None:  # keep the premapped set in step with pushes, so only mimics show up as unexplained '0's
+                nb = (b[0] + DIRS[k][0], b[1] + DIRS[k][1])
+                real.discard(b)
+                real.update([nb] if self.snap.at(*nb) and self.snap.at(*nb).ch == '0' else [])
             if self.run.get('soko_plan', {}).get(m[0]):
                 self.run['soko_plan'][m[0]].pop(0)
             return f"pushed the boulder {DIR_NAME[k]}" + (f": {news[:100]}" if news else '')
@@ -1926,9 +1949,10 @@ class Bot:
     def act_elbereth(self):
         t0, hp0 = self.snap.status.get('turn'), self.snap.status.get('hp', 0)
         self.t.send('E')
-        if 'write with' in self.t.lines()[0]:
-            self.t.send('-')
-        for _ in range(4):
+        if 'write with' in self.t.lines()[0]:  # engrave.c: burned (fire/lightning) or dug Elbereth has no typos and never smudges when you're hit; only attacking from it erases it
+            burn = next((it for it in self.inventory if re.search(r'\bwand of (fire|digging)\b', it['text']) and not re.search(r'\(\d+:0\)', it['text'])), None)
+            self.t.send(burn['letter'] if burn else '-')
+        for _ in range(6):
             top = self.t.lines()[0]
             if 'add to the current engraving' in top:
                 self.t.send('n')
