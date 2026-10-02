@@ -2798,3 +2798,14 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** A raven blinded Jev and bit it. Jev engraved Elbereth blind. The T6087 rule trusts a blind engraving for 5 turns, because Jev cannot read it back. The rule to stay on Elbereth then gave only `wait`. The raven bit through it, from 44 HP to 0. Jev engraved 3 more times and did not attack.
 - **Prevention:** A hit after an engraving shows that the engraving does not protect you. Fight back.
 - **Fix:** `engraved_here` does not trust a blind engraving after a hit that comes after it. For 30 turns after such a hit, the bot does not offer a new blind Elbereth on the same square, so the attack on the unseen monster stays in the options.
+
+## Fight first: Elbereth only for emergencies
+
+- **Cause:** The user said: "I HARDLY EVER USE ELBERETH ... it's typically better to fight enemies." In 10 kev-4b games, the bot engraved Elbereth 15 to 40 times in each game and waited on it 50 to 200 times. Most of these were forced, because Elbereth was the only option. Packs of weak monsters also forced a walk to a corridor instead of a fight.
+- **Prevention:** Fight. A Valkyrie can fight 2 or 3 weak early monsters at once in the open. Against harder groups, go back into a corridor or a doorway. Use Elbereth only in an emergency.
+- **Fix:**
+  - Elbereth is offered below 1/3 HP with a monster near. It is also offered for these special threats: an adjacent were, a hugger, a sleep biter, a much stronger monster, being boxed in, or an unseen attacker below 1/2 HP. The rules for a pack in the open, a fast strong monster, and blindness below 70% HP are removed.
+  - The filter that makes Elbereth the only option applies below 40% HP, or when the last turn took more HP than is left.
+  - The bot stays on Elbereth only below 1/2 HP. Above that, it attacks from the square.
+  - With 3 or more monsters near, the corridor walk removes the attacks only when one of the monsters is not weaker than Jev.
+  - The prompt says the same.
