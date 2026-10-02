@@ -1252,7 +1252,8 @@ class Bot:
             if st:
                 b, k = st
                 behind = (b[0] - DIRS[k][0], b[1] - DIRS[k][1])
-                if snap.at(*b).ch == '0' and (behind in dist or behind == me) and self.run.get('soko_stuck', {}).get((m[0], i)) != -99:
+                if snap.at(*b).ch == '0' and (behind in dist or behind == me) and self.run.get('soko_stuck', {}).get((m[0], i)) != -99 \
+                        and not any(o['dist'] <= 1 and not o['peaceful'] and not o['passive'] for o in hostiles):  # pushed with a soldier ant adjacent: a free round of hits at AC 8, 52 -> 28 -> 0 (T4922)
                     opts['soko_push'] = (f"Sokoban: push the boulder {compass(me, b)} one square {DIR_NAME[k]} (push {i + 1} of {n})",
                                          f"Next move of a known solution to this Sokoban level. Filling every pit or hole opens the way up; each level has food, a ring and a wand, and the top one a bag of holding or amulet of reflection.",
                                          lambda m=m, b=b, behind=behind, k=k: self.act_soko(m, b, behind, k))

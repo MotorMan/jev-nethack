@@ -2554,3 +2554,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: On Dlvl 4, a soldier ant, a mountain nymph and a water nymph stayed near the up stairs. Jev prayed at 10 HP, then fled up at 76/76 HP. It rested 50 turns on Dlvl 3 and went down again. It arrived next to the same monsters. A nymph charmed Jev into taking off its splint mail (steal.c: 5 helpless turns). The soldier ant killed Jev.
 - Prevention: Monsters that stay near the stairs are still there after 50 turns. Give them time to go away.
 - Fix: After "flee_up", the bot blocks the way down for 300 turns, not 50. It does not block when Jev is Weak or Fainting.
+
+## T4922 soldier ant, Sokoban (Dlvl 6)
+
+- Cause: Jev was at 52/58 HP and AC 8, with no body armor. A soldier ant came next to it. The bot offered "attack" and "soko_push", and Jev pushed. The push failed, and the ant hit for a full round. At 28 HP, Elbereth was the only option, and the ant interrupted it. Jev was dead in 2 turns.
+- Prevention: Do not do a slow task next to a hostile monster. Fight it or escape first. AC 8 at Dlvl 6 is still the open problem.
+- Fix: The bot does not offer "soko_push" when a hostile monster that attacks is adjacent.
