@@ -85,6 +85,16 @@ function Tag({ t, children }: { t: Tone; children: ReactNode }) {
   )
 }
 
+function Tip({ tip, children }: { tip?: ReactNode; children: ReactNode }) {
+  if (!tip) return <>{children}</>
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent className="max-w-xs">{tip}</TooltipContent>
+    </Tooltip>
+  )
+}
+
 function Label({ children, className }: { children: ReactNode; className?: string }) {
   return <span className={cn("text-label text-muted-foreground tracking-[1.5px] uppercase block", className)}>{children}</span>
 }
@@ -134,26 +144,35 @@ function Header({ s, conn }: { s: State; conn: Conn }) {
             jev <span className="text-muted-foreground">//</span> nethack
           </span>
         </div>
-        <Tag t={s.mode === "hardfought" ? "purple" : "frost-2"}>{s.mode}</Tag>
+        <Tip tip="where the game runs: local NetHack, or a public server over SSH"><span><Tag t={s.mode === "hardfought" ? "purple" : "frost-2"}>{s.mode}</Tag></span></Tip>
+        <Tip tip="connection to the bot's live state stream">
         <div className="flex items-center gap-1.5 text-label uppercase tracking-wider" style={{ color: tone(connTone) }}>
           {conn === "offline" ? <WifiOff className="size-3.5" /> : <Wifi className="size-3.5" />}
           {connText}
         </div>
+        </Tip>
 
         <div className="flex flex-wrap items-center gap-2 ml-auto">
+          <Tip tip={s.paused ? "let the bot keep playing" : "stop after the current decision"}>
           <Button size="sm" variant={s.paused ? "default" : "outline"} onClick={() => control({ action: s.paused ? "resume" : "pause" })}>
             {s.paused ? <Play /> : <Pause />}
             {s.paused ? "resume" : "pause"}
           </Button>
-          <Button size="sm" variant="outline" disabled={!s.paused} onClick={() => control({ action: "step" })}>
+          </Tip>
+          <Tip tip="while paused: make exactly one decision">
+          <span><Button size="sm" variant="outline" disabled={!s.paused} onClick={() => control({ action: "step" })}>
             <StepForward /> step
-          </Button>
+          </Button></span>
+          </Tip>
+          <Tip tip="abandon this game and start a fresh character">
           <Button
             size="sm" variant="outline"
             onClick={() => confirm("Abandon the current game and start a new one?") && control({ action: "new_game" })}
           >
             <RotateCcw /> new game
           </Button>
+          </Tip>
+          <Tip tip="minimum time between actions sent to the game, thinking time included (remote servers: at least 250ms)">
           <div className="flex items-center gap-2 pl-2 w-[210px]">
             <Label className="whitespace-nowrap w-[88px]">delay {delay}ms</Label>
             <Slider
@@ -162,6 +181,7 @@ function Header({ s, conn }: { s: State; conn: Conn }) {
               onValueCommit={([v]) => { setDrag(null); control({ action: "speed", delay_ms: v }) }}
             />
           </div>
+          </Tip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button size="icon" variant="ghost" className="size-8" onClick={() => dispatchEvent(new Event("split-reset"))} aria-label="reset panes">
@@ -187,21 +207,24 @@ function Header({ s, conn }: { s: State; conn: Conn }) {
 
 // ---------- vitals ----------
 
-function Stat({ label, value, t }: { label: string; value: ReactNode; t?: Tone }) {
+function Stat({ label, value, t, tip }: { label: string; value: ReactNode; t?: Tone; tip?: ReactNode }) {
   return (
+    <Tip tip={tip}>
     <div className="bg-background border border-border px-2 py-1 min-w-0">
       <Label>{label}</Label>
       <div className="text-lg font-medium tracking-tight leading-tight truncate" style={t ? { color: tone(t) } : undefined}>
         {value}
       </div>
     </div>
+    </Tip>
   )
 }
 
-function Meter({ label, cur, max }: { label: string; cur?: number; max?: number }) {
+function Meter({ label, cur, max, tip }: { label: string; cur?: number; max?: number; tip?: ReactNode }) {
   const f = cur != null && max ? cur / max : 0
   const t = fracTone(f)
   return (
+    <Tip tip={tip}>
     <div>
       <div className="flex items-baseline justify-between mb-1">
         <Label>{label}</Label>
@@ -212,6 +235,7 @@ function Meter({ label, cur, max }: { label: string; cur?: number; max?: number 
       </div>
       <Bar value={f} t={t} className="h-2.5" />
     </div>
+    </Tip>
   )
 }
 
@@ -225,7 +249,11 @@ function hungerTone(h: string): Tone {
 
 function Vitals({ s }: { s: State }) {
   const st = s.status
-  const attrs: [string, ReactNode][] = [["st", st.st], ["dx", st.dx], ["co", st.co], ["in", st.in], ["wi", st.wi], ["ch", st.ch]]
+  const attrs: [string, ReactNode, string][] = [
+    ["st", st.st, "strength: melee to-hit and damage, carrying capacity"], ["dx", st.dx, "dexterity: to-hit, especially with thrown weapons"],
+    ["co", st.co, "constitution: HP gained per level, carrying capacity"], ["in", st.in, "intelligence: spellcasting for most roles"],
+    ["wi", st.wi, "wisdom: power regeneration, spellcasting for priests and healers"], ["ch", st.ch, "charisma: shop prices"],
+  ]
   const hunger = st.hunger && st.hunger !== "Not Hungry" ? st.hunger : null
   return (
     <Panel
@@ -233,26 +261,28 @@ function Vitals({ s }: { s: State }) {
       right={<span className="normal-case tracking-normal truncate max-w-[220px]">{st.name} {st.title}</span>}
     >
       <div className="space-y-2">
-        <Meter label="hp" cur={st.hp} max={st.hpmax} />
-        <Meter label="pw" cur={st.pw} max={st.pwmax} />
+        <Meter label="hp" cur={st.hp} max={st.hpmax} tip="hit points: at 0 the character dies. Prayer can restore them when they get very low" />
+        <Meter label="pw" cur={st.pw} max={st.pwmax} tip="power: the energy spent to cast spells" />
         <div className="grid grid-cols-3 gap-1.5">
-          <Stat label="dlvl" value={st.dlvl ?? "--"} t="frost-2" />
-          <Stat label="ac" value={st.ac ?? "--"} />
-          <Stat label="xl" value={<>{st.xl ?? "--"}<span className="text-xs text-muted-foreground">/{st.exp ?? 0}</span></>} />
-          <Stat label="turn" value={num(st.turn)} />
-          <Stat label="gold" value={num(st.gold)} t="yellow" />
-          <Stat label="align" value={<span className="text-sm uppercase tracking-wider">{st.align ?? "--"}</span>} />
+          <Stat label="dlvl" value={st.dlvl ?? "--"} t="frost-2" tip="dungeon level: how deep the character is. Deeper levels have tougher monsters" />
+          <Stat label="ac" value={st.ac ?? "--"} tip="armor class: lower is better. Below 0 also reduces damage taken" />
+          <Stat label="xl" tip="experience level / experience points" value={<>{st.xl ?? "--"}<span className="text-xs text-muted-foreground">/{st.exp ?? 0}</span></>} />
+          <Stat label="turn" value={num(st.turn)} tip="game turns elapsed" />
+          <Stat label="gold" value={num(st.gold)} t="yellow" tip="gold carried: buys from shops and protection from temple priests" />
+          <Stat label="align" tip="alignment: which god answers prayers. Co-aligned altars and priests help" value={<span className="text-sm uppercase tracking-wider">{st.align ?? "--"}</span>} />
         </div>
         <div className="grid grid-cols-6 border border-border">
-          {attrs.map(([k, v]) => (
-            <div key={k} className="text-center py-0.5 border-r border-border last:border-r-0">
+          {attrs.map(([k, v, tip]) => (
+            <Tip key={k} tip={tip}>
+            <div className="text-center py-0.5 border-r border-border last:border-r-0">
               <Label>{k}</Label>
               <div className="text-sm font-medium">{v ?? "--"}</div>
             </div>
+            </Tip>
           ))}
         </div>
         <div className="flex flex-wrap gap-1.5 min-h-5">
-          {hunger && <Tag t={hungerTone(hunger)}>{hunger}</Tag>}
+          {hunger && <Tip tip="Hungry: eat soon. Weak: fix it now (eat or pray). Fainting: passes out at random, often fatal"><span><Tag t={hungerTone(hunger)}>{hunger}</Tag></span></Tip>}
           {st.conditions.map((c) => <Tag key={c} t="red">{c}</Tag>)}
           {!hunger && st.conditions.length === 0 && <Tag t="green">nominal</Tag>}
         </div>
@@ -276,16 +306,16 @@ function DecisionPanel({ s }: { s: State }) {
         d.pending
           ? <span className="flex items-center gap-1.5 text-[hsl(var(--smui-frost-2))]"><Dot t="frost-2" pulse /> thinking</span>
           : <>
-              <span>conf <span className="text-foreground">{pct(d.confidence)}</span></span>
-              <span>lat <span className="text-foreground">{ms(d.latency_ms)}</span></span>
+              <Tip tip="confidence: how decisively Jev preferred its choice over the alternatives"><span>conf <span className="text-foreground">{pct(d.confidence)}</span></span></Tip>
+              <Tip tip="latency: time Jev took to answer"><span>lat <span className="text-foreground">{ms(d.latency_ms)}</span></span></Tip>
             </>
       }
     >
       <Tabs defaultValue="options">
         <TabsList variant="line" className="w-full justify-start mb-2">
-          <TabsTrigger value="options" className="flex-none">options ({d.options.length})</TabsTrigger>
-          <TabsTrigger value="question" className="flex-none">instructions</TabsTrigger>
-          <TabsTrigger value="state" className="flex-none">state text</TabsTrigger>
+          <TabsTrigger value="options" className="flex-none" title="the actions the bot offered, with Jev's probability for each">options ({d.options.length})</TabsTrigger>
+          <TabsTrigger value="question" className="flex-none" title="the question asked of Jev">instructions</TabsTrigger>
+          <TabsTrigger value="state" className="flex-none" title="the game state as text, as Jev read it">state text</TabsTrigger>
         </TabsList>
         <TabsContent value="options" className="space-y-1">
           <div className="text-sm text-muted-foreground mb-2 line-clamp-3" title={d.question}>{d.question}</div>
@@ -373,11 +403,11 @@ function Timeline({ s }: { s: State }) {
         <table className="w-full text-ui">
           <thead className="sticky top-0 bg-card">
             <tr className="text-label text-muted-foreground uppercase tracking-wider text-left">
-              <th className="px-2 py-1.5 font-normal">t</th>
-              <th className="px-2 py-1.5 font-normal">dl</th>
-              <th className="px-2 py-1.5 font-normal">choice</th>
-              <th className="px-2 py-1.5 font-normal text-right">p</th>
-              <th className="px-2 py-1.5 font-normal text-right">conf</th>
+              <th className="px-2 py-1.5 font-normal" title="game turn">t</th>
+              <th className="px-2 py-1.5 font-normal" title="dungeon level">dl</th>
+              <th className="px-2 py-1.5 font-normal" title="the action chosen">choice</th>
+              <th className="px-2 py-1.5 font-normal text-right" title="Jev's probability for the chosen action">p</th>
+              <th className="px-2 py-1.5 font-normal text-right" title="confidence: margin over the alternatives">conf</th>
             </tr>
           </thead>
           <tbody>
@@ -484,10 +514,11 @@ function Telemetry({ s }: { s: State }) {
   return (
     <Panel title={<><Cpu className="size-3.5" /> jev telemetry</>} right={<span className="normal-case tracking-normal">{j.last_model ?? "--"}</span>}>
       <div className="grid grid-cols-3 gap-1.5">
-        <Stat label="calls" value={num(j.calls)} />
-        <Stat label="errors" value={num(j.errors)} t={j.errors ? "red" : undefined} />
-        <Stat label="avg lat" value={ms(j.avg_latency_ms)} />
+        <Stat label="calls" value={num(j.calls)} tip="requests sent to the Jev model, all games" />
+        <Stat label="errors" value={num(j.errors)} t={j.errors ? "red" : undefined} tip="failed model requests (timeouts, HTTP errors)" />
+        <Stat label="avg lat" value={ms(j.avg_latency_ms)} tip="average round-trip time of a model request" />
       </div>
+      <Tip tip="model spend so far against the configured budget">
       <div className="mt-2">
         <div className="flex items-baseline justify-between mb-1">
           <Label>cost // budget</Label>
@@ -498,6 +529,7 @@ function Telemetry({ s }: { s: State }) {
         </div>
         <Bar value={used} t={used > 0.9 ? "red" : used > 0.7 ? "yellow" : "frost-2"} />
       </div>
+      </Tip>
     </Panel>
   )
 }
@@ -505,7 +537,7 @@ function Telemetry({ s }: { s: State }) {
 function LevelInfo({ s }: { s: State }) {
   const l = s.level
   return (
-    <Panel title={<><MapIcon className="size-3.5" /> level {l.dlvl}</>} right={<span>{pct(l.explored)} explored</span>}>
+    <Panel title={<><MapIcon className="size-3.5" /> level {l.dlvl}</>} right={<Tip tip="share of this level's map the bot has seen"><span>{pct(l.explored)} explored</span></Tip>}>
       <Bar value={l.explored} t="frost-2" />
       <div className="flex gap-1.5 mt-2">
         <Tag t={l.downstairs ? "green" : "muted"}>&gt; down {l.downstairs ? "known" : "unknown"}</Tag>
