@@ -2694,3 +2694,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A raven blinded Jev, and a mumak walked up while Jev was blind. When Jev could see again, the mumak was adjacent. The bot rated the mumak "stronger", not "much stronger", so Elbereth was not offered at 64/72 HP. The only option was "attack". One butt and one bite took Jev to 29 HP. Jev then engraved Elbereth, but the mumak killed Jev on the next turn.
 - Prevention: Below XL 10, do not melee a mumak. Its butt does 4d12. Stand on Elbereth or walk away (it has speed 9).
 - Fix: A mumak within 3 squares below XL 10 counts as dread, so Elbereth is offered at any HP.
+
+## T5770 soldier ant while praying, Dlvl 6
+
+- Cause: Jev stood on Elbereth at 80/80 HP, and a soldier ant fled from it. The bot offered "throw" together with "stay on Elbereth". Jev threw a dart and then a dagger, and both missed. In 5.0, a throw wipes 2 characters of a dust engraving (dothrow.c `u_wipe_engr(2)`). The ant came back, and two new engravings were garbled. HP went from 80 to 22. An unknown wand was create monster. Jev then prayed 241 turns after the last prayer, and the ant killed it during the prayer.
+- Prevention: Do not throw or attack from Elbereth while it protects you.
+- Fix: When the bot offers "stay on Elbereth", it removes the throw options.
