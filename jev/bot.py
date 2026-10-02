@@ -547,6 +547,8 @@ class Bot:
                 it['text'] += f' (priced as {tag})'
             if it['text'] in self.run.get('empty_wands', ()):
                 it['text'] += ' (empty, x:0)'
+        if not uniq and self.inventory:  # an empty read lost the blindfold beside a yellow light: forced melee, missed, blinded, dead (T3177)
+            return self.inventory
         self.inventory = uniq
         return uniq
 
@@ -1565,10 +1567,10 @@ class Bot:
         stuck_on = cover and re.search(r'\bcursed\b', cover['text']) and 'uncursed' not in cover['text']  # 'R' fails on a cursed one: 3000+ unblind decisions on T3457 (run 202507)
         if stuck_on and 'being worn' in cover['text'] and (s.get('turn') or 0) - (self.run.get('prayed_turn') or -2000) > 1000:
             opts = {'pray': ('Pray to Tyr', 'A cursed towel/blindfold over your eyes is major trouble (pray.c TROUBLE_CURSED_BLINDFOLD): a safe prayer uncurses it.', self.act_pray)}
-        elif cover and 'being worn' in cover['text'] and not stuck_on and not any('yellow light' in m['name'] for m in hostiles):
+        elif cover and 'being worn' in cover['text'] and not stuck_on and not any('yellow light' in m['name'] for m in hostiles) and (s.get('turn') or 0) - self.run.get('fold_turn', -99) >= 30:  # blindfolded you can't see it: took it off 1 turn later, it came back and exploded (T3177)
             opts = {'unblind': ('Take off the ' + cover['text'], 'No yellow light in view any more: see again.', lambda l=cover['letter']: (self.act_keys('R' + l, 'took it off'), self.read_inventory())[0])}
         elif yl and cover and 'Blind' not in s.get('conditions', []):  # melee missed one at 36/56: blinded, unseen fire ants, dead (T5164)
-            opts = {'blindfold': ('Put on the ' + cover['text'], 'A yellow light is next to you: its explosion only blinds, so cover your eyes first and it does nothing.', lambda l=cover['letter']: (self.act_keys('P' + l, 'put it on'), self.read_inventory())[0])}
+            opts = {'blindfold': ('Put on the ' + cover['text'], 'A yellow light is next to you: its explosion only blinds, so cover your eyes first and it does nothing.', lambda l=cover['letter']: (self.run.__setitem__('fold_turn', s.get('turn') or 0), self.act_keys('P' + l, 'put it on'), self.read_inventory())[1])}
         elif yl and 'Blind' not in s.get('conditions', []) and not LOW_HP(s):
             d = DIR_OF[(yl[0]['pos'][0] - me[0], yl[0]['pos'][1] - me[1])]
             opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_')} | {f'attack_{d}': ('Kill the yellow light', 'It explodes and blinds you for 10-200 turns when it attacks, and cornered on Elbereth it still attacks. Killing it is safe: it only explodes as an attack.', lambda d=d: self.act_fight(d))}

@@ -2676,3 +2676,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: Two Woodland-elves came. One shot arrows from 3 to 4 squares. Below half HP, the bot closes in only on a "weaker" shooter, and these elves were "about your level". The bot blocks retreat and holding while Jev is shot, and Elbereth does not stop an elf. All options were removed, and the fallback was "wait". Jev waited 4 turns, and HP went from 41 to 7. A prayer healed Jev to 83. The two elves then took 83 HP in melee.
 - Prevention: Do not stand still while a monster shoots at you. Close in, or break the line of sight.
 - Fix: If no option is left and a visible monster shoots at Jev, the bot offers "close in" on that monster instead of "wait".
+
+## T3177 human zombie while frozen by a potion, Dlvl 5
+
+- Cause: A yellow light came next to Jev. The bot put on the blindfold. Blindfolded, Jev could not see the light, so the bot took the blindfold off one turn later. The light came back. That turn, the inventory read came back empty, so the bot did not find the blindfold and forced an attack. The attack missed, and the light exploded and blinded Jev. Blind, Jev fought an unseen zombie from 56 to 14 HP. Then it drank two unknown potions. The second froze it, and the zombie killed it.
+- Prevention: Keep the blindfold on while a yellow light can be near. You cannot see the light while you are blind.
+- Fix: The blindfold stays on for at least 30 turns. An empty inventory read keeps the last known inventory.
