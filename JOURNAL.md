@@ -2128,3 +2128,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: a hole dropped Jev from Dlvl 5 to 7 (Oracle level) at XL4. With '<' unknown, ascend was never offered, and it spent ~300 turns on fetches, pickups and hidden-door searches. It meleed a yellow light off Elbereth (rule: kill it), missed, and the light exploded. Blind, it was mobbed by unseen Mordor orcs with prayer spent (T2605); a gold golem finished it.
 - Wiki (Trap door/hole): you land on a random spot below; the way back is '<', so finding it is priority one when the level is beyond you.
 - Fix: too deep with no '<' known (outside the Mines) → only exploring and fighting, no fetch/goto/shop detours (rest kept for healing) while explore options exist.
+
+## Plains centaur (run 172855, Dlvl 7, XL6, T7850)
+- Cause: a plains centaur (speed 18, weapon+kick) kept hitting and running. At 15/47, on a fresh Elbereth the centaur fled from, the only options were explore_*. Its square (3 steps NE, across a wall corner) wasn't in the path map, so it didn't count as 'near', and the stay-on-Elbereth wait wasn't offered. Jev explored off and died. It had prayed at T7835 (1 HP).
+- Wiki (Plains centaur): fast; Elbereth works on it; don't let it get free hits while you wander.
+- Fix: hostiles with speed ≥ 15 within 6 count as near even when their square isn't reachable, so Elbereth waits, retreat and flee_up apply to them.
