@@ -516,6 +516,8 @@ class Bot:
             tag = {('potion', 20): 'healing', ('scroll', 20): 'identify', ('scroll', 80): 'enchant armor or remove curse'}.get((look[0], min(self.run.get('prices', {}).get(look) or {0})) if look and len(self.run.get('prices', {}).get(look) or ()) == 1 else None)
             if tag:
                 it['text'] += f' (priced as {tag})'
+            if it['text'] in self.run.get('empty_wands', ()):
+                it['text'] += ' (empty, x:0)'
         self.inventory = uniq
         return uniq
 
@@ -622,7 +624,7 @@ class Bot:
                         were_throw = f'throw_{d}'
         wand = next((it for it in sorted(self.inventory, key=lambda i: not re.search(r'wand of (sleep|cold|fire|striking|magic missile|lightning)', i['text'])) if re.search(r'\bwand\b', it['text'])
                      and not re.search(r'probing|light|nothing|opening|locking|enlightenment|secret door|create monster|wishing|undead turning|polymorph|make invisible|speed monster', it['text'])
-                     and it['text'] not in self.run.get('bad_wands', ())
+                     and it['text'] not in self.run.get('bad_wands', ()) and not re.search(r':0\)', it['text'])
                      and self.run.setdefault('zaps', {}).get((it['text'], s.get('dlvl')), 0) < 4), None)  # a silent unknown wand (polymorph) zapped 379 times at molds turned one into a gargoyle that pinned Jev until it starved (T5526)
         if wand:  # walled in by floating eyes once for 13000 turns with an unknown wand in the pack
             for m in hostiles:
@@ -1537,8 +1539,11 @@ class Bot:
 
     def act_keys(self, keys, what):
         before = self.snap
+        inv = {i['letter']: i['text'] for i in self.inventory}
         self.t.send(keys)
         self.after_move(before)
+        if keys[:1] == 'z' and keys[1:2] in inv and any(re.search(r'(?<!Unfortunately, n)Nothing happens', m) for m in self.run['recent'][-3:]):
+            self.run.setdefault('empty_wands', set()).add(inv[keys[1]])  # zap.c dozap: !zappable -> "Nothing happens": 5 zaps of an empty wand of teleportation beside a jaguar, dead (T7489)
         return what
 
     def act_escape_trap(self, d):

@@ -2065,3 +2065,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** at Fainting with an imp adjacent, a gamble prayer 109 turns after the last one angered Tyr. After that the bot had no food and no prayer. It searched a Dlvl 4 whose '>' was never found, beside two locked doors, while carrying a key. "Unlock it with your key?" was answered with ESC, so keys never opened anything.
 - **Wiki:** a locked door opens with an unlocking tool (key, lock pick, credit card). A closed shop can be unlocked and used as normal; only breaking its door angers the shopkeeper. Minetown's watch punishes lockpicking.
 - **Fix:** the bot answers `y` to "Unlock it" outside town, and tries an unlocking tool on a locked door before kicking it.
+
+## Run 20261001-170330: killed by a jaguar (T7489, Dlvl 7, XL 7)
+- **Cause:** a jaguar and a Green-elf were adjacent at 28/72 HP. The bot zapped its wand of teleportation at itself five times and got "Nothing happens" every time. The wand was empty, and each zap was a free round of hits. A wand of cold was in the pack.
+- **Wiki/source:** zap.c dozap: if the wand isn't zappable (no charges left), you get "Nothing happens". Bad luck instead gives "Unfortunately, nothing happens" and burns a charge.
+- **Fix:** after a zap that reports "Nothing happens", the bot marks the wand "(empty, x:0)" in its inventory, and every wand option skips it. Teleport and attack zaps then fall through to the next option.
