@@ -2792,3 +2792,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** 18 of the last 80 Hosted deaths were fainting or starvation. Each of these deaths has its own fix above. But the bot still prays for food about once each 1000 turns, so it lives on prayers. Each hunger prayer has a risk of about 6% (pray.c: the timeout is rnz(350)). A long game then dies to one failed prayer. One cause of the food shortage: the bot offered `eat_corpse` for a corpse younger than 50 turns, but `act_eat_corpse` accepted only kills from the last 30 turns. In the last 40 games, the bot refused 52 offers for corpses aged 31 to 49 turns. Each retry engraved Elbereth again, so the corpse got older (T4258, an Uruk-hai).
 - **Prevention:** eat.c: rotted = age / (10 + rn2(20)). A corpse is tainted only when rotted > 5, so a corpse younger than 50 turns is never tainted.
 - **Fix:** `act_eat_corpse` accepts kills from the last 50 turns, the same window as the offer. After a refusal, the bot marks the corpse as stale and does not offer it again.
+
+## T6804 raven, Dlvl 7 (blind)
+
+- **Cause:** A raven blinded Jev and bit it. Jev engraved Elbereth blind. The T6087 rule trusts a blind engraving for 5 turns, because Jev cannot read it back. The rule to stay on Elbereth then gave only `wait`. The raven bit through it, from 44 HP to 0. Jev engraved 3 more times and did not attack.
+- **Prevention:** A hit after an engraving shows that the engraving does not protect you. Fight back.
+- **Fix:** `engraved_here` does not trust a blind engraving after a hit that comes after it. For 30 turns after such a hit, the bot does not offer a new blind Elbereth on the same square, so the attack on the unseen monster stays in the options.

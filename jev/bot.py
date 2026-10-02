@@ -1550,7 +1550,8 @@ class Bot:
             # resting while unseen things bit a blind Jev from 54 to 4 HP (twice) is worse than swinging back
             if self.unseen_attacker() and not any(k.startswith(('attack_', 'wield_')) for k in fight):  # blind and Weak, bitten by unseen things with only pray/rest: rested 12 times 44 -> 21 (T2471)
                 fight.pop('rest', None)
-                if not self.engraved_here():
+                be = self.run.get('blind_e') or (0, 0, -99)
+                if not self.engraved_here() and not (be[:2] == (s.get('dlvl'), me) and self.run.get('hit_turn', -99) > be[2] and turn - be[2] <= 30):  # hit through a blind Elbereth: 3 more engravings while a raven bit, never swung (T6804)
                     fight['elbereth'] = ('Engrave Elbereth', 'You are blind and something unseen is biting you. Engraving works blind and scares most monsters off.', self.act_elbereth)
             felt = [m for m in hostiles if m['dist'] == 1 and 'unseen' in m['name']]
             if felt and not shop and (s.get('turn') or 0) - self.run.get('engrave_interrupted', -99) <= 5:  # blind, 5 Elbereths in a row "interrupted" by unseen fire ants, never swung back: 36 -> 0 (T5164)
@@ -1778,7 +1779,7 @@ class Bot:
     def engraved_here(self):
         if 'Blind' in self.snap.status.get('conditions', []):
             be = self.run.get('blind_e') or (0, 0, -99)  # a fresh blind engraving counts for 5 turns (T6087)
-            return be[:2] == (self.snap.status.get('dlvl'), self.snap.me) and (self.snap.status.get('turn') or 0) - be[2] <= 5  # cannot read it back, and a rothe pack chewed a blind Jev from 48 to 0 HP 'on Elbereth'
+            return be[:2] == (self.snap.status.get('dlvl'), self.snap.me) and (self.snap.status.get('turn') or 0) - be[2] <= 5 and self.run.get('hit_turn', -99) <= be[2]  # bitten after it: not working. A raven bit a blind Jev through 'wait' only, 44 -> 0 (T6804)  # cannot read it back, and a rothe pack chewed a blind Jev from 48 to 0 HP 'on Elbereth'
         return (self.snap.status.get('dlvl'), self.snap.me) in self.run.setdefault('elbereth', set())
 
     # ---------- motors ----------
