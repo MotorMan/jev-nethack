@@ -2204,3 +2204,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: at 52/103 a gargoyle (AC -4, three attacks for up to 28 a turn) was offered as an 'approach' target, because the approach gate only blocks 'stronger' monsters and HP below half. The bot alternated approach and retreat 4 times, then took 53 -> 27 in one turn. Elbereth came out garbled, and two unknown potions and an unknown wand didn't save it.
 - Wiki (Gargoyle): its hits are hard and its AC is very low; only fight it healthy, and Elbereth stops it.
 - Fix: no approach toward an 'about your level' monster below 2/3 HP, which is the same threshold the monster's own fight rule gives. The bot waits and lets it come, keeping its Elbereth/retreat options.
+
+## 2026-10-01 — bolt of fire, Woodland-elf, Dlvl 8 T8764 (run 20261001-193021)
+- **Cause:** the bot arrived on Dlvl 8 into soldier ants, an ogre, an elf mummy and a Woodland-elf with a wand of fire. Its flee_up was interrupted after 1 step and its Elbereth came out garbled. At 23/62, with 4 monsters adjacent, every option was filtered away, so the empty-options fallback chose "Search 10 turns" and the fire bolt killed it.
+- **Wiki:** soldier ants are the top killer. You should get out (stairs or teleport), and you should never stand idle while they are adjacent.
+- **Fix:** when the fallback is reached with adjacent hostiles, it now offers melee on them instead of searching. Not yet found: which filter emptied the options. The fallback logs a warning, so the next occurrence can be traced.

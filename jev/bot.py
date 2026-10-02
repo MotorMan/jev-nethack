@@ -2415,6 +2415,10 @@ class Bot:
             # one run searched 1100 turns on Dlvl 6 with the downstairs in view, then starved
             opts = {'descend': ('Take the downstairs', 'Nothing else to do on this level.', lambda p=downs[0]: self.act_descend(p))} if downs else \
                 {'search': ('Search 10 turns', 'Nothing else to do here right now.', lambda: self.act_search(10))}
+            me = self.snap.me  # mobbed at 23/62 (soldier ants, elf mummy, ogre adjacent) the filters left nothing: searched 10 turns, dead (T8764)
+            adj = {DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]: m['name'] for m in mons if m['dist'] == 1 and not m['pet'] and not m['peaceful']}
+            if adj:
+                opts = {f'attack_{d}': (f"Attack {n} ({DIR_NAME[d]})", f"Melee the adjacent {n}.", lambda d=d: self.act_fight(d)) for d, n in adj.items()}
         state = self.state_text(mons)
         t1 = time.time()
         question = QUESTIONS['action']['instructions']
