@@ -2138,3 +2138,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: a hostile black unicorn in Sokoban. Jev waited ~20 turns near it, then walked toward it for a boulder push. Sokoban levels block teleporting ("A mysterious force prevents the black unicorn from teleporting!"), so the cornered unicorn (speed 24, butt 1d12 + kick 1d6) fought: 46 -> 27 in one turn. Elbereth garbled, 4 potions, and prayer was spent at T3472.
 - Wiki (Unicorn): it keeps out of line with you and flees; cornered, it is one of the deadliest early melee monsters. Don't chase or corner it.
 - Fix: in Sokoban, a hostile unicorn 2-6 squares away → leave by '>' (only pray/quaff stay open) and don't re-enter Sokoban for 300 turns.
+
+## Soldier ant (run 173904, Dlvl 8, XL7, T7557)
+- Cause: Jev fainted from hunger and prayed (T7501), and a soldier ant arrived. Elbereth made it flee and hover nearby (speed 18). Jev left the square to open doors at 69/69 (bitten to 45). At 49/69, just above the 70% wait threshold, it left again to kick a door: booby-trapped, stunned, the ant returned. Elbereth garbled, 34 -> 5 in one turn, dead.
+- Wiki (Soldier ant): you can't outrun it; Elbereth works; never leave Elbereth while it is around unless you can kill it.
+- Fix: a stronger hostile with speed ≥ 15 nearby → stay on Elbereth (wait offered at any HP, explore/goto/fetch/pickup dropped) until camped (40 of 50 waits at ≥60% HP), so fights still happen eventually.
