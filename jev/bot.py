@@ -64,10 +64,10 @@ BAD_EFFECT = ('doppelganger', 'genetic engineer', 'mimic', 'stalker', 'quantum m
 NEVER_EAT = ('cockatrice', 'chickatrice', 'Medusa', 'green slime', 'Rider', 'Death', 'Pestilence', 'Famine', 'zombie', 'mummy', 'dwarf', 'were', 'kobold', 'bat', 'ghoul', 'vampire', 'chameleon', 'dog', 'cat', 'kitten', 'acid blob', 'spotted jelly') + POISONOUS + BAD_EFFECT  # undead corpses are pre-aged: always tainted
 # pray.c critically_low_hp: the major-trouble line prayer fixes
 LOW_HP = lambda s: s.get('hp', 1) <= 5 or s.get('hp', 1) * (5 if s.get('xl', 1) <= 5 else 6 if s.get('xl', 1) <= 13 else 7 if s.get('xl', 1) <= 21 else 8 if s.get('xl', 1) <= 29 else 9) <= min(s.get('hpmax', 1), 15 * s.get('xl', 1))
-STRATEGY = ("You are a dwarven Valkyrie (NetHack 5.0): strong melee, cold resistant, infravision; stealthy from XL 3, fast from XL 7. Gnomes and dwarves (the Mines) are peaceful to you. Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. Each monster in view shows its AC, attacks and, for the dangerous ones, a 'Fight if ...; avoid if ...' rule: follow it. "
+STRATEGY = ("You are a {role} (NetHack 5.0). Survive first. Monsters listed as weaker than you are easy experience: kill them rather than waiting or retreating. Each monster in view shows its AC, attacks and, for the dangerous ones, a 'Fight if ...; avoid if ...' rule: follow it. "
             "Fight weak monsters in melee; do not melee floating eyes (blue 'e') or cockatrices ('c' yellow) bare-handed. Against a group, fight from a corridor or doorway so only one or two reach you. Back off to heal at half HP, not at 1 HP. "
             "Prayer fixes low HP (at or below 1/5 of max at XL 1-5, 1/6 at XL 6-13, or 5 HP) and Weak hunger, but only about once per 1000 turns; "
-            "the first prayer is safe after roughly turn 300. Fight: a Valkyrie can take 2 or 3 weak early monsters at once in the open; against harder groups, back into a corridor or doorway and fight them one at a time; Elbereth is only for emergencies (below a third of your HP). Elbereth in the dust (fails about 1 time in 4: check it) stops melee from most monsters, "
+            "the first prayer is safe after roughly turn 300. Fight: you can take 2 or 3 weak early monsters at once in the open; against harder groups, back into a corridor or doorway and fight them one at a time. Elbereth is only for emergencies (below a third of your HP). Elbereth in the dust (fails about 1 time in 4: check it) stops melee from most monsters, "
             "not @ humans or elves (including were-creatures in @ form), minotaurs, shopkeepers or peacefuls, and never wands, arrows or breath: kill a weak monster that zaps or shoots at you instead of waiting it out. If it keeps backing off as you close in (an aklys returns to its thrower), stop chasing it: break line of sight, heal or leave by the stairs. A scared monster with nowhere to flee can still hit you, and attacking, throwing or zapping from it erases it. Elbereth is for healing, not for living on: new monsters keep arriving (about one every 70 turns), so once healed, fight the weakest one and re-engrave when hurt. An invisible attacker: search one turn to mark it (I), then attack that square. "
             "Mumakil (speed 9) hit hardest of anything early: never trade blows, throw things or walk away. Never melee a were in animal form if you can avoid it: its bite gives lycanthropy ('You feel feverish'); pray as soon as it is safe to cure it, and while you are in animal form stay on the current level instead of going down. Kill wererats quickly, before they summon rats; a were-creature (either form) can call more of its kind whenever it attacks, so when mobbed kill it before anything it summoned. A yellow light blinds you for up to 200 turns when it explodes at you, even on Elbereth if it is cornered: put on a towel or blindfold first (the explosion then does nothing), else kill it (killing it is safe) rather than wait beside it. Blind and bitten by something unseen while engraving fails: fight back. Soldier ants (speed 18, poison) kill more players than anything: Elbereth works on them, never let them surround you, and zap or read teleportation to escape when hurt. A monster that is scared but cornered still attacks you on Elbereth: if you are hit there, Elbereth is not protecting you, so pray, quaff or leave. Never rest for long with a fast monster that keeps coming back; find the up stairs. A crowd too big to fight (a magic trap's flash and roar summon monsters right beside you) interrupts engraving: if the up stairs are a few steps away, take them. Elbereth does not make a crowd go away: if more and more monsters gather while you wait, and the up stairs are close, leave by them. In speed boots you are faster than almost everything early: walk away from slow heavy hitters (zombies, mumakil, ogres) to the up stairs instead of standing on Elbereth. Hungry with no food and a food shop near (Minetown often has a delicatessen): sell spare weapons and gems in a general store and buy food before you faint; prayer for hunger can fail if prayed too soon. "
             "Collect gold: a temple priest sells permanent AC for about 400-500 gold per experience level; keep 2000-4000 after that for shops. "
@@ -77,12 +77,12 @@ STRATEGY = ("You are a dwarven Valkyrie (NetHack 5.0): strong melee, cold resist
             "Wear armor you find if it covers an empty slot. The ultimate goal is to retrieve the Amulet and ascend.")
 
 
-QUESTIONS = {'action': dict(type='choice', instructions='Choose the single best action for the Valkyrie right now. Staying alive comes first; after that, '
+QUESTIONS = {'action': dict(type='choice', instructions='Choose the single best action for the {role} right now. Staying alive comes first; after that, '
                             'make steady progress (explore, gear up, descend). Use the status, monsters, recent outcomes and the standing order.'),
-             'danger': dict(type='noul', instructions='Is the Valkyrie in serious danger of dying within the next few turns?'),
+             'danger': dict(type='noul', instructions='Is the {role} in serious danger of dying within the next few turns?'),
              # jev-doom's "exposure" rubric: a second pick judged on survival alone; danger ran 0.6-0.87 in the turns before recent deaths
-             'safest': dict(type='choice', instructions='Ignoring progress entirely, which action gives the Valkyrie the best chance of still being alive 20 turns from now? You cannot see your other answers.')}
-questions = lambda criteria: {k: dict(q, criteria=criteria) if q['type'] == 'choice' else q for k, q in QUESTIONS.items()}
+             'safest': dict(type='choice', instructions='Ignoring progress entirely, which action gives the {role} the best chance of still being alive 20 turns from now? You cannot see your other answers.')}
+questions = lambda criteria, role='hero': {k: dict(q, criteria=criteria, instructions=q['instructions'].format(role=role)) if q['type'] == 'choice' else dict(q, instructions=q['instructions'].format(role=role)) for k, q in QUESTIONS.items()}
 
 def runs_home(name):  # each player name (one per engine running side by side) keeps its own runs.json, prayer clock and ledger
     return os.path.join(ROOT, 'runs') if name == 'Jev' else os.path.join(ROOT, 'runs', name)
@@ -2714,17 +2714,25 @@ class Bot:
             or self.snap.me and not any(cheb(q, self.snap.me) <= 1 for q in self.hostile_glyphs()) and any(re.search(r"\bThe [\w -]+ (hits|bites|stings|butts|kicks|touches|misses)!", m) and 'ghost' not in m for m in self.run['recent'][-1:])  # a named fire ant bit from a square the map never showed: 'rest' was the only option, 33 -> 0 (T5586)
 
     # ---------- Jev ----------
+    def role(self):
+        if getattr(self, '_role', None):
+            return self._role
+        title = (self.snap.status or {}).get('title') or 'Valkyrie'
+        self._role = title
+        return title
+
     def state_text(self, mons):
         s, snap = self.snap.status, self.snap
+        role = self.role()
         lv = self.level()
         inv = '; '.join(f"{i['letter']} - {i['text']}" for i in self.inventory) or 'unknown'
         seen = '; '.join(f"{m['name']}{self.threat(m)} {m['where']}" + (' (pet)' if m['pet'] else ' (peaceful)' if m['peaceful'] else '') for m in mons[:8]) or 'none'
         hist = '\n'.join(f"- T{h['turn']} {h['label']} -> {h['outcome']}" for h in self.history[-8:]) or '- (start of game)'
         recent = ' | '.join(self.run['recent'][-6:]) or 'none'
         return (
-            f"NetHack 5.0.0. You decide for {s.get('name', 'the hero')}, a {s.get('align', 'lawful').lower()} dwarven Valkyrie.\n"
+            f"NetHack 5.0.0. You decide for {s.get('name', 'the hero')}, a {s.get('align', 'lawful').lower()} {role}.\n"
             f"Standing order from the operator: {self.order}\n"
-            f"Strategy notes: {STRATEGY}\n\n"
+            f"Strategy notes: {STRATEGY.format(role=self.role())}\n\n"
             f"Status: Dlvl {s.get('dlvl')}, HP {s.get('hp')}/{s.get('hpmax')}, Pw {s.get('pw')}/{s.get('pwmax')}, AC {s.get('ac')}, "
             f"XL {s.get('xl')} ({s.get('exp')} exp), turn {s.get('turn')}, gold {s.get('gold')}, hunger: {s.get('hunger')}, "
             f"conditions: {', '.join(s.get('conditions') or []) or 'none'}. Str {s.get('st')} Dex {s.get('dx')} Con {s.get('co')}.\n"
@@ -2803,7 +2811,7 @@ class Bot:
             key, answers, meta = next(iter(opts)), {}, dict(latency_ms=0, model=None)
             probs, conf = {key: 1.0}, 1.0
         else:
-            qs = questions(criteria)
+            qs = questions(criteria, role=self.role())
             answers, meta = self.jev.ask(state, qs)
             key = answers['action']['choice']
             if (answers['danger'].get('noul') or 0) >= 0.6 and answers['safest']['choice'] != key:
@@ -2844,7 +2852,10 @@ class Bot:
         rid = datetime.now().strftime('%Y%m%d-%H%M%S')
         self.run_dir = os.path.join(self.home, rid)
         os.makedirs(self.run_dir, exist_ok=True)
-        self.run = dict(id=rid, started=now(), ended=None, character='dwarven Valkyrie', turns=0, max_dlvl=1, death=None, score=None,
+        role = getattr(self, '_role', None) or 'Valkyrie'
+        align = (self.snap.status or {}).get('align', 'lawful') if self.snap else 'lawful'
+        character = f"{align.lower()} {role}"
+        self.run = dict(id=rid, started=now(), ended=None, character=character, turns=0, max_dlvl=1, death=None, score=None,
                         engine='jev' if not self.jev.local else os.environ.get('JEV_LABEL') or self.jev.model, models=[], decisions=0, levels={}, under={}, here={}, elbereth=set(), prayed_turn=None, recent=[], death_msgs=[])
         self.history.clear()
         self.runs.append({k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score', 'engine', 'models')})

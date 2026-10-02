@@ -3,12 +3,51 @@
     python -m jev.server              # local NetHack build in ./nethack
     python -m jev.server --hardfought # SSH to hardfought.org (see jev/hardfought.py)
 """
-import argparse, json, os, threading, time
+import argparse, json, os, random, threading, time
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 from .bot import Bot, ROOT, runs_home
 from .jevapi import Jev
 from .term import Term
+
+ROLES = ('Archeologist', 'Barbarian', 'Caveman', 'Healer', 'Knight', 'Monk', 'Priest', 'Ranger', 'Rogue', 'Samurai', 'Tourist', 'Valkyrie', 'Wizard')
+RACES = ('Human', 'Elf', 'Dwarf', 'Gnome', 'Orc')
+GENDERS = ('Male', 'Female')
+ALIGNS = ('Lawful', 'Neutral', 'Chaotic')
+
+# Some role/race combos are invalid in NetHack; filter them out.
+VALID_ROLES = {
+    'Archeologist': RACES,
+    'Barbarian': RACES,
+    'Caveman': ('Human', 'Elf', 'Dwarf', 'Gnome'),
+    'Healer': RACES,
+    'Knight': ('Human', 'Elf', 'Dwarf'),
+    'Monk': RACES,
+    'Priest': RACES,
+    'Ranger': ('Human', 'Elf', 'Dwarf'),
+    'Rogue': ('Human', 'Elf', 'Dwarf'),
+    'Samurai': ('Human', 'Elf', 'Dwarf'),
+    'Tourist': RACES,
+    'Valkyrie': ('Human', 'Elf', 'Dwarf'),
+    'Wizard': RACES,
+}
+
+
+def random_char():
+    role = random.choice(ROLES)
+    race = random.choice(VALID_ROLES[role])
+    gender = random.choice(GENDERS)
+    align = random.choice(ALIGNS)
+    return role, race, gender, align
+
+
+def parse_char(spec):
+    if spec == 'random':
+        return random_char()
+    parts = spec.split(':')
+    if len(parts) != 4:
+        raise ValueError(f"Invalid --char value: {spec!r}. Expected role:race:gender:align or 'random'.")
+    return tuple(parts)
 
 
 def load_env():
@@ -21,10 +60,12 @@ def load_env():
         pass
 
 
-def local_launcher(name):
+def local_launcher(name, char_spec='Valkyrie:dwarf:female:lawful'):
+    role, race, gender, align = parse_char(char_spec)
+    char_opts = f'role:{role},race:{race},gender:{gender},align:{align}'
     def launch():
         return Term([os.path.join(ROOT, 'nethack/bin/nethack'), '-u', name],
-                    {'NETHACKOPTIONS': '@' + os.path.join(ROOT, 'jev/nethackrc')}, idle=0.015)  # a local pty flushes a whole frame at once
+                    {'NETHACKOPTIONS': char_opts + ',@' + os.path.join(ROOT, 'jev/nethackrc')}, idle=0.015)
     return launch
 
 
@@ -106,6 +147,8 @@ def main():
     ap.add_argument('--port', type=int, default=int(os.environ.get('PORT', 8770)))
     ap.add_argument('--name', default='Jev')
     ap.add_argument('--paused', action='store_true')
+    ap.add_argument('--char', default='Valkyrie:dwarf:female:lawful',
+                    help="Character spec: role:race:gender:align, or 'random'")
     args = ap.parse_args()
     load_env()
     from .jevapi import is_local  # a local endpoint keeps its own ledger so hosted spend stays exact
@@ -114,8 +157,9 @@ def main():
         from .hardfought import launcher
         bot = Bot(launcher(os.environ['HARDFOUGHT_USERNAME'], os.environ['HARDFOUGHT_PASSWORD']), jev, 'hardfought')
     else:
-        bot = Bot(local_launcher(args.name), jev, 'local', args.name)
+        bot = Bot(local_launcher(args.name, args.char), jev, 'local', args.name)
     bot.paused = args.paused
+    bot.char_spec = args.char
     threading.Thread(target=bot.play, daemon=True).start()
     srv = ThreadingHTTPServer((args.host, args.port), make_handler(bot))
     print(f'dashboard: http://{args.host}:{args.port}', flush=True)
