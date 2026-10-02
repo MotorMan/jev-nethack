@@ -1397,6 +1397,21 @@ class Bot:
                     lv.shadowed += 1
                     opts = {'shadow_dwarf': (f"Follow the {dw['name']} and let your pet kill it", f"No pick-axe yet: stay beside the {dw['name']} {dw['where']} so your pet attacks it; dwarves often carry a pick-axe.",
                                              lambda q=q: self.act_go(q, steps=3) if q != me else self.act_keys('s', 'waited for the pet'))}
+        # operator: a wand of speed monster: zap yourself (intrinsic Fast) and the pet, then break it (apply.c do_break_wand:
+        # a rnd(4*charges) magic blast, then speed for every adjacent square), so only with no hostiles in view and HP to spare
+        sw = next((it['letter'] for it in self.inventory if 'wand of speed monster' in it['text']), None)
+        if sw and not hostiles and s.get('hp', 0) >= max(35, 0.7 * s.get('hpmax', 1)):
+            pet = next((m for m in mons if m['pet'] and m['dist'] == 1), None)
+            if not self.run.get('speed_self'):
+                opts = {'speed_self': ("Zap the wand of speed monster at yourself", "A wand of speed monster zapped at yourself makes you permanently fast.",
+                                       lambda: (self.run.__setitem__('speed_self', 1), self.act_keys('z' + sw + '.', 'zapped speed at myself'))[1])}
+            elif pet and not self.run.get('speed_pet'):
+                d = DIR_OF[(pet['pos'][0] - me[0], pet['pos'][1] - me[1])]
+                opts = {'speed_pet': ("Zap the wand of speed monster at your pet", "A fast pet keeps up with you and kills more.",
+                                      lambda d=d: (self.run.__setitem__('speed_pet', 1), self.act_keys('z' + sw + d, 'zapped speed at the pet'))[1])}
+            elif pet or not any(m['pet'] for m in mons):
+                opts = {'break_speed': ("Break the wand of speed monster", "Its job is done: break it.",
+                                        lambda: self.act_keys('a' + sw + 'y', 'broke the wand of speed monster'))}
         # operator: lichen corpses never rot (eat.c nonrotting_corpse): carry a few as emergency food
         lichens = sum(int(m[1] or 1) for it in self.inventory for m in [re.match(r'(\d+ )?.*lichen corpse', it['text'])] if m)
         lk = next((k for k, v in opts.items() if k.startswith('pickup_') and 'lichen corpse' in v[0]), None)

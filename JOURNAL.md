@@ -2107,3 +2107,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Cause: "Hosted's ghost touches you!" matched unseen_attacker() → find_unseen/Elbereth, and every touch interrupted search_hidden ("You stop searching"), so the hunt for the hidden '>' never progressed.
 - Wiki (Ghost): speed 3, AC -5, 1d1 touch: harmless and very hard to kill; lure it away and work elsewhere.
 - Fix: ghost messages no longer count as an unseen attacker; on a ghost touch/miss the bot records lv.ghost and search_spot skips spots within 8 squares of it for 300 turns (it's 4x slower than us).
+
+## Wand of speed monster (operator rule)
+- Earlier deaths carried an unused "wand of speed monster" (the attack-wand picker rightly skips it).
+- Source (apply.c do_break_wand): breaking it is a rnd(4*charges) magic explosion, then the speed effect hits every adjacent square.
+- Fix: with no hostiles in view and HP ≥ max(35, 70%): zap self ('.'), zap an adjacent pet, then break it (when the pet is adjacent or there's no pet).
