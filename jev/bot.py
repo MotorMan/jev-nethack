@@ -812,7 +812,9 @@ class Bot:
         lyc = self.run.get('lycanthropy') and not any(m['dist'] <= 2 for m in hostiles)  # 'cure it mid-fight at 60%+ HP' spent the prayer at 24/32 beside a wererat, dead at 7/32 (T1231): reverted  # not mid-fight: curing it at 18/46 beside the wererat spent the prayer, dead 5 turns later (T3790); slow, and each were bite re-infects: it follows the normal timeout (two runs prayed every 4 turns into "Then die, mortal!")
         me = self.snap.me
         walled = me and all((g := self.snap.at(me[0] + dx, me[1] + dy)) is None or g.ch in ' |-0' and not self.snap.is_door(me[0] + dx, me[1] + dy) for dx, dy in DIRS.values())  # pray.c stuck_in_wall: 8 rock/wall/boulder neighbours is major trouble; a monster's scroll of earth boxed Jev in Sokoban, 2000 turns searching, starved (T7613)
-        trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting') or fatal or lyc or walled
+        # pray.c TROUBLE_CURSED_LEVITATION is major trouble: cursed levitation boots, 1400 turns of 'take it off' (fails) and no prayer, starved (T3026)
+        stuck_lev = any(re.search(r'\bcursed\b.*levitation.*being worn', it['text']) for it in self.inventory)
+        trouble = LOW_HP(s) or s.get('hunger') in ('Weak', 'Fainting') or fatal or lyc or walled or stuck_lev
         last = self.run.get('prayed_turn')
         if last is not None and last > (s.get('turn') or 0):
             last = self.run['prayed_turn'] = None
@@ -967,11 +969,14 @@ class Bot:
                 opts = {k: v for k, v in opts.items() if k.startswith(('drop_', 'eat_', 'wear_')) or k == 'pray'}
             opts = {k: v for k, v in opts.items() if not (k.startswith('pickup_') and JUNK.search(v[0]) and 'mithril' not in v[0])}
         lev = next((it for it in self.inventory if re.search(r'levitation|invisibility', it['text']) and re.search(r'being worn|on (left|right) hand', it['text'])), None)
-        if lev and (not near or 'invisib' in lev['text']):  # -2 levitation boots floated Jev over the stairs for 2400 turns until it starved
+        if lev and 'pray' in opts and re.search(r'\bcursed\b', lev['text']) and 'uncursed' not in lev['text']:
+            opts = {'pray': opts['pray']}
+        elif lev and (not near or 'invisib' in lev['text']):  # -2 levitation boots floated Jev over the stairs for 2400 turns until it starved
             # invisible, the hero has no @ on screen: the bot took an elf for itself while a soldier ant ate it (T5244)
             opts = {f"remove_{lev['letter']}": (f"Take off {lev['text']}", 'It keeps you from playing normally (no stairs while levitating; while invisible you cannot see where you are). Remove it.', lambda it=lev: self.act_keys(('R' if 'hand' in it['text'] else 'T') + it['letter'] + '\x1b', 'took it off'))}
         # cursed plain cloak: only blocks body-armor swaps (wiki), and any cloak is MC1 against were bites; cursed mithril still beats AC 7+.
         # Unknown-look cloaks (tattered cape, opera cloak...) can be invisibility: still need a known BUC.
+        # Same for unknown-look boots, gloves and helmets: 'riding boots' were cursed levitation, starved on Dlvl 3 (T3026)
         worn_ac = max((suit_ac(it['text']) or 0 for it in self.inventory if 'being worn' in it['text']), default=0)
         better_body = any((suit_ac(it['text']) or 0) > worn_ac and 'being worn' not in it['text'] and it['text'] not in self.run.get('unwearable', {}) for it in self.inventory)
         if not near and not set(s.get('conditions', [])) & {'Blind', 'Conf', 'Cnf', 'Hallu', 'Hal', 'Hl', 'Stun', 'Stn'} and not shop:
@@ -981,7 +986,7 @@ class Bot:
         if not near or self.engraved_here() and not any(m['dist'] <= 1 for m in near):  # a nymph's charm left the mithril-coat in the pack: 50 turns waiting on Elbereth at AC 11, quasit 22 -> 1, dead (T9072)
             for it in self.inventory:
                 t = it['text']
-                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|mantelet|wrapping|mithril-coat|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and not (re.search(r'cloak|mantelet|mithril', t) and not re.search(r'\b(uncursed|blessed)\b', t) and not (re.search(r'\b(dwarvish|hooded|orcish|leather|elven|oilskin) cloak|mantelet|faded pall|mummy wrapping', t) and not better_body) and not ('mithril' in t and not worn_ac)) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
+                if re.search(r'\b(armor|mail|helmet|helm|cap|hat|cloak|mantelet|wrapping|mithril-coat|boots|shoes|gloves|gauntlets|shield|robe|apron|shirt|coat|jacket|tunic)\b', t) and 'being worn' not in t and not re.search(r'levitation|invisibility', t) and not (re.search(r'\b(riding|combat|jungle|hiking|mud|buckled|snow) boots|\b(old|padded|riding|fencing) gloves|\b(plumed|etched|crested|visored) helmet', t) and not re.search(r'\b(uncursed|blessed)\b', t)) and not (re.search(r'cloak|mantelet|mithril', t) and not re.search(r'\b(uncursed|blessed)\b', t) and not (re.search(r'\b(dwarvish|hooded|orcish|leather|elven|oilskin) cloak|mantelet|faded pall|mummy wrapping', t) and not better_body) and not ('mithril' in t and not worn_ac)) and (s.get('ac') or 0) > self.run.setdefault('unwearable', {}).get(t, -99):  # AC got worse since the failed try (nymph stole the worn armor): try again
                     opts[f"wear_{it['letter']}"] = (f"Wear {t}", "Put on this armor (takes a few turns; may be cursed if unidentified).", lambda it=it: self.act_wear(it))
             worn = next((it for it in self.inventory if 'being worn' in it['text'] and suit_ac(it['text']) is not None), None)
             better = max((it for it in self.inventory if 'being worn' not in it['text'] and (suit_ac(it['text']) or 0) > (suit_ac(worn['text']) if worn else 99)

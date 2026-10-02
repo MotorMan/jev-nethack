@@ -2384,3 +2384,10 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Prevention: Do not walk away from an adjacent monster that is as fast as you. It gets a free hit on each step. Fight it, or use an item.
 - Fix: `jev/bot.py` removes `flee_up` when an adjacent monster has speed 12 or more and `<` is more than 3 steps away. The attack options stay.
 - Open problem: Jev prayed for Weak hunger 5 times in this game, so prayer was never ready for low HP.
+
+## T3026 starvation, Dlvl 3
+
+- Cause: Jev put on unknown "riding boots" that had no known BUC. They were cursed -1 levitation boots. Jev could not reach the stairs or the floor. For 1400 turns, it got only "take off the boots" (which fails on cursed boots) and "search". It never prayed. Weak, then Fainting, then starved.
+- Source: in pray.c, `TROUBLE_CURSED_LEVITATION` is major trouble. A prayer removes the curse.
+- Prevention: Boots, gloves and helmets with an unknown appearance can be levitation, fumbling or opposite alignment. Wear them only with a known BUC (the policy of the user).
+- Fix: `jev/bot.py` counts worn cursed levitation as trouble and offers only the prayer instead of "take it off". The wear option now needs `uncursed` or `blessed` for unknown-appearance boots, gloves and helmets.
