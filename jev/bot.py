@@ -1029,13 +1029,13 @@ class Bot:
                     and sum(cheb(q, o) <= 3 for c in ')[%?/=!("' for o in snap.find(c)) >= 6]
             if food:
                 q = min(food, key=dist.get)
-                opts['shop_food'] = (f"Go look at the food for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the '%' item and its price. You have {s.get('gold')} gold and {packed} food items packed.", lambda q=q: self.act_go(q))
+                opts['shop_food'] = (f"Go look at the food for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the '%' item and its price. You have {s.get('gold')} gold and {packed} food items packed.", lambda q=q: self.act_shop_go(q))
         if not near and s.get('gold', 0) >= 20 and 'shop_food' not in opts:  # armor (AC), scrolls, potions: stepping on each shows its price, which identifies some by type
             wares = [q for c in '[?!' for q in snap.find(c) if q in dist and 0 < dist[q] <= 20 and (s.get('dlvl'), q) not in self.run['here']
                      and sum(cheb(q, o) <= 3 for c2 in ')[%?/=!("' for o in snap.find(c2)) >= 6]
             if wares:
                 q = min(wares, key=dist.get)
-                opts['shop_look'] = (f"Go look at the {snap.at(*q).ch} for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the item and its price (you have {s.get('gold')} gold). Armor lowers AC; a price can identify a scroll or potion.", lambda q=q: self.act_go(q))
+                opts['shop_look'] = (f"Go look at the {snap.at(*q).ch} for sale {compass(me, q)}", f"Walk {dist[q]} steps into the shop to see the item and its price (you have {s.get('gold')} gold). Armor lowers AC; a price can identify a scroll or potion.", lambda q=q: self.act_shop_go(q))
         gold, xl = s.get('gold', 0), s.get('xl') or 1
         if not near and not shop and gold < 4000:  # user: gold buys protection, then keep 2000-4000 for shopping; fetch's 15-step radius left games at 13-533 gold
             coins = [q for q in snap.find('$') if q in dist and dist[q] > 0 and (s.get('dlvl'), q) not in self.run['here'] and self.run.setdefault('gold_miss', {}).get((s.get('dlvl'), q), 0) < 3 and sum(cheb(q, o) <= 3 for c in ')[%?/=!("' for o in snap.find(c)) < 6]
@@ -1555,6 +1555,12 @@ class Bot:
         eid = next((k for k in opts if k.startswith('engrave_id_')), None)
         if eid and not hostiles:  # offered 39 times, explore always won: a balsa wand rode unknown to a fainting death (T7765)
             opts = {eid: opts[eid]}
+        if (s.get('ac') or 10) > 0 and (s.get('turn') or 0) - self.run.get('held', -99) > 2:  # user: shop mimics (large/giant: 3d4-3d6 sticky claws) are for a very strong AC; they move at 3, so walk off
+            for m in hostiles:
+                if 'mimic' in m['name']:
+                    d = next((k for k, (dx, dy) in DIRS.items() if (me[0] + dx, me[1] + dy) == m['pos']), None)
+                    rest = {k: v for k, v in opts.items() if k not in (f'attack_{d}', f"approach_{m['pos'][0]}_{m['pos'][1]}")}
+                    opts = rest or opts
         recent = self.history[-12:]
         if sum(h['choice'] == 'elbereth' for h in recent) >= 4 and len(recent) == 12 and s.get('hp', 0) <= recent[0].get('hp', 0):  # user: 'stop using elbereth so much': 100+ turns of re-engraving in a room corner while HP fell 61 -> 21 (T11430)
             rest = {k: v for k, v in opts.items() if k != 'elbereth' and not v[0].startswith('Stay on Elbereth')}
@@ -2202,6 +2208,15 @@ class Bot:
         if not any('Unfortunately' in m for m in self.run['recent'][-2:]):  # zap.c: bad luck burns a charge, "Unfortunately, nothing happens."; plain "Nothing happens." is no charges
             self.run['wand_empty'] = True
         return 'the wand did nothing: ' + (self.run['recent'][-1] if self.run['recent'] else '')
+
+    def act_shop_go(self, q):
+        """Step toward a shop item, searching once whenever untested items are adjacent: dosearch0 -> mfind0 always unmasks an adjacent mimic (detect.c)."""
+        me, tested = self.snap.me, self.level().__dict__.setdefault('mimic_tested', set())
+        adj = {(me[0] + dx, me[1] + dy) for dx, dy in DIRS.values()}
+        if any(p not in tested and self.snap.at(*p) and self.snap.at(*p).ch in ')[%?/=!("*' for p in adj):
+            tested |= adj
+            return self.act_keys('s', 'searched for shop mimics')
+        return self.act_go(q, steps=1)
 
     def act_goto_corpse(self, p):
         r = self.act_go(p)
