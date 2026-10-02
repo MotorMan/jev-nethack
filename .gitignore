@@ -6,4 +6,5 @@ node_modules/
 .venv/
 __pycache__/
 web/dist/
-nethackwiki_current.xml.gz
+# NetHackWiki dump: we must not redistribute it
+nethackwiki*

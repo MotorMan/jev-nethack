@@ -14,6 +14,7 @@ Read this file at the start of each session. It holds the instructions of the us
 - The repo is public (github.com/statico/jev-nethack). Never commit secrets.
 - `.env` holds `JEV_API_KEY`, `HARDFOUGHT_*`, `NAO_*`, and `LUNAROUTE_API_KEY`. Never print or commit it.
 - `runs/`, `build/`, `nethack/`, `.env`, and the wiki dump stay out of git.
+- The wiki dump is `nethackwiki_current.xml.gz` in the repo root. If it is missing, tell the user to download it from https://nethackwiki.com/wiki/NetHackWiki:Download. We must not redistribute it, so `.gitignore` excludes it.
 - Commit and push after each change. Do not collect changes into one commit.
 - End each commit message with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - Write the minimum code. Do not add abstractions that nobody asked for.
