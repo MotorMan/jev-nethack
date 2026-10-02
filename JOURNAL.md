@@ -2333,3 +2333,7 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 ## T9310 barrow wight, fainted, Dlvl 9
 - A nymph stole on Dlvl 10, where the downstairs was unknown. leave_nymph went up '<'. On Dlvl 9 the pace rule (dlvl ≤ XL) sent it straight back down, and the loop ran for about 400 turns while the bot was Hungry with no food. It prayed while Weak 852 turns after the previous prayer: "Tyr is displeased" (p_type 0, too soon). It fainted beside a barrow wight.
 - Fix: never leave a nymph level by '<'. When the downstairs is unknown, the existing branch explores for '>' instead.
+
+## T10632 owlbear, while sleeping, Dlvl 6
+- The bot stood in a doorway on Elbereth at 66/88 HP. A jaguar and an owlbear fled from it. It then picked "close in on jaguar", and from the doorway the only step south was a known '^' trap. The trap put it to sleep and the owlbear killed it.
+- Fix: no approach option whose first step lands on a known trap. The monster comes to us anyway.
