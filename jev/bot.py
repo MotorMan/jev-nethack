@@ -300,6 +300,10 @@ class Bot:
             if bad:
                 self.refused_trap = bad.group(0).lower()
             return 'n' if bad else 'y'
+        if re.search(r'into that (vapor|poison gas) cloud', q):  # hack.c u_maybe_impaired_move 5.0: vapor (reg_damg 0) is harmless; 'n' blocked explore ~20 times a turn (T1855-T1860)
+            if 'poison' in q:
+                self.refused_trap = 'poison gas'
+            return 'n' if 'poison' in q else 'y'
         if 'Unlock it' in q:  # was ESC: a key never opened a door; starved beside two locked doors on a level whose '>' was behind one (T5360). Minetown's watch punishes lockpicking
             return 'n' if self.snap and self.run and self.level().town else 'y'
         for pat, ans in rules:
