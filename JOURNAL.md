@@ -2244,3 +2244,7 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** the bot was waiting on an intact Elbereth in a crowded room at 28/74. A plains centaur was adjacent, boxed in by hill orcs, and hit and kicked it from 28 to 9 in one turn. Its prayer had been used 33 turns earlier, and it died the next turn.
 - **Source:** in monmove.c, when Elbereth scares a monster and m_move returns MMOVE_NOMOVES, the monster panic-attacks. A cornered monster attacks every turn, Elbereth or not.
 - **Fix:** a "boxed" monster is now detected: an adjacent hostile whose free neighbour squares are all next to the bot. While one is present, the forced wait on Elbereth is off, and attacks from Elbereth stay offered so the bot can kill it or move.
+
+## 2026-10-01 — stuck "feeling around in the dark", then fire ant on Dlvl 5 T11560 (run 20261001-200412)
+- **Cause:** a loop of leave_nymph down to Dlvl 5 (a room full of monsters), then upstairs straight back. fled_up blocks '>' for 50 turns and Dlvl 4 was fully explored, so no options were left. The "feel around in the dark" fallback then took thousands of random single steps beside the stairs. The user reported the bot as stuck. It went back down eventually and died to a fire ant while praying.
+- **Fix:** with no options and a flight up within the last 50 turns, the bot now rests for 20 turns.
