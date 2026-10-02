@@ -2821,3 +2821,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The Valkyrie engraved Elbereth with an owlbear next to her, at 55/79 HP. Then she attacked it from the square. The attack erased Elbereth, the owlbear grabbed her, and its hug took her from 55 to 0 in four turns. Zaps of a wand of striking did not kill it.
 - **Prevention:** In 5.0 (`mon.c` setmangry), any attack from an Elbereth square erases the engraving. This includes thrown items and zapped wands. Against a hugging monster, stay on Elbereth and do not attack.
 - **Fix:** On Elbereth with an adjacent hugger, the bot gets no attack, throw, zap or approach options. It gets "Stay on Elbereth". The owlbear tip no longer says "then throw things".
+
+## T4727 Uruk-hai, Dlvl 6
+
+- **Cause:** A mountain nymph stole the spear and the shield. The bot wielded an orcish dagger of unknown BUC, and it was cursed. At XL 3 and AC 9, two Uruk-hai caught the bot in a corridor. At 15/54 HP it engraved Elbereth, then attacked from it on the next turn. The attack erased the engraving, and the Uruk-hai killed it.
+- **Prevention:** If you engrave Elbereth, stay on it. The 20% fight rule had lowered the "stay on Elbereth" limit below the 1/3 HP limit where Elbereth is offered.
+- **Fix:** The bot now stays on Elbereth below 1/3 HP, the same limit as the offer. Fights in the open still go down to 20% HP.
