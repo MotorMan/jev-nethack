@@ -1363,7 +1363,10 @@ class Bot:
         # a pack at any HP: left a working Elbereth at 40/44 to throw at bugbears and a goblin gang, dead 4 turns later
         # Weak is only nutrition 1-50 (eat.c): 23 turns camping on Elbereth there fainted Jev into a kitten's jaws (T4709)
         duo = sum(m['dist'] <= 3 and not m['peaceful'] and 'weaker' not in self.threat(m) for m in hostiles) >= 2  # explored off a fresh Elbereth at 32/38 with a wolf and a lizard 2 steps off; the warg joined: 32 -> 0 in 3 turns (T3260)
-        if self.engraved_here() and s.get('hunger') not in ('Weak', 'Fainting') and (pack or duo or s.get('hp', 1) < 0.75 * s.get('hpmax', 1)) and any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles) \
+        if any('much stronger' in self.threat(m) and m['dist'] <= 7 for m in hostiles):
+            self.run['scary_turn'] = s.get('turn') or 0
+        scary = (s.get('turn') or 0) - self.run.get('scary_turn', -99) <= 20  # XL4 on Elbereth, a soldier ant stepped out of view: fetched an item at 36/36, it came back, 12-step run for '<', dead (T2653)
+        if self.engraved_here() and s.get('hunger') not in ('Weak', 'Fainting') and (pack or duo or scary or s.get('hp', 1) < 0.75 * s.get('hpmax', 1)) and (scary or any(m['ch'] != '@' and m['dist'] <= 7 for m in hostiles)) \
                 and not shot and not camped and not any('not protecting' in h['outcome'] for h in self.history[-6:]) \
                 and not (s.get('hunger') == 'Hungry' and not pack and sum(h['choice'] == 'wait' for h in self.history[-20:]) >= 15) \
                 and not any((m['ch'] == '@' and ('were' not in m['name'] or m['dist'] <= 1) or 'minotaur' in m['name']) and m['dist'] <= 7 for m in hostiles):  # an adjacent wererat in @ form hit through it while only 'wait' was offered: 12 -> 0 (T8786)  # a were-@ summons rats/jackals that do respect it: left Elbereth at 24/36 for a wererat, summoned rats 25 -> 0 in 2 turns (T1818)  # a bugbear threw daggers at a waiting Jev (Elbereth only stops melee): 13 -> 0 (T2350)  # a Woodland-elf (ignores Elbereth) walked up to a waiting Jev: 36 -> 0 (T7182)

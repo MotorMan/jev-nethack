@@ -2214,3 +2214,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - **Cause:** the bot spent 9000 turns on Dlvl 1-2 and never found '>'. The only way on was a locked door at (75,6). A cash-register chime had marked Dlvl 2 as "town", no for-sale item had been seen and there was a fountain on the level, so the kick was vetoed 20 times. The bot lived on prayers until one failed, then fainted and was killed.
 - **Wiki/source:** in dokick.c, breaking a door is only punished when it is the shop's own door, or anywhere in Minetown (the watch). A fountain only signals Minetown when you are in the Mines.
 - **Fix:** outside the Mines, the town veto now lapses after 5 refusals on a level, and the bot kicks. The "Closed for inventory" sign check still applies. Kicks next to a for-sale item are still refused.
+
+## 2026-10-01 — soldier ant, Dlvl 5 T2653 (run 20261001-194404)
+- **Cause:** the bot was at XL4 and full HP, waiting on Elbereth beside a soldier ant rated "much stronger". The ant stepped out of view and the bot left the engraving to fetch an item. The ant came back and the bot ran 12 steps for '<' (the ant has speed 18, the bot 12). Two Elbereths came out garbled, a prayer healed it, and the melee killed it anyway.
+- **Wiki:** soldier ants are the top killer, and you can't outrun one. Elbereth works against them, so stay on it.
+- **Fix:** once a "much stronger" monster has been within 7 squares, the stay-on-Elbereth rule now holds for 20 turns, even at full HP and even when the monster is out of view.
