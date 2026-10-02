@@ -815,6 +815,8 @@ class Bot:
                 and not (self.engraved_here() and s.get('hp', 1) > 5 and not shot and turn - self.run.get('hit_turn', -99) > 3 and not any(m['ch'] == '@' or 'minotaur' in m['name'] for m in hostiles if m['dist'] <= 7)):  # stung on Elbereth (a cornered scared monster panic-attacks, monmove.c) at 7/60 171 turns after praying: no gamble, the soldier ant finished it (T6021)  # exp None: polymorphed, 0 HP only reverts form; gambled at 3/3 HD2 and angered Tyr (T8484)  # a quasit's wand took 29 -> 0 from range; 3/54 HP 243 turns after a prayer, no gamble offered, dead (T5218). rnz(350)<=200+t is ~50% at t=100; failing angers Tyr, but death was certain
             opts['pray'] = ('Pray to Tyr (gamble)', f"Last prayer was only {turn - last} turns ago: Tyr may well be angry (bad luck, maybe smiting). But {'fainting from hunger' if s.get('hunger') == 'Fainting' else 'at ' + str(s.get('hp')) + ' HP'} with a monster attacking, this may be the last chance.", self.act_pray)
 
+        if turn - max(self.run.get('soko_broke', {}).values(), default=-9999) < 600 * len(self.run.get('soko_broke', {})):
+            opts.pop('pray', None)  # broke a Sokoban boulder: Luck < 0 makes pray.c p_type 1, the prayer fixes nothing
         holy = next((it for it in self.inventory if re.search(r'\bholy water|blessed (clear )?potions? of water', it['text'])), None)
         if holy and self.run.get('lycanthropy'):  # potion.c: blessed water cures lycanthropy ("You feel purified") and saves the prayer
             opts['holy_water'] = (f"Quaff {holy['text']}", 'Holy water cures lycanthropy without using a prayer.', lambda l=holy['letter']: (self.act_keys('q' + l, 'quaffed holy water'), self.read_inventory())[0])
@@ -1176,6 +1178,8 @@ class Bot:
                 d = next((k2 for k2, (dx, dy) in DIRS.items() if (me[0] + dx, me[1] + dy) == q), None)
                 if d and (s.get('xl') or 0) >= 10 and hp >= 0.8 * hpmax and not near:
                     opts[f'mimic_{d}'] = ('Attack the fake boulder (giant mimic)', 'This boulder was not on the premapped Sokoban level, so it is a giant mimic. Hit it first while it pretends, at full HP.', lambda d=d: self.act_fight(d))
+        if m and re.search(r'\b(exit|leave|quit|skip|abandon|forget)\b.*\bsoko', self.order, re.I):
+            self.run['soko_done'] = True  # operator order 'exit sokoban': the only option left was soko_push, so the order never reached a choice
         if m and not self.run.get('soko_done'):
             i = self.run.setdefault('soko_step', {}).get(m[0], 0)
             plan = self.run.setdefault('soko_plan', {}).get(m[0])
@@ -1195,9 +1199,16 @@ class Bot:
                     tries[m[0]] = tries.get(m[0], 0) + 1
                     new = sokoban.replan(m, me, set(snap.find('0')) - (set(snap.find('0')) - self.level().__dict__.get('soko_boulders', set(snap.find('0')))), set(snap.find('^'))) if tries[m[0]] <= 3 else None
                     self.log(f"sokoban {m[0]}: push {i + 1} off-plan; replan -> {len(new) if new else 'no solution, leaving'}", 'warn')
+                    pick = next((it for it in self.inventory if re.search(r'pick-axe|dwarvish mattock', it['text'])), None)
                     if new:
                         self.run['soko_plan'][m[0]] = new
                         self.run.setdefault('soko_stuck', {}).pop((m[0], i), None)
+                    elif pick and snap.at(*b).ch == '0' and (behind in dist or behind == me) and m[0] not in self.run.setdefault('soko_broke', {}):
+                        # last resort, once per level: dig.c fracture_rock -> sokoban_guilt is Luck -1, back +1 per 600 turns (attrib.c)
+                        opts = {k2: v for k2, v in opts.items() if k2 == 'pray' or k2.startswith('eat_')}
+                        opts['soko_break'] = (f"Sokoban: break the stuck boulder {compass(me, b)} with the pick-axe",
+                                              'No solution is left from here. Breaking one boulder costs 1 Luck (no successful prayer for about 600 turns) but reopens the puzzle.',
+                                              lambda m=m, b=b, behind=behind, k=k, l=pick['letter']: self.act_soko_break(m, b, behind, k, l))
                     else:
                         self.run['soko_done'] = True
                 if 'soko_push' in opts and not near and hp >= 0.6 * hpmax:  # forced push off Elbereth at 26/64 with fled orcs in view: 14 HP next turn, dead (T5149); a gargoyle out of view lifted the old hostiles gate, forced pushes at 20/57 then 10/57, dead (T9530)
@@ -1939,9 +1950,25 @@ class Bot:
             return f"pushed the boulder {DIR_NAME[k]}" + (f": {news[:100]}" if news else '')
         if 'monster behind' in news or 'perhaps that' in news:
             self.act_keys('ms', '')  # let it move off: retrying in the same turn just tripped the stall guard
-        elif 'in vain' in news:  # something unseen behind it: pushed 'in vain' 200+ turns (soko3-1 T3610); force a replan now
-            self.run.setdefault('soko_stuck', {})[(m[0], self.run['soko_step'].get(m[0], 0))] = -99
+        key = (m[0], self.run['soko_step'].get(m[0], 0))
+        fails = self.run.setdefault('soko_fails', {})
+        fails[key] = fails.get(key, 0) + 1
+        if 'in vain' in news or fails[key] >= 3:  # something unseen behind it: pushed 'in vain' 200+ turns (soko3-1 T3610); a repeated 'in vain' is deduped out of news, so count too: two stacked boulders, 'push failed' 30+ times (soko4 T7048)
+            self.run.setdefault('soko_stuck', {})[key] = -99
         return 'push failed' + (f": {news[:120]}" if news else '')
+
+    def act_soko_break(self, m, b, behind, k, letter):
+        r = self.act_go(behind)
+        if self.snap.me != behind:
+            return 'sokoban: ' + r
+        r = self.act_dig(letter, k)
+        if self.snap.at(*b).ch == '0':
+            return 'tried to break the boulder: ' + r
+        self.run['soko_broke'][m[0]] = self.snap.status.get('turn') or 0
+        self.run['soko_replans'][m[0]] = 0
+        (self.level().__dict__.get('soko_boulders') or set()).discard(b)
+        self.run['soko_stuck'][(m[0], self.run['soko_step'].get(m[0], 0))] = -99  # replan from the new layout
+        return 'broke the boulder (Luck -1)'
 
     def retreat_dir(self, hostiles):
         me, snap = self.snap.me, self.snap
@@ -2383,14 +2410,14 @@ class Bot:
         self.run.setdefault('unwieldable', set()).add(next((it['text'] for it in self.inventory if it['letter'] == letter), ''))
         return 'could not wield it'
 
-    def act_dig(self, letter):
+    def act_dig(self, letter, d='>'):
         weapon = next((it['letter'] for it in self.inventory if 'weapon in' in it['text'] and it['letter'] != letter), None)
         dl = self.snap.status.get('dlvl')
         self.t.send('a' + letter)
         for _ in range(4):
             top = self.t.lines()[0]
             if 'direction' in top:
-                self.t.send('>', timeout=10)
+                self.t.send(d, timeout=10)
                 break
             if 'You are now wielding' in top or '--More--' in '\n'.join(self.t.lines()):
                 self.t.send('\r')
@@ -2403,7 +2430,7 @@ class Bot:
             self.t.send('w' + weapon)
             self.observe()
         self.read_inventory()
-        return f'dug through to Dlvl {new}' if new != dl else 'dug but did not fall through (interrupted?)'
+        return f'dug through to Dlvl {new}' if new != dl else 'dug' if d != '>' else 'dug but did not fall through (interrupted?)'
 
     def act_kick_door(self, spot, door):
         r = self.act_go(spot)

@@ -2321,3 +2321,7 @@ A nymph had taken all but one item on Dlvl 6. In Sokoban a monster read a scroll
 
 ## T3916 giant ant (Dlvl 7, XL4)
 The wand of digging was empty. Engraving with it gave "The wand is too worn out to engrave", which the bot read as "attack interrupted" and retried 18 times beside a water nymph. It then zapped the wand at the nymph 4 times (a horizontal dig only bores walls), and at 14 HP it "dug down" with it for nothing. Fix: "too worn out" marks the wand empty, which every wand option already respects. Known digging wands are no longer offered as attack wands.
+
+## T7048 soko4: stuck on two stacked boulders, ignoring "exit sokoban"
+- A replanned solution pushed a boulder onto another in the doorway column; every push after that went "in vain". The repeated message was deduped out of `news`, so the -99 replan flag never fired and the bot looped on push/wait. Because soko_push was the only option, the operator's "exit sokoban" order never reached a choice.
+- Fix: three failed pushes at the same step count as stuck. If no replan exists and the bot has a pick-axe or mattock, it offers to break the boulder, once per level (5.0 dig.c fracture_rock -> sokoban_guilt: Luck -1, which recovers 1 per 600 turns). Prayer is withheld for 600 turns per break, because with Luck < 0 a prayer fixes nothing. Without a pick it gives up the level. A standing order matching "exit/leave/skip … sokoban" sets soko_done.
