@@ -464,6 +464,7 @@ class Bot:
             return ''
         desc = re.sub(r'^\S\s+', '', desc)
         desc = re.sub(r'\s*\[seen:.*$', '', desc)
+        desc = re.sub(r", can't move \([^)]*\)", '', desc)  # pager.c: the nested parens made a sleeping Woodland-elf 'paralyzed or sleeping or busy)' (T8550)
         # "tame a dog or other canine (little dog called Kiki)" -> "tame little dog called Kiki"
         m = re.match(r'^((?:tame|peaceful)\s+)?.*\((.+)\)$', desc)
         return (m[1] or '') + m[2] if m else desc
