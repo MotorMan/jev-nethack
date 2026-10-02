@@ -2127,4 +2127,4 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 ## Gold golem after a hole to Dlvl 7 (run 172642, XL4, T2696)
 - Cause: a hole dropped Jev from Dlvl 5 to 7 (Oracle level) at XL4. With '<' unknown, ascend was never offered, and it spent ~300 turns on fetches, pickups and hidden-door searches. It meleed a yellow light off Elbereth (rule: kill it), missed, and the light exploded. Blind, it was mobbed by unseen Mordor orcs with prayer spent (T2605); a gold golem finished it.
 - Wiki (Trap door/hole): you land on a random spot below; the way back is '<', so finding it is priority one when the level is beyond you.
-- Fix: too deep with no '<' known (outside the Mines) → only exploring and fighting, no fetch/pickup/search/rest detours while explore options exist.
+- Fix: too deep with no '<' known (outside the Mines) → only exploring and fighting, no fetch/goto/shop detours (rest kept for healing) while explore options exist.
