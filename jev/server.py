@@ -141,16 +141,16 @@ def make_handler(bot):
 
 
 def main():
+    load_env()
     ap = argparse.ArgumentParser()
     ap.add_argument('--hardfought', action='store_true')
     ap.add_argument('--host', default='127.0.0.1')
     ap.add_argument('--port', type=int, default=int(os.environ.get('PORT', 8770)))
     ap.add_argument('--name', default='Jev')
     ap.add_argument('--paused', action='store_true')
-    ap.add_argument('--char', default='Valkyrie:dwarf:female:lawful',
+    ap.add_argument('--char', default=os.environ.get('JEV_CHAR', 'Valkyrie:dwarf:female:lawful'),
                     help="Character spec: role:race:gender:align, or 'random'")
     args = ap.parse_args()
-    load_env()
     from .jevapi import is_local  # a local endpoint keeps its own ledger so hosted spend stays exact
     jev = Jev(os.environ.get('JEV_API_KEY', ''), float(os.environ.get('JEV_BUDGET_USD', 5)), os.path.join(runs_home(args.name), 'budget-local.json') if is_local() else os.path.join(ROOT, 'runs', 'budget.json'))  # hosted spend is one budget across instances
     if args.hardfought:
