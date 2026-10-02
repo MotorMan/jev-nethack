@@ -2154,3 +2154,8 @@ Follow-up (8aa4deb): search_spot skips squares within 2 of a for-sale item (a sh
 - Found: corpse tracking only dates squares showing '%'. A kill whose square also holds dropped items (arrows, weapons) shows ')' or '[', so the corpse got 'unknown age = rotten' and was never offered (T7158: standing on a fresh giant ant corpse under 11 orcish arrows, no eat option).
 - Wiki/eat.c: corpses under 50 turns old are safe (rot = age/(10+rn2(20))).
 - Fix: a melee kill whose square shows a non-'%' object is recorded as a fresh corpse; goto_corpse already drops the entry if none is there.
+
+## Hill orc, praying (run 180002, Dlvl 4, XL6, T4402)
+- Cause: just after a hill orc band fight, at 24/45, goto_corpse was forced (it overrides rest) and the walk met the next orc: 24 -> 13, Elbereth garbled, 3 HP, prayed only 158 turns after the last. The previous fix (dating corpses under items) makes more corpses eligible, which made this path more likely.
+- Wiki: corpses keep for ~50 turns; heal first.
+- Fix: no goto_corpse below 60% HP or within 10 turns of being hit, unless Weak/Fainting.
