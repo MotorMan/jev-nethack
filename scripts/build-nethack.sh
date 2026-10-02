@@ -50,13 +50,21 @@ cp -a doc/NHdump.css "$PREFIX/lib/NHdump.css" 2>/dev/null || true
 # Create the expected bin/ symlink
 ln -sf ../lib/nethack "$PREFIX/bin/nethack"
 
-# Create required var/ state files
+# Create required state files directly under lib/ and flatten var/ into lib/
+mkdir -p "$PREFIX/lib/var" "$PREFIX/lib/var/save" "$PREFIX/lib/var/whereis"
 for f in perm record logfile xlogfile livelog; do
     touch "$PREFIX/lib/var/$f"
     cp -a "$PREFIX/lib/var/$f" "$PREFIX/lib/$f" 2>/dev/null || touch "$PREFIX/lib/$f"
-    chmod 0600 "$PREFIX/lib/var/$f" "$PREFIX/lib/$f"
+    chmod 0600 "$PREFIX/lib/$f"
 done
-chmod 0700 "$PREFIX/lib/var" "$PREFIX/lib/var/save" "$PREFIX/lib/var/whereis"
+chmod 0700 "$PREFIX/lib/var/save" "$PREFIX/lib/var/whereis"
+
+# NetHack looks for subdirectories under HACKDIR too.
+# Move any nested var/ contents up into lib/ and remove var/ entirely.
+if [ -d "$PREFIX/lib/var" ]; then
+    cp -a "$PREFIX/lib/var/." "$PREFIX/lib/" 2>/dev/null || true
+    rm -rf "$PREFIX/lib/var"
+fi
 
 # Generate sysconf with local paths
 sed -e "s;/dgldir/userdata/%N/%n/nethack/dumplog;$PREFIX/dumplog;" \
