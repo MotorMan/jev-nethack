@@ -221,6 +221,8 @@ class Bot:
                 self.run['debt'] = self.snap.status.get('dlvl') if self.snap else True
             if re.search(r'You do not owe|You have paid|You paid|Thank you for shopping|pay .* in full', text, re.I):
                 self.run['debt'] = False
+            if 'You have a sad feeling' in text:  # dog.c: the pet died out of view
+                self.run['pet'] = False
             if re.search(r"ghost (touches|misses)", text) and self.snap and self.snap.me:
                 self.level().ghost = (self.snap.me, self.snap.status.get('turn') or 0)  # it is next to us: search somewhere else
             if re.search(r'You (kill|destroy) the lichen', text) and self.snap:
@@ -2335,6 +2337,16 @@ class Bot:
         r = self.act_go(p, stop_new=stop_new)
         if self.snap.me == p:
             dl = self.snap.status.get('dlvl')
+            if key == '>' and self.run.get('pet', True):  # user: the pet was always left behind on Dlvl 1. Wait on the stairs until it is adjacent
+                lv = self.level()
+                for _ in range(30):
+                    mons = self.monsters()
+                    if any(m['pet'] and m['dist'] <= 1 for m in mons) or any(m['hostile'] and not m['passive'] for m in mons) \
+                            or lv.__dict__.setdefault('pet_wait', 0) >= 100 or self.snap.status.get('hunger') in ('Weak', 'Fainting'):
+                        break
+                    lv.pet_wait += 1
+                    self.act_keys('s', '')
+                self.run['pet'] = any(m['pet'] and m['dist'] <= 1 for m in self.monsters())  # mon.c keepdogs: only an adjacent pet follows
             self.act_keys(key, '')
             return f'walked to the stairs and took them (Dlvl {dl} -> {self.snap.status.get("dlvl")})'
         return 'heading for the stairs: ' + r
