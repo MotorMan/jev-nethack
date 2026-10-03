@@ -1462,7 +1462,7 @@ class Bot:
         if not fr and not downs and not near and (lv.blocked - lv.locked or lv.dead) and s.get('turn', 0) - lv.__dict__.get('unblock_turn', -99) >= 30:
             # one failed step into a doorway marked it blocked for good: 300 turns of search_hidden on each level, then a full memory reset re-walked every corridor (T27-T362, T604-T976, T1105-T1451). Forget bumps, keep what we have seen
             lv.unblock_turn = s.get('turn', 0)
-            lv.blocked &= lv.locked; lv.dead.clear()
+            lv.blocked &= lv.locked | lv.__dict__.setdefault('stuck', set()); lv.dead.clear()  # a stuck boulder stays stuck: re-pushed 'in vain' 316 times on Dlvl 2, 13500 turns, fainted (T13848)
             dist, _ = self.dijkstra()
             fr = self.frontiers(dist)
             if fr:
@@ -2276,6 +2276,8 @@ class Bot:
                     self.level().locked.add(step)  # locked, stuck or resisting: kicking is the way through
                 if not snap.is_monster(*step) and not before.is_monster(*step) and not any('Pardon me' in m for m in news) and (before.at(*step).ch not in '.#' or any(m.startswith("It's ") for m in news)):  # hack.c test_move: "It's a wall." only for real rock, even if memory shows '.' (bumped one 30+ times, T7444)  # a shopkeeper on the doorway walled Jev into a shop for 2700 turns  # floor was only ever blocked by a peaceful in the way
                     self.level().blocked.add(step)
+                if any('in vain' in m for m in news):  # hack.c moverock: rock, a wall or a second boulder behind it; the walk must stop trying
+                    self.level().__dict__.setdefault('stuck', set()).add(step)
                 return f'blocked after {taken} steps' + (f": {news[-1]}" if news else '')
             if snap.status.get('hp', 0) < hp0:
                 return f'took damage after {taken} steps'

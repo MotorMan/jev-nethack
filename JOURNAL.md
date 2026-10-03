@@ -3026,3 +3026,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: the pathfinder never planned a diagonal step between two rock or wall squares. On Dlvl 3, the corridor from a west doorway left diagonally, so the west half of the level stayed unknown. The bot searched walls for 6000 turns and never found the downstairs.
 - Prevention: in 5.0 `hack.c` (`cant_squeeze_thru`), the squeeze fails only when the hero carries more than 600 weight.
 - Fix: the pathfinder allows the squeeze. After the message "You are carrying too much to get through", it blocks squeezes again for 500 turns.
+
+## Boulder pushed in vain 316 times on Dlvl 2 (run 153956, T13848)
+
+- Cause: The level had no frontier and no downstairs. Each 30 turns, the bot cleared its blocked squares and explored again. It forgot the boulder that did not move. It pushed the boulder "in vain" 316 times. It stayed on Dlvl 2 for 13,500 turns. Then it fainted from hunger, and a rothe killed it.
+- Prevention: A boulder that moves "in vain" has rock, a wall or a second boulder behind it (hack.c `moverock`). Do not push it again.
+- Fix: `act_go` adds the square to `lv.stuck`. The 30-turn reset keeps the squares in `lv.stuck`. Only the full reset clears them, when no other option remains.
