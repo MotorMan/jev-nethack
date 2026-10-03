@@ -909,7 +909,12 @@ class Bot:
         # at 56/64 Jev wrote Elbereth instead of closing on a large kobold, which stood off and zapped lightning until it died (T9749)
         # blind at 8/76, unseen apes' hits lost in 5-turn rests: rested to death with no Elbereth offered (T6987)
         if dread:
-            opts = {k: v for k, v in opts.items() if not k.startswith(('approach_', 'explore'))}
+            # a corridor doesn't blunt one big hitter, and 'choke' deletes the Elbereth wait: walked off a fresh Elbereth from a mumak 2 steps off,
+            # then only 'attack' was offered at 76/76, XL7: butt 76 -> 25, dead (T6569). A monster that moves cannot attack that turn: walk from slower ones
+            opts = {k: v for k, v in opts.items() if not k.startswith(('approach_', 'explore')) and k != 'choke'}
+            if not self.engraved_here() and all((MONSTERS.get(self.species(m)) or [0, 99])[1] < spd for m in near if m['dist'] <= 3) and self.retreat_dir(hostiles):
+                opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'throw_'))}
+                opts['retreat'] = ('Step away', f"The {dread[0]['name']} is slower than you. A monster that must move to reach you cannot attack in that turn, so stepping away each turn keeps it off you.", lambda: self.act_retreat(hostiles))
         # uhitm.c: no "Really attack?" while Hallu/Conf/Stun; hallucinating, Jev hit peacefuls, alignment went negative ("You had sinned"), the first prayer failed, fainted, dead (T2759)
         # hack.c: Stunned, every move goes a random direction: six "You attack thin air" swings in Orc Town, 24 -> 0 (T4713)
         stun = bool(set(s.get('conditions', [])) & {'Stun', 'Stn'})

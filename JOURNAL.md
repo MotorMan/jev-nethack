@@ -3038,3 +3038,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: The hero was at 24/78 HP on Elbereth in a corridor. A rope golem stood next to it, and the bot waited. The golem had no square to flee to, so it attacked anyway (monmove.c `panicattk`). The hit wiped the dust. The hug pinned the arms, so engraving was not possible (engrave.c `can_reach_floor`). At 13 HP the bot prayed 139 turns after the last prayer. Tyr was angry, the hero lost a level, and the golem killed it.
 - Prevention: A monster that moves to reach the hero cannot attack in the same turn (monmove.c `MMOVE_MOVED`). The rope golem has speed 9 and the hero has speed 12. Step away from it each turn, before it can grab.
 - Fix: If a hugger is next to the hero, every monster within 2 squares is slower than 12, and the hero stands on Elbereth or is below half HP, the bot steps away. The only other options are prayer, teleport, `flee_up`, potions and wands.
+
+## Mumak at XL 7 (run 191017, T6569)
+
+- Cause: A mumak came next to the hero at 76/76 HP and XL 7. The bot engraved Elbereth, and the mumak fled 2 squares. The "fight from a corridor" option deleted the Elbereth wait, so the bot walked off the engraving. Next to the mumak, the only option was attack. Two butts took the hero from 76 to 25 HP. A scroll of teleportation, a potion of healing and one more step did not save it.
+- Prevention: The mumak hits hard, but it is slow (speed 9, the hero has 12). A monster that must move to reach the hero cannot attack in that turn (monmove.c `MMOVE_MOVED`). Stay on Elbereth, or step away each turn.
+- Fix: When a dread monster is near, the bot drops the corridor option. If the hero is not on Elbereth and all monsters within 3 squares are slower, the bot offers "step away" and drops melee and throws.
