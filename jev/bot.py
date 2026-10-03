@@ -299,7 +299,7 @@ class Bot:
 
     def answer_yn(self, q):
         self.add_msg(q)
-        rules = [('Really attack', 'n'), ('Pay?', 'y'), ('Sell', 'y'), ('Itemized billing', 'n'), ('pray', 'y'), ('no return', 'n'), ('possessions identified', 'n'),
+        rules = [('Wield', 'y'), ('Really attack', 'n'), ('Pay?', 'y'), ('Sell', 'y'), ('Itemized billing', 'n'), ('pray', 'y'), ('no return', 'n'), ('possessions identified', 'n'),
                  ('Stop eating', 'y'), ('Continue eating', 'n'), ('add to the current engraving', 'n'),
                  ('Do you want to keep the save file', 'n'), ('Dump core', 'n'), ('eat it', 'n')]
         if re.search(r'really \w+ (onto|into) that', q, re.I):  # paranoid trap confirmation: only drops and teleports are refused
@@ -3011,13 +3011,15 @@ class Bot:
 
     def act_wield(self, letter):
         self.t.send('w' + letter)
-        if re.search(r'Wield .* instead\?', self.t.lines()[0]):  # wield.c ready_weapon on the quivered dagger; 'q' left a disarmed Jev bare-handed, killed by a lynx (T4777)
+        if any(re.search(r'Wield .* instead\?', l) for l in self.t.lines()):
             self.t.send('y')
         self.observe()
         self.read_inventory()
-        if any('weapon in' in it['text'] and it['letter'] == letter for it in self.inventory):  # the chosen one: an upgrade from a welded dagger would loop
+        if any('weapon in' in it['text'] and it['letter'] == letter for it in self.inventory):
             return 'wielded it'
-        self.run.setdefault('unwieldable', set()).add(next((it['text'] for it in self.inventory if it['letter'] == letter), ''))
+        item_text = next((it['text'] for it in self.inventory if it['letter'] == letter), None)
+        if item_text:
+            self.run.setdefault('unwieldable', set()).add(item_text)
         return 'could not wield it'
 
     def act_dig(self, letter, d='>'):
