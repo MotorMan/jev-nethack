@@ -2032,7 +2032,8 @@ class Bot:
             if any(cheb(p, q) <= 2 for q in sale):
                 continue  # mkroom.c: a shop has exactly one door, so its walls hide nothing; 317 searches mostly inside one, starved (T6390)
             walls = sum(1 for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy) and (g := snap.at(p[0] + dx, p[1] + dy)) is not None and g.ch in ' |-')
-            exits = sum(1 for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy) and snap.walkable(p[0] + dx, p[1] + dy))
+            exits = sum(1 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)) if snap.walkable(p[0] + dx, p[1] + dy)) or sum(1 for dx in (-1, 0, 1) for dy in (-1, 0, 1) if (dx or dy) and snap.walkable(p[0] + dx, p[1] + dy))
+            # sp_lev.c dig_corridor steps orthogonally: user, a bent corridor's end also touches the bend diagonally; 8-way it counted 2 exits, never searched, 700 turns on room walls (run 195056, Dlvl 5)
             if walls < 3 or (snap.at(*p).ch == '#' and exits > 1) or snap.at(*p).ch != '#' and not any((g := snap.at(p[0] + dx, p[1] + dy)) is not None and g.ch in '|-' and not snap.is_door(p[0] + dx, p[1] + dy) for dx, dy in DIRS.values()):
                 continue  # user: a hidden spot is at a corridor's dead end or in a room wall, never mid-hallway
             g = getattr(lv, 'ghost', None)

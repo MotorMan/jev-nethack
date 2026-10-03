@@ -27,3 +27,11 @@ assert p[0] >= 33, p  # east wall of the right room, not the explored west room
 print('search_spot ok', p)
 assert b.search_spot({(19, 6): 1}) is None  # user: never search mid-hallway
 print('mid-hallway skipped')
+rows = ['', ' -------', ' |.....|', ' |.....|', ' |<(.@..#############', ' -------            #', '                    ##']
+lines[:] = [r.ljust(80) for r in rows] + [' ' * 80] * (24 - len(rows))
+lines[23] = 'Dlvl:5 $:0 HP:10(10) Pw:1(1) AC:6 Xp:1/0 T:100'.ljust(80)
+b.snap = Snapshot(term)
+dist = {(x, y): abs(x - 5) + abs(y - 4) for y in range(2, 5) for x in range(2, 7)} | {(x, 4): x - 5 for x in range(7, 21)} | {(20, 5): 16, (20, 6): 17, (21, 6): 18}
+p = b.search_spot(dist)
+assert p == (21, 6), p  # user: the end of a bent corridor, not the room walls
+print('bent dead end ok')

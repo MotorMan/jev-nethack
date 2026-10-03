@@ -3082,3 +3082,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** At XL 4 on Dlvl 5, a horse (difficulty 7, speed 20, kick 1d8 and bite 1d3) attacked the hero. A prayer at T2674 healed the hero to 44/44. The horse hit and moved away. In one turn it took the hero from 34 to 20 HP. At 20/44 the only option was `attack`, because Elbereth is offered only below 1/3 of max HP. The next turn took the hero to 3 HP, and the horse killed it.
 - **Prevention:** If one more turn like the worst turn of an adjacent monster can kill the hero, it is an emergency, whatever the HP fraction. The horse respects Elbereth.
 - **Fix:** The bot also offers Elbereth when an adjacent monster is `heavy`: its worst turn of damage, times 2, is at least the current HP.
+
+## Run 20261002-195056: a bent corridor end was never searched (T5854)
+
+- **Cause:** On Dlvl 5 the hero saw one room and a corridor. The corridor turned once and then stopped. `search_spot` counted exits in 8 directions, so the end square also touched the bend diagonally and counted 2 exits. The bot did not search it. For 700 turns it searched the room walls. Then it was Hungry, a prayer 893 turns after the last one failed, and a giant ant killed the hero while it fainted.
+- **Prevention:** The user saw this: the end of the corridor was the place to search. `sp_lev.c` `dig_corridor` digs only in orthogonal steps, so a corridor square with one orthogonal exit is a dead end.
+- **Fix:** `search_spot` counts only orthogonal exits for a corridor square. If there are none, it uses the count in 8 directions. A test in `test_search_spot.py` has a bent dead end.
