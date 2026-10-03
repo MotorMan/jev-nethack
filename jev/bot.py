@@ -1149,7 +1149,7 @@ class Bot:
             if price and (FOOD.search(item) and 'corpse' not in item or why) and int(price[1]) <= s.get('gold', 0) and not self.run.get('debt'):
                 opts[f'buy_{i}'] = (f"Buy {item}", f"Pick up {item} and pay {price[1]} of your {s.get('gold')} gold. " + (why or 'Packed food prevents fainting from hunger.'), lambda item=item: (self.act_pickup(item), self.act_pay())[1])
                 continue
-            armed = any((w := WEAPON.search(it['text'])) and w[1] not in ('dagger', 'knife', 'club') and it['text'] not in self.run.get('unwieldable', ()) for it in self.inventory)  # a dagger is not armed: a nymph took the spear at T3078, 9700 turns of d4 hits to XL 7, a rothe pack in a 3x3 room, dead (T12820)  # a nymph took the spear; the filter left 2 scimitars on the floor, bare-handed vs hill orcs, dead (T2578)
+            armed = any((w := WEAPON.search(it['text'])) and w[1] not in ('dagger', 'knife', 'club') and it['letter'] not in self.run.get('unwieldable', ()) for it in self.inventory)  # a dagger is not armed: a nymph took the spear at T3078, 9700 turns of d4 hits to XL 7, a rothe pack in a 3x3 room, dead (T12820)  # a nymph took the spear; the filter left 2 scimitars on the floor, bare-handed vs hill orcs, dead (T2578)
             daggers = sum(int(n[1]) if (n := re.match(r'(\d+) ', it['text'])) else 1 for it in self.inventory if re.search(r'dagger|knife|knives', it['text']))
             darts = any(re.search(r'\bdarts?\b', it['text']) for it in self.inventory)
             # user: no gems (not playing for score; a gray stone can be a loadstone), no random weapons: the spear stays until Mjollnir; 2-3 daggers pry boxes and get thrown
@@ -1757,13 +1757,13 @@ class Bot:
                     opts = {f'kick_{d}': ('Kick the locked door', 'Trapped for hundreds of turns with no other way out.', lambda d=d: self.act_kick(d, force=True))}
         # Jev never picked "Wear" over exploring (194 offers after a monkey stole the shield) and has no wield option at all
         # never a known-cursed one (welded: a cursed orcish dagger over an uncursed dagger, killed by an ogre T4539); known-safe first at equal rank
-        weapon = min((it for it in self.inventory if WEAPON.search(it['text']) and not re.search(r'(?<!un)cursed', it['text']) and it['text'] not in self.run.setdefault('unwieldable', set())),
+        weapon = min((it for it in self.inventory if WEAPON.search(it['text']) and not re.search(r'(?<!un)cursed', it['text']) and it['letter'] not in self.run.setdefault('unwieldable', set())),
                      key=lambda it: (WEAPON_RANK.index(WEAPON.search(it['text'])[1]), not re.search(r'uncursed|blessed', it['text'])), default=None)
         if weapon and self.inventory and not any('weapon in' in it['text'] for it in self.inventory):
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You are fighting bare-handed.', lambda l=weapon['letter']: self.act_wield(l))}
         elif not near and weapon and WEAPON_RANK.index(WEAPON.search(weapon['text'])[1]) < WEAPON_RANK.index('dagger') and any('weapon in' in it['text'] and (w := WEAPON.search(it['text'])) and w[1] in ('dagger', 'knife', 'club') and not re.search(r'(?<!un)cursed', it['text']) for it in self.inventory):
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You fight with a small weapon (d4); this one hits much harder.', lambda l=weapon['letter']: self.act_wield(l))}  # T12820: d4 dagger at XL 7 with the spear stolen
-        elif not near and (art := next((it for it in self.inventory if 'named' in it['text'] and WEAPON.search(it['text']) and 'weapon in' not in it['text'] and it['text'] not in self.run['unwieldable']), None)):
+        elif not near and (art := next((it for it in self.inventory if 'named' in it['text'] and WEAPON.search(it['text']) and 'weapon in' not in it['text'] and it['letter'] not in self.run['unwieldable']), None)):
             opts = {f"wield_{art['letter']}": (f"Wield {art['text']}", 'An artifact weapon beats anything else you carry.', lambda l=art['letter']: self.act_wield(l))}
         elif not near and any(k == 'wish' or k.startswith('wear_') for k in opts):  # an early {'wish'}-only filter dropped wear and later rest/explore came back: a wished-for GDSM sat unworn, 'wish' untaken 100 times, AC 5, fire ant (T4663)
             opts = {k: v for k, v in opts.items() if k == 'wish' or k.startswith('wear_')}
@@ -3026,9 +3026,9 @@ class Bot:
         self.read_inventory()
         if any('weapon in' in it['text'] and it['letter'] == letter for it in self.inventory):
             return 'wielded it'
-        item_text = next((it['text'] for it in self.inventory if it['letter'] == letter), None)
-        if item_text:
-            self.run.setdefault('unwieldable', set()).add(item_text)
+        item_letter = next((it['letter'] for it in self.inventory if it['letter'] == letter), None)
+        if item_letter:
+            self.run.setdefault('unwieldable', set()).add(item_letter)
         return 'could not wield it'
 
     def act_dig(self, letter, d='>'):
