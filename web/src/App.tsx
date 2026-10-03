@@ -921,8 +921,10 @@ export default function App() {
           <Feeds s={s} />
         </Split>
         {/* fixed ratios so the decision panel doesn't resize with its option count */}
-        <Split id="mid3" init={[0, 45, 55]}>
+        {/* new id: saved mid3 sizes would shift onto the plan pane */}
+        <Split id="mid4" init={[0, 0, 45, 55]}>
           <Orders s={s} />
+          <PlanPanel s={s} />
           <DecisionPanel s={s} />
           <Timeline s={s} />
         </Split>
@@ -930,7 +932,6 @@ export default function App() {
           <Vitals s={s} />
           <Telemetry s={s} />
           <LevelInfo s={s} />
-          <PlanPanel s={s} />
           <Inventory s={s} />
         </Split>
       </Split>
