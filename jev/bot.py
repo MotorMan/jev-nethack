@@ -969,7 +969,7 @@ class Bot:
             opts.pop('choke', None)
         held = len(pack_near) >= 2 and open_n(me) <= 2 and not strong and not shot  # already in the corridor: fight them one at a time, don't stop to engrave
         if ('choke' in opts or held) and hp >= 0.2 * hpmax and not self.unseen_attacker():  # user: at medium HP, fight on until 20% HP
-            if 'choke' in opts and opts.get('wait', ('',))[0].startswith('Stay on Elbereth'):
+            if 'choke' in opts and opts.get('wait', ('',))[0].startswith('Stay on Elbereth') and hp >= 0.4 * hpmax and s.get('ac', 0) < 9:  # at 21/60 and AC 10 (armor shed by a polymorph) the corridor walk took Jev off Elbereth with a wolf near: 21 -> 7, failed prayer, dead (T7817)
                 del opts['wait']  # 0.4: at 25/53 Elbereth was dropped for a walk to a corridor beside a rothe, 25 -> 8 garbling retries (T3712)  # wiki: Elbereth is breathing room; a corridor is how to actually fight a group
             opts.pop('elbereth', None)
             if 'choke' in opts and len(pack_near) >= 3 and not all('weaker' in self.threat(m) for m in pack_near):  # user: easy early monsters, 2-3 at a time is fine

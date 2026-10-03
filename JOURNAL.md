@@ -3052,3 +3052,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause 2: A quivering blob (speed 1) blocked the corridor that explore needed. Explore walked to it, and "walk away from the slow monster" stepped back. This happened 16 times (T7364 to T7396).
 - Fix 2: After 3 retreats in 10 decisions, the bot does not offer the walk-away. It can fight the blob.
 - UI: The "explored" figure counted drawn map cells, so it showed 100% while edges were left. The level panel now shows the number of edges that remain.
+
+## Wolf after a polymorph (run 192327, T7817)
+
+- Cause: A polymorph made the hero shed its armor, so AC was 10. At 21/60 HP the bot stood on Elbereth with a wolf near. The "fight from a corridor" option deleted the Elbereth wait. The bot walked off, then went for the dropped armor. The wolf bit it from 21 to 7 HP. A prayer 263 turns after the last one failed.
+- Prevention: Below 40% HP, or at AC 9 or worse, Elbereth is better than a walk to a corridor.
+- Fix: The corridor option deletes the Elbereth wait only at 40% HP or more and AC 8 or better.
