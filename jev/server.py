@@ -24,7 +24,7 @@ def load_env():
 def local_launcher(name):
     def launch():
         return Term([os.path.join(ROOT, 'nethack/bin/nethack'), '-u', name],
-                    {'NETHACKOPTIONS': '@' + os.path.join(ROOT, 'jev/nethackrc')}, idle=0.015)  # a local pty flushes a whole frame at once
+                    {'NETHACKOPTIONS': '@' + os.path.join(ROOT, 'jev/nethackrc')}, idle=0.005)  # a local pty flushes a whole frame at once; 15 ms was 55% of the run time
     return launch
 
 

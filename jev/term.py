@@ -36,7 +36,7 @@ class Term:
                 self.stream.feed(data)
                 n += len(data)
                 last = time.time()
-            elif n or time.time() - last > self.idle * 4:
+            elif n or time.time() - last > max(self.idle * 4, 0.06):  # no output yet: a level change computes first
                 break
         return n
 
