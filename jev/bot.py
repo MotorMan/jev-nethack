@@ -608,7 +608,15 @@ class Bot:
         for _ in range(6):
             lines = self.t.lines()
             kind, _ = top_prompt(lines)
+            merged = []
             for l in lines:
+                if l.strip() == '--More--':
+                    continue
+                if merged and not re.match(r'\s*[a-zA-Z$#] - ', l):
+                    merged[-1] = merged[-1] + ' ' + l.strip()
+                else:
+                    merged.append(l)
+            for l in merged:
                 for m in re.finditer(r'(?:^|\s)([a-zA-Z$#]) - (.+?)\s*$', l):
                     items.append(dict(letter=m[1], text=m[2]))
             if kind == 'menu' and any(re.search(r'\((\d+) of (\d+)\)', l) and not re.search(r'\((\d+) of \1\)', l) for l in lines):
