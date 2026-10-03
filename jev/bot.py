@@ -1814,6 +1814,12 @@ class Bot:
         if hugger and self.engraved_here() and any(m['dist'] <= 1 and HUGGERS.search(m['name']) for m in hostiles):
             # mon.c setmangry: any attack from Elbereth (melee, throw, zap) erases it. Attacked an adjacent owlbear from a fresh Elbereth at 55/79: grabbed, crushed, dead (T7278)
             opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'throw_', 'zap_'))} | {'wait': ('Stay on Elbereth one turn', "A hugging monster is next to you. While you stand on Elbereth it cannot grab you; any attack (melee, throw or zap) erases the engraving.", lambda: self.act_keys('ms', 'waited on Elbereth'))}
+            # monmove.c: a cornered scared monster panic-attacks; one hit wipes the dust, the hug pins the arms (engrave.c can_reach_floor), escape is 1 in 40.
+            # Waited on Elbereth beside a rope golem at 24/78: grabbed, choked 24 -> 13, gamble prayer failed, dead (T7418). A monster that moves cannot attack that turn: walk from slower ones
+        if hugger and (self.engraved_here() or s.get('hp', 1) < s.get('hpmax', 1) / 2) \
+                and any(m['dist'] <= 1 and HUGGERS.search(m['name']) for m in hostiles) and all((MONSTERS.get(self.species(m)) or [0, 99])[1] < 12 for m in hostiles if m['dist'] <= 2) and self.retreat_dir(hostiles):
+            opts = {k: v for k, v in opts.items() if k in ('pray', 'teleport', 'flee_up') or k.startswith(('quaff_', 'zap_'))}
+            opts['retreat'] = ('Step away from the hugger', 'It is slower than you. A monster that must move to reach you cannot attack in that turn, so stepping away each turn keeps it from grabbing you.', lambda: self.act_retreat(hostiles))
         # hit through Elbereth twice by a soldier ant, then 6 turns alternating Elbereth (2 garbled), wait and one attack: 58 -> 0 (T5688). Once it fails here, commit to fighting
         if any('not protecting' in h['outcome'] for h in self.history[-6:]) and any(k.startswith('attack_') for k in opts) and not any(k.startswith(('quaff_', 'zap_')) or k in ('pray', 'teleport', 'flee_up') for k in opts):
             opts = {k: v for k, v in opts.items() if k not in ('elbereth', 'wait')}

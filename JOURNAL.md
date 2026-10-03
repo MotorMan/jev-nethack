@@ -3032,3 +3032,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: The level had no frontier and no downstairs. Each 30 turns, the bot cleared its blocked squares and explored again. It forgot the boulder that did not move. It pushed the boulder "in vain" 316 times. It stayed on Dlvl 2 for 13,500 turns. Then it fainted from hunger, and a rothe killed it.
 - Prevention: A boulder that moves "in vain" has rock, a wall or a second boulder behind it (hack.c `moverock`). Do not push it again.
 - Fix: `act_go` adds the square to `lv.stuck`. The 30-turn reset keeps the squares in `lv.stuck`. Only the full reset clears them, when no other option remains.
+
+## Rope golem beside Elbereth (run 183838, T7418)
+
+- Cause: The hero was at 24/78 HP on Elbereth in a corridor. A rope golem stood next to it, and the bot waited. The golem had no square to flee to, so it attacked anyway (monmove.c `panicattk`). The hit wiped the dust. The hug pinned the arms, so engraving was not possible (engrave.c `can_reach_floor`). At 13 HP the bot prayed 139 turns after the last prayer. Tyr was angry, the hero lost a level, and the golem killed it.
+- Prevention: A monster that moves to reach the hero cannot attack in the same turn (monmove.c `MMOVE_MOVED`). The rope golem has speed 9 and the hero has speed 12. Step away from it each turn, before it can grab.
+- Fix: If a hugger is next to the hero, every monster within 2 squares is slower than 12, and the hero stands on Elbereth or is below half HP, the bot steps away. The only other options are prayer, teleport, `flee_up`, potions and wands.
