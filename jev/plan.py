@@ -45,9 +45,9 @@ OBJECTIVES = {
              lambda b: b.snap.status.get('hunger'), 150, lambda b: b.snap.status.get('hunger') in HUNGRY,
              lambda b: b.snap.status.get('hunger') not in HUNGRY, False),
     'explore': ('Explore this level', ('explore', 'door_', 'search_hidden', 'dead_end', 'kick_', 'find_unseen'),
-                lambda b: (b.snap.status.get('dlvl'), drawn(b)), 300, lambda b: True, lambda b: False, True),
+                lambda b: (b.snap.status.get('dlvl'), drawn(b)), 300, lambda b: True, lambda b: False, False),  # a cooldown on explore left only search: 18 stalls in 3 games, ~3600 turns
     'loot': ('Collect and use items', ('fetch', 'pickup_', 'loot', 'stash_fetch', 'recover_gear', 'wear_', 'buc', 'altar', 'carry', 'offer', 'holy_water'),
-             lambda b: (len(b.run['here']), len(b.inventory)), 150, lambda b: True, lambda b: False, True),
+             lambda b: (len(b.run['here']), len(b.inventory)), 150, lambda b: True, lambda b: False, False),  # a cooldown on loot also hid food pickups
     'shop': ('Buy and sell', ('buy_', 'sell_', 'quote_', 'shop_look', 'donate'),
              lambda b: (b.snap.status.get('gold'), len(b.inventory)), 200, lambda b: True, lambda b: False, True),
     'sokoban': ('Solve Sokoban', ('soko_', 'enter_sokoban'),

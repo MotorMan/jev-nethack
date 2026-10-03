@@ -1,4 +1,4 @@
-"""Objective commit, stall cooldown and preemption in jev/plan.py, on a fake bot."""
+"""Objective commit, stall, cooldown and preemption in jev/plan.py, on a fake bot."""
 from types import SimpleNamespace
 from jev import plan
 
@@ -9,8 +9,10 @@ f = lambda: None
 opts = {'attack_h': ('a', 'b', f), 'explore_1': ('e', 'x', f), 'descend': ('d', 'x', f)}
 o = plan.step(b, opts, [], 100)
 assert b.run['obj']['id'] == 'explore' and list(o)[0] == 'explore_1' and 'Serves the objective' in o['explore_1'][1]
-o = plan.step(b, opts, [], 450)  # no map change in 350 turns: stall, cooldown, explore leaves the menu
-assert 'explore' in b.run['obj_cool'] and 'explore_1' not in o and b.run['obj']['id'] == 'descend', b.run
+o = plan.step(b, opts, [], 450)  # no map change in 350 turns: stall, but explore has no cooldown and stays in the menu
+assert b.run['obj_log'][-1]['result'] == 'stalled' and 'explore' not in b.run['obj_cool'] and 'explore_1' in o, b.run
+b.run['obj_cool']['shop'] = 650  # a cooled objective's options leave the menu
+assert 'buy_a' not in plan.step(b, opts | {'buy_a': ('b', 'x', f)}, [], 451)
 st['hp'] = 5
 plan.step(b, opts | {'rest': ('r', 'x', f)}, [], 460)
 assert b.run['obj']['id'] == 'heal' and b.run['obj_log'][-1]['result'] == 'preempted'

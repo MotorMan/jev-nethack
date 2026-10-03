@@ -3014,3 +3014,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: the hero had no food and prayed for Weak hunger at T7584. Then a bat and a hill orc with a wand of magic missile took it from 44 to 15 HP. At T7610 the bot zapped an unknown wand at the orc. An engrave test had named this wand "no engrave effect". The wand was make invisible, so the orc and the bat both vanished. At 11/61 HP, three engravings came out garbled, and the invisible bat killed the hero.
 - Prevention: in 5.0 `engrave.c`, a wand that gives no message is nothing, opening, locking, probing or undead turning. On a bare floor, it can also be teleportation, cancellation or make invisible. Only teleportation helps in a fight.
 - Fix: the bot never zaps a wand called "no engrave effect" at a monster.
+
+## Plan system: explore cooldowns pushed the bot into search (user report)
+
+- Cause: the user saw that games got less far and starved more. The decline started near 14:40, before the plan system (17:12). In the slow games, 40-57% of the turns went to search. In the older games, this was 10-39%. The plan system made this worse: in 3 games, the explore objective stalled 18 times. Each stall removed the explore options for 200 turns, so only search remained. A loot cooldown also removed `pickup_food` and the food "fetch".
+- Prevention: a cooldown must not remove the only way to make progress or to get food.
+- Fix: explore and loot are not suppressible. A stall ends the objective, but the options stay in the menu. Only shop and sokoban get a cooldown.
