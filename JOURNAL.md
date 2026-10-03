@@ -3044,3 +3044,11 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A mumak came next to the hero at 76/76 HP and XL 7. The bot engraved Elbereth, and the mumak fled 2 squares. The "fight from a corridor" option deleted the Elbereth wait, so the bot walked off the engraving. Next to the mumak, the only option was attack. Two butts took the hero from 76 to 25 HP. A scroll of teleportation, a potion of healing and one more step did not save it.
 - Prevention: The mumak hits hard, but it is slow (speed 9, the hero has 12). A monster that must move to reach the hero cannot attack in that turn (monmove.c `MMOVE_MOVED`). Stay on Elbereth, or step away each turn.
 - Fix: When a dread monster is near, the bot drops the corridor option. If the hero is not on Elbereth and all monsters within 3 squares are slower, the bot offers "step away" and drops melee and throws.
+
+## Stair ping-pong and a blob in the corridor (run 192327)
+
+- Cause 1: The pace rest stops after 400 searched turns on a level. Then "take the downstairs anyway" goes past the pace limit. On the level below, "too deep" sends the bot up again. That rule waits only when the level above has 800 searched turns. So between 400 and 800 turns, the bot went up and down 13 times (T3115 to T6952).
+- Fix 1: The ascend rule uses the same limit as the rest, 400 searched turns.
+- Cause 2: A quivering blob (speed 1) blocked the corridor that explore needed. Explore walked to it, and "walk away from the slow monster" stepped back. This happened 16 times (T7364 to T7396).
+- Fix 2: After 3 retreats in 10 decisions, the bot does not offer the walk-away. It can fight the blob.
+- UI: The "explored" figure counted drawn map cells, so it showed 100% while edges were left. The level panel now shows the number of edges that remain.

@@ -55,5 +55,5 @@ export interface State {
   runs: RunSummary[]
   inventory: { letter: string; text: string; contents?: string[] }[]
   plan?: Plan | null
-  level: { dlvl: number; explored: number; downstairs: boolean; upstairs: boolean; notes?: [number | string, string][] }
+  level: { dlvl: number; explored: number; edges?: number | null; downstairs: boolean; upstairs: boolean; notes?: [number | string, string][] }
 }

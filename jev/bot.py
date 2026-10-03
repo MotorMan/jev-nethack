@@ -1336,6 +1336,7 @@ class Bot:
         if priest and not near and gold >= 500 * xl + (4000 if self.run.get('protection') else 0):  # 5.0 priest.c: offering the larger "suggested" sum gives 1 AC per 2x base (base = peak XL x 150-250), any temple priest
             opts['donate'] = (f"Buy protection from the {priest[0]['name'].replace('peaceful ', '')}", f"You have {gold} gold. Walk to the priest ({priest[0]['where']}) and donate the larger suggested sum (2x a base of 150-250 per peak XL, so {300 * xl}-{500 * xl} gold); it buys 2-4 points of permanent divine protection (lower AC), then +1 per later purchase.", lambda p=priest[0]['pos']: self.act_donate(p))
         fr = self.frontiers(dist)
+        self.run['edges'] = len(fr)  # for the UI: the map-cell share hit 100% with edges still left to explore
         picked = []
         for d, p in fr:
             if all(cheb(p, q) >= 8 for q in picked):
@@ -1365,7 +1366,7 @@ class Bot:
         too_deep = mcap or s.get('dlvl', 1) >= (s.get('xl') or 1) + 2  # pace: Dlvl <= XL+1 (XL+2 still lost most runs on Dlvl 4-5 before T2000)
         ups = [p for p in snap.find('<') if p in dist]
         above = self.run['levels'].get(s.get('dlvl', 1) - 1)
-        if too_deep and ups and (self.standing_on() != '<' or mcap) and (mcap or not (above and sum(above.searched.values()) >= 800)) and (dist[ups[0]] <= 2 or not any(m['dist'] <= 1 for m in hostiles)):  # walked for '<' 50 steps off with Mordor orcs and a snake adjacent: 7 tries, 44 -> 0, dead praying (T3746)  # the level above already waited out its pace cap: going back just ping-pongs (4 <-> 5 25 times in 100 turns, T4478)  # XL5 on Dlvl 7 died to a winter wolf; XL+3 was too late
+        if too_deep and ups and (self.standing_on() != '<' or mcap) and (mcap or not (above and sum(above.searched.values()) >= 400)) and (dist[ups[0]] <= 2 or not any(m['dist'] <= 1 for m in hostiles)):  # walked for '<' 50 steps off with Mordor orcs and a snake adjacent: 7 tries, 44 -> 0, dead praying (T3746)  # the level above already waited out its pace cap: going back just ping-pongs (4 <-> 5 25 times in 100 turns, T4478)  # 400 = the pace rest's cap below; 800 left 400-800 searched turns of 'anyway' down / ascend up: 6 <-> 7 <-> 8 thirteen times, T3115-T6952  # XL5 on Dlvl 7 died to a winter wolf; XL+3 was too late
             opts['ascend'] = ('Head back upstairs', f"This level is far too deep for experience level {s.get('xl')}. Walk to the up staircase ({dist[ups[0]]} steps {compass(me, ups[0])}) and climb to Dlvl {s.get('dlvl', 0) - 1}.", lambda p=ups[0]: self.act_descend(p, '<'))
         if too_deep and not ups and not self.in_mines() and any(k.startswith('explore_') for k in opts):
             # a hole dropped XL4 Jev from Dlvl 5 to 7: 300 turns of fetches, pickups and hidden-door searches before a yellow light and an orc band, dead (T2696)
@@ -1655,7 +1656,7 @@ class Bot:
         adj = [m for m in hostiles if m['dist'] <= 1]
         if 'elbereth' in opts and hp < 0.7 * hpmax and any('put to sleep' in r for r in self.run['recent'][-3:]) and not any(m['ch'] == '@' for m in adj):
             opts = {k: v for k, v in opts.items() if not k.startswith('attack_')}  # asleep you take every bite free: a homunculus slept an armorless Jev 25 -> 6 while it swung instead of engraving (T2171)
-        if adj and all((MONSTERS.get(self.species(m)) or [0, 99])[1] <= 3 and 'lichen' not in m['name'] for m in adj) and hp < 0.7 * hpmax and 'pray' not in opts and s.get('hunger') not in ('Weak', 'Fainting') and (s.get('turn') or 0) - self.run.get('held', -99) > 2 and self.retreat_dir(hostiles):  # stuck to a giant mimic: 'retreat' was the only option, 6 times 'You cannot escape', 62 -> 0 (T4379); monmove.c monflee releases the hero, so Elbereth or a fight it is  # starving: the slow thing is dinner; fainting with Tyr angry, Jev walked away from a rock mole 6 times and fainted to death (T6255)  # mimics (speed 3) hit through Elbereth (cornered: monmove.c panicattk); 100 turns re-engraving beside two drew a bones-level horde, dead (T4328)
+        if adj and all((MONSTERS.get(self.species(m)) or [0, 99])[1] <= 3 and 'lichen' not in m['name'] for m in adj) and hp < 0.7 * hpmax and 'pray' not in opts and s.get('hunger') not in ('Weak', 'Fainting') and (s.get('turn') or 0) - self.run.get('held', -99) > 2 and self.retreat_dir(hostiles) and sum(h['choice'] == 'retreat' for h in self.history[-10:]) < 3:  # a quivering blob (speed 1) in the corridor explore needed: explore/retreat 16 times, T7364-T7396; past 3 walks, fight it  # stuck to a giant mimic: 'retreat' was the only option, 6 times 'You cannot escape', 62 -> 0 (T4379); monmove.c monflee releases the hero, so Elbereth or a fight it is  # starving: the slow thing is dinner; fainting with Tyr angry, Jev walked away from a rock mole 6 times and fainted to death (T6255)  # mimics (speed 3) hit through Elbereth (cornered: monmove.c panicattk); 100 turns re-engraving beside two drew a bones-level horde, dead (T4328)
             opts = {'retreat': ('Walk away from the slow monster', 'Step away: everything next to you moves at speed 3 or less, so two steps leave it behind for good.', lambda: self.act_retreat(hostiles))}
         if (s.get('turn') or 0) - self.run.get('held', -99) <= 2:  # held: 'flee_up' then 'retreat' never moved (T4379)
             opts = {k: v for k, v in opts.items() if not k.startswith(('retreat', 'flee'))}
@@ -3328,6 +3329,6 @@ class Bot:
                          max_dlvl=self.run['max_dlvl'], decisions=self.run['decisions'], engine=self.run['engine'], models=self.run['models']) if self.run else None,
                 runs=list(self.runs), inventory=list(self.inventory), plan=plan.view(self) if snap and self.run else None,
                 level=dict(dlvl=snap.status.get('dlvl', 0), explored=min(1.0, sum(1 for l in snap.lines[MAP_TOP:MAP_BOT + 1] for c in l if c != ' ') / 700),  # ponytail: ~700 drawn cells is a typical fully seen level
-                           downstairs=bool(snap.find('>')), upstairs=bool(snap.find('<')),
+                           edges=self.run.get('edges'), downstairs=bool(snap.find('>')), upstairs=bool(snap.find('<')),
                            notes=[[k if isinstance(k, int) else f'{k[0]} {k[1]}', ', '.join(sorted(v.notes))] for k, v in sorted(self.run['levels'].items(), key=str) if v.notes]) if snap and self.run else None,
             )

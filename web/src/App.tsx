@@ -689,7 +689,7 @@ function Telemetry({ s }: { s: State }) {
 function LevelInfo({ s }: { s: State }) {
   const l = s.level
   return (
-    <Panel title={<><MapIcon className="size-3.5" /> level {l.dlvl}</>} right={<Tip tip="share of this level's map the bot has seen"><span>{pct(l.explored)} explored</span></Tip>}>
+    <Panel title={<><MapIcon className="size-3.5" /> level {l.dlvl}</>} right={<Tip tip="unexplored map edges the bot can still walk to on this level (0: done); the bar is the share of map cells seen"><span>{l.edges ?? "?"} edges left</span></Tip>}>
       <Bar value={l.explored} t="frost-2" />
       <div className="flex gap-1.5 mt-2">
         <Tag t={l.downstairs ? "green" : "muted"}>&gt; down {l.downstairs ? "known" : "unknown"}</Tag>
