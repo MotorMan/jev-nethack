@@ -3180,3 +3180,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** On the Oracle level (Dlvl 9), two chickatrices came within 2 squares of the hero. The pack held no stoning cure. The options were `explore_1`, `throw_b` (darts), `wait` and `choke`, and the first one, explore, went toward the chickatrices. A touch hit hissed, and the hero turned to stone. The rule from T10891 did not give `flee_up` here.
 - **Prevention:** Without a cure, never walk or wait next to a cockatrice. Kill it with thrown weapons, or move away.
 - **Fix:** When a cockatrice or chickatrice is within 3 squares and the pack has no cure, the explore, approach, fetch, door, search, kick, wait and rest options are removed, and the throw options come first.
+
+## NoModel run 20261002-203515: kicked a closed shop door (T1585)
+
+- **Cause:** On Dlvl 3 a locked door had "Closed for inventory" written outside it. The kick guard read the sign and refused twice. The kick option stayed in the menu, and the third look did not find the sign, so the hero kicked the door open. The shopkeeper attacked and killed the hero (32 -> 3 HP in one turn, a prayer, then dead).
+- **Prevention:** After the bot finds a shop sign at a door once, never kick that door.
+- **Fix:** A vetoed door goes into a `shut_shops` set on the level. The bot does not offer to kick a door in that set. The forced kick of a hero trapped for 300 turns still works.

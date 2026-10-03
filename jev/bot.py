@@ -1257,7 +1257,7 @@ class Bot:
         # dokick.c: the watch only reacts if it can see you (first a warning); town closets locked Jev in for 10000 turns of searching (T16506)
         watched = lv.town and (any(m['peaceful'] and m['ch'] == '@' for m in mons) or s.get('dlvl') in self.run.get('door_warned', ()))
         for d, p in [(k, (me[0] + v[0], me[1] + v[1])) for k, v in DIRS.items() if not (v[0] and v[1])]:
-            if p in lv.locked and not watched:
+            if p in lv.locked and not watched and p not in lv.__dict__.get('shut_shops', ()):  # vetoed twice, the third look missed the sign: kicked a closed shop's door, the shopkeeper killed Jev (NoModel T1585)
                 opts[f'kick_{d}'] = (f"Kick the locked door {DIR_NAME[d]}", 'Kick the locked door to break it open (may take several tries).', lambda d=d: self.act_kick(d))
 
         # closed doors read off the screen each turn: level memory alone once left three doors unexplored for 10000 turns
@@ -3091,6 +3091,7 @@ class Bot:
             self.level().town = True
             self.level().vetoes = self.level().__dict__.get('vetoes', 0) + 1  # counted only by the caller's veto: this one vetoed the '<' room's only door 100+ times, 15000 turns on Dlvl 3, fainted, dead (T17532)
             self.level().dead.add((self.snap.me[0] + DIRS[d][0], self.snap.me[1] + DIRS[d][1]))
+            self.level().__dict__.setdefault('shut_shops', set()).add((self.snap.me[0] + DIRS[d][0], self.snap.me[1] + DIRS[d][1]))
             return 'did not kick: a shop is closed behind this door'
         self.t.send('\x04' + d)
         self.observe()
