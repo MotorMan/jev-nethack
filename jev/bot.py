@@ -2018,6 +2018,10 @@ class Bot:
         if sum(h['choice'] == 'elbereth' for h in recent) >= 4 and len(recent) == 12 and s.get('hp', 0) <= recent[0].get('hp', 0):  # user: 'stop using elbereth so much': 100+ turns of re-engraving in a room corner while HP fell 61 -> 21 (T11430)
             rest = {k: v for k, v in opts.items() if k != 'elbereth' and not v[0].startswith('Stay on Elbereth')}
             opts = rest if any(k.startswith(('attack_', 'choke', 'upstairs', 'flee', 'retreat', 'zap_', 'throw_', 'quaff_', 'pray')) for k in rest) else opts  # it isn't working: fight, move or use an item instead
+        lamp = next((it for it in self.inventory if re.search(r'\b(lamp|lantern)\b', it['text']) and '(lit)' not in it['text']), None)
+        if lamp and turn - self.run.get('lamp_turn', -999) > 500 and not any(m['dist'] <= 6 and not m['passive'] for m in hostiles):  # user: 'bot should turn on the lantern'. Unlit brass lantern in the dark Mines: 'nothing reachable' on Dlvl 4, 'too deep' on Dlvl 5, 300 decisions of wait/descend/ascend (NoModel run 200341, T3586-T4049)
+            self.run['lamp_turn'] = turn  # once per 500 turns: an empty lamp stays unlit
+            opts = {'light_lamp': (f"Light {lamp['text']}", 'A lit lamp shows the squares around you on dark levels.', lambda l=lamp['letter']: (self.act_keys('a' + l, 'lit the lamp'), self.read_inventory())[0])}
         stall = len(self.history) >= 200 and sum(h['choice'].startswith(('wait', 'choke', 'approach', 'search', 'rest')) for h in self.history[-200:]) >= 180 and s.get('hp', 0) >= 0.8 * s.get('hpmax', 1)
         if stall and any(k.startswith('approach_') for k in opts):  # a sleeping throne room 3 steps off: wait/choke/1-step approach for 7000 turns, fed by prayers, fainted, Elvenking (T16477)
             opts = {k: v for k, v in opts.items() if k not in ('wait', 'choke', 'rest') and not k.startswith('search')}

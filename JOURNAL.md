@@ -3106,3 +3106,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** A warg and a winter wolf waited at the up staircase of Dlvl 5. The stair dance took the hero up to Dlvl 4 to rest. On Dlvl 4 a weaker monster came next to the hero, and the stair rule took the stairs again, back down to the pack. At T5054 this took the hero from 22 to 4 HP. At T5073 the hero stood on Elbereth at 7/56 HP beside a hill orc. The stair rule took it down again, and the warg killed it.
 - **Prevention:** A hop is a way to escape. Do not take the stairs back to a level that the hero fled from a stronger monster less than 300 turns ago.
 - **Fix:** Each stair hop records the level and the difficulty of the strongest adjacent monster. The bot does not offer a hop to a level with a record that is less than 300 turns old and has a higher difficulty than the strongest adjacent monster here.
+
+## NoModel run 20261002-200341: an unlit lantern in the dark Mines (T3586-T4049)
+
+- **Cause:** The user saw that the game was stuck. The hero carried a brass lantern, but the bot had no rule to light it. On the dark Mines level Dlvl 4, nothing was reachable on the map, so the bot waited and then took the downstairs. On Dlvl 5 the rule "too deep for XL 5" took the hero back up. This loop used 300 decisions.
+- **Prevention:** A lit lamp shows the squares around the hero on a dark level.
+- **Fix:** When the pack holds an unlit lamp or lantern and no hostile monster is within 6 squares, the bot applies it. It tries once per 500 turns, so an empty lamp does not make a loop.
