@@ -2972,3 +2972,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: an earlier edit put a comment in the middle of the loot condition. The comment cut off the filter for squares that the bot already looked at. The bot walked between a chest and a corpse 2 steps apart for 40 turns.
 - Prevention: do not put a comment inside a condition that continues on the next line.
 - Fix: the filter is code again. The comment is at the end of the line.
+
+## Game plan and objectives
+
+- Cause: each decision was a new choice with no memory of a goal. The bot left a task half done, for example a level half explored or a Sokoban level half solved, and came back to it later.
+- Prevention: commit to one objective and keep it until it is done or stalls. This is the goal phase of jev-doom.
+- Fix: `jev/plan.py` holds a list of game phases and a set of objectives. Jev picks an objective when none is active. The options that serve it come first in the menu. An objective that makes no progress within its budget goes on a 200-turn cooldown, and its options leave the menu. Low HP and hunger preempt the active objective.

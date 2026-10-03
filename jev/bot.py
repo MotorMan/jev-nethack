@@ -3,7 +3,7 @@ Jev chooses every option. No LLM anywhere."""
 import glob, heapq, json, os, random, re, threading, time, traceback
 from datetime import datetime, timezone
 
-from . import sokoban
+from . import plan, sokoban
 from .nh import (DIRS, DIR_OF, DIR_NAME, MAP_TOP, MAP_BOT, OBJECT_CHARS, Snapshot, top_prompt, messages_from)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -3084,6 +3084,7 @@ class Bot:
             f"Level: downstairs {'known' if snap.find('>') or self.standing_on() == '>' else 'not found yet'}; "
             f"deepest level reached this game {self.run['max_dlvl']}.\n"
             f"Level notes: {'; '.join(f'{k if isinstance(k, int) else k[0] + chr(32) + str(k[1])}: ' + ', '.join(sorted(v.notes)) for k, v in sorted(self.run['levels'].items(), key=str) if v.notes) or 'none'}.\n"
+            + plan.text(self) +
             f"Recent game messages: {recent}\n"
             f"Recent decisions:\n{hist}\n\n"
             f"Map around you (@ is you; # corridor, + or orange | - doors, < > stairs, letters are monsters):\n{snap.crop()}\n"
@@ -3144,6 +3145,7 @@ class Bot:
             adj = {DIR_OF[(m['pos'][0] - me[0], m['pos'][1] - me[1])]: m['name'] for m in mons if m['dist'] == 1 and not m['pet'] and not m['peaceful']}
             if adj:
                 opts = {f'attack_{d}': (f"Attack {n} ({DIR_NAME[d]})", f"Melee the adjacent {n}.", lambda d=d: self.act_fight(d)) for d, n in adj.items()}
+        opts = plan.step(self, opts, mons, turn)
         state = self.state_text(mons)
         t1 = time.time()
         question = QUESTIONS['action']['instructions']
@@ -3297,7 +3299,7 @@ class Bot:
                 jev=self.jev.summary(),
                 run=dict(id=self.run['id'], started=self.run['started'], character=self.run['character'],
                          max_dlvl=self.run['max_dlvl'], decisions=self.run['decisions'], engine=self.run['engine'], models=self.run['models']) if self.run else None,
-                runs=list(self.runs), inventory=list(self.inventory),
+                runs=list(self.runs), inventory=list(self.inventory), plan=plan.view(self) if snap and self.run else None,
                 level=dict(dlvl=snap.status.get('dlvl', 0), explored=min(1.0, sum(1 for l in snap.lines[MAP_TOP:MAP_BOT + 1] for c in l if c != ' ') / 700),  # ponytail: ~700 drawn cells is a typical fully seen level
                            downstairs=bool(snap.find('>')), upstairs=bool(snap.find('<')),
                            notes=[[k if isinstance(k, int) else f'{k[0]} {k[1]}', ', '.join(sorted(v.notes))] for k, v in sorted(self.run['levels'].items(), key=str) if v.notes]) if snap and self.run else None,
