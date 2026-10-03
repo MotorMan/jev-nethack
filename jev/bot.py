@@ -883,7 +883,8 @@ class Bot:
             # no prayer (124 turns after the last), 37/89 beside a Green-elf at its level (ignores Elbereth), '<' 6 steps: fought, 37 -> 17 -> 8, prayed too soon, dead (T4656)
             bare = hp < 0.5 * hpmax and (s.get('turn') or 0) - (self.run.get('prayed_turn') or -10**9) < 500 and any(m['dist'] <= 1 and (m['ch'] == '@' or 'minotaur' in m['name']) and 'weaker' not in self.threat(m) for m in near)
             duo = duo or bare
-            ups_near = sorted((p for p in snap.find('<') if dist.get(p, 99) <= (60 if strong or outrun else 20 if duo else 8)), key=dist.get)  # speed boots beside a speed-8 giant zombie, '<' 12 steps off: Elbereth panic-attacks 91 -> 0 (T5790)  # a bones red dragon (speed 9) 3 steps off at XL 3: only explore was offered, breathed dead (T1893)
+            ups_near = sorted((p for p in snap.find('<') if dist.get(p, 99) <= (60 if strong or outrun else 20 if duo else 8)
+                               and not any(m['dist'] <= 2 and cheb(m['pos'], p) < cheb(me, p) for m in near)), key=dist.get)  # '<' behind an ettin zombie: flee_up walked past it twice, 31 -> 8, prayer failed, dead (NoModel T5832)  # speed boots beside a speed-8 giant zombie, '<' 12 steps off: Elbereth panic-attacks 91 -> 0 (T5790)  # a bones red dragon (speed 9) 3 steps off at XL 3: only explore was offered, breathed dead (T1893)
             if (danger or strong or pack or duo or outrun and hp < 0.5 * hpmax) and ups_near and self.standing_on() != '<' and s.get('dlvl', 1) > 1:
                 p = ups_near[0]
                 if bare:

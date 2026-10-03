@@ -3130,3 +3130,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** At T5591-T5615 on Dlvl 5, a water nymph stole the splint mail, the shield, the spear and the lamp. For the next 2700 turns the hero fought at AC 9 or 10. On Dlvl 6 a fire ant, a gold golem and a hill orc attacked it. The hero ran for the stairs 2 squares away at 21/54 HP, and the fire ant (speed 18) killed it.
 - **Prevention:** After a theft, get armor back before going deeper: chase the nymph, buy armor in a known shop, or stay on the cleared levels until AC is 3 or better.
 - **Fix:** Not yet. This needs an armor-recovery objective. It is noted as open work.
+
+## NoModel run 20261002-201321: ran past an ettin zombie to the stairs (T5832)
+
+- **Cause:** On Dlvl 8 an ettin zombie came out of a doorway next to the hero at 31/82 HP. The up staircase was on the far side of the zombie. `flee_up` was chosen 3 times, and each walk went past the zombie and took its two hits. At 8 HP the prayer came 697 turns after the last one and did not help. The hero died.
+- **Prevention:** Do not run for a staircase when a near monster is closer to that staircase than the hero. Fight, retreat away from the monster, or engrave Elbereth instead.
+- **Fix:** `flee_up` ignores a staircase when a monster within 2 squares is nearer to it (Chebyshev distance) than the hero.
