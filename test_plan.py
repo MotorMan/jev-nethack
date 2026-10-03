@@ -16,3 +16,12 @@ plan.step(b, opts | {'rest': ('r', 'x', f)}, [], 460)
 assert b.run['obj']['id'] == 'heal' and b.run['obj_log'][-1]['result'] == 'preempted'
 assert plan.view(b)['phases'][0]['status'] == 'done' and plan.view(b)['phases'][1]['status'] == 'current'
 print('test_plan OK')
+b.run['obj'] = None
+st['hp'] = 20
+plan.step(b, {'descend': ('d', 'x', f)}, [], 470)
+for t in range(19):
+    plan.step(b, {'attack_h': ('a', 'b', f)}, [], 471 + t)
+assert b.run['obj']['id'] == 'descend'
+plan.step(b, {'attack_h': ('a', 'b', f)}, [], 490)
+assert b.run['obj'] is None
+print('test_plan absent OK')

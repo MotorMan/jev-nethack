@@ -89,8 +89,12 @@ def step(b, opts, mons, turn):
             if supp:
                 cool[o['id']] = turn + 200
             end('stalled')
-        elif not any(serves(o['id'], k) for k in opts):
-            end('no options')
+        elif any(serves(o['id'], k) for k in opts):
+            o['absent'] = 0
+        else:  # a monster in view hides explore options for a few turns: that is not the end of the objective
+            o['absent'] = o.get('absent', 0) + 1
+            if o['absent'] >= 20:
+                end('no options')
     for k in [k for k, t in cool.items() if t <= turn]:
         del cool[k]
     # urgent objectives preempt the rest
