@@ -3155,3 +3155,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Source:** uhitm.c (`mhitm_ad_ston`): each cockatrice touch hit hisses 1 time in 3. Each hiss starts stoning 1 time in 10, or each time at new moon.
 - **Prevention:** Without a stoning cure, do not stay next to a cockatrice. Leave by the stairs, or walk away (it has speed 6).
 - **Fix:** A cockatrice or chickatrice within 2 squares counts as "strong" when the pack has no cure. That offers `flee_up`. On stairs, a cockatrice adjacent with no cure now gives `stair_hop` at once.
+
+## NoModel run 20261002-202354: meleed a chameleon as a mastodon (T13932)
+
+- **Cause:** On Dlvl 10 at XL 9 and AC 4, the hero fought a chameleon in the form of a quantum mechanic. The chameleon changed into a mastodon (difficulty 22, two 4d8 butts). At 98/105 HP the options were `attack_n` and `elbereth`, and the first option, attack, was taken. The mastodon took the hero to 59 HP. The next Elbereth came out garbled, and the one after that was interrupted. The hero died at T13932.
+- **Prevention:** When a monster that is much stronger than the hero is adjacent, engrave Elbereth before you fight it. A mastodon respects Elbereth.
+- **Fix:** When Elbereth is offered and an adjacent monster is "much stronger", the attack and approach options are removed. This is the same rule as for huggers and unicorns.
