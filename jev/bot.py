@@ -2276,6 +2276,14 @@ class Bot:
                 return f'arrived after {taken} steps'
             _, prev = self.dijkstra()
             d = self.first_step(prev, me, target)
+            q = d and (me[0] + DIRS[d][0], me[1] + DIRS[d][1])
+            if q and q != target and self.snap.is_monster(*q) and not self.snap.at(*q).reverse and q not in self.avoid:  # the 'm' step into a hostile does not attack: flee_up bumped a Woodland-elf 4 times, then door_ walks at 4 HP, dead (NoModel run 200810, T4681-T4694)
+                self.avoid.add(q)
+                _, prev = self.dijkstra()
+                self.avoid.discard(q)
+                d = self.first_step(prev, me, target)
+                if d is None:
+                    return f'a monster blocks the path after {taken} steps'
             if d is None:
                 self.level().dead.add(target)
                 return f'no path after {taken} steps'

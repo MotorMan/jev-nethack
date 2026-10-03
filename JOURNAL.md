@@ -3118,3 +3118,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The pace rule sends the hero up when Dlvl is XL+2 or more. The user said that this rule is wrong when the levels above are already explored. Above a cleared level, the hero only waits, and then it comes back down. In NoModel run 200341 this gave 300 decisions of ascend, wait and descend.
 - **Prevention:** Go back up only when the level above still has something to explore.
 - **Fix:** A level with no frontier left (and 150 or more squares visited) is marked as cleared. The "Head back upstairs" option is not offered when the level above is cleared.
+
+## NoModel run 20261002-200810: walked into a Woodland-elf instead of away (T4694)
+
+- **Cause:** A Woodland-elf stood next to the hero in a corridor on Dlvl 7. `flee_up` was chosen 3 times. The path to the stairs went through the elf. `act_go` sends an `m` step into a monster square, and that step does not attack ("You move right into the Woodland-elf"). Each try cost a turn and an elf hit. A prayer was too soon. At 4 and 1 HP the `door_` walks went into the elf again.
+- **Prevention:** A walk must go around a monster, not into it.
+- **Fix:** If the first step of a walk is on a monster square that is not the target, `act_go` finds a path with that square blocked. If no other path exists, the walk stops without a move.
