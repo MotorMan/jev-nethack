@@ -672,6 +672,7 @@ class Bot:
                 self.t.send('>' if pg and pg[1] != pg[2] else '\r')
                 continue
             kind, text = top_prompt(lines)
+            text = text or ''  # top_prompt gives None with no prompt: TypeError on pickup_0 (NoModel)
             if 'Do what with' in text and not looked and 'is empty' not in text:
                 looked = True
                 self.t.send(':')
