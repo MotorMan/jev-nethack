@@ -69,7 +69,7 @@ def quote_bases(cls, t, ch):
 JUNK = re.compile(r'\b(mail|plate|armor|shield|shoes|boots|cloak|wrapping|helm|helmet|gauntlets|gloves|short sword|long sword|broadsword|scimitar|axe|mace|club|bow|crossbow|pick-axe|morning star|flail|hammer|trident)\b')  # unworn copies: what to drop when Burdened
 SLOTS = {'boots': r'boots|shoes', 'helm': r'helm|hat|cap\b', 'cloak': r'cloak|robe|wrapping|apron', 'shield': r'shield', 'gloves': r'gloves|gauntlets', 'body': r'\bmail|plate|armor|coat'}
 HUGGERS = re.compile(r'\b(owlbear|python|rope golem|couatl|salamander|kraken|pit fiend|carnivorous ape|guardian naga)\b')  # AT_HUGS in monsters.h
-NEVER_PICK = re.compile(r'\b(lenses|dented pot|leash|saddle|tin opener|bugle|beartrap|bear trap|land mine|grappling hook|iron hook|conical hat|crossbow|crossbow bolts?|arrows?|bows?|yumi|ya|slings?|boomerangs?|shuriken|javelins?|aklys|bullwhip|rubber hose|quarterstaff|staff|lance|spiked club|aklyses|throwing stars?|flint stones?)\b')  # user: junk a Valkyrie never needs
+NEVER_PICK = re.compile(r'\b(battle-axe|lenses|dented pot|leash|saddle|tin opener|bugle|beartrap|bear trap|land mine|grappling hook|iron hook|conical hat|crossbow|crossbow bolts?|arrows?|bows?|yumi|ya|slings?|boomerangs?|shuriken|javelins?|aklys|bullwhip|rubber hose|quarterstaff|staff|lance|spiked club|aklyses|throwing stars?|flint stones?)\b')  # user: junk a Valkyrie never needs
 HEAVY = re.compile(r'\b(chest|large box|ice box|boulder|statue|rocks?|iron ball|iron chain|lance|pole sickle|halberd|glaive|partisan|spetum|ranseur|bardiche|voulge|fauchard|guisarme|bill-guisarme|lucern hammer|bec de corbin|two-handed sword|dwarvish mattock)\b')  # carrying these left Jev Burdened
 DOMESTIC = {'kitten', 'housecat', 'large cat', 'little dog', 'dog', 'large dog', 'pony', 'horse', 'warhorse'}  # M2_DOMESTIC (monsters.h)
 WEAPON_RANK = ['long sword', 'axe', 'broadsword', 'katana', 'scimitar', 'saber', 'short sword', 'spear', 'mace', 'morning star', 'war hammer', 'flail', 'trident', 'dagger', 'knife', 'club']
@@ -1124,7 +1124,7 @@ class Bot:
             if price and (FOOD.search(item) and 'corpse' not in item or why) and int(price[1]) <= s.get('gold', 0) and not self.run.get('debt'):
                 opts[f'buy_{i}'] = (f"Buy {item}", f"Pick up {item} and pay {price[1]} of your {s.get('gold')} gold. " + (why or 'Packed food prevents fainting from hunger.'), lambda item=item: (self.act_pickup(item), self.act_pay())[1])
                 continue
-            armed = any(WEAPON.search(it['text']) for it in self.inventory)  # a nymph took the spear; the filter left 2 scimitars on the floor, bare-handed vs hill orcs, dead (T2578)
+            armed = any((w := WEAPON.search(it['text'])) and w[1] not in ('dagger', 'knife', 'club') and it['text'] not in self.run.get('unwieldable', ()) for it in self.inventory)  # a dagger is not armed: a nymph took the spear at T3078, 9700 turns of d4 hits to XL 7, a rothe pack in a 3x3 room, dead (T12820)  # a nymph took the spear; the filter left 2 scimitars on the floor, bare-handed vs hill orcs, dead (T2578)
             daggers = sum(int(n[1]) if (n := re.match(r'(\d+) ', it['text'])) else 1 for it in self.inventory if re.search(r'dagger|knife|knives', it['text']))
             darts = any(re.search(r'\bdarts?\b', it['text']) for it in self.inventory)
             # user: no gems (not playing for score; a gray stone can be a loadstone), no random weapons: the spear stays until Mjollnir; 2-3 daggers pry boxes and get thrown
@@ -1720,6 +1720,8 @@ class Bot:
                      key=lambda it: (WEAPON_RANK.index(WEAPON.search(it['text'])[1]), not re.search(r'uncursed|blessed', it['text'])), default=None)
         if weapon and self.inventory and not any('weapon in' in it['text'] for it in self.inventory):
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You are fighting bare-handed.', lambda l=weapon['letter']: self.act_wield(l))}
+        elif not near and weapon and WEAPON_RANK.index(WEAPON.search(weapon['text'])[1]) < WEAPON_RANK.index('dagger') and any('weapon in' in it['text'] and (w := WEAPON.search(it['text'])) and w[1] in ('dagger', 'knife', 'club') and not re.search(r'(?<!un)cursed', it['text']) for it in self.inventory):
+            opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You fight with a small weapon (d4); this one hits much harder.', lambda l=weapon['letter']: self.act_wield(l))}  # T12820: d4 dagger at XL 7 with the spear stolen
         elif not near and (art := next((it for it in self.inventory if 'named' in it['text'] and WEAPON.search(it['text']) and 'weapon in' not in it['text'] and it['text'] not in self.run['unwieldable']), None)):
             opts = {f"wield_{art['letter']}": (f"Wield {art['text']}", 'An artifact weapon beats anything else you carry.', lambda l=art['letter']: self.act_wield(l))}
         elif not near and any(k == 'wish' or k.startswith('wear_') for k in opts):  # an early {'wish'}-only filter dropped wear and later rest/explore came back: a wished-for GDSM sat unworn, 'wish' untaken 100 times, AC 5, fire ant (T4663)
@@ -2951,7 +2953,7 @@ class Bot:
             self.t.send('y')
         self.observe()
         self.read_inventory()
-        if any('weapon in' in it['text'] for it in self.inventory):
+        if any('weapon in' in it['text'] and it['letter'] == letter for it in self.inventory):  # the chosen one: an upgrade from a welded dagger would loop
             return 'wielded it'
         self.run.setdefault('unwieldable', set()).add(next((it['text'] for it in self.inventory if it['letter'] == letter), ''))
         return 'could not wield it'

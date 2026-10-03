@@ -2990,3 +2990,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: a walk went over the square of a pair of snow boots. The walk recorded the items on that square. "Go look at the item" skips squares with recorded items, and a pickup is offered only on the square where a decision happens. So the bot never went back for the boots.
 - Prevention: keep unidentified armor and other interesting items for a price identification or an altar test.
 - Fix: "fetch" goes back once to a known square that holds an item that matches `INTEREST` (random-appearance boots, cloaks, helmets and gloves, and the priority items).
+
+## Rothe pack with a dagger, T12820 (Dlvl 3, XL 7)
+
+- Cause: a wood nymph stole the spear at T3078. The bot then fought with a +0 dagger (d4) for 9700 turns. The pickup filter counted the dagger as a weapon, so it skipped every real weapon. The wield option was offered only when bare-handed. At XL 7, a little dog, a giant ant and rothes took the hero from 77 to 9 HP in a 3x3 room, and it prayed. A yellow light then blinded it, and the next rothes killed it with no prayer left.
+- Prevention: after a theft, get a real weapon again. A dagger is for throwing and for prying boxes.
+- Fix: a dagger, a knife or a club does not count as "armed", so the bot picks up a sword, an axe, a spear or a mace. A wield option replaces a small weapon with a better one from the pack. `act_wield` now checks that the chosen item is wielded. The bot never picks up a battle-axe (two-handed, and the Valkyrie has a shield).
