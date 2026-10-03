@@ -3136,3 +3136,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** On Dlvl 8 an ettin zombie came out of a doorway next to the hero at 31/82 HP. The up staircase was on the far side of the zombie. `flee_up` was chosen 3 times, and each walk went past the zombie and took its two hits. At 8 HP the prayer came 697 turns after the last one and did not help. The hero died.
 - **Prevention:** Do not run for a staircase when a near monster is closer to that staircase than the hero. Fight, retreat away from the monster, or engrave Elbereth instead.
 - **Fix:** `flee_up` ignores a staircase when a monster within 2 squares is nearer to it (Chebyshev distance) than the hero.
+
+## NoModel run 20261002-201034: XL 7 went down to Dlvl 11, leocrotta (T8587)
+
+- **Cause:** On Dlvl 9 at XL 7 the level was cleared. The pace rest stops after 400 turns of rest. Then the "Take the downstairs anyway" option was the only option, and it took the hero to Dlvl 10. On Dlvl 10 the hero was Hungry, so the rest was skipped and "anyway" took it to Dlvl 11. There, at XL 8 with 21/80 HP, a leocrotta (speed 18, three 2d6 attacks) killed it. Elbereth was not offered because the leocrotta could not move away. The source agrees with this: a scared monster that cannot move attacks (monmove.c, `panicattk`).
+- **Prevention:** Do not go 3 or more levels past the experience level only because the rest time ran out.
+- **Fix:** When the next level is XL+3 or deeper, the pace rest continues up to 1000 turns (not 400).
