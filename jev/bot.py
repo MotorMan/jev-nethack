@@ -1485,6 +1485,9 @@ class Bot:
             spot = self.search_spot(dist) or self.search_spot(dist, ghost=False)  # its own ghost kept touching Jev: every spot was 'near the ghost', no options, memory reset, explore into a stuck boulder 2700 turns, starved (T9746)
             if spot:
                 opts['search_hidden'] = ('Search for hidden passages', f"No unexplored edges or downstairs are known. Walk {dist[spot]} steps {compass(me, spot)} to a likely spot (dead end or wall) and search there.", lambda: self.act_search_at(spot))
+            tw0 = next((it for it in self.inventory if re.search(r'wand of teleportation.*:0\)', it['text'])), None)
+            if tw0 and sum(lv.searched.values()) >= 300:  # zap.c zappable: an empty wand wrests one last charge 1 in 121 (no direction asked on a miss). Teleported into a closed shop, wand empty: searched 6400 turns, lived on prayers, fainted, dead (NoModel T10882)
+                opts = {'wrest': (f"Zap {tw0['text']} at yourself", 'You are walled in. An empty wand gives one last charge 1 time in 121: keep zapping to teleport out.', lambda l=tw0['letter']: (self.act_keys('z' + l + '.', 'zapped the empty wand'), self.read_inventory())[0])} | opts
             # never read unknown scrolls (only known or price-ID'd identify): ZLORFIK read here 'to find the stairs' was punishment, ball and chain, dead to a pony (T3251)
         m = self.soko()
         if m and m[0].startswith('soko1'):  # 5.0 premaps Sokoban's boulders on arrival; a '0' that shows up later is one of soko1's two giant mimics (dat/soko1-*.lua appear_as boulder)

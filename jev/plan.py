@@ -44,7 +44,7 @@ OBJECTIVES = {
     'food': ('Eat', ('eat_', 'pickup_food', 'buy_ration', 'shop_food', 'pray', 'goto_corpse'),
              lambda b: b.snap.status.get('hunger'), 150, lambda b: b.snap.status.get('hunger') in HUNGRY,
              lambda b: b.snap.status.get('hunger') not in HUNGRY, False),
-    'explore': ('Explore this level', ('explore', 'door_', 'search_hidden', 'dead_end', 'kick_', 'find_unseen'),
+    'explore': ('Explore this level', ('explore', 'door_', 'wrest', 'search_hidden', 'dead_end', 'kick_', 'find_unseen'),
                 lambda b: (b.snap.status.get('dlvl'), drawn(b)), 300, lambda b: True, lambda b: False, False),  # a cooldown on explore left only search: 18 stalls in 3 games, ~3600 turns
     'loot': ('Collect and use items', ('fetch', 'pickup_', 'loot', 'stash_fetch', 'recover_gear', 'wear_', 'buc', 'altar', 'carry', 'offer', 'holy_water'),
              lambda b: (len(b.run['here']), len(b.inventory)), 150, lambda b: True, lambda b: False, False),  # a cooldown on loot also hid food pickups

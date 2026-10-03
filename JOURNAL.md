@@ -3161,3 +3161,10 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** On Dlvl 10 at XL 9 and AC 4, the hero fought a chameleon in the form of a quantum mechanic. The chameleon changed into a mastodon (difficulty 22, two 4d8 butts). At 98/105 HP the options were `attack_n` and `elbereth`, and the first option, attack, was taken. The mastodon took the hero to 59 HP. The next Elbereth came out garbled, and the one after that was interrupted. The hero died at T13932.
 - **Prevention:** When a monster that is much stronger than the hero is adjacent, engrave Elbereth before you fight it. A mastodon respects Elbereth.
 - **Fix:** When Elbereth is offered and an adjacent monster is "much stronger", the attack and approach options are removed. This is the same rule as for huggers and unicorns.
+
+## NoModel run 20261002-202832: walled in a closed shop, fainted (T10882)
+
+- **Cause:** On Dlvl 5 a gnome mummy and a giant bat attacked the hero. The hero zapped a wand of teleportation at itself about 11 times, and the last zap put it inside a closed armor shop with a locked door. The bot does not kick a shop door, so the hero was walled in. For 6400 turns it chose `search_hidden`, and it lived on a prayer each ~850 turns. At T10634 a prayer failed, the hero fainted from hunger, and a giant rat killed it.
+- **Source:** zap.c `zappable`: a wand with 0 charges gives one last charge 1 time in 121 (`WAND_WREST_CHANCE`). On a miss, the game asks for no direction.
+- **Prevention:** When the hero is walled in and has an empty wand of teleportation, zap it until it wrests the last charge. That takes about 121 turns.
+- **Fix:** After 300 turns of searching on a level, an empty wand of teleportation gives a `wrest` option before `search_hidden`. The explore objective includes `wrest`.
