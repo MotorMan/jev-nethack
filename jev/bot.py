@@ -886,7 +886,7 @@ class Bot:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.flee_up(lambda: self.act_keys('<', 'went up')))
             if self.standing_on() == '>' and (danger or strong or pack or duo) and 'upstairs' not in opts and 'flee_up' not in opts:
                 opts['downstairs'] = ('Flee down the stairs', 'Take the down staircase you are standing on to get away; only adjacent monsters may follow.', lambda: self.act_keys('>', 'went down'))
-        hops = sum(h['choice'] in ('upstairs', 'flee_up', 'leave_nymph', 'downstairs') for h in self.history[-6:]) >= 4  # leave_nymph down into a weak pack, flee up, leave again: 14 round trips, then a gamble prayer angered Tyr (T8484)
+        hops = sum(h['choice'] in ('upstairs', 'flee_up', 'leave_nymph', 'downstairs', 'descend') for h in self.history[-6:]) >= 4  # Hungry skips the 300-turn fled block: leave_nymph up, descend, leave_nymph up for 2000 turns on Dlvl 1-2, stripped to a dagger, bats killed Jev (T3375-T5184)  # leave_nymph down into a weak pack, flee up, leave again: 14 round trips, then a gamble prayer angered Tyr (T8484)
         adj = [m for m in near if m['dist'] <= 1]
         chased = 'upstairs' not in opts and any((MONSTERS.get(self.species(m)) or [0, 0])[1] >= 12 for m in adj) and min((dist.get(p, 99) for p in snap.find('<')), default=99) > 3
         if any(h['choice'] == 'flee_up' and 'blocked' in h['outcome'] for h in self.history[-3:]):

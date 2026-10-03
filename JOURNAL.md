@@ -2978,3 +2978,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: each decision was a new choice with no memory of a goal. The bot left a task half done, for example a level half explored or a Sokoban level half solved, and came back to it later.
 - Prevention: commit to one objective and keep it until it is done or stalls. This is the goal phase of jev-doom.
 - Fix: `jev/plan.py` holds a list of game phases and a set of objectives. Jev picks an objective when none is active. The options that serve it come first in the menu. An objective that makes no progress within its budget goes on a 200-turn cooldown, and its options leave the menu. Low HP and hunger preempt the active objective.
+
+## Nymph ping-pong, T3375-T5184 (Dlvl 1-2, killed by a bat)
+
+- Cause: a wood nymph lived on Dlvl 2 and the downstairs there was not found. The only option was "leave this level" by the upstairs. The hero was Hungry, and Hungry skips the 300-turn block after a flight upstairs. So the bot went down again at once. This loop ran for 2000 turns. The nymph took the spear, the shield and the shirt. Blind, with a cursed orcish dagger, the hero died to bats on Dlvl 1.
+- Prevention: a stair loop must stop the "leave" option and let the bot explore for the downstairs.
+- Fix: the stair-hop count now includes `descend`. Four stair moves in the last six decisions stop the "leave this level" option.
