@@ -1998,6 +1998,9 @@ class Bot:
                 opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0]} | {'stair_hop': (
                     f"Go {'down' if hop == '>' else 'up'} the stairs to rest", 'You stand on stairs and are hurt: take them. Only adjacent monsters follow, one at a time. Rest on the other side, then come back and fight again.',
                     lambda hop=hop: (self.run.__setitem__('stair_dance', (s.get('dlvl'), turn, hop)), self.act_keys(hop, 'took the stairs to rest'))[1])}
+        elif hop and any(m['dist'] <= 5 and not m['passive'] for m in hostiles) and s.get('hp', 1) >= 0.5 * s.get('hpmax', 1) and sum(h['choice'] == 'wait' for h in self.history[-10:]) < 8:  # back on '<' after the stair dance, a wolf, warg, winter wolf and quasit 2-4 off: 'choke' walked 4 steps off the stairs into them, flee_up blocked, 75 -> 0 (run 194043, T13428)
+            opts = {k: v for k, v in opts.items() if k != 'choke' and not k.startswith(('explore', 'approach_', 'fetch', 'goto_'))}
+            opts['wait'] = ('Hold on the stairs', 'Monsters are coming. Stay on the stairs: fight what steps next to you, and take the stairs when you are hurt.', lambda: self.act_keys('ms', 'waited'))
         elif dance and dance[0] != s.get('dlvl') and turn - dance[1] < 500 and on == {'>': '<', '<': '>'}[dance[2]] and not any(m['dist'] <= 5 and not m['passive'] for m in hostiles) and s.get('hunger') not in ('Weak', 'Fainting'):
             if s.get('hp', 1) < 0.85 * s.get('hpmax', 1):
                 opts = {'rest': ('Rest on the stairs', 'You came here to heal. Rest on the stairs; if a monster comes, fight it or take the stairs.', lambda: self.act_search(15))}
