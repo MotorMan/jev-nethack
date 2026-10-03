@@ -3100,3 +3100,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** On Dlvl 6 a fire ant (speed 18, two 2d4 bites, one of them fire) and a rothe attacked the hero. The hero had 7 known potions of healing. The bot offers a potion only below 1/3 of max HP. At 17 to 20 of 49 HP the fire ant was in view, and the options were only explore, door and wait. At 13 HP the Elbereth engraving was garbled, and the next turn took the hero to 2 HP. The hero quaffed 3 potions, but each potion healed less than the fire ant did in one turn.
 - **Prevention:** Drink a known potion of healing before the damage race is lost. Below half HP, a monster that is not weaker than the hero can take the rest of the HP in two turns.
 - **Fix:** Below 1/2 of max HP, with a known potion of healing in the pack and a hostile monster within 3 squares that is not weaker, the bot offers the potion.
+
+## Run 20261002-195609: stair hop back into a warg pack (T5073)
+
+- **Cause:** A warg and a winter wolf waited at the up staircase of Dlvl 5. The stair dance took the hero up to Dlvl 4 to rest. On Dlvl 4 a weaker monster came next to the hero, and the stair rule took the stairs again, back down to the pack. At T5054 this took the hero from 22 to 4 HP. At T5073 the hero stood on Elbereth at 7/56 HP beside a hill orc. The stair rule took it down again, and the warg killed it.
+- **Prevention:** A hop is a way to escape. Do not take the stairs back to a level that the hero fled from a stronger monster less than 300 turns ago.
+- **Fix:** Each stair hop records the level and the difficulty of the strongest adjacent monster. The bot does not offer a hop to a level with a record that is less than 300 turns old and has a higher difficulty than the strongest adjacent monster here.

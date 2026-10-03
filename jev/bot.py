@@ -1993,6 +1993,10 @@ class Bot:
         # Sokoban killer-bee zoo: 150 turns of Elbereth down to 3/47 HP, a '>' under it the whole time (T4093-T4250)
         on, dance, turn = self.standing_on(), self.run.get('stair_dance'), s.get('turn') or 0
         hop = on if on == '>' or on == '<' and s.get('dlvl', 1) > 1 else None
+        foe = max([(MONSTERS.get(self.species(m)) or [0])[0] for m in hostiles if m['dist'] <= 1 and not m['passive']] or [0])
+        hot = (self.run.get('hot') or {}).get(s.get('dlvl', 1) + (1 if hop == '>' else -1), (-999, 0))
+        if hop and hot[1] > foe and turn - hot[0] < 300:  # hopped back down at 22/56 and at 7/56 from a hill orc beside Elbereth into the warg and winter wolf that the hero fled: dead (run 195609, T5054-T5073)
+            hop = None
         if hop and any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and not self.run.get('engulfed') and not any(h['choice'] == 'stair_hop' for h in self.history[-2:]):
             opts = {k: v for k, v in opts.items() if k not in ('elbereth', 'downstairs', 'upstairs', 'flee_up') and not v[0].startswith('Stay on Elbereth')}
             if not any(k.startswith('attack_') for k in opts) and s.get('hp', 1) >= 0.6 * s.get('hpmax', 1):  # user: 'too much time swapping between the oracle level and the one below'. A warg pack camped on the Oracle '<': the pack filters took the attacks, so each arrival hopped up at 73/87 with no swing, rested 300 turns, came back: 20 round trips, 3000 turns (run 194043, T9212-T12693)
@@ -2000,7 +2004,7 @@ class Bot:
             if s.get('hp', 1) < 0.4 * s.get('hpmax', 1) or not any(k.startswith('attack_') for k in opts):
                 opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0]} | {'stair_hop': (
                     f"Go {'down' if hop == '>' else 'up'} the stairs to rest", 'You stand on stairs and are hurt: take them. Only adjacent monsters follow, one at a time. Rest on the other side, then come back and fight again.',
-                    lambda hop=hop: (self.run.__setitem__('stair_dance', (s.get('dlvl'), turn, hop)), self.act_keys(hop, 'took the stairs to rest'))[1])}
+                    lambda hop=hop: (self.run.__setitem__('stair_dance', (s.get('dlvl'), turn, hop)), self.run.setdefault('hot', {}).__setitem__(s.get('dlvl'), (turn, foe)), self.act_keys(hop, 'took the stairs to rest'))[2])}
         elif hop and any(m['dist'] <= 5 and not m['passive'] for m in hostiles) and s.get('hp', 1) >= 0.5 * s.get('hpmax', 1) and sum(h['choice'] == 'wait' for h in self.history[-10:]) < 8:  # back on '<' after the stair dance, a wolf, warg, winter wolf and quasit 2-4 off: 'choke' walked 4 steps off the stairs into them, flee_up blocked, 75 -> 0 (run 194043, T13428)
             opts = {k: v for k, v in opts.items() if k != 'choke' and not k.startswith(('explore', 'approach_', 'fetch', 'goto_'))}
             opts['wait'] = ('Hold on the stairs', 'Monsters are coming. Stay on the stairs: fight what steps next to you, and take the stairs when you are hurt.', lambda: self.act_keys('ms', 'waited'))
