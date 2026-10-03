@@ -3088,3 +3088,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** On Dlvl 5 the hero saw one room and a corridor. The corridor turned once and then stopped. `search_spot` counted exits in 8 directions, so the end square also touched the bend diagonally and counted 2 exits. The bot did not search it. For 700 turns it searched the room walls. Then it was Hungry, a prayer 893 turns after the last one failed, and a giant ant killed the hero while it fainted.
 - **Prevention:** The user saw this: the end of the corridor was the place to search. `sp_lev.c` `dig_corridor` digs only in orthogonal steps, so a corridor square with one orthogonal exit is a dead end.
 - **Fix:** `search_spot` counts only orthogonal exits for a corridor square. If there are none, it uses the count in 8 directions. A test in `test_search_spot.py` has a bent dead end.
+
+## Run 20261002-194043: 20 round trips between Dlvl 6 and the Oracle level (T9212-T12693)
+
+- **Cause:** The user saw that the hero spent too much time between the Oracle level and the level above it. A warg, a winter wolf and two wolves waited at the up staircase of the Oracle level (Dlvl 7). At each arrival, 4 of them were adjacent. The pack rules removed all attack options, so the stair rule took the hero back up at once, at 73/87 HP and with no fight. The hero rested about 300 turns on Dlvl 6 and came down again. This occurred about 20 times in 3000 turns.
+- **Prevention:** On the stairs the escape is one key away. Fight from the stairs, and take them only when hurt.
+- **Fix:** When the hero stands on stairs with an adjacent hostile monster and HP at 60% or more, the bot puts back the attack options that the pack rules removed. The stair rule still takes the stairs below 40% HP.

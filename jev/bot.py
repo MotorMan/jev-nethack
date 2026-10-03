@@ -774,6 +774,7 @@ class Bot:
         if len(atk) >= 3:  # mobbed: switching between sewer rats and a rothe (3 attacks a turn), 26 -> 6 at XL 4 (T3797); kill the worst one first
             top = max(atk, key=lambda m: (not m['passive'], 'were' in m['name'], (MONSTERS.get(self.species(m)) or [0])[0]))  # never a passive one (back from rat form, punched an acid blob 3 turns while 3 rats bit 24 -> 0, T1591); the summoner first (mhitu.c: weres summon help 1 in 10 attacks, either form): a wererat in @ form kept calling rats, newts and a rothe while Jev hit the centipede, 51 -> 4 (T1233)
             opts = {k: v for k, v in opts.items() if not k.startswith('attack_') or k == f"attack_{DIR_OF[(top['pos'][0] - me[0], top['pos'][1] - me[1])]}"}
+        swing = {k: v for k, v in opts.items() if k.startswith('attack_')}
         were_throw = None  # an animal-form were's bite gives lycanthropy 1 in 4 hits (uhitm.c mhitm_ad_were): 44 of 509 runs caught it; wiki: kill them before melee range
         nymph_throw = None  # nymphs stole a ration, spear, shield and slime molds in one game: hit them before they arrive
         missiles = [it for it in self.inventory if re.search(r'\b(daggers?|knife|knives|darts?|shuriken|spears?|javelins?)\b', it['text'])
@@ -1994,6 +1995,8 @@ class Bot:
         hop = on if on == '>' or on == '<' and s.get('dlvl', 1) > 1 else None
         if hop and any(m['dist'] <= 1 and not m['passive'] for m in hostiles) and not self.run.get('engulfed') and not any(h['choice'] == 'stair_hop' for h in self.history[-2:]):
             opts = {k: v for k, v in opts.items() if k not in ('elbereth', 'downstairs', 'upstairs', 'flee_up') and not v[0].startswith('Stay on Elbereth')}
+            if not any(k.startswith('attack_') for k in opts) and s.get('hp', 1) >= 0.6 * s.get('hpmax', 1):  # user: 'too much time swapping between the oracle level and the one below'. A warg pack camped on the Oracle '<': the pack filters took the attacks, so each arrival hopped up at 73/87 with no swing, rested 300 turns, came back: 20 round trips, 3000 turns (run 194043, T9212-T12693)
+                opts |= swing  # on the stairs the escape is one key away: fight, and hop at 40%
             if s.get('hp', 1) < 0.4 * s.get('hpmax', 1) or not any(k.startswith('attack_') for k in opts):
                 opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith('quaff_') and 'healing' in v[0]} | {'stair_hop': (
                     f"Go {'down' if hop == '>' else 'up'} the stairs to rest", 'You stand on stairs and are hurt: take them. Only adjacent monsters follow, one at a time. Rest on the other side, then come back and fight again.',
