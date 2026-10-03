@@ -736,10 +736,10 @@ function PlanPanel({ s }: { s: State }) {
           {o && <Tip tip="game turn when the bot committed to this objective"><Label>since t:{o.since}</Label></Tip>}
         </div>
         {o ? (
-          <Tip tip={`turns since the objective last made progress, out of ${o.budget}. At ${o.budget} the objective stalls: it goes on a cooldown and its options leave the menu`}>
+          <Tip tip={`turns left before the objective stalls. Each step of progress resets the count to ${o.budget}. A stalled objective goes on a 200-turn cooldown, and its options leave the menu`}>
             <div className="mt-1">
-              <div className="flex items-center gap-2 text-ui"><Dot t="yellow" /><span className="truncate flex-1">{o.title}</span><span className="text-xs text-muted-foreground">idle {o.idle}/{o.budget}t</span></div>
-              <Bar className="mt-1" value={o.idle / o.budget} t={fracTone(1 - o.idle / o.budget)} />
+              <div className="flex items-center gap-2 text-ui"><Dot t="yellow" /><span className="truncate flex-1">{o.title}</span><span className="text-xs text-muted-foreground">stalls in {Math.max(0, o.budget - o.idle)}t</span></div>
+              <Bar className="mt-1" value={1 - o.idle / o.budget} t={fracTone(1 - o.idle / o.budget)} />
             </div>
           </Tip>
         ) : <div className="text-ui text-muted-foreground mt-1">none</div>}
