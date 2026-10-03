@@ -3076,3 +3076,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The stair dance brought the hero back to Dlvl 7 at 75/87 HP. A wolf, a warg, a winter wolf and a quasit were 2 to 4 squares from the up staircase. Jev chose `choke`, which walked 4 steps off the stairs to a doorway. The pack caught the hero in the corridor, and the warg blocked the path back to the stairs. An unknown potion made the hero blind. The last prayer was only 50 turns old, so prayer was not possible. The winter wolf killed the hero.
 - **Prevention:** On the stairs, the stairs are the best position. Only adjacent monsters follow, and the hero can leave at any time.
 - **Fix:** When the hero stands on stairs that it can take, with a hostile monster within 5 squares and HP at 50% or more, the bot removes `choke` and the walk options. It offers "Hold on the stairs" instead. The existing stair rules then fight adjacent monsters and take the stairs when HP is low.
+
+## Run 20261002-194856: a horse at XL 4 (T2684)
+
+- **Cause:** At XL 4 on Dlvl 5, a horse (difficulty 7, speed 20, kick 1d8 and bite 1d3) attacked the hero. A prayer at T2674 healed the hero to 44/44. The horse hit and moved away. In one turn it took the hero from 34 to 20 HP. At 20/44 the only option was `attack`, because Elbereth is offered only below 1/3 of max HP. The next turn took the hero to 3 HP, and the horse killed it.
+- **Prevention:** If one more turn like the worst turn of an adjacent monster can kill the hero, it is an emergency, whatever the HP fraction. The horse respects Elbereth.
+- **Fix:** The bot also offers Elbereth when an adjacent monster is `heavy`: its worst turn of damage, times 2, is at least the current HP.

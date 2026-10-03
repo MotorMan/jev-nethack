@@ -941,7 +941,7 @@ class Bot:
                 if m['dist'] <= 1:
                     hits[m['name']] = max(hits.get(m['name'], 0), loss)
         heavy = [m for m in hostiles if m['dist'] <= 1 and 2 * hits.get(m['name'], 0) >= hp]
-        big_hit = big_hit or bool(heavy)
+        big_hit = big_hit or bool(heavy)  # and Elbereth: at 20/44 (XL 4) a horse (speed 20) had taken 14 in a turn; above 1/3 HP only 'attack' was offered, 20 -> 3 -> dead (run 194856, T2684)
         # operator: Elbereth is for emergencies; the default is back into a corridor and fight one at a time (was hp < 0.7 or any pack: 30-140 engravings a game, mostly forced)
         # monmove.c: scared with no square to flee to (MMOVE_NOMOVES) sets panicattk, so Elbereth cannot stop a boxed monster; engrave/attack alternation
         # against a scorpion in a dead-end corridor gave it a free turn each engraving, 33/78 -> 6, a too-soon prayer, dead (T12125)
@@ -955,7 +955,7 @@ class Bot:
         # user: "I HARDLY EVER USE ELBERETH ... it's typically better to fight". 15-40 engravings and 50-200 forced waits a game (kev-4b, 10 games): emergencies only, below a third HP
         # wiki/monmove.c NOTONL: a unicorn only stays in melee while it is next to you, and it butts and kicks twice a turn (speed 24): meleed a gray unicorn 45 -> 13 in 3 turns, prayer used, a werewolf finished Jev (T7245)
         unicorn = (s.get('xl') or 1) < 10 and any(m['dist'] <= 1 and 'unicorn' in m['name'] for m in hostiles)
-        if (near and hp < hpmax / 3 or were or hugger or unicorn or sleeper or dread or walled or self.unseen_attacker() and hp < 0.5 * hpmax) and not self.engraved_here() and not (boxed and not walled and len(near) <= len(boxed)) and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
+        if (near and (hp < hpmax / 3 or heavy) or were or hugger or unicorn or sleeper or dread or walled or self.unseen_attacker() and hp < 0.5 * hpmax) and not self.engraved_here() and not (boxed and not walled and len(near) <= len(boxed)) and not (near and all(m['ch'] == '@' or 'pyrolisk' in m['name'] for m in near)) and not any(m['ch'] == '@' and m['dist'] == 1 for m in hostiles) \
                 and not set(s.get('conditions', [])) & ({'Stun', 'Stn', 'Conf', 'Cnf', 'Lev'} | (set() if big_hit else {'Hallu', 'Hal', 'Hl'})) \
                 and sum(h['choice'] == 'elbereth' and 'interrupted' in h['outcome'] for h in self.history[-4:]) < 2 \
                 and (s.get('turn') or 0) - self.run.get('no_engrave', -99) > 5 \
