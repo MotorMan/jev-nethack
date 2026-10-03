@@ -26,6 +26,7 @@ Status on 2026-10-02. No game has ascended yet.
 - Highest score: 18,708 points. Jev died in Sokoban on T13186, at 94 max HP. A Grey-elf killed it while it prayed. That game reached Dlvl 10.
 - Sokoban: Jev solved the first level. Its best game reached the second level (`soko3-1`).
 - Typical game: about 4,500 turns, deepest level Dlvl 6.
+- "No model" test (NoModel): the bot takes the first option and makes no Jev call. Its third game reached Dlvl 11 (T8587, a leocrotta). That is equal to the deepest Jev game.
 - Most frequent causes of death: rothes, wands, Woodland-elves, werejackals, wolves, and starvation.
 
 ## Inspiration
