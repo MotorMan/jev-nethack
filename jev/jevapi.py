@@ -56,6 +56,10 @@ class Jev:
 
     def ask(self, state, questions, timeout=None):
         """Returns (answers, meta). Raises on transport/validation failure."""
+        if self.endpoint == 'none':  # "no model" test: the first option of each choice (the bot puts the objective's options first), no call
+            self.stats['last_model'] = 'no model'
+            return {k: dict(choice=next(iter(q['criteria'])), probabilities={next(iter(q['criteria'])): 1.0}, confidence=1.0) if q['type'] == 'choice' else {}
+                    for k, q in questions.items()}, dict(latency_ms=0, model='no model', input_tokens=0)
         if self.stats['cost_usd'] >= self.budget and not self.local:
             raise RuntimeError(f'Jev budget ${self.budget} exhausted (see {self.ledger})')
         timeout = timeout or (120 if self.local else 8)  # a local model's first call loads weights; Gemma on MPS is slow
