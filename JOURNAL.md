@@ -3124,3 +3124,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** A Woodland-elf stood next to the hero in a corridor on Dlvl 7. `flee_up` was chosen 3 times. The path to the stairs went through the elf. `act_go` sends an `m` step into a monster square, and that step does not attack ("You move right into the Woodland-elf"). Each try cost a turn and an elf hit. A prayer was too soon. At 4 and 1 HP the `door_` walks went into the elf again.
 - **Prevention:** A walk must go around a monster, not into it.
 - **Fix:** If the first step of a walk is on a monster square that is not the target, `act_go` finds a path with that square blocked. If no other path exists, the walk stops without a move.
+
+## NoModel run 20261002-200820: AC 9 after a nymph, fire ant (T8347)
+
+- **Cause:** At T5591-T5615 on Dlvl 5, a water nymph stole the splint mail, the shield, the spear and the lamp. For the next 2700 turns the hero fought at AC 9 or 10. On Dlvl 6 a fire ant, a gold golem and a hill orc attacked it. The hero ran for the stairs 2 squares away at 21/54 HP, and the fire ant (speed 18) killed it.
+- **Prevention:** After a theft, get armor back before going deeper: chase the nymph, buy armor in a known shop, or stay on the cleared levels until AC is 3 or better.
+- **Fix:** Not yet. This needs an armor-recovery objective. It is noted as open work.
