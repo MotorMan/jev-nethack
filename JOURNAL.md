@@ -3064,3 +3064,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The bot pushed boulders off-plan on Sokoban level 2 (Dlvl 4), and the replan found no solution. The bot set `soko_done`, but the pathing still treated each boulder as a wall in Sokoban. The pushed boulders cut off '>', 2 squares away. The bot searched for hidden passages for 6000 turns. It lived on prayers, then fainted, and a lynx killed it.
 - **Prevention:** After the bot gives up on Sokoban, a boulder is an ordinary obstacle. A straight push into the boulder moves it and opens a path to '>'.
 - **Fix:** `dijkstra` lets a path go straight through a boulder in Sokoban when `soko_done` is set. Diagonal steps into a boulder stay blocked, because boulders in Sokoban do not move diagonally.
+
+## Run 20261002-193703: a fresh corpse left behind, then a failed hunger prayer (T5755)
+
+- **Cause:** The hero had no food in the pack. At T5223 it killed a rock piercer and then stood on the fresh corpse. A monster had hit it 4 turns before, so the rule "no meal within 5 turns of a hit" removed the eat option. Explore walked 36 steps away, and the corpse went stale. The pet pony ate many other corpses. At T5664 the hero was Weak and prayed 909 turns after the last prayer. The prayer timeout was still high, so Tyr was displeased (pray.c p_type 0: Luck -3 and an angry god). The hero fainted, and a rothe killed it.
+- **Prevention:** After a hit, with no hostile monster in view, the hero waits on the fresh corpse. It eats the corpse when the 5 turns are over. The corpse is still less than 50 turns old, so it is safe.
+- **Fix:** A new option, `wait_corpse`, searches for 3 turns. The bot offers it when only the recent hit blocks the meal and HP is at least 1/3 of max. The corpse forcing rule keeps this option in the menu when no monster is near.

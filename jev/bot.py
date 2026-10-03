@@ -1099,6 +1099,8 @@ class Bot:
         # Elves out of sight in a dark room beat an unconscious Jev 46 -> 1 HP (T8218)
         if s.get('hunger') not in ('Weak', 'Fainting') and (any(m['dist'] <= 6 and not m['passive'] and 'much weaker' not in self.threat(m) for m in hostiles) or (s.get('turn') or 0) - self.run.get('hit_turn', -99) <= 5
                                                              or s.get('hunger') != 'Hungry' and s.get('hp', 1) < s.get('hpmax', 1) / 3):  # user: a newt in view or 40% HP with nothing around is no reason to skip a meal  # Not hungry at 16 HP, ate an orc corpse in an orc pack's room: hit mid-meal 16 -> 9, gamble prayer angered Tyr, fainted later (T3978)
+            if 'eat_corpse' in opts and not any(m['dist'] <= 6 and not m['passive'] for m in hostiles) and s.get('hp', 1) >= s.get('hpmax', 1) / 3:  # only the recent hit: stood on a 2-turn rock piercer, explore walked off, it went stale; no food, the hunger prayer 909 turns on angered Tyr, fainted, rothe (run 193703, T5755)
+                opts['wait_corpse'] = ('Wait 3 turns on the fresh corpse', 'You were hit a moment ago, so do not start a meal yet. Wait here so the corpse is still fresh when you eat it.', lambda: self.act_search(3))
             opts = {k: v for k, v in opts.items() if k not in ('eat_corpse', 'goto_corpse')}
         if s.get('hunger') not in ('Weak', 'Fainting') and any(m['dist'] <= 2 for m in near):  # eating twice mid-swarm took 25 HP to 1 (giant rat, T2344)
             opts = {k: v for k, v in opts.items() if not k.startswith(('eat_', 'goto_corpse'))}
@@ -1671,8 +1673,8 @@ class Bot:
             del opts[charge]  # kited: a hill orc's returning aklys kept 4 steps off, forced 'close in' 3 times at 15-24/64 while an imp hit, dead (T4114)
         if charge in opts:
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door_', 'sell_', 'fetch', 'wait', 'search', 'rest'))}
-        if not near and ({'eat_corpse', 'goto_corpse'} & opts.keys()):  # the earlier forcing ran before explore/descend were added: 22 corpse offers, 2 taken, 4 hunger prayers, fainted (T3843)
-            opts = {k: v for k, v in opts.items() if k in ('eat_corpse', 'goto_corpse', 'pray')}
+        if not near and ({'eat_corpse', 'goto_corpse', 'wait_corpse'} & opts.keys()):  # the earlier forcing ran before explore/descend were added: 22 corpse offers, 2 taken, 4 hunger prayers, fainted (T3843)
+            opts = {k: v for k, v in opts.items() if k in ('eat_corpse', 'goto_corpse', 'wait_corpse', 'pray')}
         if self.history and 'blocked' in self.history[-1]['outcome'] and any(m['dist'] <= 1 for m in hostiles) and len(opts) > 1:
             opts.pop(self.history[-1]['choice'], None)  # hill orcs blocked the stairs path: 5 'ascend' bumps at 80/80 HP without a swing, dead (T6782)
         last = self.history[-5:]  # blocked walks cost a turn each, so the clock-frozen check misses them: 3500 turns bumping a shopkeeper past a floating eye
