@@ -72,6 +72,8 @@ class Level:
                 if land is False or (land is not None and land not in self.live):
                     continue
                 nb = boulders - {b} | ({land} if land else set())
+                if any(x not in self.live for x in nb):
+                    continue
                 np = pits if land else pits - {self._pit_hit(b, dx, dy, boulders, pits)}
                 if len(nb) - (land is not None and self._frozen(land, nb, np) and sum(self._frozen(x, nb, np) for x in nb)) < len(np):  # spare boulders may freeze
                     continue
