@@ -1263,14 +1263,14 @@ class Bot:
             objs = [q for c in ')[%?/=!("$' for q in snap.find(c)]
             if not (s.get('title') or '').startswith('Were') and (self.run.get('dropped') == (s.get('dlvl'), me) or self.run.get('dropped', (0,))[0] != s.get('dlvl')):  # a rat standing on its shed pile cleared the spot; back in @ form it never went back (T7237)
                 self.run.pop('dropped', None)
-            loot = [q for q in objs if q in dist and 0 < dist[q] <= (80 if s.get('hunger') in ('Weak', 'Fainting') and snap.at(*q).ch == '%' or not self.frontiers(dist) else 15) and ((s.get('dlvl'), q) not in self.run['here'] or self.run.get('dropped') == (s.get('dlvl'), q)) and lv.corpses.get(q, -1) < 0
+            loot = [q for q in objs if q in dist and 0 < dist[q] <= (80 if s.get('hunger') in ('Weak', 'Fainting') and snap.at(*q).ch == '%' or not self.frontiers(dist) else 15) and ((s.get('dlvl'), q) not in self.run['here'] or self.run.get('dropped') == (s.get('dlvl'), q) or (s.get('dlvl'), q) not in self.run.setdefault('refetch', set()) and any(INTEREST.search(i) and 'for sale' not in i for i in self.run['here'][(s.get('dlvl'), q)])) and lv.corpses.get(q, -1) < 0
                     and sum(cheb(q, o) <= 3 for o in objs) < 6]  # a dense cluster is a shop  # 80: user, explored level, no item left behind  # a mid-line comment once cut off the 'here' filter: chest/corpse ping-pong 2 steps apart (T1134-T1174)
             if loot:
                 starving = s.get('hunger') in ('Weak', 'Fainting')
                 q = min(loot, key=lambda q: (not (starving and snap.at(*q).ch == '%'), snap.at(*q).ch not in '!?="/', dist[q]))  # starving: food first; then magic items (user)
                 g = snap.at(*q).ch
                 what = {'%': 'food', '$': 'gold', '[': 'armor', ')': 'a weapon', '!': 'a potion', '?': 'a scroll', '/': 'a wand', '=': 'a ring', '"': 'an amulet', '(': 'a tool'}[g]
-                opts['fetch'] = (f"Go look at the item {compass(me, q)} ({what}?)", f"Walk {dist[q]} steps {compass(me, q)} to the '{g}' on the floor and see what it is; food keeps you from fainting, armor lowers AC.", lambda q=q: self.act_go(q))
+                opts['fetch'] = (f"Go look at the item {compass(me, q)} ({what}?)", f"Walk {dist[q]} steps {compass(me, q)} to the '{g}' on the floor and see what it is; food keeps you from fainting, armor lowers AC.", lambda q=q: (self.run['refetch'].add((s.get('dlvl'), q)), self.act_go(q))[1])  # walked over snow boots beside '>' on the way, never went back: the walk had recorded them, so fetch skipped the square (T125)
                 if g in '!?="/' and not near and not {'Burdened', 'Stressed'} & set(s.get('conditions', [])):  # user: always collect potions, scrolls, rings to identify or sell
                     opts = {k: v for k, v in opts.items() if k in ('fetch', 'pray') or k.startswith(('eat_', 'pickup_'))}
         for (dl, q), items in list(self.run.get('stashes', {}).items()):  # armor stolen by a nymph / lost to a were-change: the spare is in the stash

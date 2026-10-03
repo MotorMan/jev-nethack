@@ -2984,3 +2984,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: a wood nymph lived on Dlvl 2 and the downstairs there was not found. The only option was "leave this level" by the upstairs. The hero was Hungry, and Hungry skips the 300-turn block after a flight upstairs. So the bot went down again at once. This loop ran for 2000 turns. The nymph took the spear, the shield and the shirt. Blind, with a cursed orcish dagger, the hero died to bats on Dlvl 1.
 - Prevention: a stair loop must stop the "leave" option and let the bot explore for the downstairs.
 - Fix: the stair-hop count now includes `descend`. Four stair moves in the last six decisions stop the "leave this level" option.
+
+## Snow boots left beside the downstairs, T125 (Dlvl 1, user report)
+
+- Cause: a walk went over the square of a pair of snow boots. The walk recorded the items on that square. "Go look at the item" skips squares with recorded items, and a pickup is offered only on the square where a decision happens. So the bot never went back for the boots.
+- Prevention: keep unidentified armor and other interesting items for a price identification or an altar test.
+- Fix: "fetch" goes back once to a known square that holds an item that matches `INTEREST` (random-appearance boots, cloaks, helmets and gloves, and the priority items).
