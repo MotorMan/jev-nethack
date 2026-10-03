@@ -1274,7 +1274,7 @@ class Bot:
                 q = min(loot, key=lambda q: (not (starving and snap.at(*q).ch == '%'), snap.at(*q).ch not in '!?="/', dist[q]))  # starving: food first; then magic items (user)
                 g = snap.at(*q).ch
                 what = {'%': 'food', '$': 'gold', '[': 'armor', ')': 'a weapon', '!': 'a potion', '?': 'a scroll', '/': 'a wand', '=': 'a ring', '"': 'an amulet', '(': 'a tool'}[g]
-                opts['fetch'] = (f"Go look at the item {compass(me, q)} ({what}?)", f"Walk {dist[q]} steps {compass(me, q)} to the '{g}' on the floor and see what it is; food keeps you from fainting, armor lowers AC.", lambda q=q: (self.run['refetch'].add((s.get('dlvl'), q)), self.act_go(q))[1])  # walked over snow boots beside '>' on the way, never went back: the walk had recorded them, so fetch skipped the square (T125)
+                opts['fetch'] = (f"Go look at the item {compass(me, q)} ({what}?)", f"Walk {dist[q]} steps {compass(me, q)} to the '{g}' on the floor and see what it is; food keeps you from fainting, armor lowers AC.", lambda q=q: (self.run.setdefault('refetch', set()).add((s.get('dlvl'), q)), self.act_go(q))[1])  # walked over snow boots beside '>' on the way, never went back: the walk had recorded them, so fetch skipped the square (T125)
                 if g in '!?="/' and not near and not {'Burdened', 'Stressed'} & set(s.get('conditions', [])):  # user: always collect potions, scrolls, rings to identify or sell
                     opts = {k: v for k, v in opts.items() if k in ('fetch', 'pray') or k.startswith(('eat_', 'pickup_'))}
         for (dl, q), items in list(self.run.get('stashes', {}).items()):  # armor stolen by a nymph / lost to a were-change: the spare is in the stash
