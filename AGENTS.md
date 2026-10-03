@@ -41,7 +41,7 @@ Every death is a lesson. Most games can be won, so do not call a death bad luck.
 ## Commands
 
 - Tests: `.venv/bin/python test_corpse.py && .venv/bin/python test_loop_guard.py && .venv/bin/python test_sokoban.py && .venv/bin/python test_price_id.py && .venv/bin/python test_search_spot.py && .venv/bin/python test_mines.py && .venv/bin/python test_pursuit.py && .venv/bin/python test_shops.py && .venv/bin/python test_plan.py && ! .venv/bin/python -m pyflakes jev/ | grep 'undefined name'`. The pyflakes step finds a deleted variable that is still in use. Two crashes came from this.
-- Restart Hosted: `kill $(pgrep -f "[j]ev.server --name Hosted --port 8771")`. Then run `scripts/play.sh Hosted 8771` as a background command. The bot continues from the saved game.
+- Restart Hosted: `kill $(pgrep -f "[j]ev.server --name Hosted --port 8771")`. Then run `JEV_BUDGET_USD=35 scripts/play.sh Hosted 8771` as a background command. The cap is $35: the user added $10 to the $25 that was spent. Do not raise it again. When it runs out, add the kev-4b arguments `http://127.0.0.1:8784/v1/systemone jev-latest kev-4b`. The bot continues from the saved game.
 - Run only Hosted (port 8771). The user stopped the LunaRoute engines and the local models. Do not start them.
 - Never use `pkill -f jev.server`. It also kills the shell of the tool.
 - Death monitor: `tail -n0 -F runs/Hosted/server.log | awk '/run .* over|Traceback|Error|budget|ascended/{print; fflush()}'`. The monitor stops after 30 minutes. Start it again when it stops.
