@@ -610,12 +610,14 @@ class Bot:
             kind, _ = top_prompt(lines)
             merged = []
             for l in lines:
-                if l.strip() == '--More--':
+                stripped = l.strip()
+                if stripped == '--More--' or not stripped:
                     continue
                 if merged and not re.match(r'\s*[a-zA-Z$#] - ', l):
-                    merged[-1] = merged[-1] + ' ' + l.strip()
-                else:
-                    merged.append(l)
+                    if l.startswith(' ') or l.startswith('\t'):
+                        merged[-1] = merged[-1] + ' ' + stripped
+                        continue
+                merged.append(l)
             for l in merged:
                 for m in re.finditer(r'(?:^|\s)([a-zA-Z$#]) - (.+?)\s*$', l):
                     items.append(dict(letter=m[1], text=m[2]))
