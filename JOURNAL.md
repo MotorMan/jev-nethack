@@ -3112,3 +3112,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The user saw that the game was stuck. The hero carried a brass lantern, but the bot had no rule to light it. On the dark Mines level Dlvl 4, nothing was reachable on the map, so the bot waited and then took the downstairs. On Dlvl 5 the rule "too deep for XL 5" took the hero back up. This loop used 300 decisions.
 - **Prevention:** A lit lamp shows the squares around the hero on a dark level.
 - **Fix:** When the pack holds an unlit lamp or lantern and no hostile monster is within 6 squares, the bot applies it. It tries once per 500 turns, so an empty lamp does not make a loop.
+
+## The "too deep" rule and cleared levels (user request)
+
+- **Cause:** The pace rule sends the hero up when Dlvl is XL+2 or more. The user said that this rule is wrong when the levels above are already explored. Above a cleared level, the hero only waits, and then it comes back down. In NoModel run 200341 this gave 300 decisions of ascend, wait and descend.
+- **Prevention:** Go back up only when the level above still has something to explore.
+- **Fix:** A level with no frontier left (and 150 or more squares visited) is marked as cleared. The "Head back upstairs" option is not offered when the level above is cleared.

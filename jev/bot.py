@@ -1340,6 +1340,8 @@ class Bot:
             opts['donate'] = (f"Buy protection from the {priest[0]['name'].replace('peaceful ', '')}", f"You have {gold} gold. Walk to the priest ({priest[0]['where']}) and donate the larger suggested sum (2x a base of 150-250 per peak XL, so {300 * xl}-{500 * xl} gold); it buys 2-4 points of permanent divine protection (lower AC), then +1 per later purchase.", lambda p=priest[0]['pos']: self.act_donate(p))
         fr = self.frontiers(dist)
         self.run['edges'] = len(fr)  # for the UI: the map-cell share hit 100% with edges still left to explore
+        if not fr and len(lv.near) >= 150:  # 150: not a blind or boxed-in moment on arrival
+            lv.cleared = True  # no edge left to explore: going back up here gains nothing
         picked = []
         for d, p in fr:
             if all(cheb(p, q) >= 8 for q in picked):
@@ -1367,9 +1369,10 @@ class Bot:
         stuck_main = ms and sum(self.run['levels'].get(ms[0], Level()).searched.values()) >= 1500  # main '>' never found: the Mines are the only way on (500 sent an XL5 into Mines Dlvl 5 ~30 times, killed by a rothe T3492)
         mcap = self.in_mines() and self.run.get('orctown') or self.in_mines() and xl_low and (not self.run.get('soko_done') and not stuck_main or lv.town or s.get('dlvl', 1) >= min(md) + 3)
         too_deep = mcap or s.get('dlvl', 1) >= (s.get('xl') or 1) + 2  # pace: Dlvl <= XL+1 (XL+2 still lost most runs on Dlvl 4-5 before T2000)
+        # user: '"too deep" is a dumb rule if previous levels were explored': a cleared level above is no reason to climb (NoModel run 200341: 300 decisions of ascend/wait/descend, Dlvl 4-5)
         ups = [p for p in snap.find('<') if p in dist]
         above = self.run['levels'].get(s.get('dlvl', 1) - 1)
-        if too_deep and ups and (self.standing_on() != '<' or mcap) and (mcap or not (above and sum(above.searched.values()) >= 400)) and (dist[ups[0]] <= 2 or not any(m['dist'] <= 1 for m in hostiles)):  # walked for '<' 50 steps off with Mordor orcs and a snake adjacent: 7 tries, 44 -> 0, dead praying (T3746)  # the level above already waited out its pace cap: going back just ping-pongs (4 <-> 5 25 times in 100 turns, T4478)  # 400 = the pace rest's cap below; 800 left 400-800 searched turns of 'anyway' down / ascend up: 6 <-> 7 <-> 8 thirteen times, T3115-T6952  # XL5 on Dlvl 7 died to a winter wolf; XL+3 was too late
+        if too_deep and ups and (self.standing_on() != '<' or mcap) and (mcap or not (above and (sum(above.searched.values()) >= 400 or getattr(above, 'cleared', False)))) and (dist[ups[0]] <= 2 or not any(m['dist'] <= 1 for m in hostiles)):  # walked for '<' 50 steps off with Mordor orcs and a snake adjacent: 7 tries, 44 -> 0, dead praying (T3746)  # the level above already waited out its pace cap: going back just ping-pongs (4 <-> 5 25 times in 100 turns, T4478)  # 400 = the pace rest's cap below; 800 left 400-800 searched turns of 'anyway' down / ascend up: 6 <-> 7 <-> 8 thirteen times, T3115-T6952  # XL5 on Dlvl 7 died to a winter wolf; XL+3 was too late
             opts['ascend'] = ('Head back upstairs', f"This level is far too deep for experience level {s.get('xl')}. Walk to the up staircase ({dist[ups[0]]} steps {compass(me, ups[0])}) and climb to Dlvl {s.get('dlvl', 0) - 1}.", lambda p=ups[0]: self.act_descend(p, '<'))
         if too_deep and not ups and not self.in_mines() and any(k.startswith('explore_') for k in opts):
             # a hole dropped XL4 Jev from Dlvl 5 to 7: 300 turns of fetches, pickups and hidden-door searches before a yellow light and an orc band, dead (T2696)
