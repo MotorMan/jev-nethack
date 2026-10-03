@@ -1,6 +1,6 @@
 import { Children, Fragment, useEffect, useRef, useState, type ReactNode } from "react"
 import {
-  Activity, Bell, BellOff, Check, ChevronRight, Copy as CopyIcon, Cpu, Footprints, Map as MapIcon, LayoutPanelLeft, Maximize2, Moon, Package, Pause, Play, RotateCcw,
+  Activity, Bell, BellOff, Check, ChevronRight, Copy as CopyIcon, Cpu, Flag, Footprints, Map as MapIcon, LayoutPanelLeft, Maximize2, Moon, Package, Pause, Play, RotateCcw,
   Send, StepForward, Sun, Swords, Wifi, WifiOff, WrapText, X,
 } from "lucide-react"
 import { Dialog } from "radix-ui"
@@ -706,6 +706,58 @@ function LevelInfo({ s }: { s: State }) {
   )
 }
 
+function PlanPanel({ s }: { s: State }) {
+  const p = s.plan
+  if (!p) return null
+  const cur = p.phases.find((x) => x.status === "current")
+  const o = p.objective
+  const chapters = [...new Set(p.phases.map((x) => x.chapter))]
+  const res: Record<string, Tone> = { done: "green", stalled: "red", preempted: "orange", "no options": "muted" }
+  return (
+    <Panel title={<><Flag className="size-3.5" /> game plan</>} right={<Tip tip="the current phase: the first phase of the plan that is not done"><span className="normal-case tracking-normal truncate max-w-[200px]">{cur?.title ?? "--"}</span></Tip>}>
+      <div className="flex gap-1.5">
+        {chapters.map((c) => (
+          <div key={c} className="flex-1 min-w-0" style={{ flexGrow: p.phases.filter((x) => x.chapter === c).length }}>
+            <Tip tip={`${c} game phases`}><Label>{c}</Label></Tip>
+            <div className="flex gap-px mt-0.5">
+              {p.phases.filter((x) => x.chapter === c).map((x) => (
+                <Tip key={x.id} tip={<><b>{x.title}</b> ({x.status})<br />{x.hint}</>}>
+                  <div className="flex-1 h-2" style={{ background: x.status === "todo" ? "var(--border)" : tone(x.status === "done" ? "green" : "yellow") }} />
+                </Tip>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {cur && <Tip tip={`hint for Jev at this phase: ${cur.hint}`}><div className="text-ui text-muted-foreground truncate mt-1.5">{cur.hint}</div></Tip>}
+      <div className="border-t border-border mt-2 pt-1.5">
+        <div className="flex justify-between">
+          <Tip tip="the objective that Jev committed to. Options that serve it come first in the menu"><Label>objective</Label></Tip>
+          {o && <Tip tip="game turn when the bot committed to this objective"><Label>since t:{o.since}</Label></Tip>}
+        </div>
+        {o ? (
+          <Tip tip={`turns since the objective last made progress, out of ${o.budget}. At ${o.budget} the objective stalls: it goes on a cooldown and its options leave the menu`}>
+            <div className="mt-1">
+              <div className="flex items-center gap-2 text-ui"><Dot t="yellow" /><span className="truncate flex-1">{o.title}</span><span className="text-xs text-muted-foreground">idle {o.idle}/{o.budget}t</span></div>
+              <Bar className="mt-1" value={o.idle / o.budget} t={fracTone(1 - o.idle / o.budget)} />
+            </div>
+          </Tip>
+        ) : <div className="text-ui text-muted-foreground mt-1">none</div>}
+      </div>
+      {(p.history.length > 0 || p.cooldown.length > 0) && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {p.cooldown.map(([id, t]) => (
+            <Tip key={"c" + id} tip={`${p.titles[id] ?? id} stalled: its options stay out of the menu for ${t} more turns`}><span><Tag t="red">{id} ⏸ {t}t</Tag></span></Tip>
+          ))}
+          {p.history.slice(0, 8).map((h, i) => (
+            <Tip key={i} tip={`${p.titles[h.id] ?? h.id}, turns ${h.start}-${h.end}: ${h.result}`}><span><Tag t={res[h.result] ?? "muted"}>{h.id}</Tag></span></Tip>
+          ))}
+        </div>
+      )}
+    </Panel>
+  )
+}
+
 function Inventory({ s }: { s: State }) {
   return (
     <Panel
@@ -878,6 +930,7 @@ export default function App() {
           <Vitals s={s} />
           <Telemetry s={s} />
           <LevelInfo s={s} />
+          <PlanPanel s={s} />
           <Inventory s={s} />
         </Split>
       </Split>

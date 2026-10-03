@@ -29,6 +29,14 @@ export interface RunSummary {
   engine?: string; models?: string[]
 }
 
+export interface Plan {
+  phases: { chapter: string; id: string; title: string; hint: string; status: "done" | "current" | "todo" }[]
+  objective: { id: string; title: string; since: number; idle: number; budget: number } | null
+  history: { id: string; start: number; end: number; result: string }[]
+  cooldown: [string, number][]
+  titles: Record<string, string>
+}
+
 export interface State {
   mode: "local" | "hardfought"
   paused: boolean
@@ -46,5 +54,6 @@ export interface State {
   run: { id: string; started: string; character: string; max_dlvl: number; decisions: number; engine?: string; models?: string[] }
   runs: RunSummary[]
   inventory: { letter: string; text: string; contents?: string[] }[]
+  plan?: Plan | null
   level: { dlvl: number; explored: number; downstairs: boolean; upstairs: boolean; notes?: [number | string, string][] }
 }
