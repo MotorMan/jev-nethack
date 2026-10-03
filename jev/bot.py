@@ -609,15 +609,21 @@ class Bot:
             lines = self.t.lines()
             kind, _ = top_prompt(lines)
             merged = []
+            item_indent = 0
             for l in lines:
                 stripped = l.strip()
                 if stripped == '--More--' or not stripped:
                     continue
-                if merged and not re.match(r'\s*[a-zA-Z$#] - ', l):
-                    if l.startswith(' ') or l.startswith('\t'):
+                m = re.match(r'(\s*)[a-zA-Z$#] - ', l)
+                if m:
+                    merged.append(l)
+                    item_indent = len(m.group(1))
+                elif merged and l.startswith((' ', '\t')):
+                    indent = len(l) - len(l.lstrip())
+                    if indent > item_indent:
                         merged[-1] = merged[-1] + ' ' + stripped
                         continue
-                merged.append(l)
+                    # less-indented or same-indented non-item line: skip
             for l in merged:
                 for m in re.finditer(r'(?:^|\s)([a-zA-Z$#]) - (.+?)\s*$', l):
                     items.append(dict(letter=m[1], text=m[2]))
