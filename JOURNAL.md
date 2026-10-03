@@ -3020,3 +3020,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: the user saw that games got less far and starved more. The decline started near 14:40, before the plan system (17:12). In the slow games, 40-57% of the turns went to search. In the older games, this was 10-39%. The plan system made this worse: in 3 games, the explore objective stalled 18 times. Each stall removed the explore options for 200 turns, so only search remained. A loot cooldown also removed `pickup_food` and the food "fetch".
 - Prevention: a cooldown must not remove the only way to make progress or to get food.
 - Fix: explore and loot are not suppressible. A stall ends the objective, but the options stay in the menu. Only shop and sokoban get a cooldown.
+
+## Diagonal squeeze between rock and wall, T7621 (Dlvl 3)
+
+- Cause: the pathfinder never planned a diagonal step between two rock or wall squares. On Dlvl 3, the corridor from a west doorway left diagonally, so the west half of the level stayed unknown. The bot searched walls for 6000 turns and never found the downstairs.
+- Prevention: in 5.0 `hack.c` (`cant_squeeze_thru`), the squeeze fails only when the hero carries more than 600 weight.
+- Fix: the pathfinder allows the squeeze. After the message "You are carrying too much to get through", it blocks squeezes again for 500 turns.

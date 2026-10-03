@@ -212,6 +212,8 @@ class Bot:
                 self.run['inv_stale'] = True  # a nymph took the worn shield while resting; the 25-decision refresh showed it worn for 250 turns at AC 10 (T3453)
             if re.search(r'Your armor falls|You can no longer hold your shield|falls to the ground|You find you must drop|You drop your (gloves|weapon)', text) and self.snap and self.snap.me:  # were form shed chain mail, shield, helm, spear; Jev never went back, AC 10, dead (T4960)
                 self.run['gear_at'], self.run['gear_seen'] = (self.snap.status.get('dlvl'), self.snap.me), []
+            if 'carrying too much to get through' in text and self.snap:  # hack.c cant_squeeze_thru: only over 600 weight; never squeezing hid a corridor off a doorway diagonal, 6000 turns of search on Dlvl 3 (T7621)
+                self.run['squeeze_fail'] = self.snap.status.get('turn') or 0
             if re.search(r'more confident in your|could be more dangerous', text):  # weapon.c: a skill can be advanced (#enhance); never done, the spear stayed Basic all game
                 self.run['enhance'] = True
             if re.search(r'You feel purified|You feel full of awe|affinity to \w+ disappears', text):  # prayer or holy water (potion.c peffect_water)
@@ -476,7 +478,7 @@ class Bot:
                 if soko and (snap.at(*q).ch == '0' or snap.at(*q).ch == '^' and q not in safe or dx and dy and not all(snap.walkable(*c) and snap.at(*c).ch != '0' for c in ((p[0] + dx, p[1]), (p[0], p[1] + dy)))):
                     continue  # Sokoban: never shove a boulder off-plan or drop into a hole; no squeezing past boulders diagonally
                 if dx and dy and (not snap.diag_ok(p, q) or (p == start and self.standing_on() == 'door') or 'door' in (self.run.get('under', {}).get((snap.status.get('dlvl'), p)), self.run.get('under', {}).get((snap.status.get('dlvl'), q)))
-                                  or not (snap.walkable(p[0] + dx, p[1]) or snap.walkable(p[0], p[1] + dy))):  # squeezing between two walls fails over 600 weight ("carrying too much to get through"): up to 2171 blocked moves a game
+                                  or not (snap.walkable(p[0] + dx, p[1]) or snap.walkable(p[0], p[1] + dy)) and (snap.status.get('turn') or 0) - self.run.get('squeeze_fail', -9999) < 500):  # squeezing between two walls fails over 600 weight ("carrying too much to get through"): up to 2171 blocked moves a game
                     continue
                 nd = d + snap.cost(*q)
                 if nd < dist.get(q, 1e9):
