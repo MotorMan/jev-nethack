@@ -3142,3 +3142,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** On Dlvl 9 at XL 7 the level was cleared. The pace rest stops after 400 turns of rest. Then the "Take the downstairs anyway" option was the only option, and it took the hero to Dlvl 10. On Dlvl 10 the hero was Hungry, so the rest was skipped and "anyway" took it to Dlvl 11. There, at XL 8 with 21/80 HP, a leocrotta (speed 18, three 2d6 attacks) killed it. Elbereth was not offered because the leocrotta could not move away. The source agrees with this: a scared monster that cannot move attacks (monmove.c, `panicattk`).
 - **Prevention:** Do not go 3 or more levels past the experience level only because the rest time ran out.
 - **Fix:** When the next level is XL+3 or deeper, the pace rest continues up to 1000 turns (not 400).
+
+## NoModel run 20261002-201242: left Elbereth at half HP, slept by a homunculus (T2342)
+
+- **Cause:** On Dlvl 3 at XL 4 and AC 6, a pony, a leprechaun, a grid bug and a homunculus came near. At 26/52 HP the hero engraved Elbereth, then took `approach_` off the square on the next turn. It did this twice. The rule that keeps the hero on Elbereth fires only below half HP (`hp * 2 < hpmax`), and 26/52 is exactly half. A homunculus bite puts a hero without sleep resistance to sleep, and the monsters killed it while it slept.
+- **Prevention:** On a fresh Elbereth with monsters near and HP not high, stay and let HP recover.
+- **Fix:** The rule now fires below 60% of max HP.

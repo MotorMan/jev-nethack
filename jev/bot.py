@@ -1673,7 +1673,7 @@ class Bot:
                 opts[f'attack_{d}'] = (f"Attack {m['name']} ({DIR_NAME[d]})", 'You are stuck to it and cannot move away. Kill it.', lambda d=d: self.act_fight(d))
         if sum(m['dist'] <= 3 for m in near) >= 3:  # held a doorway against 15 Mines monsters, a kill left no one adjacent and explore stepped into the room: 22 -> 5 HP in 2 turns (T2970)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door_', 'search', 'goto_'))} or opts
-        if near and 'wait' in opts and self.engraved_here() and s.get('hp', 1) * 2 < s.get('hpmax', 1):  # explored off Elbereth at 12/63 among 8 monsters, 3 times 'took damage after 1 steps' (T7921)
+        if near and 'wait' in opts and self.engraved_here() and s.get('hp', 1) < 0.6 * s.get('hpmax', 1):  # at 26/52 (not < half) left a fresh Elbereth twice to close in on 4 monsters, a homunculus bite slept it, dead (NoModel T2342)  # explored off Elbereth at 12/63 among 8 monsters, 3 times 'took damage after 1 steps' (T7921)
             opts = {k: v for k, v in opts.items() if not k.startswith(('explore', 'door_', 'sell_', 'approach_', 'fetch')) or k == charge}
         if charge in opts and sum(h['choice'].startswith('approach_') for h in self.history[-4:]) >= 2 and not any(m['dist'] <= 2 and m['name'] == self.run.get('shooter') for m in hostiles):
             del opts[charge]  # kited: a hill orc's returning aklys kept 4 steps off, forced 'close in' 3 times at 15-24/64 while an imp hit, dead (T4114)
