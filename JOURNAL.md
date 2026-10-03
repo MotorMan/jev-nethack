@@ -2966,3 +2966,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: an Uruk-hai shot poisoned arrows up a dark corridor from out of view. At 16/62 HP the bot engraved Elbereth (it does not stop arrows), then rested 15 turns in the line of fire. The rest option checked only for visible monsters. The upstairs was 3 steps away.
 - Prevention: when an unseen archer shoots, leave its line. Do not rest there.
 - Fix: no rest for 3 turns after a shot. Below half HP while being shot, offer the upstairs if it is 20 steps or less away.
+
+## Fetch loop, T1134-T1174 (Dlvl 1)
+
+- Cause: an earlier edit put a comment in the middle of the loot condition. The comment cut off the filter for squares that the bot already looked at. The bot walked between a chest and a corpse 2 steps apart for 40 turns.
+- Prevention: do not put a comment inside a condition that continues on the next line.
+- Fix: the filter is code again. The comment is at the end of the line.
