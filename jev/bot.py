@@ -748,7 +748,11 @@ class Bot:
         # in a closed Dlvl 8 room at 50/58 filled it with apes, fire ants and zombies, dead (T3499)
         camped = sum(h['choice'] == 'wait' and 'Elbereth' in h['outcome'] for h in self.history[-50:]) >= 40 and hp >= (0.85 if any(m['dist'] <= 5 and 'weaker' not in self.threat(m) and not m['passive'] for m in hostiles) else 0.6) * hpmax  # camped at 36/59: hit a giant rat off Elbereth with a plains centaur and fire ant near, 37 -> 0 in 2 turns (T5097)
         # monmove.c: a scared monster with no square to flee to panic-attacks every turn; a plains centaur boxed in by hill orcs took 28 -> 9 on Elbereth (T5761)
-        boxed = [m for m in hostiles if m['dist'] == 1 and not m['passive'] and not any(snap.walkable(x, y) and not snap.is_monster(x, y) and cheb((x, y), me) > 1
+        # a monster in a doorway (walls on two opposite sides) can flee into the corridor behind it, unseen squares or not: a snake there was 'boxed',
+        # Elbereth was dropped at 12/41 after a deadly-poison bite, attack was the only option, the prayer failed, dead (T4776)
+        wall = lambda x, y: (g := snap.at(x, y)) is not None and g.ch in '|-' and not snap.is_door(x, y)
+        gap = lambda x, y: wall(x, y - 1) and wall(x, y + 1) or wall(x - 1, y) and wall(x + 1, y)
+        boxed = [m for m in hostiles if m['dist'] == 1 and not m['passive'] and not gap(*m['pos']) and not any(snap.walkable(x, y) and not snap.is_monster(x, y) and cheb((x, y), me) > 1
                  for x in range(m['pos'][0] - 1, m['pos'][0] + 2) for y in range(m['pos'][1] - 1, m['pos'][1] + 2))]
         on_e = self.engraved_here() and hp < 0.2 * hpmax and not shot and not camped and not boxed  # zapped on Elbereth by an adjacent orc, the only option left was 'retreat' (T4400); healthy: fight from it rather than wait out a speed-1 fog cloud
         for m in hostiles:

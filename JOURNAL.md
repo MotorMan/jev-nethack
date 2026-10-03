@@ -2996,3 +2996,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: a wood nymph stole the spear at T3078. The bot then fought with a +0 dagger (d4) for 9700 turns. The pickup filter counted the dagger as a weapon, so it skipped every real weapon. The wield option was offered only when bare-handed. At XL 7, a little dog, a giant ant and rothes took the hero from 77 to 9 HP in a 3x3 room, and it prayed. A yellow light then blinded it, and the next rothes killed it with no prayer left.
 - Prevention: after a theft, get a real weapon again. A dagger is for throwing and for prying boxes.
 - Fix: a dagger, a knife or a club does not count as "armed", so the bot picks up a sword, an axe, a spear or a mace. A wield option replaces a small weapon with a better one from the pack. `act_wield` now checks that the chosen item is wielded. The bot never picks up a battle-axe (two-handed, and the Valkyrie has a shield).
+
+## Snake in a doorway, T4776 (Dlvl 7, XL 5)
+
+- Cause: the hero meleed a snake (speed 15) from 51/51 HP. At T4774, a bite gave the "deadly poison" result of `poisoned()` (1 chance in 30). It took 22 HP and 10 max HP, so the hero had 12/41. The snake stood in a doorway in the east wall. The corridor behind it was not yet seen, so the `boxed` test found no square for the snake to flee to. The bot thus removed Elbereth, and attack was the only option. At 8/41, the prayer failed. The last prayer was 1168 turns before, so the timeout from `rnz(350)` was probably still high.
+- Prevention: a monster in a doorway can always flee into the corridor behind it. Elbereth stops a snake.
+- Fix: a monster with walls on two opposite sides (a doorway) is never "boxed". The bot therefore offers Elbereth below a third of max HP.
