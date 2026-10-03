@@ -211,7 +211,7 @@ class Bot:
                 self.run['nymph_lvl'] = self.snap.status.get('dlvl')
                 self.run['inv_stale'] = True  # a nymph took the worn shield while resting; the 25-decision refresh showed it worn for 250 turns at AC 10 (T3453)
             if re.search(r'Your armor falls|You can no longer hold your shield|falls to the ground|You find you must drop|You drop your (gloves|weapon)', text) and self.snap and self.snap.me:  # were form shed chain mail, shield, helm, spear; Jev never went back, AC 10, dead (T4960)
-                self.run['gear_at'] = (self.snap.status.get('dlvl'), self.snap.me)
+                self.run['gear_at'], self.run['gear_seen'] = (self.snap.status.get('dlvl'), self.snap.me), []
             if re.search(r'more confident in your|could be more dangerous', text):  # weapon.c: a skill can be advanced (#enhance); never done, the spear stayed Basic all game
                 self.run['enhance'] = True
             if re.search(r'You feel purified|You feel full of awe|affinity to \w+ disappears', text):  # prayer or holy water (potion.c peffect_water)
@@ -1605,8 +1605,14 @@ class Bot:
         g = self.run.get('gear_at')
         if g and g[0] == s.get('dlvl') and s.get('exp') is not None and not any(m['dist'] <= 1 for m in near):  # 'not near': a speed-3 rock mole stayed in view 230 turns, the shield never recovered, dead at AC 10 (T3665)
             if me == g[1] and not (s.get('title') or '').startswith('Were'):
-                pile = [q for c in ')[' for q in snap.find(c) if 0 < cheb(me, q) <= 3 and q in dist]
-                self.run['gear_at'] = None if self.here_items() or not pile else (g[0], min(pile, key=dist.get))  # the pickup and wear options take it from here; the spot was recorded a step off, empty square cleared it and Jev descended with no spear or shield, AC 9, dead to a werejackal (T6987)
+                # the drop was recorded 4 squares off the real spot (a doorway); the 3-square search found orcish daggers, cleared the goal, and Jev went
+                # down with a dagger at AC 10, dead to a fire ant on Dlvl 6 (T6821): keep visiting piles, nearest the drop first, until a real weapon is back
+                armed = any((w := WEAPON.search(it['text'])) and w[1] not in ('dagger', 'knife', 'club') for it in self.inventory)
+                seen = self.run.setdefault('gear_seen', [])
+                if me not in seen and not any(k.startswith('pickup_') for k in opts):
+                    seen.append(me)
+                pile = [q for c in ')[' for q in snap.find(c) if q in dist and q not in seen and q != me]
+                self.run['gear_at'] = None if armed or not pile and me in seen else g if me not in seen else (g[0], min(pile, key=lambda q: cheb(q, g[1])))  # the pickup and wear options take it from here; the spot was recorded a step off, empty square cleared it and Jev descended with no spear or shield, AC 9, dead to a werejackal (T6987)
             elif g[1] in dist:
                 if not near or (s.get('ac') or 0) >= 9:  # back from rat form at AC 10, a wererat 2 steps off: closed in instead, a rat pack took 48 -> 6, dead (T3091)
                     opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'pickup_', 'wear_', 'wield_'))}

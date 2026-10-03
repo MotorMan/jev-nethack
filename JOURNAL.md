@@ -3002,3 +3002,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: the hero meleed a snake (speed 15) from 51/51 HP. At T4774, a bite gave the "deadly poison" result of `poisoned()` (1 chance in 30). It took 22 HP and 10 max HP, so the hero had 12/41. The snake stood in a doorway in the east wall. The corridor behind it was not yet seen, so the `boxed` test found no square for the snake to flee to. The bot thus removed Elbereth, and attack was the only option. At 8/41, the prayer failed. The last prayer was 1168 turns before, so the timeout from `rnz(350)` was probably still high.
 - Prevention: a monster in a doorway can always flee into the corridor behind it. Elbereth stops a snake.
 - Fix: a monster with walls on two opposite sides (a doorway) is never "boxed". The bot therefore offers Elbereth below a third of max HP.
+
+## Gear left on Dlvl 5 after lycanthropy, T6821 (Dlvl 6, XL 6)
+
+- Cause: at T5702 the hero changed into a jackal and dropped the spear and the shield in a doorway. The bot recorded the drop spot 4 squares away. When the hero arrived there, the 3-square search found only a pile of orcish daggers. The bot then cleared the goal. The hero fought on with a +0 dagger at AC 10. On Dlvl 6, a fire ant and a rothe took it from 74 to 0 HP.
+- Prevention: after a change of form, get the weapon and the armor back before you do anything else on the level.
+- Fix: `recover_gear` keeps its goal until the pack holds a real weapon (not a dagger, a knife or a club). It visits each `)` and `[` pile on the level, nearest to the drop spot first. It leaves a pile only when no pickup option remains there.
