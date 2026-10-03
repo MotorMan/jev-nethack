@@ -475,8 +475,8 @@ class Bot:
                 q = (p[0] + dx, p[1] + dy)
                 if q in lv.blocked or q in lv.traps or q in self.avoid or not snap.walkable(*q):
                     continue
-                if soko and (snap.at(*q).ch == '0' or snap.at(*q).ch == '^' and q not in safe or dx and dy and not all(snap.walkable(*c) and snap.at(*c).ch != '0' for c in ((p[0] + dx, p[1]), (p[0], p[1] + dy)))):
-                    continue  # Sokoban: never shove a boulder off-plan or drop into a hole; no squeezing past boulders diagonally
+                if soko and (snap.at(*q).ch == '0' and (dx and dy or not self.run.get('soko_done')) or snap.at(*q).ch == '^' and q not in safe or dx and dy and not all(snap.walkable(*c) and snap.at(*c).ch != '0' for c in ((p[0] + dx, p[1]), (p[0], p[1] + dy)))):
+                    continue  # Sokoban: never shove a boulder off-plan or drop into a hole; no squeezing past boulders diagonally  # given up: push straight through, or the pushed boulders wall off '>' (6000 turns of search_hidden 2 squares from it, fainted, lynx, run 192938 T11684)
                 if dx and dy and (not snap.diag_ok(p, q) or (p == start and self.standing_on() == 'door') or 'door' in (self.run.get('under', {}).get((snap.status.get('dlvl'), p)), self.run.get('under', {}).get((snap.status.get('dlvl'), q)))
                                   or not (snap.walkable(p[0] + dx, p[1]) or snap.walkable(p[0], p[1] + dy)) and (snap.status.get('turn') or 0) - self.run.get('squeeze_fail', -9999) < 500):  # squeezing between two walls fails over 600 weight ("carrying too much to get through"): up to 2171 blocked moves a game
                     continue

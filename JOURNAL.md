@@ -3058,3 +3058,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: A polymorph made the hero shed its armor, so AC was 10. At 21/60 HP the bot stood on Elbereth with a wolf near. The "fight from a corridor" option deleted the Elbereth wait. The bot walked off, then went for the dropped armor. The wolf bit it from 21 to 7 HP. A prayer 263 turns after the last one failed.
 - Prevention: Below 40% HP, or at AC 9 or worse, Elbereth is better than a walk to a corridor.
 - Fix: The corridor option deletes the Elbereth wait only at 40% HP or more and AC 8 or better.
+
+## Run 20261002-192938: walled in by boulders in Sokoban (T11684)
+
+- **Cause:** The bot pushed boulders off-plan on Sokoban level 2 (Dlvl 4), and the replan found no solution. The bot set `soko_done`, but the pathing still treated each boulder as a wall in Sokoban. The pushed boulders cut off '>', 2 squares away. The bot searched for hidden passages for 6000 turns. It lived on prayers, then fainted, and a lynx killed it.
+- **Prevention:** After the bot gives up on Sokoban, a boulder is an ordinary obstacle. A straight push into the boulder moves it and opens a path to '>'.
+- **Fix:** `dijkstra` lets a path go straight through a boulder in Sokoban when `soko_done` is set. Diagonal steps into a boulder stay blocked, because boulders in Sokoban do not move diagonally.
