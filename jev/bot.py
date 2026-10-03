@@ -619,7 +619,8 @@ class Bot:
             for l in merged:
                 for m in re.finditer(r'(?:^|\s)([a-zA-Z$#]) - (.+?)\s*$', l):
                     items.append(dict(letter=m[1], text=m[2]))
-            if kind == 'menu' and any(re.search(r'\((\d+) of (\d+)\)', l) and not re.search(r'\((\d+) of \1\)', l) for l in lines):
+            has_more = any(re.search(r'\((\d+) of (\d+)\)', l) and not re.search(r'\((\d+) of \1\)', l) for l in lines)
+            if has_more:
                 self.t.send('>')
             else:
                 break
