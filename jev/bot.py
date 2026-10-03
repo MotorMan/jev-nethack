@@ -1610,6 +1610,9 @@ class Bot:
             opts.pop('rest', None)
             if not any(k.startswith(('eat_', 'goto_corpse')) for k in opts):
                 opts = {'pray': opts['pray']}  # Weak at low HP 844 turns after a prayer, offered 'pray' 4 times: swung at bees and descended instead, fainted, dead (T3493)
+        if any(m['dist'] <= 3 and re.search(r'cockatrice|chickatrice', m['name']) for m in hostiles) and not any(re.search(r'lizard corpse|acid blob corpse|potion of acid', it['text']) for it in self.inventory):
+            keep = {k: v for k, v in opts.items() if not k.startswith(('explore', 'approach_', 'fetch', 'door_', 'search', 'kick_')) and k not in ('wait', 'rest')}  # no stoning cure: explored into two chickatrices 2 steps off with throw_b offered, stoned (NoModel T5663)
+            opts = {k: v for k, v in keep.items() if k.startswith('throw_')} | keep if keep else opts
         if (s.get('turn') or 0) - self.run.get('held', -99) <= 2:  # owlbear crush: '<' tried 4 times 'held, and cannot go up', 82 -> 0 (T12770)
             # held: moving escapes 1 in 40 (hack.c); a rope golem choked Jev through 3 retreats (T5125). Wiki: Elbereth works while grabbed
             opts = {k: v for k, v in opts.items() if k in ('elbereth', 'pray') or k.startswith(('attack_', 'quaff_', 'zap_'))} or opts  # an uncursed wand of fire stayed unzapped while two rope golems choked Jev 70 -> 0 (T5699)

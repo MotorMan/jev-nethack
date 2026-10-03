@@ -3174,3 +3174,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** On Dlvl 8 at XL 6, an owlbear came next to the hero at 66/66 HP. The hugger rule removed the attack, approach, rest and wait options, because Elbereth was offered. But the explore options stayed, and `explore_1` came first. The hero walked twice. The owlbear hit it, grabbed it, and crushed it. Elbereth fails when the hero is held ("cannot reach the floor"), and two unknown potions did not help.
 - **Prevention:** Engrave Elbereth before an owlbear or another hugger holds you. Do not walk next to one.
 - **Fix:** When Elbereth is offered next to a hugger, a unicorn or a much stronger monster, the explore, fetch, door, search and kick options are also removed.
+
+## NoModel run 20261002-203353: explored into two chickatrices (T5663)
+
+- **Cause:** On the Oracle level (Dlvl 9), two chickatrices came within 2 squares of the hero. The pack held no stoning cure. The options were `explore_1`, `throw_b` (darts), `wait` and `choke`, and the first one, explore, went toward the chickatrices. A touch hit hissed, and the hero turned to stone. The rule from T10891 did not give `flee_up` here.
+- **Prevention:** Without a cure, never walk or wait next to a cockatrice. Kill it with thrown weapons, or move away.
+- **Fix:** When a cockatrice or chickatrice is within 3 squares and the pack has no cure, the explore, approach, fetch, door, search, kick, wait and rest options are removed, and the throw options come first.
