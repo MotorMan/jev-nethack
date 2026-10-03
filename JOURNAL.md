@@ -3094,3 +3094,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** The user saw that the hero spent too much time between the Oracle level and the level above it. A warg, a winter wolf and two wolves waited at the up staircase of the Oracle level (Dlvl 7). At each arrival, 4 of them were adjacent. The pack rules removed all attack options, so the stair rule took the hero back up at once, at 73/87 HP and with no fight. The hero rested about 300 turns on Dlvl 6 and came down again. This occurred about 20 times in 3000 turns.
 - **Prevention:** On the stairs the escape is one key away. Fight from the stairs, and take them only when hurt.
 - **Fix:** When the hero stands on stairs with an adjacent hostile monster and HP at 60% or more, the bot puts back the attack options that the pack rules removed. The stair rule still takes the stairs below 40% HP.
+
+## Run 20261002-195323: 7 potions of healing unused, fire ant (T4028)
+
+- **Cause:** On Dlvl 6 a fire ant (speed 18, two 2d4 bites, one of them fire) and a rothe attacked the hero. The hero had 7 known potions of healing. The bot offers a potion only below 1/3 of max HP. At 17 to 20 of 49 HP the fire ant was in view, and the options were only explore, door and wait. At 13 HP the Elbereth engraving was garbled, and the next turn took the hero to 2 HP. The hero quaffed 3 potions, but each potion healed less than the fire ant did in one turn.
+- **Prevention:** Drink a known potion of healing before the damage race is lost. Below half HP, a monster that is not weaker than the hero can take the rest of the HP in two turns.
+- **Fix:** Below 1/2 of max HP, with a known potion of healing in the pack and a hostile monster within 3 squares that is not weaker, the bot offers the potion.
