@@ -3008,3 +3008,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - Cause: at T5702 the hero changed into a jackal and dropped the spear and the shield in a doorway. The bot recorded the drop spot 4 squares away. When the hero arrived there, the 3-square search found only a pile of orcish daggers. The bot then cleared the goal. The hero fought on with a +0 dagger at AC 10. On Dlvl 6, a fire ant and a rothe took it from 74 to 0 HP.
 - Prevention: after a change of form, get the weapon and the armor back before you do anything else on the level.
 - Fix: `recover_gear` keeps its goal until the pack holds a real weapon (not a dagger, a knife or a club). It visits each `)` and `[` pile on the level, nearest to the drop spot first. It leaves a pile only when no pickup option remains there.
+
+## Invisible bat after a wand test, T7621 (Dlvl 3, XL 6)
+
+- Cause: the hero had no food and prayed for Weak hunger at T7584. Then a bat and a hill orc with a wand of magic missile took it from 44 to 15 HP. At T7610 the bot zapped an unknown wand at the orc. An engrave test had named this wand "no engrave effect". The wand was make invisible, so the orc and the bat both vanished. At 11/61 HP, three engravings came out garbled, and the invisible bat killed the hero.
+- Prevention: in 5.0 `engrave.c`, a wand that gives no message is nothing, opening, locking, probing or undead turning. On a bare floor, it can also be teleportation, cancellation or make invisible. Only teleportation helps in a fight.
+- Fix: the bot never zaps a wand called "no engrave effect" at a monster.

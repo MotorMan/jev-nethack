@@ -809,7 +809,7 @@ class Bot:
                         if not any(o['dist'] <= 2 and not o['passive'] and self.species(o) not in DOMESTIC for o in hostiles) else {**opts, f'tame_{d}': (f"Throw {ok[0]['text']} to the {m['name']}", f"A thrown food item makes a hostile {sp} peaceful or tame.", lambda l=ok[0]['letter'], d=d: self.act_throw(l, d))}
                     break
         wand = next((it for it in sorted(self.inventory, key=lambda i: not re.search(r'wand of (death/sleep|sleep|cold|fire|striking|magic missile|lightning)', i['text'])) if re.search(r'\bwand\b', it['text'])
-                     and not re.search(r'probing|light|nothing|digging|opening|locking|enlightenment|secret door|create monster|wishing|undead turning|polymorph|make invisible|speed monster', it['text'])
+                     and not re.search(r'probing|light|nothing|digging|opening|locking|enlightenment|secret door|create monster|wishing|undead turning|polymorph|make invisible|speed monster|no engrave effect', it['text'])  # engrave.c: no message is nothing, opening, locking, probing, undead turning, or (on bare floor) teleport, cancel, make invisible: zapped at a hill orc beside a bat, both vanished, 11/61, invisible bites, dead (T7621)
                      and it['text'] not in self.run.get('bad_wands', ()) and not re.search(r':0\)', it['text'])
                      and self.run.setdefault('zaps', {}).get((it['text'], s.get('dlvl')), 0) < 4), None)  # a silent unknown wand (polymorph) zapped 379 times at molds turned one into a gargoyle that pinned Jev until it starved (T5526)
         if wand:  # walled in by floating eyes once for 13000 turns with an unknown wand in the pack
