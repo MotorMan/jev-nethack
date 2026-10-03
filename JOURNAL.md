@@ -3168,3 +3168,9 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Source:** zap.c `zappable`: a wand with 0 charges gives one last charge 1 time in 121 (`WAND_WREST_CHANCE`). On a miss, the game asks for no direction.
 - **Prevention:** When the hero is walled in and has an empty wand of teleportation, zap it until it wrests the last charge. That takes about 121 turns.
 - **Fix:** After 300 turns of searching on a level, an empty wand of teleportation gives a `wrest` option before `search_hidden`. The explore objective includes `wrest`.
+
+## NoModel run 20261002-203143: explored beside an owlbear (T6997)
+
+- **Cause:** On Dlvl 8 at XL 6, an owlbear came next to the hero at 66/66 HP. The hugger rule removed the attack, approach, rest and wait options, because Elbereth was offered. But the explore options stayed, and `explore_1` came first. The hero walked twice. The owlbear hit it, grabbed it, and crushed it. Elbereth fails when the hero is held ("cannot reach the floor"), and two unknown potions did not help.
+- **Prevention:** Engrave Elbereth before an owlbear or another hugger holds you. Do not walk next to one.
+- **Fix:** When Elbereth is offered next to a hugger, a unicorn or a much stronger monster, the explore, fetch, door, search and kick options are also removed.
