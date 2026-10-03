@@ -3148,3 +3148,10 @@ The wand of digging was empty. Engraving with it gave "The wand is too worn out 
 - **Cause:** On Dlvl 3 at XL 4 and AC 6, a pony, a leprechaun, a grid bug and a homunculus came near. At 26/52 HP the hero engraved Elbereth, then took `approach_` off the square on the next turn. It did this twice. The rule that keeps the hero on Elbereth fires only below half HP (`hp * 2 < hpmax`), and 26/52 is exactly half. A homunculus bite puts a hero without sleep resistance to sleep, and the monsters killed it while it slept.
 - **Prevention:** On a fresh Elbereth with monsters near and HP not high, stay and let HP recover.
 - **Fix:** The rule now fires below 60% of max HP.
+
+## NoModel run 20261002-201905: stoned by a cockatrice beside the upstairs (T10891)
+
+- **Cause:** The hero went down to Dlvl 10 and arrived on `<` next to a cockatrice, with 40/83 HP. On stairs the bot fights, and takes the stairs only below 40% HP, so the "go up" option was removed. The hero retreated twice into a corner, then had to melee. The cockatrice hissed and the hero started to turn to stone. The pack held no lizard corpse and no acidic corpse. The last prayer was 160 turns earlier, so the prayer did not cure the stoning.
+- **Source:** uhitm.c (`mhitm_ad_ston`): each cockatrice touch hit hisses 1 time in 3. Each hiss starts stoning 1 time in 10, or each time at new moon.
+- **Prevention:** Without a stoning cure, do not stay next to a cockatrice. Leave by the stairs, or walk away (it has speed 6).
+- **Fix:** A cockatrice or chickatrice within 2 squares counts as "strong" when the pack has no cure. That offers `flee_up`. On stairs, a cockatrice adjacent with no cure now gives `stair_hop` at once.
