@@ -1742,7 +1742,7 @@ class Bot:
         trap_i = max((i for i, t in enumerate(rec) if re.search(r'bear trap closes on your|caught in a bear trap', t)), default=-1)
         if trap_i > max((i for i, t in enumerate(rec) if 'wriggle free' in t), default=-1) and not any(m['dist'] <= 1 and not m['passive'] for m in hostiles):
             # hack.c trapmove: every diagonal move try frees a bear-trapped foot a step (orthogonal 1 in 5); searching never does. Searched 60 turns trapped 2 steps from '>', Weak -> Fainting, dead (T2566)
-            d = next((k for k in 'yubn' if snap.at(me[0] + DIRS[k][0], me[1] + DIRS[k][1]).ch in '.#<>{_' and (me[0] + DIRS[k][0], me[1] + DIRS[k][1]) not in [m['pos'] for m in hostiles]), None)
+            d = next((k for k in 'yubn' if (g := snap.at(me[0] + DIRS[k][0], me[1] + DIRS[k][1])) and g.ch in '.#<>{_' and (me[0] + DIRS[k][0], me[1] + DIRS[k][1]) not in [m['pos'] for m in hostiles]), None)
             if d:
                 opts = {k: v for k, v in opts.items() if k == 'pray' or k.startswith(('eat_', 'quaff_', 'attack_', 'throw_', 'zap_'))}
                 opts['escape_trap'] = ('Pull free of the bear trap', 'Your foot is caught in a bear trap. Each diagonal move attempt loosens it; searching or waiting never does.', lambda d=d: self.act_escape_trap(d))
