@@ -1770,7 +1770,7 @@ class Bot:
         turn_cur = s.get('turn', 0)
         if weapon and self.inventory and not any('weapon in' in it['text'] for it in self.inventory):
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You are fighting bare-handed.', lambda l=weapon['letter']: self.act_wield(l))}
-        elif not near and weapon and ('fail_' + weapon['letter'] not in self.run or turn_cur - self.run.get('fail_' + weapon['letter'], -10) > 3) and WEAPON_RANK.index(WEAPON.search(weapon['text'])[1]) < WEAPON_RANK.index('dagger') and any('weapon in' in it['text'] and (w := WEAPON.search(it['text'])) and w[1] in ('dagger', 'knife', 'club') and not re.search(r'(?<!un)cursed', it['text']) for it in self.inventory):
+        elif not near and weapon and ('fail_' + weapon['letter'] not in self.run or turn_cur - self.run.get('fail_' + weapon['letter'], -100) > 8) and WEAPON_RANK.index(WEAPON.search(weapon['text'])[1]) < WEAPON_RANK.index('dagger') and any('weapon in' in it['text'] and (w := WEAPON.search(it['text'])) and w[1] in ('dagger', 'knife', 'club') and not re.search(r'(?<!un)cursed', it['text']) for it in self.inventory):
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You fight with a small weapon (d4); this one hits much harder.', lambda l=weapon['letter']: self.act_wield(l))}  # T12820: d4 dagger at XL 7 with the spear stolen
         elif not near and (art := next((it for it in self.inventory if 'named' in it['text'] and WEAPON.search(it['text']) and 'weapon in' not in it['text'] and it['letter'] not in self.run['unwieldable']), None)):
             opts = {f"wield_{art['letter']}": (f"Wield {art['text']}", 'An artifact weapon beats anything else you carry.', lambda l=art['letter']: self.act_wield(l))}
@@ -3032,15 +3032,14 @@ class Bot:
 
     def act_wield(self, letter):
         self.t.send('w' + letter)
-        for _ in range(15):
+        for _ in range(10):
             lines = self.t.lines()
-            # Look for any yn prompt pattern
-            text = '\n'.join(lines)
-            if re.search(r'\[ynq?\]', text) or re.search(r'drop .* and wield\|wield .* in your other hand', text, re.I):
-                self.t.send('y')
-                continue
-            if '--More--' in text:
+            if any('--More--' in l for l in lines):
                 self.t.send('\r')
+                continue
+            # Any y/n prompt - NetHack uses [yn] style
+            if any('[' in l and 'y' in l.lower() and 'n' in l.lower() for l in lines):
+                self.t.send('y')
                 continue
             break
         self.observe()
