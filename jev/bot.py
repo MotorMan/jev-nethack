@@ -3031,14 +3031,18 @@ class Bot:
 
     def act_wield(self, letter):
         self.t.send('w' + letter)
-        for _ in range(6):
+        for _ in range(10):  # try a few times to handle prompts
             lines = self.t.lines()
-            if any(re.search(r'Wield .* instead\?|Wield .* in your other hand|drop .* and wield|two-handed|Two-handed|cannot wield.*other hand|Are you sure|wield.*drop', l, re.I) for l in lines):
+            # Check for any y/n prompt
+            has_yn = any(re.search(r'\[ynq?\]', l) for l in lines)
+            if has_yn:
                 self.t.send('y')
-            elif any('--More--' in l for l in lines):
+                continue
+            if any('--More--' in l for l in lines):
                 self.t.send('\r')
-            else:
-                break
+                continue
+            # No prompt, maybe done
+            break
         self.observe()
         self.read_inventory()
         if any('weapon in' in it['text'] and it['letter'] == letter for it in self.inventory):
