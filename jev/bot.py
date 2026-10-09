@@ -2043,9 +2043,12 @@ class Bot:
                 opts = {'stair_back': ('Go back and fight', f"You have healed to {s.get('hp')}/{s.get('hpmax')}. Go back to Dlvl {dance[0]} and fight from the stairs again.",
                                        lambda: (self.run.pop('stair_dance', None), self.act_keys(on, 'went back to fight'))[1])}
         recent = self.history[-12:]
-        if sum(h['choice'] == 'elbereth' for h in recent) >= 4 and len(recent) == 12 and s.get('hp', 0) <= recent[0].get('hp', 0):  # user: 'stop using elbereth so much': 100+ turns of re-engraving in a room corner while HP fell 61 -> 21 (T11430)
-            rest = {k: v for k, v in opts.items() if k != 'elbereth' and not v[0].startswith('Stay on Elbereth')}
-            opts = rest if any(k.startswith(('attack_', 'choke', 'upstairs', 'flee', 'retreat', 'zap_', 'throw_', 'quaff_', 'pray')) for k in rest) else opts  # it isn't working: fight, move or use an item instead
+        if sum(h['choice'] == 'elbereth' for h in recent) >= 4 and len(recent) == 12:
+            hp0 = recent[0].get('hp')
+            hp_cur = s.get('hp')
+            if hp0 is not None and hp_cur is not None and hp_cur <= hp0:  # user: 'stop using elbereth so much': 100+ turns of re-engraving in a room corner while HP fell 61 -> 21 (T11430)
+                rest = {k: v for k, v in opts.items() if k != 'elbereth' and not v[0].startswith('Stay on Elbereth')}
+                opts = rest if any(k.startswith(('attack_', 'choke', 'upstairs', 'flee', 'retreat', 'zap_', 'throw_', 'quaff_', 'pray')) for k in rest) else opts  # it isn't working: fight, move or use an item instead
         lamp = next((it for it in self.inventory if re.search(r'\b(lamp|lantern)\b', it['text']) and '(lit)' not in it['text']), None)
         if lamp and turn - self.run.get('lamp_turn', -999) > 500 and not any(m['dist'] <= 6 and not m['passive'] for m in hostiles):  # user: 'bot should turn on the lantern'. Unlit brass lantern in the dark Mines: 'nothing reachable' on Dlvl 4, 'too deep' on Dlvl 5, 300 decisions of wait/descend/ascend (NoModel run 200341, T3586-T4049)
             self.run['lamp_turn'] = turn  # once per 500 turns: an empty lamp stays unlit
