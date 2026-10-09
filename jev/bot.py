@@ -3031,7 +3031,7 @@ class Bot:
 
     def act_wield(self, letter):
         self.t.send('w' + letter)
-        if any(re.search(r'Wield .* instead\?', l) for l in self.t.lines()):
+        if any(re.search(r'Wield .* instead\?|Wield .* in your other hand|drop .* and wield', l, re.I) for l in self.t.lines()):
             self.t.send('y')
         self.observe()
         self.read_inventory()
