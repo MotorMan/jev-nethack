@@ -3032,13 +3032,14 @@ class Bot:
 
     def act_wield(self, letter):
         self.t.send('w' + letter)
-        for _ in range(10):
+        for _ in range(15):
             lines = self.t.lines()
-            has_yn = any(re.search(r'\[ynq?\]', l) for l in lines)
-            if has_yn:
+            # Look for any yn prompt pattern
+            text = '\n'.join(lines)
+            if re.search(r'\[ynq?\]', text) or re.search(r'drop .* and wield\|wield .* in your other hand', text, re.I):
                 self.t.send('y')
                 continue
-            if any('--More--' in l for l in lines):
+            if '--More--' in text:
                 self.t.send('\r')
                 continue
             break
