@@ -3031,8 +3031,14 @@ class Bot:
 
     def act_wield(self, letter):
         self.t.send('w' + letter)
-        if any(re.search(r'Wield .* instead\?|Wield .* in your other hand|drop .* and wield', l, re.I) for l in self.t.lines()):
-            self.t.send('y')
+        for _ in range(6):
+            lines = self.t.lines()
+            if any(re.search(r'Wield .* instead\?|Wield .* in your other hand|drop .* and wield|two-handed|Two-handed|cannot wield.*other hand|Are you sure|wield.*drop', l, re.I) for l in lines):
+                self.t.send('y')
+            elif any('--More--' in l for l in lines):
+                self.t.send('\r')
+            else:
+                break
         self.observe()
         self.read_inventory()
         if any('weapon in' in it['text'] and it['letter'] == letter for it in self.inventory):
@@ -3041,7 +3047,6 @@ class Bot:
         if item_letter:
             self.run.setdefault('unwieldable', set()).add(item_letter)
         return 'could not wield it'
-
     def act_dig(self, letter, d='>'):
         weapon = next((it['letter'] for it in self.inventory if 'weapon in' in it['text'] and it['letter'] != letter), None)
         dl = self.snap.status.get('dlvl')
@@ -3063,7 +3068,6 @@ class Bot:
             self.observe()
         self.read_inventory()
         return f'dug through to Dlvl {new}' if new != dl else 'dug' if d != '>' else 'dug but did not fall through (interrupted?)'
-
     def act_kick_door(self, spot, door):
         r = self.act_go(spot)
         if self.snap.me != spot:
