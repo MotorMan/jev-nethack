@@ -1767,9 +1767,10 @@ class Bot:
         # never a known-cursed one (welded: a cursed orcish dagger over an uncursed dagger, killed by an ogre T4539); known-safe first at equal rank
         weapon = min((it for it in self.inventory if WEAPON.search(it['text']) and not re.search(r'(?<!un)cursed', it['text']) and it['letter'] not in self.run.setdefault('unwieldable', set())),
                      key=lambda it: (WEAPON_RANK.index(WEAPON.search(it['text'])[1]), not re.search(r'uncursed|blessed', it['text'])), default=None)
+        turn_cur = s.get('turn', 0)
         if weapon and self.inventory and not any('weapon in' in it['text'] for it in self.inventory):
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You are fighting bare-handed.', lambda l=weapon['letter']: self.act_wield(l))}
-        elif not near and weapon and WEAPON_RANK.index(WEAPON.search(weapon['text'])[1]) < WEAPON_RANK.index('dagger') and any('weapon in' in it['text'] and (w := WEAPON.search(it['text'])) and w[1] in ('dagger', 'knife', 'club') and not re.search(r'(?<!un)cursed', it['text']) for it in self.inventory):
+        elif not near and weapon and ('fail_' + weapon['letter'] not in self.run or turn_cur - self.run.get('fail_' + weapon['letter'], -10) > 3) and WEAPON_RANK.index(WEAPON.search(weapon['text'])[1]) < WEAPON_RANK.index('dagger') and any('weapon in' in it['text'] and (w := WEAPON.search(it['text'])) and w[1] in ('dagger', 'knife', 'club') and not re.search(r'(?<!un)cursed', it['text']) for it in self.inventory):
             opts = {f"wield_{weapon['letter']}": (f"Wield {weapon['text']}", 'You fight with a small weapon (d4); this one hits much harder.', lambda l=weapon['letter']: self.act_wield(l))}  # T12820: d4 dagger at XL 7 with the spear stolen
         elif not near and (art := next((it for it in self.inventory if 'named' in it['text'] and WEAPON.search(it['text']) and 'weapon in' not in it['text'] and it['letter'] not in self.run['unwieldable']), None)):
             opts = {f"wield_{art['letter']}": (f"Wield {art['text']}", 'An artifact weapon beats anything else you carry.', lambda l=art['letter']: self.act_wield(l))}
@@ -3031,9 +3032,8 @@ class Bot:
 
     def act_wield(self, letter):
         self.t.send('w' + letter)
-        for _ in range(10):  # try a few times to handle prompts
+        for _ in range(10):
             lines = self.t.lines()
-            # Check for any y/n prompt
             has_yn = any(re.search(r'\[ynq?\]', l) for l in lines)
             if has_yn:
                 self.t.send('y')
@@ -3041,7 +3041,6 @@ class Bot:
             if any('--More--' in l for l in lines):
                 self.t.send('\r')
                 continue
-            # No prompt, maybe done
             break
         self.observe()
         self.read_inventory()
@@ -3050,6 +3049,8 @@ class Bot:
         item_letter = next((it['letter'] for it in self.inventory if it['letter'] == letter), None)
         if item_letter:
             self.run.setdefault('unwieldable', set()).add(item_letter)
+            turn = self.snap.status.get('turn', 0)
+            self.run['fail_' + item_letter] = turn
         return 'could not wield it'
     def act_dig(self, letter, d='>'):
         weapon = next((it['letter'] for it in self.inventory if 'weapon in' in it['text'] and it['letter'] != letter), None)
