@@ -907,7 +907,7 @@ class Bot:
                 p = ups_near[0]
                 if bare:
                     opts = {k: v for k, v in opts.items() if not k.startswith(('attack_', 'approach_', 'explore'))}
-                opts['flee_up'] = ('Run for the upstairs', f"The up staircase is {dist[p]} steps {compass(me, p)}: walk there and climb. Only monsters right next to you follow.", lambda p=p: self.flee_up(lambda: self.act_descend(p, '<', stop_new=False)))  # fleeing: 'a monster came into view' stopped it twice 2 steps from '<' with a quasit, Grey-elf and elf zombie on it, 24 -> 0 (T10457)
+                opts['flee_up'] = ('Run for the upstairs', f"The up staircase is {dist.get(p, 0)} steps {compass(me, p)}: walk there and climb. Only monsters right next to you follow.", lambda p=p: self.flee_up(lambda: self.act_descend(p, '<', stop_new=False)))  # fleeing: 'a monster came into view' stopped it twice 2 steps from '<' with a quasit, Grey-elf and elf zombie on it, 24 -> 0 (T10457)
             if snap.lines[me[1]] and self.standing_on() == '<' and s.get('dlvl', 1) > 1:
                 opts['upstairs'] = ('Flee up the stairs', 'Climb the up staircase you are standing on; adjacent monsters may follow.', lambda: self.flee_up(lambda: self.act_keys('<', 'went up')))
             if self.standing_on() == '>' and (danger or strong or pack or duo) and 'upstairs' not in opts and 'flee_up' not in opts:
@@ -1089,7 +1089,7 @@ class Bot:
             fresh = [p for p, t0 in lv.corpses.items() if p != me and p in dist and s.get('turn', 0) - t0 < 35 and dist[p] < 15]
             if fresh and not (here and s.get('turn', 0) - lv.corpses.get(me, -10**6) < 50) and not shop:  # a stale pony corpse underfoot hid a fresh shrieker 1 step north: Hungry -> Fainting, dead (T3571)
                 p = min(fresh, key=dist.get)
-                opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.", lambda p=p: self.act_goto_corpse(p))
+                opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist.get(p, 0)} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.", lambda p=p: self.act_goto_corpse(p))
         if s.get('hunger') != 'Satiated' and not shop:
             here = [i for i in self.here_items() if 'corpse' in i and not any(n in i for n in self.never_eat())]
             age = s.get('turn', 0) - lv.corpses.get(me, -10**6)  # a corpse we did not see appear is of unknown age: treat as rotten
@@ -1102,7 +1102,7 @@ class Bot:
             # user: not Satiated and the corpse is safe: eat it. A newt in view blocked most meals (10 games: ~10 eaten, 5-8 hunger prayers each)
             if fresh and 'eat_corpse' not in opts and not [m for m in near if 'much weaker' not in self.threat(m)] and 'goto_corpse' not in opts:  # (T3571)
                 p = min(fresh, key=dist.get)
-                opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist[p]} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.{why}", lambda p=p: self.act_goto_corpse(p))
+                opts['goto_corpse'] = ('Go eat the fresh corpse', f"Walk {dist.get(p, 0)} steps {compass(me, p)} to a corpse that appeared recently and eat it if it is safe.{why}", lambda p=p: self.act_goto_corpse(p))
         ew = next((it for it in self.inventory if re.search(r'\bwand\b', it['text']) and not re.search(r'wand (of|called)', it['text']) and it['text'] not in self.run.setdefault('etested', set())), None)
         if ew and not hostiles and not LOW_HP(s) and s.get('hunger') not in ('Weak', 'Fainting') and 'Blind' not in s.get('conditions', []) and self.standing_on() not in ('<', '>', '_', '{', '#') and not self.soko():
             # wiki (Engrave-identification): digging, fire and lightning auto-identify; 3 unknown wands rode to a lightning death on Dlvl 10 with no '<' known (T5319)
@@ -1266,7 +1266,7 @@ class Bot:
                          and dist[p] + 2 * cheb(p, lawful[0]) < 40 - (s.get('turn', 0) - t0)]
                 if cands:
                     p, t0 = min(cands, key=lambda c: dist[c[0]])
-                    opts['carry'] = ('Carry the fresh corpse to the altar', f"Walk {dist[p]} steps {compass(me, p)}, pick up the corpse and offer it at Tyr's altar before it gets too old.", lambda p=p, t0=t0: self.act_carry(p, t0))
+                    opts['carry'] = ('Carry the fresh corpse to the altar', f"Walk {dist.get(p, 0)} steps {compass(me, p)}, pick up the corpse and offer it at Tyr's altar before it gets too old.", lambda p=p, t0=t0: self.act_carry(p, t0))
         if not near and {'altar', 'buc', 'offer', 'carry'} & opts.keys():
             opts = {k: v for k, v in opts.items() if k in ('altar', 'buc', 'offer', 'carry', 'pray') or k.startswith('eat')}
         if any('stop damaging' in t for t in self.run['recent']):
@@ -1579,7 +1579,7 @@ class Bot:
         elif not m and len(ups) >= 2 and not self.run.get('soko_done') and not near and hp >= 0.7 * hpmax and (s.get('turn') or 0) - self.run.get('unicorn_left', -999) > 300:
             p = max(ups, key=lambda u: cheb(u, lv.arrival or me))
             opts = {k2: v for k2, v in opts.items() if k2 == 'pray' or k2.startswith('eat_')}
-            opts['enter_sokoban'] = ('Go up into Sokoban', f"This level has a second up staircase ({dist[p]} steps {compass(me, p)}): it leads to Sokoban, four puzzle levels with a known solution, safe food, rings, wands and a bag of holding or amulet of reflection at the top.", lambda p=p: self.act_descend(p, '<'))
+            opts['enter_sokoban'] = ('Go up into Sokoban', f"This level has a second up staircase ({dist.get(p, 0)} steps {compass(me, p)}): it leads to Sokoban, four puzzle levels with a known solution, safe food, rings, wands and a bag of holding or amulet of reflection at the top.", lambda p=p: self.act_descend(p, '<'))
         nexit = (downs[0], '>') if downs and s.get('dlvl', 1) <= (s.get('xl') or 1) else (ups[0], '<') if ups and s.get('dlvl', 1) > 1 else None  # XL3 on Dlvl 4: '>' was past pace, so Jev stayed 2000 turns while one wood nymph took 12 items incl. shield and spear, then died bare-handed (T3162)
         # the nymph itself counted as 'near': leave offered 4 times in 83 decisions, 39 waits on Elbereth while one wood nymph took darts, shield, sling, spear, scroll and potions; bare-handed at AC 10, a kitten killed Jev (T3361)
         nonymph = [x for x in near if 'nymph' not in x['name']]
