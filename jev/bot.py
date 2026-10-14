@@ -3324,20 +3324,86 @@ class Bot:
         while not self.stop:
             self.new_run()
             self.phase = 'starting'
-            self.t = self.launcher()
             try:
                 self.t = self.launcher()
                 self.t.pump(3)
+            except OSError as e:  # e.g. the system ran out of pty devices: record, wait and retry instead of killing the play thread
+                self.run['ended'] = self.runs[-1]['ended'] = now()
+                self._save_runs()
+                self.log(f'failed to start NetHack: {e}', 'error')
+                time.sleep(5)
+                continue
+            self.observe()
+            if any('welcome back' in l for l in self.snap.lines + [m['text'] for m in self.messages[-5:]]):  # restored save: keep the prayer clock
+                try:
+                    t = json.load(open(os.path.join(self.home, 'prayer.json')))['prayed_turn']
+                    # messages outlive games, so an old 'welcome back' can match: a prayer from the future is another game's
+                    self.run['prayed_turn'] = t if t is not None and t <= (self.snap.status.get('turn') or 0) else None
+                except (OSError, ValueError, KeyError):
+                    pass
+                if len(self.runs) > 1 and not self.runs[-2]['ended']:  # same game, new server: one record, listing every engine that played it
+                    prev = self.runs.pop(-2)
+                    self.run.update(id=prev['id'], started=prev['started'], models=prev['models'] + [m for m in self.run['models'] if m not in prev['models']])
+                    try:
+                        os.rmdir(self.run_dir)  # nothing written there yet
+                    except OSError:
+                        pass
+                    self.run_dir = os.path.join(self.home, prev['id'])
+                    self.run['decisions'] = sum(1 for _ in open(os.path.join(self.run_dir, 'decisions.jsonl'))) if os.path.exists(os.path.join(self.run_dir, 'decisions.jsonl')) else 0
+                    self.runs[-1] = {k: self.run[k] for k in ('id', 'started', 'ended', 'character', 'turns', 'max_dlvl', 'death', 'score', 'engine', 'models')}
+                    self._save_runs()
+            self.read_inventory()
+            while self.t.alive and not self.stop:
+                if self.paused and not self.step_once:
+                    self.phase = 'paused'
+                    self.touch()
+                    time.sleep(0.1)
+                    continue
+                self.step_once = False
                 self.observe()
-            except OSError as e:
-                self.log(f'failed to start NetHack: {e}', 'error')
-                time.sleep(5)
-                continue
-                time.sleep(5)
-                continue
-                self.log(f'failed to start NetHack: {e}', 'error')
-                time.sleep(5)
-                continue
-                time.sleep(5)
-                continue
-                continue
+                if not self.t.alive:
+                    break
+                if self.snap.me is None and any('Logged in as' in l for l in self.snap.lines):
+                    break  # hardfought: game over, back at the dgamelaunch menu
+                if self.snap.me is None:
+                    self.log('cannot find the hero on screen; Esc + redraw', 'warn')
+                    self.t.send('\x1b')
+                    self.t.send('\x12')  # ^R: repaints if our emulated screen drifted (e.g. scrolled)
+                    time.sleep(0.2)
+                    continue
+                self.t.gap = self.delay_ms / 1000  # per action, not per decision; public servers add Term.floor on top (see REMOTE_GAP in hardfought.py)
+                try:
+                    self.decide()
+                except RuntimeError as e:
+                    self.log(str(e), 'error')
+                    self.paused = True
+                if self.run.pop('enhance', False):
+                    self.enhance()
+                if self.run['decisions'] % 25 == 0 or self.run.pop('inv_stale', False):
+                    self.read_inventory()
+            self.phase = 'dead'
+            self.t.close()
+            if self.fresh and self.mode == 'local':  # else SELF_RECOVER resumes the old game from its level/save files
+                for f in glob.glob(os.path.join(ROOT, 'nethack', 'lib', '*Jev.*')) + glob.glob(os.path.join(ROOT, 'nethack', 'lib', 'save', '*')):
+                    os.remove(f)
+            self.fresh = False
+            self.end_run()
+            self.touch()
+            time.sleep(3)
+
+    def state(self):
+        t, snap = self.t, self.snap
+        with self.lock:
+            return dict(
+                mode=self.mode, paused=self.paused, phase=self.phase, delay_ms=self.delay_ms, order=self.order,
+                screen=dict(rows=t.runs() if t else [], cursor=list(t.cursor()) if t else [0, 0], cols=80, lines=24),
+                status=snap.status if snap else {'conditions': []},
+                decision=self.decision, history=list(self.history), messages=list(self.messages), log=list(self.logs),
+                jev=self.jev.summary(),
+                run=dict(id=self.run['id'], started=self.run['started'], character=self.run['character'],
+                         max_dlvl=self.run['max_dlvl'], decisions=self.run['decisions'], engine=self.run['engine'], models=self.run['models']) if self.run else None,
+                runs=list(self.runs), inventory=list(self.inventory), plan=plan.view(self) if snap and self.run else None,
+                level=dict(dlvl=snap.status.get('dlvl', 0), explored=min(1.0, sum(1 for l in snap.lines[MAP_TOP:MAP_BOT + 1] for c in l if c != ' ') / 700),  # ponytail: ~700 drawn cells is a typical fully seen level
+                           edges=self.run.get('edges'), downstairs=bool(snap.find('>')), upstairs=bool(snap.find('<')),
+                           notes=[[k if isinstance(k, int) else f'{k[0]} {k[1]}', ', '.join(sorted(v.notes))] for k, v in sorted(self.run['levels'].items(), key=str) if v.notes]) if snap and self.run else None,
+            )
