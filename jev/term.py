@@ -12,8 +12,8 @@ import os, select, signal, time
 COLS, LINES = 80, 24
 
 class Term:
+    def __init__(self, argv, env=None, idle=0.04, floor=0.0):
         self.gap, self.last = 0.0, 0.0
-        self.floor = floor
         self.idle = idle
         self.screen = pyte.Screen(COLS, LINES)
         self.stream = pyte.ByteStream(self.screen)
