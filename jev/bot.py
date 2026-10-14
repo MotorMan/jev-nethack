@@ -3333,6 +3333,8 @@ class Bot:
                 self.log(f'failed to start NetHack: {e}', 'error')
                 time.sleep(5)
                 continue
+                time.sleep(5)
+                continue
                 self.log(f'failed to start NetHack: {e}', 'error')
                 time.sleep(5)
                 continue
