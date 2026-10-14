@@ -1,5 +1,9 @@
 """Play on hardfought.org: log in through dgamelaunch and start NetHack 5.0.
-
+try:
+    import paramiko
+except Exception:
+    paramiko = None
+import os, re, select, socket, time
 Transport is the site's web terminal (wss://, via jev.wsbridge) because port 22 is often firewalled;
 set HARDFOUGHT_SSH=1 to use ssh instead. One-time setup: paste jev/nethackrc into the NetHack 5.0 rc
 at https://www.hardfought.org/nethack/rcedit/ (the bot relies on number_pad:0, menustyle:full, etc).
