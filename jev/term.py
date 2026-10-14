@@ -11,17 +11,15 @@ class Term:
         self.floor = floor  # hard minimum gap that the UI delay cannot lower: public servers (HF, NAO) need it, local play is 0 (unlimited)
         self.idle = idle  # seconds of silence that mean "the game is waiting for input"
         self.screen = pyte.Screen(COLS, LINES)
-        self.stream = pyte.ByteStream(self.screen)
-        env = dict(os.environ, **(env or {}), TERM='xterm-256color', LINES=str(LINES), COLUMNS=str(COLS))
-        self.pid, self.fd = pty.fork()
+        self.alive = True
+        self._closed = False
         if self.pid == 0:
             os.execvpe(argv[0], argv, env)
         import fcntl, struct, termios
         fcntl.ioctl(self.fd, termios.TIOCSWINSZ, struct.pack('HHHH', LINES, COLS, 0, 0))
         self.alive = True
-
-    def pump(self, timeout=5.0):
-        """Read until output has been quiet for `idle` seconds (or timeout). Returns bytes read."""
+        self._closed = False
+        self.alive = True
         end, last, n = time.time() + timeout, time.time(), 0
         while self.alive and time.time() < end:
             r, _, _ = select.select([self.fd], [], [], self.idle)
@@ -79,9 +77,15 @@ class Term:
                     row.append(cur)
             out.append(row)
         return out
-
     def close(self):
-        """SIGHUP (NetHack saves on hangup), then SIGKILL if it lingers."""
+        if getattr(self, '_closed', False):
+            self.alive = False
+            try:
+                os.close(self.fd)
+            except OSError:
+                pass
+            return
+        self._closed = True
         for sig in (signal.SIGHUP, signal.SIGKILL):
             try:
                 os.kill(self.pid, sig)
@@ -91,11 +95,19 @@ class Term:
                 try:
                     if os.waitpid(self.pid, os.WNOHANG)[0]:
                         break
-                except ChildProcessError:  # already reaped by another thread's close()
+                except ChildProcessError:
                     break
                 time.sleep(0.1)
             else:
                 continue
             self.alive = False
+            try:
+                os.close(self.fd)
+            except OSError:
+                pass
             return
         self.alive = False
+        try:
+            os.close(self.fd)
+        except OSError:
+            pass
